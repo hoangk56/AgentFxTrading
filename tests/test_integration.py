@@ -473,6 +473,22 @@ def test_breakout_distance_limits_resolver():
     assert resolve_breakout_limits("BTCUSD", None) == (37500.0, 130000.0)
     # Model 1 window must stay tighter than the Model 2 (retest) window
     assert MODEL1_ENTRY_WINDOW_BARS < MAX_BARS_SINCE_BREAKOUT_MODEL2
+def test_model1_entry_window_matches_the_cbot_parameter_default():
+    """MODEL1_ENTRY_WINDOW_BARS and the cBot's MaxBarsAfterBreakout default must agree.
+
+    The prompt quotes the server constant while the cBot computes `in_entry_window` from
+    its own parameter, so a drift silently tells the LLM a Model 1 window the bot does not
+    use. Both files carry a "keep in sync" comment; this enforces it.
+    """
+    import re
+    from app.server import MODEL1_ENTRY_WINDOW_BARS
+
+    source = (root / "cBot" / "AiAgentBot.cs").read_text(encoding="utf-8")
+    match = re.search(
+        r'\[Parameter\("Max Bars After Breakout"[^\]]*DefaultValue\s*=\s*(\d+)', source
+    )
+    assert match, "MaxBarsAfterBreakout parameter declaration not found in cBot/AiAgentBot.cs"
+    assert int(match.group(1)) == MODEL1_ENTRY_WINDOW_BARS
 def test_format_price_and_prompt_precision():
     from app.server import format_price, build_judas_sweep_user_prompt, MarketSnapshot, BarData, StrategyData
     assert format_price(1.35034, "GBPUSD") == "1.35034"
