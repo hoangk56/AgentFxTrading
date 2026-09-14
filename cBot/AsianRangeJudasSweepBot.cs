@@ -473,6 +473,8 @@ namespace cAlgo.Robots
         private string _traditionalSignal   = "NONE"; // "EMA_CROSS_BUY", "EMA_CROSS_SELL", "NONE"
         private int    _barsSinceCross      = 0;      // bars elapsed since last EMA cross
         private int    _lastCrossBarIndex   = -1;     // bar index of most recent cross
+        private DateTime _lastCrossBarTime  = DateTime.MinValue; // open time of that cross bar (an index taken in an older series is not reusable)
+        private const  int CrossSignalWindowBars = 3; // a sweep signal stays actionable for this many bars
         #endregion
 
         #region Robot Events
@@ -551,6 +553,7 @@ namespace cAlgo.Robots
                     _allowedAiDirection = "BUY";
                     _traditionalSignal  = sweepSignal;
                     _lastCrossBarIndex  = Bars.Count - 1;
+                    _lastCrossBarTime   = Bars[Bars.Count - 1].OpenTime;
                     _barsSinceCross     = 0;
                 }
                 else if (rawSell && !rawBuy)
@@ -558,12 +561,27 @@ namespace cAlgo.Robots
                     _allowedAiDirection = "SELL";
                     _traditionalSignal  = sweepSignal;
                     _lastCrossBarIndex  = Bars.Count - 1;
+                    _lastCrossBarTime   = Bars[Bars.Count - 1].OpenTime;
                     _barsSinceCross     = 0;
                 }
                 else if (_lastCrossBarIndex >= 0)
                 {
-                    _barsSinceCross = Bars.Count - 1 - _lastCrossBarIndex;
-                    if (_barsSinceCross > 3)
+                    // The bar series can be re-published on a broker reconnect, so an index taken in a
+                    // previous series is not reusable: it yielded a negative _barsSinceCross, which passed
+                    // the `<= CrossSignalWindowBars` freshness gate below and fed a negative
+                    // signal_window_bars to the AI. Re-anchor on the cross bar's open time, and drop the
+                    // signal when that bar is no longer in the series.
+                    if (_lastCrossBarIndex < Bars.Count && Bars[_lastCrossBarIndex].OpenTime == _lastCrossBarTime)
+                    {
+                        _barsSinceCross = Bars.Count - 1 - _lastCrossBarIndex;
+                    }
+                    else
+                    {
+                        _lastCrossBarIndex = -1;
+                        _barsSinceCross    = CrossSignalWindowBars + 1;
+                    }
+
+                    if (_barsSinceCross > CrossSignalWindowBars)
                     {
                         _allowedAiDirection = "NONE";
                         _traditionalSignal  = "NONE";
@@ -613,7 +631,7 @@ namespace cAlgo.Robots
                 {
                     bool hasOpenPos   = Positions.FindAll(label, SymbolName).Length > 0;
                     // Gate Mode: call AI only when sweep signal is fresh (<=3 bars) AND direction is BUY or SELL, OR when managing open positions
-                    bool gateOpen     = UseAiGateMode && _barsSinceCross <= 3 && (_allowedAiDirection == "BUY" || _allowedAiDirection == "SELL");
+                    bool gateOpen     = UseAiGateMode && _barsSinceCross <= CrossSignalWindowBars && (_allowedAiDirection == "BUY" || _allowedAiDirection == "SELL");
                     bool shouldCallAi = !UseAiGateMode || gateOpen || (UseAiGateMode && hasOpenPos);
 
                     if (shouldCallAi)

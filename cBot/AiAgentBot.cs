@@ -342,6 +342,7 @@ namespace cAlgo.Robots
         private IndicatorDataSeries _rawK, _kSeries, _dSeries;
         private double _avgGain, _avgLoss, _gainSum, _lossSum;
         private int _lastProcessedIndex = -1;
+        private DateTime _lastProcessedBarTime = DateTime.MinValue;
 
         // ---- TMS Signal Tracking ----
         private int _lastCrossBar = -1;
@@ -453,9 +454,27 @@ namespace cAlgo.Robots
             try
             {
                 int index = Bars.Count - 1;
-                if (index <= _lastProcessedIndex) return;
+                if (index < 0) return;
 
-                for (int i = _lastProcessedIndex + 1; i <= index; i++)
+                // A broker reconnect can re-publish the bar series: it may come back shorter, or as a
+                // rolling window whose Count stops growing. An absolute index then no longer points at
+                // the bar that was processed last, and the old `index <= _lastProcessedIndex` guard
+                // returned silently for the rest of the session (2026-09-14: every TMS bot froze after
+                // the Sunday reconnect while its container stayed healthy and logged in). Anchor "the
+                // last processed bar" on the bar's open time instead of on a numeric index.
+                var newestBarTime = Bars[index].OpenTime;
+                if (_lastProcessedIndex >= 0 && newestBarTime == _lastProcessedBarTime) return;
+
+                int replayFrom = _lastProcessedIndex + 1;
+                if (replayFrom > index)
+                {
+                    // Re-published / shorter series: rebuild the indicator state from bar 0, exactly the
+                    // path a fresh start takes. This is what lets a wedged bot recover on the next bar.
+                    if (ShowLogs) Print($"[BarSeries] Series re-published (Count={Bars.Count}, lastProcessed={_lastProcessedIndex}). Rebuilding indicators from bar 0.");
+                    replayFrom = 0;
+                }
+
+                for (int i = replayFrom; i <= index; i++)
                 {
                     UpdateHeikinAshi(i);
                     UpdateTdi(i);
@@ -463,6 +482,7 @@ namespace cAlgo.Robots
                     UpdateOrb(i);
                 }
                 _lastProcessedIndex = index;
+                _lastProcessedBarTime = newestBarTime;
 
                 if (index < 2) return;
 
