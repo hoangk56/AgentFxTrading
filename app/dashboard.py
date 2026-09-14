@@ -19,6 +19,49 @@ from app.leaderboard import compute_bot_leaderboard
 import logging
 from app import news_service
 
+
+def _age_seconds(ts: Optional[float]) -> Optional[float]:
+    """Seconds elapsed since `ts` (epoch), for surfacing how stale a bot figure is."""
+    if ts is None:
+        return None
+    try:
+        return round(datetime.now(timezone.utc).timestamp() - float(ts), 1)
+    except (TypeError, ValueError):
+        return None
+
+
+def _attach_live_metrics(pos: Dict, bot_report: Optional[Dict], price_info: Optional[Dict]) -> None:
+    """Add the live-ish fields of an open position, in place.
+
+    `bot_report` is the last position payload that bot sent (None until it reports again after
+    a restart) and `price_info` the last cached quote for the symbol. Both arrive once per bar
+    close, so each field carries its age instead of posing as current.
+
+    Unrealized P&L is passed through exactly as the broker reported it and is NEVER
+    reconstructed here: converting a price move into account currency needs the broker's pip
+    and contract sizes plus an FX rate for non-USD instruments, and the previous per-symbol
+    table got UK100's pip size 10x too large (cTrader reports pipSize 0.1, the table used 1.0).
+    Missing reads as None so the UI can say so rather than print a guess.
+    """
+    side = (pos.get("side") or "BUY").upper()
+    entry_price = float(pos.get("entry_price") or 0.0)
+
+    current_price = None
+    if price_info:
+        current_price = price_info.get("bid") if side == "BUY" else price_info.get("ask")
+
+    pos["current_price"] = current_price if current_price is not None else entry_price
+    pos["price_age_seconds"] = _age_seconds(price_info.get("ts")) if price_info else None
+
+    if bot_report and bot_report.get("unrealized_pnl") is not None:
+        pos["unrealized_pnl"] = round(bot_report["unrealized_pnl"], 2)
+        pos["unrealized_pnl_pips"] = round(bot_report.get("unrealized_pnl_pips", 0.0), 1)
+        pos["pnl_age_seconds"] = _age_seconds(bot_report.get("_reported_at"))
+    else:
+        pos["unrealized_pnl"] = None
+        pos["unrealized_pnl_pips"] = None
+        pos["pnl_age_seconds"] = None
+
 logger = logging.getLogger(__name__)
 
 router = APIRouter()
@@ -172,49 +215,11 @@ def get_active_positions(account_id: str = "all") -> List[Dict]:
     finally:
         conn.close()
     pm = get_portfolio_manager()
+    cache = getattr(pm, "_bot_positions_cache", {}) if hasattr(pm, "_bot_positions_cache") else {}
     for pos in positions:
-        symbol = pos.get("symbol", "")
-        side = (pos.get("side") or "BUY").upper()
-        entry_price = float(pos.get("entry_price") or 0.0)
-        volume = float(pos.get("volume") or 0.01)
-        bot_id = pos.get("bot_id")
-
-        acc_id = pos.get("account_id")
-        cache = getattr(pm, "_bot_positions_cache", {}) if hasattr(pm, "_bot_positions_cache") else {}
-        bot_pos = cache.get(f"{acc_id}:{bot_id}") or cache.get(bot_id)
-        price_info = pm.get_latest_price(symbol) if hasattr(pm, "get_latest_price") else None
-        
-        current_price = None
-        if price_info:
-            current_price = price_info.get("bid") if side == "BUY" else price_info.get("ask")
-            
-        pos["current_price"] = current_price if current_price is not None else entry_price
-        
-        if bot_pos and bot_pos.get("unrealized_pnl") is not None:
-            pos["unrealized_pnl"] = round(bot_pos["unrealized_pnl"], 2)
-            pos["unrealized_pnl_pips"] = round(bot_pos.get("unrealized_pnl_pips", 0.0), 1)
-        elif current_price and entry_price:
-            diff = (current_price - entry_price) if side == "BUY" else (entry_price - current_price)
-            if "JPY" in symbol:
-                pip_size = 0.01
-                multiplier = 6.3
-            elif "XAU" in symbol or "GOLD" in symbol:
-                pip_size = 0.1
-                multiplier = 10.0
-            elif any(k in symbol for k in ("US30", "USTEC", "DE40", "GER40", "NAS100", "UK100", "GB100")):
-                pip_size = 1.0
-                multiplier = 1.0
-            else:
-                pip_size = 0.0001
-                multiplier = 10.0
-                
-            pnl_pips = diff / pip_size
-            unrealized_pnl = round(pnl_pips * volume * multiplier, 2)
-            pos["unrealized_pnl"] = unrealized_pnl
-            pos["unrealized_pnl_pips"] = round(pnl_pips, 1)
-        else:
-            pos["unrealized_pnl"] = 0.0
-            pos["unrealized_pnl_pips"] = 0.0
+        price_info = pm.get_latest_price(pos.get("symbol", "")) if hasattr(pm, "get_latest_price") else None
+        bot_report = cache.get(f"{pos.get('account_id')}:{pos.get('bot_id')}") or cache.get(pos.get("bot_id"))
+        _attach_live_metrics(pos, bot_report, price_info)
 
     return positions
 

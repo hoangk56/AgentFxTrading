@@ -1,4 +1,5 @@
 import sys
+import time
 from pathlib import Path
 from fastapi.testclient import TestClient
 
@@ -38,6 +39,50 @@ def test_ui_endpoints():
     assert resp_dec.status_code == 200
     data_dec = resp_dec.json()
     assert isinstance(data_dec, list)
+
+
+def _position():
+    return {
+        "bot_id": "uk100_m15",
+        "symbol": "UK100",
+        "side": "BUY",
+        "volume": 0.1,
+        "entry_price": 10727.6,
+        "account_id": "live-6094347",
+    }
+
+
+def test_pnl_is_broker_reported_and_never_reconstructed():
+    """Unrealized P&L comes from the broker only.
+
+    The server cannot convert a price move into account currency (UK100 is GBP-denominated,
+    cTrader reports pipSize 0.1 while a former per-symbol table used 1.0), so when the bot has
+    not reported, the field must read as missing instead of being invented.
+    """
+    from app.dashboard import _attach_live_metrics
+
+    # Broker report present -> passed through untouched, with its age
+    pos = _position()
+    _attach_live_metrics(pos, {"unrealized_pnl": -0.12, "unrealized_pnl_pips": -9.0, "_reported_at": time.time() - 30},
+                         {"bid": 10726.7, "ask": 10727.7, "ts": time.time() - 30})
+    assert pos["unrealized_pnl"] == -0.12
+    assert pos["unrealized_pnl_pips"] == -9.0
+    assert 25 <= pos["pnl_age_seconds"] <= 40
+    assert 25 <= pos["price_age_seconds"] <= 40
+    assert pos["current_price"] == 10726.7  # BUY marks to the bid
+
+    # No broker report -> nothing invented, even though price and entry are both known
+    pos = _position()
+    _attach_live_metrics(pos, None, {"bid": 10726.7, "ask": 10727.7, "ts": time.time()})
+    assert pos["unrealized_pnl"] is None
+    assert pos["unrealized_pnl_pips"] is None
+    assert pos["pnl_age_seconds"] is None
+
+    # No quote yet -> falls back to the entry price and reports no age
+    pos = _position()
+    _attach_live_metrics(pos, None, None)
+    assert pos["current_price"] == 10727.6
+    assert pos["price_age_seconds"] is None
 
     resp_dec_filtered = client.get("/api/dashboard/latest-decisions?limit=3&symbol=EURUSD")
     assert resp_dec_filtered.status_code == 200

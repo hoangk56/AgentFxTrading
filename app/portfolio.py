@@ -419,12 +419,16 @@ class PortfolioManager:
         self._latest_prices[symbol] = {
             "bid": bid,
             "ask": ask,
-            "time": datetime.now().isoformat()
+            "time": datetime.now().isoformat(),
+            "ts": datetime.now(timezone.utc).timestamp()
         }
         if bot_id and position_data:
-            self._bot_positions_cache[bot_id] = position_data
+            # Stamp the report: price and P&L only arrive with a bot snapshot, so consumers
+            # need the age to avoid presenting a stale figure as a live one.
+            reported = dict(position_data, _reported_at=datetime.now(timezone.utc).timestamp())
+            self._bot_positions_cache[bot_id] = reported
             if account_id:
-                self._bot_positions_cache[f"{account_id}:{bot_id}"] = position_data
+                self._bot_positions_cache[f"{account_id}:{bot_id}"] = reported
 
     def get_latest_price(self, symbol: str) -> Optional[Dict]:
         """Get cached latest price for symbol."""

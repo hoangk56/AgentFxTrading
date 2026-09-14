@@ -227,14 +227,18 @@
                                         </td>
                                         <td>{{ pos.volume }}L</td>
                                         <td class="td-mono">{{ pos.entry_price }}</td>
-                                        <td class="td-mono td-current-price">{{ pos.current_price or pos.entry_price }}</td>
+                                        <td class="td-mono td-current-price">{{ pos.current_price or pos.entry_price }}{% if pos.price_age_seconds is not none %}<span class="td-dim" title="price from the bot's last snapshot"> ·{{ (pos.price_age_seconds // 60) | int }}m</span>{% endif %}</td>
                                         <td class="td-dim td-sltp">{{ pos.sl_pips }}p / {{ pos.tp_pips }}p</td>
                                         <td class="td-pnl-live">
-                                            {% set u_pnl = pos.unrealized_pnl | default(0) %}
+                                            {% if pos.unrealized_pnl is none %}
+                                            <span class="td-dim" title="broker-reported P&L arrives with the bot's next snapshot">—</span>
+                                            {% else %}
+                                            {% set u_pnl = pos.unrealized_pnl %}
                                             {% set u_pips = pos.unrealized_pnl_pips | default(0) %}
                                             <span class="pnl-chip {% if u_pnl >= 0 %}pnl-chip--profit{% else %}pnl-chip--loss{% endif %}">
                                                 {% if u_pnl > 0 %}+{% endif %}${{ u_pnl }} ({% if u_pips > 0 %}+{% endif %}{{ u_pips }}p)
                                             </span>
+                                            {% endif %}
                                         </td>
                                         <td class="td-dim">{{ pos.entry_time }}</td>
                                     </tr>
@@ -1300,6 +1304,11 @@
                     const pnlSign = uPnl > 0 ? '+' : '';
                     const pipsSign = uPips > 0 ? '+' : '';
                     const curPrice = (p.current_price !== undefined && p.current_price !== null) ? p.current_price : p.entry_price;
+                    const priceAge = (typeof p.price_age_seconds === 'number') ? `<span class="td-dim" title="price from the bot's last snapshot"> ·${Math.floor(p.price_age_seconds/60)}m</span>` : '';
+                    // Only the broker's own figure is shown; a missing one reads as "—" rather than a guess.
+                    const pnlCell = (p.unrealized_pnl === null || p.unrealized_pnl === undefined)
+                        ? `<span class="td-dim" title="broker-reported P&L arrives with the bot's next snapshot">—</span>`
+                        : `<span class="pnl-chip ${pnlChipClass}">${pnlSign}$${uPnl.toFixed(2)} (${pipsSign}${uPips.toFixed(1)}p)</span>`;
                     
                     return `<tr>
                         <td class="col-account account-cell ${ah}">${accountBadge(p.account_type)}<span class="account-name">${p.account_label||''}</span></td>
@@ -1308,9 +1317,9 @@
                         <td>${sideChip(p.side)}</td>
                         <td>${p.volume}L</td>
                         <td class="td-mono">${p.entry_price}</td>
-                        <td class="td-mono td-current-price">${curPrice}</td>
+                        <td class="td-mono td-current-price">${curPrice}${priceAge}</td>
                         <td class="td-dim td-sltp">${p.sl_pips}p / ${p.tp_pips}p</td>
-                        <td class="td-pnl-live"><span class="pnl-chip ${pnlChipClass}">${pnlSign}$${uPnl.toFixed(2)} (${pipsSign}${uPips.toFixed(1)}p)</span></td>
+                        <td class="td-pnl-live">${pnlCell}</td>
                         <td class="td-dim">${p.entry_time}</td>
                     </tr>`;
                 }).join('');
