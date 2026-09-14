@@ -159,7 +159,8 @@ GET  /api/dashboard/positions  # Lista de posições ativas abertas (JSON)
 GET  /api/dashboard/history    # Histórico de ordens fechadas (JSON)
 GET  /api/dashboard/pnl-history # Histórico diário de P&L (JSON)
 GET  /api/dashboard/logs       # Fluxo de logs em tempo real (JSON)
-POST /api/tick                 # Telemetria de cotação e saldo dos cBots
+POST /api/tick                 # Telemetria de cotação e saldo dos cBots (fallback HTTP)
+WS   /ws/cbot                  # Fluxo de ticks dos cBots: bid/ask + P&L do broker (--TickStreamMs, 0=off)
 POST /api/cbot_event           # Telemetria de eventos e bloqueios dos cBots
 POST /portfolio/report         # Relatório de ciclo de vida de ordens
 WS   /ws/dashboard             # Transmissão WebSocket em tempo real

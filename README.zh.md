@@ -149,7 +149,8 @@ GET  /api/dashboard/positions  # 活动开仓头寸列表 (JSON)
 GET  /api/dashboard/history    # 已平仓交易历史 (JSON)
 GET  /api/dashboard/pnl-history # 每日P&L历史记录 (JSON)
 GET  /api/dashboard/logs       # 系统实时日志流 (JSON)
-POST /api/tick                 # cBot报价与净值遥测
+POST /api/tick                 # cBot报价与净值遥测（HTTP备用）
+WS   /ws/cbot                  # cBot行情推送：bid/ask＋券商盈亏（--TickStreamMs，0=关闭）
 POST /api/cbot_event           # cBot拦截事件与警告遥测
 POST /portfolio/report         # 头寸开平仓状态汇报
 WS   /ws/dashboard             # 实时WebSocket更新通道

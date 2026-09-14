@@ -170,7 +170,8 @@ GET  /api/dashboard/history    # Closed trade history (supports ?account_id=demo
 GET  /api/dashboard/pnl-history# Daily P&L history (supports ?account_id=demo|live|all|<id>)
 GET  /api/dashboard/logs       # Server & agent reasoning logs (supports ?mode=demo|live|all)
 GET  /api/bots                 # Docker bot configurations & statuses (with account_type)
-POST /api/tick                 # Direct tick telemetry from cBots
+POST /api/tick                 # Direct tick telemetry from cBots (HTTP fallback)
+WS   /ws/cbot                  # cBot tick stream: bid/ask + broker P&L (--TickStreamMs, 0=off)
 POST /api/cbot_event           # cBot guardrail blocks & event telemetry
 POST /portfolio/report         # Position open/close lifecycle reporting
 WS   /ws/dashboard             # WebSocket for real-time dashboard updates

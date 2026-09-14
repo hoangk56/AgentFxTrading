@@ -159,7 +159,8 @@ GET  /api/dashboard/positions  # 保有ポジション一覧 (JSON)
 GET  /api/dashboard/history    # 決済済み取引履歴 (JSON)
 GET  /api/dashboard/pnl-history # 日次P&L履歴 (JSON)
 GET  /api/dashboard/logs       # システムリアルタイムログ (JSON)
-POST /api/tick                 # cBotレート・残高テレメトリ
+POST /api/tick                 # cBotレート・残高テレメトリ（HTTPフォールバック）
+WS   /ws/cbot                  # cBotティック配信：bid/ask＋ブローカーP&L（--TickStreamMs、0で無効）
 POST /api/cbot_event           # cBotガードレール警告・ブロック通知
 POST /portfolio/report         # ポジション開始・決済レポート
 WS   /ws/dashboard             # リアルタイムWebSocket配信

@@ -167,7 +167,8 @@ GET  /api/dashboard/history    # Lịch sử lệnh đã đóng (hỗ trợ ?acc
 GET  /api/dashboard/pnl-history# Lịch sử P&L theo ngày (hỗ trợ ?account_id=demo|live|all|<id>)
 GET  /api/dashboard/logs       # Log hệ thống & reasoning (hỗ trợ ?mode=demo|live|all)
 GET  /api/bots                 # Cấu hình bot Docker & trạng thái (kèm account_type)
-POST /api/tick                 # Telemetry giá & số dư từ cBot
+POST /api/tick                 # Telemetry giá & số dư từ cBot (dự phòng qua HTTP)
+WS   /ws/cbot                  # Luồng tick từ cBot: bid/ask + P&L broker (--TickStreamMs, 0=tắt)
 POST /api/cbot_event           # Telemetry sự kiện & cảnh báo guardrail từ cBot
 POST /portfolio/report         # Báo cáo vòng đời mở/đóng lệnh từ cBot
 WS   /ws/dashboard             # Luồng WebSocket thời gian thực

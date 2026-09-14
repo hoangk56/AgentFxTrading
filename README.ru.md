@@ -159,7 +159,8 @@ GET  /api/dashboard/positions  # Активные открытые позици�
 GET  /api/dashboard/history    # История закрытых сделок (JSON)
 GET  /api/dashboard/pnl-history # История P&L по дням (JSON)
 GET  /api/dashboard/logs       # Логи системы в реальном времени (JSON)
-POST /api/tick                 # Телеметрия котировок и эквити от cBot
+POST /api/tick                 # Телеметрия котировок и эквити от cBot (резервный HTTP)
+WS   /ws/cbot                  # Поток тиков от cBot: bid/ask + P&L брокера (--TickStreamMs, 0=выкл)
 POST /api/cbot_event           # Телеметрия событий и блокировок гвардрейлов
 POST /portfolio/report         # Отчетность открытия/закрытия позиций
 WS   /ws/dashboard             # Поток WebSocket в реальном времени
