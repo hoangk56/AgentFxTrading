@@ -2290,6 +2290,12 @@ namespace cAlgo.Robots
             public double asian_high { get; set; }
             public double asian_low { get; set; }
             public double asian_range_pips { get; set; }
+            // Structural invalidation state (Judas Structural Guard): a decisive M15 close
+            // beyond a boundary locks that sweep side for the rest of the Asian session.
+            public bool asian_low_broken { get; set; }
+            public bool asian_high_broken { get; set; }
+            // Exact broker pip scale so the server harmonizes pip<->price without guessing.
+            public double pip_size { get; set; }
             public string killzone_session { get; set; } = "NONE";
             // Gate context fields (pre-filter → AI alignment)
             public string bias_direction     { get; set; } = "NONE";
@@ -3006,6 +3012,9 @@ Reply strictly with JSON object.";
                     asian_high = _asianHigh,
                     asian_low = _asianLow,
                     asian_range_pips = _asianRangePips,
+                    asian_low_broken = _asianLowBroken,
+                    asian_high_broken = _asianHighBroken,
+                    pip_size = Symbol.PipSize,
                     killzone_session = _activeKillzone,
                     bias_direction = (!string.IsNullOrEmpty(allowedDirection) && allowedDirection != "NONE") ? allowedDirection : _allowedAiDirection,
                     traditional_signal = _traditionalSignal,
@@ -3382,6 +3391,30 @@ Reply strictly with JSON object.";
 
         private DateTime _lastTickTelemetryTime = DateTime.MinValue;
 
+        /// <summary>
+        /// Surfaces a decision that died at a cBot guardrail on the dashboard/event feed.
+        /// Without this the server log shows an unopposed AI BUY/SELL that never reached the broker.
+        /// </summary>
+        private async Task ReportGuardrailBlockedAsync(string guardrailName, string details)
+        {
+            try
+            {
+                if (_httpClient == null || string.IsNullOrWhiteSpace(ApiUrl)) return;
+                var payload = new
+                {
+                    bot_id = BotId,
+                    account_number = Account.Number.ToString(),
+                    event_type = "GUARDRAIL_BLOCKED",
+                    message = $"[{guardrailName}] {details}"
+                };
+                var json = JsonSerializer.Serialize(payload);
+                var content = new StringContent(json, Encoding.UTF8, "application/json");
+                string eventUrl = ApiUrl.Replace("/trade", "/api/cbot_event");
+                await _httpClient.PostAsync(eventUrl, content);
+            }
+            catch { }
+        }
+
         // ==========================================
         // LIVE TICK STREAM (/ws/cbot)
         // ==========================================
@@ -3653,12 +3686,14 @@ Reply strictly with JSON object.";
                 if ((action == "BUY" || action == "SELL") && IsNewsPauseActive(out string activeNews))
                 {
                     Print($"[News Shield] Blocked {action} entry on {SymbolName} due to active High Impact news: {activeNews}");
+                    _ = ReportGuardrailBlockedAsync("News Shield", $"{action} entry blocked on {SymbolName}: active high-impact news {activeNews}");
                     return;
                 }
                 // Confidence Threshold Guardrail for BUY/SELL
                 if ((action == "BUY" || action == "SELL") && decision.confidence < AiConfidenceThreshold)
                 {
                     Print($"[Guardrail Blocked] Action {action} rejected: Confidence {decision.confidence:F1}% < {AiConfidenceThreshold:F1}% threshold.");
+                    _ = ReportGuardrailBlockedAsync("Confidence Threshold", $"{action} rejected: confidence {decision.confidence:F1}% < {AiConfidenceThreshold:F1}% threshold");
                     return;
                 }
 
@@ -3672,18 +3707,21 @@ Reply strictly with JSON object.";
                     {
                         Print($"[Judas Session Guard] {action} blocked: {boundaryName} sweep already traded once this Asian session ({_asianSessionDate:yyyy-MM-dd}). One Judas sweep per boundary per session.");
                         _ = SendTelegramAlertAsync($"⚠️ <b>[Judas Session Guard]</b>\n{action} blocked on {SymbolName}: {boundaryName} sweep already traded this Asian session. Repeat sweep of same liquidity level prevented.");
+                        _ = ReportGuardrailBlockedAsync("Judas Session Guard", $"{action} blocked: {boundaryName} sweep already traded this Asian session ({_asianSessionDate:yyyy-MM-dd}).");
                         return;
                     }
                     if (IsSweepSideLocked(candidate))
                     {
                         Print($"[Judas Structural Guard] {action} blocked: {boundaryName} was broken by a decisive close this session (breakout day, mean-reversion invalidated).");
                         _ = SendTelegramAlertAsync($"🛑 <b>[Judas Structural Guard]</b>\n{action} blocked on {SymbolName}: {boundaryName} already broken this session. No counter-trend sweep entry.");
+                        _ = ReportGuardrailBlockedAsync("Judas Structural Guard", $"{action} blocked: {boundaryName} broken by a decisive M15 close this session (breakout day, mean-reversion invalidated).");
                         return;
                     }
                     if (IsEntryTooExtended(candidate, out string extDetail))
                     {
                         Print($"[Judas Entry Guard] {action} blocked: entry too extended from swept level - {extDetail}. Wait for a pullback closer to {boundaryName}.");
                         _ = SendTelegramAlertAsync($"⚠️ <b>[Judas Entry Guard]</b>\n{action} blocked on {SymbolName}: {extDetail}.\nEntry skipped to avoid chasing the rejection bounce.");
+                        _ = ReportGuardrailBlockedAsync("Judas Entry Guard", $"{action} blocked: {extDetail}.");
                         return;
                     }
                 }

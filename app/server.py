@@ -327,6 +327,13 @@ class StrategyData(BaseModel):
     asian_high: float = 0.0
     asian_low: float = 0.0
     asian_range_pips: float = 0.0
+    # Structural invalidation state mirrored from the cBot's Judas Structural Guard:
+    # a decisive M15 close beyond the boundary turns the sweep level into a breakout
+    # level, so the mean-reversion side is dead for the rest of the Asian session.
+    asian_low_broken: bool = False
+    asian_high_broken: bool = False
+    # Exact Symbol.PipSize from the cBot; 0.0 means an older bot that omitted it.
+    pip_size: float = 0.0
     killzone_session: str = "NONE"
     bias_direction: str = "NONE"
     traditional_signal: str = "NONE"
@@ -445,6 +452,21 @@ def is_judas_sweep_bot(snapshot: MarketSnapshot) -> bool:
         return True
     bot_name = (snapshot.bot_id or "").lower()
     return "judas" in bot_name or "asian" in bot_name or "sweep" in bot_name
+
+def _pip_size_for_symbol(sym_up: str) -> float:
+    """
+    Fallback pip scale per asset class.
+
+    Broker digit conventions for indices/commodities vary, so the authoritative value is the
+    Symbol.PipSize the cBot reports in the snapshot; this table only covers bots that omit it.
+    Verified against live Asian ranges: USTEC 0.1, UK100 0.1, XAUUSD 0.01, GBPUSD 0.0001.
+    """
+    if any(idx in sym_up for idx in ["US30", "USTEC", "DE40", "NAS100", "DJ30", "GER40", "UK100", "GB100"]):
+        return 0.1
+    if any(k in sym_up for k in ["BTC", "ETH", "XAU", "GOLD", "JPY"]):
+        return 0.01
+    return 0.0001
+
 def format_price(price: Optional[float], symbol: str) -> str:
     """Format price dynamically according to symbol asset class and decimal convention."""
     if price is None:
@@ -744,6 +766,30 @@ def evaluate_judas_sweep_gate(snapshot: MarketSnapshot, account_id: Optional[str
                 symbol=snapshot.symbol,
                 timeframe=snapshot.timeframe
             )
+
+        # Gate 2b: Structural invalidation. The cBot's Judas Structural Guard locks a sweep
+        # side once an M15 bar closes decisively beyond the Asian boundary; the level is then
+        # a breakout level, not a sweep level, so mean-reversion entries are dead for the
+        # session. Mirrored here so the LLM is never asked for a trade the cBot must reject.
+        if strat.bias_direction in ("BUY", "SELL"):
+            broken = strat.asian_low_broken if strat.bias_direction == "BUY" else strat.asian_high_broken
+            if broken:
+                boundary = "Asian Low" if strat.bias_direction == "BUY" else "Asian High"
+                return AgentDecision(
+                    action="HOLD",
+                    volume_lots=0.01,
+                    sl_pips=0.0,
+                    tp_pips=0.0,
+                    confidence=90.0,
+                    reason=(
+                        f"Judas Sweep Gate: {boundary} was broken by a decisive M15 close this session "
+                        f"(breakout day, mean-reversion invalidated). {strat.bias_direction} sweep side locked by the cBot Structural Guard."
+                    ),
+                    request_id=snapshot.request_id,
+                    bot_id=snapshot.bot_id,
+                    symbol=snapshot.symbol,
+                    timeframe=snapshot.timeframe
+                )
 
         # Gate 3: Stale Sweep Signal (> 3 bars since Judas Sweep occurred)
         if strat.signal_window_bars > 3:
@@ -1251,6 +1297,17 @@ def build_judas_sweep_user_prompt(snapshot: MarketSnapshot) -> str:
         if lines:
             mtf_summary = "\n".join(lines)
 
+    # Mirror of the cBot Judas Structural Guard. A decisive M15 close beyond a boundary
+    # converts the sweep level into a breakout level: the mean-reversion side is dead.
+    if strat.asian_low_broken and strat.asian_high_broken:
+        structural_note = "BOTH Asian boundaries decisively broken -> breakout day, all sweep entries LOCKED. Output 'HOLD'."
+    elif strat.asian_low_broken:
+        structural_note = "Asian Low decisively broken (M15 close) -> BUY sweep side LOCKED, mean-reversion long invalidated."
+    elif strat.asian_high_broken:
+        structural_note = "Asian High decisively broken (M15 close) -> SELL sweep side LOCKED, mean-reversion short invalidated."
+    else:
+        structural_note = "Both Asian boundaries intact (sweep entries permitted)."
+
     if not has_open_pos:
         return f"""You are a World-Class Institutional Forex Specialist & Quantitative Trader using SMART MONEY CONCEPTS (SMC) & Asian Range Judas Sweep.
 
@@ -1267,11 +1324,13 @@ The cBot currently HAS NO OPEN POSITIONS. Your mission is to analyze the Asian R
 - Active Killzone Window: {strat.killzone_session}
 - Gate Signal Trigger: {strat.traditional_signal} (Bias: {strat.bias_direction})
 - Bars Since Sweep: {strat.signal_window_bars} bar(s)
+- Structural State: {structural_note}
 ⚠️ CONSTRAINT:
   - Gate=BUY -> Price swept Asian Low & rejected back up. You MAY ONLY suggest 'BUY' or 'HOLD'. NEVER 'SELL'.
   - Gate=SELL -> Price swept Asian High & rejected back down. You MAY ONLY suggest 'SELL' or 'HOLD'. NEVER 'BUY'.
   - Gate=MANAGE_ONLY -> Do NOT open new positions. Only 'ADJUST', 'HOLD', or 'CLOSE_ALL'.
   - Bars Since Sweep > 3 -> Signal is STALE. Strongly prefer 'HOLD'.
+  - A LOCKED sweep side -> The boundary was already broken on a decisive M15 close. The Judas mean-reversion thesis is dead for this session; output 'HOLD'. NEVER propose an entry against a locked side.
   - volume_lots -> Always output 0. Volume is controlled by the cBot risk engine.
 
 === 3. MULTI-TIMEFRAME TREND BIAS (M15 + H1 + H4) ===
@@ -1354,6 +1413,7 @@ The cBot currently HAS OPEN POSITIONS in the order book. Your PRIMARY MISSION is
 - Gate Direction: {strat.bias_direction}
 - Signal Type: {strat.traditional_signal}
 - Bars Since Cross: {strat.signal_window_bars} bar(s)
+- Structural State: {structural_note}
 ⚠️ CONSTRAINT:
   - Gate=MANAGE_ONLY → Focus on managing existing positions. Do NOT open new ones.
   - volume_lots → Always output 0. Volume is controlled by the cBot risk engine.
@@ -1535,10 +1595,20 @@ async def trade_decision(snapshot: MarketSnapshot):
         kz_str = strat.killzone_session if strat else "N/A"
         bias_str = f"{strat.bias_direction} ({strat.traditional_signal})" if strat else "N/A"
         pos_str = f"{snapshot.position.resolved_side} pnl=${snapshot.position.resolved_pnl:.2f}" if snapshot.position else "FLAT"
-        
+        # The cBot's Judas Structural Guard state, so a blocked-looking BUY is explainable
+        # from the server log alone instead of requiring the container logs.
+        locked = []
+        if strat and strat.asian_low_broken:
+            locked.append("Low->BUY_LOCKED")
+        if strat and strat.asian_high_broken:
+            locked.append("High->SELL_LOCKED")
+        lock_str = ",".join(locked) if locked else "none"
+        pip_str = f"{strat.pip_size:g}" if strat and strat.pip_size > 0 else "n/a"
+
         logger.info(
             f"[SNAPSHOT SMC] {account_id}/{snapshot.bot_id} | {snapshot.symbol} {snapshot.timeframe} | "
-            f"Bid={snapshot.bid:g} Ask={snapshot.ask:g} | {asian_str} | KZ={kz_str} | Gate={bias_str} | Pos={pos_str}"
+            f"Bid={snapshot.bid:g} Ask={snapshot.ask:g} | {asian_str} | Locked={lock_str} | PipSize={pip_str} | "
+            f"KZ={kz_str} | Gate={bias_str} | Pos={pos_str}"
         )
 
         # SMC Judas Sweep Gate Evaluation
@@ -1640,8 +1710,33 @@ async def trade_decision(snapshot: MarketSnapshot):
         if is_judas:
             action_val = str(decision_dict.get("action", "HOLD")).upper()
             sym_up = (snapshot.symbol or "").upper()
-            pip_size = 0.01 if (any(c in sym_up for c in ["BTC", "ETH", "XAU", "GOLD", "JPY"])) else 0.0001
+            pip_size = (
+                snapshot.strategy.pip_size
+                if snapshot.strategy and snapshot.strategy.pip_size > 0
+                else _pip_size_for_symbol(sym_up)
+            )
             entry_ref = snapshot.ask if action_val == "BUY" else snapshot.bid
+
+            # Structural Guard mirror: never forward an entry against a boundary the cBot's
+            # Judas Structural Guard already locked (decisive M15 close beyond it). Without
+            # this the server logs a confident BUY that the cBot silently discards.
+            if snapshot.strategy and action_val in ("BUY", "SELL"):
+                locked = (
+                    snapshot.strategy.asian_low_broken if action_val == "BUY"
+                    else snapshot.strategy.asian_high_broken
+                )
+                if locked:
+                    boundary = "Asian Low" if action_val == "BUY" else "Asian High"
+                    logger.warning(
+                        f"[{account_id}/{snapshot.bot_id}] [JUDAS STRUCTURAL GUARD] {action_val} blocked -> HOLD: "
+                        f"{boundary} already broken by a decisive M15 close this session."
+                    )
+                    decision_dict["action"] = "HOLD"
+                    decision_dict["reason"] = (
+                        f"[Structural Guard] {boundary} broken by a decisive M15 close this session. "
+                        f"Sweep side locked. {decision_dict.get('reason', '')}"
+                    )
+                    action_val = "HOLD"
 
             if action_val in ("BUY", "SELL"):
                 try:

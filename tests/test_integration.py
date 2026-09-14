@@ -812,6 +812,85 @@ def test_gold_min_decisive_breakout_gate():
     assert evaluate_cycle_gate(snap_decisive) is None
 
 
+def test_judas_locked_sweep_side_never_reaches_the_llm():
+    """
+    Reproduces 2026-09-14 14:46: the cBot's Judas Structural Guard had locked the BUY side
+    (Asian Low broken by a decisive M15 close) yet the server logged a confident BUY that
+    the cBot silently discarded. The gate must answer HOLD without spending an LLM call.
+    """
+    from app.accounts import get_account_registry
+
+    acct = f"100{uuid.uuid4().int % 1000000000}"
+    get_account_registry().upsert_from_bot(
+        account_number=acct, account_type="demo", label="Test-Demo",
+        balance=10000.0, equity=10000.0,
+    )
+    payload = {
+        "request_id": f"test_locked_{uuid.uuid4().hex[:8]}",
+        "bot_id": f"cbot-{uuid.uuid4().hex[:10]}-judas",
+        "symbol": "USTEC",
+        "timeframe": "Minute15",
+        "ask": 28975.30,
+        "bid": 28975.00,
+        "bars": [{"time": "2026-09-14T14:45:00Z", "open": 28960.0, "high": 28980.0,
+                  "low": 28950.0, "close": 28975.0, "volume": 1200.0}],
+        "strategy": {
+            "tema1": 28950.0, "tema2": 28900.0, "rsi": 55.0, "adx": 20.0, "atr": 90.0,
+            "recent_high": 29100.0, "recent_low": 28958.0,
+            "asian_high": 29064.50, "asian_low": 28971.40, "asian_range_pips": 931.0,
+            "asian_low_broken": True, "asian_high_broken": False, "pip_size": 0.1,
+            "killzone_session": "NY Open Killzone",
+            "bias_direction": "BUY", "traditional_signal": "JUDAS_SWEEP_BUY",
+            "signal_window_bars": 1,
+        },
+        "account_number": acct, "account_type": "demo", "account_label": "Test-Demo",
+        "account_balance": 10000.0, "account_equity": 10000.0,
+    }
+    llm = AsyncMock(return_value='{"action": "BUY", "volume_lots": 0.0, "sl_pips": 0, "tp_pips": 0, "confidence": 78.0, "reason": "JUDAS_SWEEP_BUY at Asian Low"}')
+    with patch.object(app.server.llm_client, "chat", new=llm):
+        data = client.post("/trade", json=payload).json()
+    assert data["action"] == "HOLD"
+    assert "broken by a decisive M15 close" in data["reason"]
+    assert llm.call_count == 0, "a locked sweep side must not consume an LLM call"
+
+def test_judas_harmonized_pips_use_the_cbot_pip_size():
+    """Index pip scale: USTEC prices are ~10^5 apart from the FX 0.0001 assumption."""
+    from app.accounts import get_account_registry
+
+    acct = f"100{uuid.uuid4().int % 1000000000}"
+    get_account_registry().upsert_from_bot(
+        account_number=acct, account_type="demo", label="Test-Demo",
+        balance=10000.0, equity=10000.0,
+    )
+    payload = {
+        "request_id": f"test_pip_{uuid.uuid4().hex[:8]}",
+        "bot_id": f"cbot-{uuid.uuid4().hex[:10]}-judas",
+        "symbol": "USTEC",
+        "timeframe": "Minute15",
+        "ask": 28975.30,
+        "bid": 28975.00,
+        "bars": [{"time": "2026-09-14T14:45:00Z", "open": 28960.0, "high": 28980.0,
+                  "low": 28950.0, "close": 28975.0, "volume": 1200.0}],
+        "strategy": {
+            "tema1": 28950.0, "tema2": 28900.0, "rsi": 55.0, "adx": 20.0, "atr": 90.0,
+            "recent_high": 29100.0, "recent_low": 28958.0,
+            "asian_high": 29064.50, "asian_low": 28971.40, "asian_range_pips": 931.0,
+            "pip_size": 0.1,
+            "killzone_session": "NY Open Killzone",
+            "bias_direction": "BUY", "traditional_signal": "JUDAS_SWEEP_BUY",
+            "signal_window_bars": 1,
+        },
+        "account_number": acct, "account_type": "demo", "account_label": "Test-Demo",
+        "account_balance": 10000.0, "account_equity": 10000.0,
+    }
+    # 250.0 USTEC points of SL at PipSize 0.1 is 2500 pips; the FX scale logged 2,516,000p.
+    llm = AsyncMock(return_value='{"action": "BUY", "volume_lots": 0.0, "sl_pips": 0, "tp_pips": 0, "new_sl_price": 28725.30, "new_tp_price": 29064.50, "confidence": 78.0, "reason": "JUDAS_SWEEP_BUY"}')
+    with patch.object(app.server.llm_client, "chat", new=llm):
+        data = client.post("/trade", json=payload).json()
+    assert data["action"] == "BUY"
+    assert abs(data["sl_pips"] - 2500.0) < 1.0, data["sl_pips"]
+    assert abs(data["tp_pips"] - 892.0) < 1.0, data["tp_pips"]
+
 def test_logging_isolation_flag():
     from app.server import is_running_under_test
     assert is_running_under_test() is True
