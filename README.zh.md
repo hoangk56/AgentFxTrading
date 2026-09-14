@@ -109,6 +109,16 @@ graph LR
     B --> I[(PostgreSQL<br/>Portfolio DB)]
 ```
 
+### 组件明细 (Component Breakdown)
+
+| 组件 | 技术 | 职责 |
+|-----------|-----------|----------------|
+| **cBot** | C# / cTrader | 计算指标，执行交易 |
+| **Server** | Python / FastAPI | AI决策制定，风险管理 |
+| **Database** | PostgreSQL / SQLite | 投资组合跟踪，持仓历史（生产环境使用 PostgreSQL，SQLite 备用） |
+| **LLM** | Multiple (多模型) | 交易决策分析 |
+
+
 ---
 
 ## 📊 仪表板 (Dashboard)
@@ -131,6 +141,16 @@ graph LR
 http://127.0.0.1:8000/dashboard
 ```
 
+### 访问仪表板 (Access Dashboard)
+
+启动服务器后，在浏览器中打开：
+
+| 模式 (Mode) | URL 路由 | 描述 |
+| :--- | :--- | :--- |
+| **Demo (模拟)** | `http://127.0.0.1:8000/demo/dashboard` *(或 `/demo`)* | 隔离的模拟交易 (Paper Trading) 仪表板与遥测数据 |
+| **Real / Live (实盘)** | `http://127.0.0.1:8000/real/dashboard` *(或 `/real`, `/live`)* | 隔离的实盘资金交易仪表板与执行遥测数据 |
+| **Auto-Redirect (自动重定向)** | `http://127.0.0.1:8000/` *(或 `/dashboard`)* | 自动路由至您上次活跃的模式（Demo 或 Real） |
+
 ### 仪表板功能
 
 - **实时更新**：基于WebSocket实时同步头寸与盈亏
@@ -143,17 +163,20 @@ http://127.0.0.1:8000/dashboard
 ### API接口
 
 ```
-GET  /dashboard                # Web仪表板前端界面
-GET  /api/dashboard/summary    # 投资组合KPI汇总数据 (JSON)
-GET  /api/dashboard/positions  # 活动开仓头寸列表 (JSON)
-GET  /api/dashboard/history    # 已平仓交易历史 (JSON)
-GET  /api/dashboard/pnl-history # 每日P&L历史记录 (JSON)
-GET  /api/dashboard/logs       # 系统实时日志流 (JSON)
-POST /api/tick                 # cBot报价与净值遥测（HTTP备用）
-WS   /ws/cbot                  # cBot行情推送：bid/ask＋券商盈亏（--TickStreamMs，0=关闭）
-POST /api/cbot_event           # cBot拦截事件与警告遥测
-POST /portfolio/report         # 头寸开平仓状态汇报
-WS   /ws/dashboard             # 实时WebSocket更新通道
+GET  /demo/dashboard           # 演示模式仪表板（隔离）
+GET  /real/dashboard           # 实盘/真仓仪表板（隔离）
+GET  /                         # 自动跳转到上次使用的模式
+GET  /dashboard                # 自动跳转到上次使用的模式
+GET  /api/dashboard/positions  # 当前持仓（支持 ?account_id=demo|live|all|<id>）
+GET  /api/dashboard/history    # 已平仓交易历史（支持 ?account_id=demo|live|all|<id>）
+GET  /api/dashboard/pnl-history# 每日盈亏历史（支持 ?account_id=demo|live|all|<id>）
+GET  /api/dashboard/logs       # 系统与代理日志（支持 ?mode=demo|live|all）
+GET  /api/bots                 # Docker 机器人配置与状态（含 account_type）
+POST /api/tick                 # cBot 直连行情遥测（HTTP 备用）
+WS   /ws/cbot                  # cBot 行情推送：bid/ask＋券商盈亏（--TickStreamMs，0=关闭）
+POST /api/cbot_event           # cBot 拦截事件与警告遥测
+POST /portfolio/report         # 持仓开平仓生命周期汇报
+WS   /ws/dashboard             # 仪表板实时更新 WebSocket
 ```
 ---
 
@@ -240,7 +263,21 @@ python app/server.py
      ghcr.io/spotware/ctrader-console:latest build /root/cAlgo/Sources/Robots/AsianRangeJudasSweepBot/AsianRangeJudasSweepBot/AsianRangeJudasSweepBot.csproj
    cp /root/cAlgo/Sources/Robots/AsianRangeJudasSweepBot.algo cBot/AsianRangeJudasSweepBot.algo
    ```
-3. **运行多品种 Docker 容器**:
+3. **多账户部署指南（同时运行模拟盘与实盘账户）**:
+
+   当将实盘账户机器人与模拟盘机器人一同部署时，请自定义命令行参数以防止冲突：
+   - **容器名称 (`--name`)**：在主机上必须唯一。使用 `cbot-live-<symbol>` 与 `cbot-demo-<symbol>` 进行区分。
+   - **账号 (`--account`)**：设置为您的真实 cTrader 实盘账号（例如 `88888888`）。
+   - **账户标签 (`--AccountLabel`)**：设置为 `"live"`（或 `"live-main"`）。cBot 发送此标签以标记交易并将数据路由至 `/real/dashboard`。
+   - **机器人标识符 (`--BotId`)**：使用不同的 ID，例如 `live_xauusd_m15` 与 `demo_xauusd_m15`。
+   - **风险管理**：为真实资金配置更严格的风险参数（例如 `--RiskPerTradePercent=0.1` 或 `0.2`）。
+   - **凭据文件 (`--pwd-file`)**：如果使用单独的 cTID，请挂载专用的密码文件（例如 `/root/ctrader_data/ctid_live_pwd`）。
+   - **环境配置 (`.env`)**：
+     ```bash
+     DASHBOARD_ACCOUNTS=demo-10101649|10101649|demo|Demo Account;live-88888888|88888888|live|Live Main
+     ```
+
+4. **运行多品种 Docker 容器**:
 
    * **XAUUSD 亚洲流动性猎杀 (M15 - ICT Judas Sweep)**:
      ```bash
@@ -273,6 +310,7 @@ python app/server.py
        --stoplossPip=200.0 \
        --takeprofitPip=450.0 \
        --enableBreakEvenPrice=true
+     ```
 
    * **GBPUSD 亚洲流动性猎杀 (M15 - ICT Judas Sweep)**:
      ```bash
@@ -470,6 +508,40 @@ python app/server.py
        --breakEvenTrigger=2000.0 \
        --stoplossPip=2000.0 \
        --takeprofitPip=5000.0 \
+       --enableBreakEvenPrice=true \
+       --riskFactor=0.2
+     ```
+
+   * **UK100 / GB100 Judas Sweep (M15 - 富时100 亚洲时段流动性猎杀)** *(注意：根据平台代码使用 `UK100` 或 `GB100`；在 cTrader 中 1 pip = 0.1 指数点)*:
+     ```bash
+     docker run -d \
+       --name cbot-uk100-judas \
+       --restart unless-stopped \
+       --network host \
+       -v $(pwd):/workspace \
+       -v /root:/root \
+       ghcr.io/spotware/ctrader-console:latest \
+       run /workspace/cBot/AsianRangeJudasSweepBot.algo \
+       --ctid=your_email@example.com \
+       --pwd-file=/root/ctrader_data/ctid_pwd \
+       --account=YOUR_ACCOUNT_ID \
+       --symbol=UK100 \
+       --period=m15 \
+       --full-access \
+       --BotId="cbot-uk100-judas" \
+       --label="cbot-uk100-judas" \
+       --DashboardServerUrl="http://127.0.0.1:8000" \
+       --ApiUrl="http://127.0.0.1:8000/trade" \
+       --AccountLabel="demo" \
+       --UseDirectAiApi=false \
+       --UseAiGateMode=true \
+       --minAsianRangePips=120.0 \
+       --maxAsianRangePips=800.0 \
+       --sweepBufferPips=30.0 \
+       --AiSlMinFloorPips=150.0 \
+       --breakEvenTrigger=200.0 \
+       --stoplossPip=150.0 \
+       --takeprofitPip=350.0 \
        --enableBreakEvenPrice=true \
        --riskFactor=0.2
      ```
@@ -1024,6 +1096,52 @@ python app/server.py
        --TrendTpDisabled=true
      ```
 
+   * **UK100 / GB100 (M15 - 伦敦时段 / 富时100)** *(注意：UK100 的 pip = 0.1 指数点，因此 pips 参数约为 DE40 的 0.36 倍)*:
+     ```bash
+     docker run -d \
+       --name cbot-uk100 \
+       --restart unless-stopped \
+       --network host \
+       -v $(pwd):/workspace \
+       -v /root:/root \
+       ghcr.io/spotware/ctrader-console:latest \
+       run /workspace/cBot/AiAgentBot.algo \
+       --ctid=your_email@example.com \
+       --pwd-file=/root/ctrader_data/ctid_pwd \
+       --account=YOUR_ACCOUNT_ID \
+       --symbol=UK100 \
+       --period=m15 \
+       --full-access \
+       --BotId="uk100_m15" \
+       --ApiUrl="http://127.0.0.1:8000/trade" \
+       --AccountLabel="demo" \
+       --TmsTimeFrame="Hour" \
+       --EmaPeriod=5 \
+       --SessionName="london" \
+       --OrbStartHour=8 \
+       --SessionEndHour=16 \
+       --SessionDstRule="Europe" \
+       --MinDecisiveBreakoutPips=25.0 \
+       --MinOrWidthPips=120.0 \
+       --OrbBufferPips=15.0 \
+       --BreakevenTriggerAtr=0.8 \
+       --BreakevenOffsetAtr=0.1 \
+       --TrailTriggerAtr=1.2 \
+       --TrailDistanceAtr=0.7 \
+       --PartialCloseRatio=0.5 \
+       --MinSlAtr=1.5 \
+       --MaxSlAtr=4.5 \
+       --MinTpAtr=2.0 \
+       --MaxTpAtr=8.0 \
+       --MaxGivebackAtr=0.6 \
+       --EnablePostTpGate=true \
+       --PostTpPullbackAtr=0.5 \
+       --BounceTradeEnabled=true \
+       --BounceDistanceThreshold=1.5 \
+       --RiskPerTradePercent=0.2 \
+       --TrendTpDisabled=true
+     ```
+
 ### 5. 开始交易！🎉
 
 机器人将自动：
@@ -1334,16 +1452,28 @@ class PortfolioConfig:
   "bot_id": "eurusd_bot",
   "symbol": "EURUSD",
   "timeframe": "M15",
+  "ask": 1.0850,
+  "bid": 1.0848,
+  "bars": [
+    {"ha_color": "Green", "tdi_green": 55.2, "tdi_red": 52.1, "stoch_k": 75.0, "stoch_d": 70.0},
+    {"ha_color": "Green", "tdi_green": 54.8, "tdi_red": 51.9, "stoch_k": 72.0, "stoch_d": 68.0},
+    {"ha_color": "Red", "tdi_green": 53.5, "tdi_red": 52.5, "stoch_k": 65.0, "stoch_d": 62.0}
+  ],
   "tms": {
     "bias": "BULLISH",
+    "bars_since_cross": 2,
     "long_entry": true,
+    "short_entry": false,
     "green_tf_value": 55.2,
     "green_tf_slope": 0.4
   },
   "orb": {
+    "or_high": 1.0845,
+    "or_low": 1.0830,
     "breakout_direction": "up",
     "breakout_distance_pips": 5.0,
-    "is_decisive": true
+    "is_decisive": true,
+    "bars_since_breakout": 1
   },
   "position": null,
   "session": {
@@ -1367,6 +1497,20 @@ class PortfolioConfig:
 ### POST /portfolio/report
 
 报告头寸变化以进行投资组合追踪。
+
+```json
+{
+  "bot_id": "eurusd_bot",
+  "action": "open",
+  "symbol": "EURUSD",
+  "side": "BUY",
+  "volume": 0.01,
+  "entry_price": 1.0850,
+  "sl_pips": 10.0,
+  "tp_pips": 20.0
+}
+```
+
 
 ### GET /portfolio/status
 
@@ -1402,8 +1546,28 @@ AgentFxTrading/
 
 ### 添加新的LLM Provider
 
-1. 在`app/llm_client.py`中创建新类
-2. 更新`create_llm_client()`
+1. 在`app/llm_client.py`中创建新类：
+
+```python
+class NewProviderClient(LLMClient):
+    def __init__(self, api_key: str, model: str):
+        # Initialize client
+        pass
+    
+    async def chat(self, messages: List[Dict[str, str]], **kwargs) -> str:
+        # Implement chat logic
+        pass
+```
+
+2. 更新`create_llm_client()`：
+
+```python
+elif provider == "newprovider":
+    return NewProviderClient(
+        api_key=os.getenv("NEWPROVIDER_API_KEY"),
+        model=os.getenv("LLM_MODEL")
+    )
+```
 
 ### 改进提示
 
@@ -1459,6 +1623,13 @@ AgentFxTrading/
 4. **提交PR** 🔧 - 代码贡献
 5. **改进文档** 📚 - 文档改进
 6. **分享结果** 📈 - 分享您的回测/实盘结果
+
+### 开发指南 (Development Guidelines)
+
+- 遵循现有的代码规范
+- 为新功能编写测试
+- 更新相关文档
+- 保持 PR 聚焦且体量精简
 
 ### 社区
 

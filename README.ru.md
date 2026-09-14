@@ -141,6 +141,16 @@ graph LR
 http://127.0.0.1:8000/dashboard
 ```
 
+### Доступ к Dashboard
+
+После запуска сервера откройте браузер:
+
+| Режим | URL-маршрут | Описание |
+| :--- | :--- | :--- |
+| **Demo** | `http://127.0.0.1:8000/demo/dashboard` *(или `/demo`)* | Изолированный дашборд для демо-торговли (Paper Trading) и телеметрия |
+| **Real / Live** | `http://127.0.0.1:8000/real/dashboard` *(или `/real`, `/live`)* | Изолированный дашборд для торговли на реальные деньги и телеметрия исполнения |
+| **Auto-Redirect** | `http://127.0.0.1:8000/` *(или `/dashboard`)* | Автоматическое перенаправление на последний активный режим (Demo или Real) |
+
 ### Возможности Dashboard
 
 - **Обновления в Реальном Времени**: Двусторонний WebSocket для мгновенной синхронизации позиций
@@ -153,17 +163,20 @@ http://127.0.0.1:8000/dashboard
 ### API Эндпоинты
 
 ```
-GET  /dashboard                # Веб-интерфейс дашборда
-GET  /api/dashboard/summary    # KPI сводка портфеля (JSON)
-GET  /api/dashboard/positions  # Активные открытые позиции (JSON)
-GET  /api/dashboard/history    # История закрытых сделок (JSON)
-GET  /api/dashboard/pnl-history # История P&L по дням (JSON)
-GET  /api/dashboard/logs       # Логи системы в реальном времени (JSON)
-POST /api/tick                 # Телеметрия котировок и эквити от cBot (резервный HTTP)
+GET  /demo/dashboard           # Демо-панель (изолированная)
+GET  /real/dashboard           # Реальная/живая панель (изолированная)
+GET  /                         # Автопереход к последнему активному режиму
+GET  /dashboard                # Автопереход к последнему активному режиму
+GET  /api/dashboard/positions  # Активные позиции (поддерживает ?account_id=demo|live|all|<id>)
+GET  /api/dashboard/history    # История закрытых сделок (поддерживает ?account_id=demo|live|all|<id>)
+GET  /api/dashboard/pnl-history# Дневная история P&L (поддерживает ?account_id=demo|live|all|<id>)
+GET  /api/dashboard/logs       # Логи сервера и агента (поддерживает ?mode=demo|live|all)
+GET  /api/bots                 # Конфигурации и статусы Docker-ботов (с account_type)
+POST /api/tick                 # Прямая телеметрия котировок от cBot (резервный HTTP)
 WS   /ws/cbot                  # Поток тиков от cBot: bid/ask + P&L брокера (--TickStreamMs, 0=выкл)
-POST /api/cbot_event           # Телеметрия событий и блокировок гвардрейлов
-POST /portfolio/report         # Отчетность открытия/закрытия позиций
-WS   /ws/dashboard             # Поток WebSocket в реальном времени
+POST /api/cbot_event           # Телеметрия событий и блокировок cBot
+POST /portfolio/report         # Отчетность жизненного цикла открытия/закрытия позиций
+WS   /ws/dashboard             # WebSocket для обновлений панели в реальном времени
 ```
 ---
 
@@ -250,6 +263,20 @@ python app/server.py
      ghcr.io/spotware/ctrader-console:latest build /root/cAlgo/Sources/Robots/AsianRangeJudasSweepBot/AsianRangeJudasSweepBot/AsianRangeJudasSweepBot.csproj
    cp /root/cAlgo/Sources/Robots/AsianRangeJudasSweepBot.algo cBot/AsianRangeJudasSweepBot.algo
    ```
+3. **Рекомендации по Развертыванию Нескольких Счетов (Одновременный Запуск Demo и Live)**:
+
+   При развертывании ботов для Live-счетов параллельно с Demo-ботами настройте флаги команд для предотвращения конфликтов:
+   - **Имя Контейнера (`--name`)**: Должно быть уникальным на хосте. Используйте `cbot-live-<symbol>` вместо `cbot-demo-<symbol>`.
+   - **Номер Счета (`--account`)**: Укажите ваш реальный номер live-счета cTrader (например, `88888888`).
+   - **Метка Счета (`--AccountLabel`)**: Установите `"live"` (или `"live-main"`). cBot отправляет ее для маркировки сделок и маршрутизации данных в `/real/dashboard`.
+   - **Идентификатор Бота (`--BotId`)**: Используйте различные ID, такие как `live_xauusd_m15` вместо `demo_xauusd_m15`.
+   - **Управление Рисками**: Настройте более строгие параметры риска для реального капитала (например, `--RiskPerTradePercent=0.1` или `0.2`).
+   - **Учетные Данные (`--pwd-file`)**: При использовании отдельного cTID подключите выделенный файл пароля (например, `/root/ctrader_data/ctid_live_pwd`).
+   - **Конфигурация Окружения (`.env`)**:
+     ```bash
+     DASHBOARD_ACCOUNTS=demo-10101649|10101649|demo|Demo Account;live-88888888|88888888|live|Live Main
+     ```
+
 3. **Запуск Docker-контейнеров для каждой пары/индекса**:
 
    * **XAUUSD Охота за Ликвидностью Азии (M15 - ICT Judas Sweep)**:
@@ -283,6 +310,7 @@ python app/server.py
        --stoplossPip=200.0 \
        --takeprofitPip=450.0 \
        --enableBreakEvenPrice=true
+     ```
 
    * **GBPUSD Охота за Ликвидностью Азии (M15 - ICT Judas Sweep)**:
      ```bash
@@ -480,6 +508,40 @@ python app/server.py
        --breakEvenTrigger=2000.0 \
        --stoplossPip=2000.0 \
        --takeprofitPip=5000.0 \
+       --enableBreakEvenPrice=true \
+       --riskFactor=0.2
+     ```
+
+   * **UK100 / GB100 Judas Sweep (M15 - Judas Sweep азиатского диапазона FTSE 100)** *(Примечание: используйте `UK100` или `GB100` в зависимости от брокера; в cTrader 1 pip = 0,1 пункта индекса)*:
+     ```bash
+     docker run -d \
+       --name cbot-uk100-judas \
+       --restart unless-stopped \
+       --network host \
+       -v $(pwd):/workspace \
+       -v /root:/root \
+       ghcr.io/spotware/ctrader-console:latest \
+       run /workspace/cBot/AsianRangeJudasSweepBot.algo \
+       --ctid=your_email@example.com \
+       --pwd-file=/root/ctrader_data/ctid_pwd \
+       --account=YOUR_ACCOUNT_ID \
+       --symbol=UK100 \
+       --period=m15 \
+       --full-access \
+       --BotId="cbot-uk100-judas" \
+       --label="cbot-uk100-judas" \
+       --DashboardServerUrl="http://127.0.0.1:8000" \
+       --ApiUrl="http://127.0.0.1:8000/trade" \
+       --AccountLabel="demo" \
+       --UseDirectAiApi=false \
+       --UseAiGateMode=true \
+       --minAsianRangePips=120.0 \
+       --maxAsianRangePips=800.0 \
+       --sweepBufferPips=30.0 \
+       --AiSlMinFloorPips=150.0 \
+       --breakEvenTrigger=200.0 \
+       --stoplossPip=150.0 \
+       --takeprofitPip=350.0 \
        --enableBreakEvenPrice=true \
        --riskFactor=0.2
      ```
@@ -1034,6 +1096,52 @@ python app/server.py
        --TrendTpDisabled=true
      ```
 
+   * **UK100 / GB100 (M15 - Лондонская сессия / FTSE 100)** *(Примечание: pip UK100 = 0,1 пункта индекса, поэтому параметры в пипсах ≈ 0,36x от DE40)*:
+     ```bash
+     docker run -d \
+       --name cbot-uk100 \
+       --restart unless-stopped \
+       --network host \
+       -v $(pwd):/workspace \
+       -v /root:/root \
+       ghcr.io/spotware/ctrader-console:latest \
+       run /workspace/cBot/AiAgentBot.algo \
+       --ctid=your_email@example.com \
+       --pwd-file=/root/ctrader_data/ctid_pwd \
+       --account=YOUR_ACCOUNT_ID \
+       --symbol=UK100 \
+       --period=m15 \
+       --full-access \
+       --BotId="uk100_m15" \
+       --ApiUrl="http://127.0.0.1:8000/trade" \
+       --AccountLabel="demo" \
+       --TmsTimeFrame="Hour" \
+       --EmaPeriod=5 \
+       --SessionName="london" \
+       --OrbStartHour=8 \
+       --SessionEndHour=16 \
+       --SessionDstRule="Europe" \
+       --MinDecisiveBreakoutPips=25.0 \
+       --MinOrWidthPips=120.0 \
+       --OrbBufferPips=15.0 \
+       --BreakevenTriggerAtr=0.8 \
+       --BreakevenOffsetAtr=0.1 \
+       --TrailTriggerAtr=1.2 \
+       --TrailDistanceAtr=0.7 \
+       --PartialCloseRatio=0.5 \
+       --MinSlAtr=1.5 \
+       --MaxSlAtr=4.5 \
+       --MinTpAtr=2.0 \
+       --MaxTpAtr=8.0 \
+       --MaxGivebackAtr=0.6 \
+       --EnablePostTpGate=true \
+       --PostTpPullbackAtr=0.5 \
+       --BounceTradeEnabled=true \
+       --BounceDistanceThreshold=1.5 \
+       --RiskPerTradePercent=0.2 \
+       --TrendTpDisabled=true
+     ```
+
 ### 5. Начать Торговлю! 🎉
 
 Бот будет автоматически:
@@ -1344,16 +1452,28 @@ class PortfolioConfig:
   "bot_id": "eurusd_bot",
   "symbol": "EURUSD",
   "timeframe": "M15",
+  "ask": 1.0850,
+  "bid": 1.0848,
+  "bars": [
+    {"ha_color": "Green", "tdi_green": 55.2, "tdi_red": 52.1, "stoch_k": 75.0, "stoch_d": 70.0},
+    {"ha_color": "Green", "tdi_green": 54.8, "tdi_red": 51.9, "stoch_k": 72.0, "stoch_d": 68.0},
+    {"ha_color": "Red", "tdi_green": 53.5, "tdi_red": 52.5, "stoch_k": 65.0, "stoch_d": 62.0}
+  ],
   "tms": {
     "bias": "BULLISH",
+    "bars_since_cross": 2,
     "long_entry": true,
+    "short_entry": false,
     "green_tf_value": 55.2,
     "green_tf_slope": 0.4
   },
   "orb": {
+    "or_high": 1.0845,
+    "or_low": 1.0830,
     "breakout_direction": "up",
     "breakout_distance_pips": 5.0,
-    "is_decisive": true
+    "is_decisive": true,
+    "bars_since_breakout": 1
   },
   "position": null,
   "session": {
@@ -1377,6 +1497,20 @@ class PortfolioConfig:
 ### POST /portfolio/report
 
 Сообщить об изменениях позиций для отслеживания портфеля.
+
+```json
+{
+  "bot_id": "eurusd_bot",
+  "action": "open",
+  "symbol": "EURUSD",
+  "side": "BUY",
+  "volume": 0.01,
+  "entry_price": 1.0850,
+  "sl_pips": 10.0,
+  "tp_pips": 20.0
+}
+```
+
 
 ### GET /portfolio/status
 
@@ -1413,7 +1547,26 @@ AgentFxTrading/
 ### Добавление Нового LLM Provider
 
 1. Создать новый класс в `app/llm_client.py`
+
+```python
+class NewProviderClient(LLMClient):
+    def __init__(self, api_key: str, model: str):
+        # Initialize client
+        pass
+    
+    async def chat(self, messages: List[Dict[str, str]], **kwargs) -> str:
+        # Implement chat logic
+        pass
+```
 2. Обновить `create_llm_client()`
+
+```python
+elif provider == "newprovider":
+    return NewProviderClient(
+        api_key=os.getenv("NEWPROVIDER_API_KEY"),
+        model=os.getenv("LLM_MODEL")
+    )
+```
 
 ### Улучшение Промпта
 
@@ -1469,6 +1622,13 @@ AgentFxTrading/
 4. **Отправить PR** 🔧 - Вклад в код
 5. **Улучшить документацию** 📚 - Улучшения документации
 6. **Поделиться результатами** 📈 - Поделиться результатами бэктеста/живой торговли
+
+### Руководство по Разработке
+
+- Следуйте существующему стилю кода
+- Пишите тесты для новых функций
+- Обновляйте документацию
+- Делайте PR сфокусированными и небольшими
 
 ### Сообщество
 

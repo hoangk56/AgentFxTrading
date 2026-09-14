@@ -137,9 +137,15 @@ Monitore e gerencie o sistema de negociação em tempo real através da interfac
 | [![Classificação Quantitativa](docs/screenshots/leaderboard.png)](docs/screenshots/leaderboard.png) | [![Avaliação de Notícias](docs/screenshots/news-assessment.png)](docs/screenshots/news-assessment.png) |
 | *Pontuação quantitativa composta, taxas de acerto e insígnias Tier S/A/B/C* | *Calendário econômico de alto impacto, volatilidade e análise macroeconômica* |
 
-```
-http://127.0.0.1:8000/dashboard
-```
+### Acessar o Dashboard
+
+Após iniciar o servidor, abra seu navegador:
+
+| Modo | Rota de URL | Descrição |
+| :--- | :--- | :--- |
+| **Demo** | `http://127.0.0.1:8000/demo/dashboard` *(ou `/demo`)* | Dashboard isolado de Paper Trading e telemetria |
+| **Real / Live** | `http://127.0.0.1:8000/real/dashboard` *(ou `/real`, `/live`)* | Dashboard isolado de negociação em conta Real e telemetria de execução |
+| **Auto-Redirecionamento** | `http://127.0.0.1:8000/` *(ou `/dashboard`)* | Roteia automaticamente para o seu último modo ativo (Demo ou Real) |
 
 ### Recursos do Dashboard
 
@@ -153,17 +159,20 @@ http://127.0.0.1:8000/dashboard
 ### Endpoints da API
 
 ```
-GET  /dashboard                # Interface web do dashboard
-GET  /api/dashboard/summary    # Resumo de KPIs do portfólio (JSON)
-GET  /api/dashboard/positions  # Lista de posições ativas abertas (JSON)
-GET  /api/dashboard/history    # Histórico de ordens fechadas (JSON)
-GET  /api/dashboard/pnl-history # Histórico diário de P&L (JSON)
-GET  /api/dashboard/logs       # Fluxo de logs em tempo real (JSON)
-POST /api/tick                 # Telemetria de cotação e saldo dos cBots (fallback HTTP)
+GET  /demo/dashboard           # Painel web de demonstração (isolado)
+GET  /real/dashboard           # Painel web real/live (isolado)
+GET  /                         # Redireciona automaticamente para o último modo ativo
+GET  /dashboard                # Redireciona automaticamente para o último modo ativo
+GET  /api/dashboard/positions  # Posições ativas (aceita ?account_id=demo|live|all|<id>)
+GET  /api/dashboard/history    # Histórico de negociações fechadas (aceita ?account_id=demo|live|all|<id>)
+GET  /api/dashboard/pnl-history# Histórico diário de P&L (aceita ?account_id=demo|live|all|<id>)
+GET  /api/dashboard/logs       # Logs do servidor e do agente (aceita ?mode=demo|live|all)
+GET  /api/bots                 # Configurações e status dos bots Docker (com account_type)
+POST /api/tick                 # Telemetria direta de cotação dos cBots (fallback HTTP)
 WS   /ws/cbot                  # Fluxo de ticks dos cBots: bid/ask + P&L do broker (--TickStreamMs, 0=off)
 POST /api/cbot_event           # Telemetria de eventos e bloqueios dos cBots
-POST /portfolio/report         # Relatório de ciclo de vida de ordens
-WS   /ws/dashboard             # Transmissão WebSocket em tempo real
+POST /portfolio/report         # Relatório do ciclo de vida de abertura/fechamento
+WS   /ws/dashboard             # WebSocket para atualizações em tempo real do painel
 ```
 ---
 
@@ -250,7 +259,21 @@ Você pode executar o cBot através da **Interface Gráfica cTrader Desktop (GUI
      ghcr.io/spotware/ctrader-console:latest build /root/cAlgo/Sources/Robots/AsianRangeJudasSweepBot/AsianRangeJudasSweepBot/AsianRangeJudasSweepBot.csproj
    cp /root/cAlgo/Sources/Robots/AsianRangeJudasSweepBot.algo cBot/AsianRangeJudasSweepBot.algo
    ```
-3. **Executar Containers Docker para cada par/índice**:
+3. **Diretrizes de Implantação Multi-Contas (Executando Demo e Real Simultaneamente)**:
+
+   Ao implantar bots em conta Real juntamente com bots Demo, personalize as flags de comando para evitar colisões:
+   - **Nome do Container (`--name`)**: Deve ser exclusivo no host. Use `cbot-live-<symbol>` vs `cbot-demo-<symbol>`.
+   - **Número da Conta (`--account`)**: Defina o número da sua conta real do cTrader (ex: `88888888`).
+   - **Rótulo da Conta (`--AccountLabel`)**: Defina como `"live"` (ou `"live-main"`). O cBot envia isso para marcar negociações e rotear dados para `/real/dashboard`.
+   - **Identificador do Bot (`--BotId`)**: Use IDs distintos, como `live_xauusd_m15` vs `demo_xauusd_m15`.
+   - **Gerenciamento de Risco**: Configure parâmetros de risco mais rigorosos para capital real (ex: `--RiskPerTradePercent=0.1` ou `0.2`).
+   - **Credenciais (`--pwd-file`)**: Se estiver usando um cTID separado, monte um arquivo de senha dedicado (ex: `/root/ctrader_data/ctid_live_pwd`).
+   - **Configuração de Ambiente (`.env`)**:
+     ```bash
+     DASHBOARD_ACCOUNTS=demo-10101649|10101649|demo|Demo Account;live-88888888|88888888|live|Live Main
+     ```
+
+4. **Executar Containers Docker para cada par/índice**:
 
    * **XAUUSD Caçada de Liquidez Asiática (M15 - ICT Judas Sweep)**:
      ```bash
@@ -283,7 +306,7 @@ Você pode executar o cBot através da **Interface Gráfica cTrader Desktop (GUI
        --stoplossPip=200.0 \
        --takeprofitPip=450.0 \
        --enableBreakEvenPrice=true
-
+     ```
    * **GBPUSD Caçada de Liquidez Asiática (M15 - ICT Judas Sweep)**:
      ```bash
      docker run -d \
@@ -480,6 +503,40 @@ Você pode executar o cBot através da **Interface Gráfica cTrader Desktop (GUI
        --breakEvenTrigger=2000.0 \
        --stoplossPip=2000.0 \
        --takeprofitPip=5000.0 \
+       --enableBreakEvenPrice=true \
+       --riskFactor=0.2
+     ```
+
+   * **UK100 / GB100 Judas Sweep (M15 - FTSE 100 Asian Range Judas Sweep)** *(Nota: Use `UK100` ou `GB100` dependendo da sua corretora; no cTrader 1 pip = 0,1 ponto do índice)*:
+     ```bash
+     docker run -d \
+       --name cbot-uk100-judas \
+       --restart unless-stopped \
+       --network host \
+       -v $(pwd):/workspace \
+       -v /root:/root \
+       ghcr.io/spotware/ctrader-console:latest \
+       run /workspace/cBot/AsianRangeJudasSweepBot.algo \
+       --ctid=your_email@example.com \
+       --pwd-file=/root/ctrader_data/ctid_pwd \
+       --account=YOUR_ACCOUNT_ID \
+       --symbol=UK100 \
+       --period=m15 \
+       --full-access \
+       --BotId="cbot-uk100-judas" \
+       --label="cbot-uk100-judas" \
+       --DashboardServerUrl="http://127.0.0.1:8000" \
+       --ApiUrl="http://127.0.0.1:8000/trade" \
+       --AccountLabel="demo" \
+       --UseDirectAiApi=false \
+       --UseAiGateMode=true \
+       --minAsianRangePips=120.0 \
+       --maxAsianRangePips=800.0 \
+       --sweepBufferPips=30.0 \
+       --AiSlMinFloorPips=150.0 \
+       --breakEvenTrigger=200.0 \
+       --stoplossPip=150.0 \
+       --takeprofitPip=350.0 \
        --enableBreakEvenPrice=true \
        --riskFactor=0.2
      ```
@@ -1034,6 +1091,52 @@ Você pode executar o cBot através da **Interface Gráfica cTrader Desktop (GUI
        --TrendTpDisabled=true
      ```
 
+   * **UK100 / GB100 (M15 - Sessão de Londres / FTSE 100)** *(Nota: o pip do UK100 = 0,1 ponto do índice, portanto os parâmetros de pips são ~0,36x os do DE40)*:
+     ```bash
+     docker run -d \
+       --name cbot-uk100 \
+       --restart unless-stopped \
+       --network host \
+       -v $(pwd):/workspace \
+       -v /root:/root \
+       ghcr.io/spotware/ctrader-console:latest \
+       run /workspace/cBot/AiAgentBot.algo \
+       --ctid=your_email@example.com \
+       --pwd-file=/root/ctrader_data/ctid_pwd \
+       --account=YOUR_ACCOUNT_ID \
+       --symbol=UK100 \
+       --period=m15 \
+       --full-access \
+       --BotId="uk100_m15" \
+       --ApiUrl="http://127.0.0.1:8000/trade" \
+       --AccountLabel="demo" \
+       --TmsTimeFrame="Hour" \
+       --EmaPeriod=5 \
+       --SessionName="london" \
+       --OrbStartHour=8 \
+       --SessionEndHour=16 \
+       --SessionDstRule="Europe" \
+       --MinDecisiveBreakoutPips=25.0 \
+       --MinOrWidthPips=120.0 \
+       --OrbBufferPips=15.0 \
+       --BreakevenTriggerAtr=0.8 \
+       --BreakevenOffsetAtr=0.1 \
+       --TrailTriggerAtr=1.2 \
+       --TrailDistanceAtr=0.7 \
+       --PartialCloseRatio=0.5 \
+       --MinSlAtr=1.5 \
+       --MaxSlAtr=4.5 \
+       --MinTpAtr=2.0 \
+       --MaxTpAtr=8.0 \
+       --MaxGivebackAtr=0.6 \
+       --EnablePostTpGate=true \
+       --PostTpPullbackAtr=0.5 \
+       --BounceTradeEnabled=true \
+       --BounceDistanceThreshold=1.5 \
+       --RiskPerTradePercent=0.2 \
+       --TrendTpDisabled=true
+     ```
+
 ### 5. Começar a Negociar! 🎉
 
 O bot irá automaticamente:
@@ -1344,16 +1447,28 @@ Endpoint principal para decisões de negociação.
   "bot_id": "eurusd_bot",
   "symbol": "EURUSD",
   "timeframe": "M15",
+  "ask": 1.0850,
+  "bid": 1.0848,
+  "bars": [
+    {"ha_color": "Green", "tdi_green": 55.2, "tdi_red": 52.1, "stoch_k": 75.0, "stoch_d": 70.0},
+    {"ha_color": "Green", "tdi_green": 54.8, "tdi_red": 51.9, "stoch_k": 72.0, "stoch_d": 68.0},
+    {"ha_color": "Red", "tdi_green": 53.5, "tdi_red": 52.5, "stoch_k": 65.0, "stoch_d": 62.0}
+  ],
   "tms": {
     "bias": "BULLISH",
+    "bars_since_cross": 2,
     "long_entry": true,
+    "short_entry": false,
     "green_tf_value": 55.2,
     "green_tf_slope": 0.4
   },
   "orb": {
+    "or_high": 1.0845,
+    "or_low": 1.0830,
     "breakout_direction": "up",
     "breakout_distance_pips": 5.0,
-    "is_decisive": true
+    "is_decisive": true,
+    "bars_since_breakout": 1
   },
   "position": null,
   "session": {
@@ -1377,6 +1492,20 @@ Endpoint principal para decisões de negociação.
 ### POST /portfolio/report
 
 Reportar mudanças de posição para rastreamento de portfólio.
+
+```json
+{
+  "bot_id": "eurusd_bot",
+  "action": "open",
+  "symbol": "EURUSD",
+  "side": "BUY",
+  "volume": 0.01,
+  "entry_price": 1.0850,
+  "sl_pips": 10.0,
+  "tp_pips": 20.0
+}
+```
+
 
 ### GET /portfolio/status
 
@@ -1412,8 +1541,28 @@ AgentFxTrading/
 
 ### Adicionar Novo LLM Provider
 
-1. Criar nova classe em `app/llm_client.py`
-2. Atualizar `create_llm_client()`
+1. Criar nova classe em `app/llm_client.py`:
+
+```python
+class NewProviderClient(LLMClient):
+    def __init__(self, api_key: str, model: str):
+        # Initialize client
+        pass
+    
+    async def chat(self, messages: List[Dict[str, str]], **kwargs) -> str:
+        # Implement chat logic
+        pass
+```
+
+2. Atualizar `create_llm_client()`:
+
+```python
+elif provider == "newprovider":
+    return NewProviderClient(
+        api_key=os.getenv("NEWPROVIDER_API_KEY"),
+        model=os.getenv("LLM_MODEL")
+    )
+```
 
 ### Melhorar o Prompt
 
@@ -1469,6 +1618,13 @@ Contribuições são bem-vindas! Aqui está como você pode ajudar:
 4. **Enviar PRs** 🔧 - Contribuições de código
 5. **Melhorar docs** 📚 - Melhorias de documentação
 6. **Compartilhar resultados** 📈 - Compartilhe seus resultados de backtest/live
+
+### Diretrizes de Desenvolvimento
+
+- Siga o estilo de código existente
+- Escreva testes para novos recursos
+- Atualize a documentação
+- Mantenha os PRs focados e pequenos
 
 ### Comunidade
 

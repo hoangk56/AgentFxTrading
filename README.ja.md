@@ -141,6 +141,16 @@ graph LR
 http://127.0.0.1:8000/dashboard
 ```
 
+### ダッシュボードへのアクセス (Access Dashboard)
+
+サーバー起動後、ブラウザを開きます：
+
+| モード | URLルート | 説明 |
+| :--- | :--- | :--- |
+| **Demo** | `http://127.0.0.1:8000/demo/dashboard` *(または `/demo`)* | 分離されたペーパートレード用ダッシュボード＆テレメトリ |
+| **Real / Live** | `http://127.0.0.1:8000/real/dashboard` *(または `/real`, `/live`)* | 分離されたリアルマネー取引ダッシュボード＆約定テレメトリ |
+| **Auto-Redirect** | `http://127.0.0.1:8000/` *(または `/dashboard`)* | 最後にアクティブだったモード（DemoまたはReal）へ自動リダイレクト |
+
 ### ダッシュボード機能
 
 - **リアルタイム更新**：WebSocketによるポジション・損益のライブ同期
@@ -153,17 +163,20 @@ http://127.0.0.1:8000/dashboard
 ### APIエンドポイント
 
 ```
-GET  /dashboard                # Webダッシュボード画面
-GET  /api/dashboard/summary    # ポートフォリオKPIサマリー (JSON)
-GET  /api/dashboard/positions  # 保有ポジション一覧 (JSON)
-GET  /api/dashboard/history    # 決済済み取引履歴 (JSON)
-GET  /api/dashboard/pnl-history # 日次P&L履歴 (JSON)
-GET  /api/dashboard/logs       # システムリアルタイムログ (JSON)
-POST /api/tick                 # cBotレート・残高テレメトリ（HTTPフォールバック）
+GET  /demo/dashboard           # デモ用Webダッシュボード（分離）
+GET  /real/dashboard           # リアル/ライブ用Webダッシュボード（分離）
+GET  /                         # 最後に使用したモードへ自動リダイレクト
+GET  /dashboard                # 最後に使用したモードへ自動リダイレクト
+GET  /api/dashboard/positions  # 保有ポジション一覧（?account_id=demo|live|all|<id> 対応）
+GET  /api/dashboard/history    # 決済済み取引履歴（?account_id=demo|live|all|<id> 対応）
+GET  /api/dashboard/pnl-history# 日次P&L履歴（?account_id=demo|live|all|<id> 対応）
+GET  /api/dashboard/logs       # サーバー & エージェントのログ（?mode=demo|live|all 対応）
+GET  /api/bots                 # Dockerボット設定と状態（account_type付き）
+POST /api/tick                 # cBotからの直接テレメトリ（HTTPフォールバック）
 WS   /ws/cbot                  # cBotティック配信：bid/ask＋ブローカーP&L（--TickStreamMs、0で無効）
-POST /api/cbot_event           # cBotガードレール警告・ブロック通知
-POST /portfolio/report         # ポジション開始・決済レポート
-WS   /ws/dashboard             # リアルタイムWebSocket配信
+POST /api/cbot_event           # cBotのガードレール警告・イベントテレメトリ
+POST /portfolio/report         # ポジション開始・決済ライフサイクルの報告
+WS   /ws/dashboard             # ダッシュボードのリアルタイム更新用WebSocket
 ```
 ---
 
@@ -250,7 +263,21 @@ cBotは**cTraderデスクトップGUI**または**ヘッドレスDocker CLI**（
      ghcr.io/spotware/ctrader-console:latest build /root/cAlgo/Sources/Robots/AsianRangeJudasSweepBot/AsianRangeJudasSweepBot/AsianRangeJudasSweepBot.csproj
    cp /root/cAlgo/Sources/Robots/AsianRangeJudasSweepBot.algo cBot/AsianRangeJudasSweepBot.algo
    ```
-3. **各通貨ペア・インデックスのDockerコンテナ起動**:
+3. **マルチアカウント運用のガイドライン（DemoとLiveの同時実行）**:
+
+   Demo botと並行してLiveアカウントのbotを運用する場合は、衝突を防ぐためにコマンドフラグを適切に設定してください：
+   - **コンテナ名 (`--name`)**: ホスト上で一意である必要があります。`cbot-live-<symbol>` と `cbot-demo-<symbol>` のように使い分けてください。
+   - **口座番号 (`--account`)**: 実際のcTraderリアル口座番号を指定します（例：`88888888`）。
+   - **アカウントラベル (`--AccountLabel`)**: `"live"`（または `"live-main"`）に設定します。cBotはこのラベルを送信してトレードを識別し、データを `/real/dashboard` にルーティングします。
+   - **Bot識別子 (`--BotId`)**: `live_xauusd_m15` と `demo_xauusd_m15` のように区別できるIDを使用します。
+   - **リスク管理**: リアル資金用により厳格なリスクパラメータを設定します（例：`--RiskPerTradePercent=0.1` または `0.2`）。
+   - **認証情報 (`--pwd-file`)**: 別のcTIDを使用する場合は、専用のパスワードファイルをマウントします（例：`/root/ctrader_data/ctid_live_pwd`）。
+   - **環境設定 (`.env`)**:
+     ```bash
+     DASHBOARD_ACCOUNTS=demo-10101649|10101649|demo|Demo Account;live-88888888|88888888|live|Live Main
+     ```
+
+4. **各通貨ペア・インデックスのDockerコンテナ起動**:
 
    * **XAUUSD アジアンレンジ・ジューダススイープ (M15 - ICT Judas Sweep)**:
      ```bash
@@ -283,6 +310,7 @@ cBotは**cTraderデスクトップGUI**または**ヘッドレスDocker CLI**（
        --stoplossPip=200.0 \
        --takeprofitPip=450.0 \
        --enableBreakEvenPrice=true
+      ```
 
    * **GBPUSD アジアンレンジ・ジューダススイープ (M15 - ICT Judas Sweep)**:
      ```bash
@@ -480,6 +508,40 @@ cBotは**cTraderデスクトップGUI**または**ヘッドレスDocker CLI**（
        --breakEvenTrigger=2000.0 \
        --stoplossPip=2000.0 \
        --takeprofitPip=5000.0 \
+       --enableBreakEvenPrice=true \
+       --riskFactor=0.2
+     ```
+
+   * **UK100 / GB100 Judas Sweep (M15 - FTSE 100 アジアンレンジ・ジューダススイープ)** *(注意：ブローカーによって `UK100` または `GB100` を使用。cTrader では 1 pip = 0.1 指数ポイント)*:
+     ```bash
+     docker run -d \
+       --name cbot-uk100-judas \
+       --restart unless-stopped \
+       --network host \
+       -v $(pwd):/workspace \
+       -v /root:/root \
+       ghcr.io/spotware/ctrader-console:latest \
+       run /workspace/cBot/AsianRangeJudasSweepBot.algo \
+       --ctid=your_email@example.com \
+       --pwd-file=/root/ctrader_data/ctid_pwd \
+       --account=YOUR_ACCOUNT_ID \
+       --symbol=UK100 \
+       --period=m15 \
+       --full-access \
+       --BotId="cbot-uk100-judas" \
+       --label="cbot-uk100-judas" \
+       --DashboardServerUrl="http://127.0.0.1:8000" \
+       --ApiUrl="http://127.0.0.1:8000/trade" \
+       --AccountLabel="demo" \
+       --UseDirectAiApi=false \
+       --UseAiGateMode=true \
+       --minAsianRangePips=120.0 \
+       --maxAsianRangePips=800.0 \
+       --sweepBufferPips=30.0 \
+       --AiSlMinFloorPips=150.0 \
+       --breakEvenTrigger=200.0 \
+       --stoplossPip=150.0 \
+       --takeprofitPip=350.0 \
        --enableBreakEvenPrice=true \
        --riskFactor=0.2
      ```
@@ -1034,6 +1096,52 @@ cBotは**cTraderデスクトップGUI**または**ヘッドレスDocker CLI**（
        --TrendTpDisabled=true
      ```
 
+   * **UK100 / GB100 (M15 - ロンドンセッション / FTSE 100)** *(注意：UK100 の pip = 0.1 指数ポイントのため、pips パラメータは DE40 の約 0.36 倍)*:
+     ```bash
+     docker run -d \
+       --name cbot-uk100 \
+       --restart unless-stopped \
+       --network host \
+       -v $(pwd):/workspace \
+       -v /root:/root \
+       ghcr.io/spotware/ctrader-console:latest \
+       run /workspace/cBot/AiAgentBot.algo \
+       --ctid=your_email@example.com \
+       --pwd-file=/root/ctrader_data/ctid_pwd \
+       --account=YOUR_ACCOUNT_ID \
+       --symbol=UK100 \
+       --period=m15 \
+       --full-access \
+       --BotId="uk100_m15" \
+       --ApiUrl="http://127.0.0.1:8000/trade" \
+       --AccountLabel="demo" \
+       --TmsTimeFrame="Hour" \
+       --EmaPeriod=5 \
+       --SessionName="london" \
+       --OrbStartHour=8 \
+       --SessionEndHour=16 \
+       --SessionDstRule="Europe" \
+       --MinDecisiveBreakoutPips=25.0 \
+       --MinOrWidthPips=120.0 \
+       --OrbBufferPips=15.0 \
+       --BreakevenTriggerAtr=0.8 \
+       --BreakevenOffsetAtr=0.1 \
+       --TrailTriggerAtr=1.2 \
+       --TrailDistanceAtr=0.7 \
+       --PartialCloseRatio=0.5 \
+       --MinSlAtr=1.5 \
+       --MaxSlAtr=4.5 \
+       --MinTpAtr=2.0 \
+       --MaxTpAtr=8.0 \
+       --MaxGivebackAtr=0.6 \
+       --EnablePostTpGate=true \
+       --PostTpPullbackAtr=0.5 \
+       --BounceTradeEnabled=true \
+       --BounceDistanceThreshold=1.5 \
+       --RiskPerTradePercent=0.2 \
+       --TrendTpDisabled=true
+     ```
+
 ### 5. 取引開始！🎉
 
 ボットは自動的に：
@@ -1344,16 +1452,28 @@ class PortfolioConfig:
   "bot_id": "eurusd_bot",
   "symbol": "EURUSD",
   "timeframe": "M15",
+  "ask": 1.0850,
+  "bid": 1.0848,
+  "bars": [
+    {"ha_color": "Green", "tdi_green": 55.2, "tdi_red": 52.1, "stoch_k": 75.0, "stoch_d": 70.0},
+    {"ha_color": "Green", "tdi_green": 54.8, "tdi_red": 51.9, "stoch_k": 72.0, "stoch_d": 68.0},
+    {"ha_color": "Red", "tdi_green": 53.5, "tdi_red": 52.5, "stoch_k": 65.0, "stoch_d": 62.0}
+  ],
   "tms": {
     "bias": "BULLISH",
+    "bars_since_cross": 2,
     "long_entry": true,
+    "short_entry": false,
     "green_tf_value": 55.2,
     "green_tf_slope": 0.4
   },
   "orb": {
+    "or_high": 1.0845,
+    "or_low": 1.0830,
     "breakout_direction": "up",
     "breakout_distance_pips": 5.0,
-    "is_decisive": true
+    "is_decisive": true,
+    "bars_since_breakout": 1
   },
   "position": null,
   "session": {
@@ -1377,6 +1497,20 @@ class PortfolioConfig:
 ### POST /portfolio/report
 
 ポートフォリオ追跡のためのポジション変更を報告。
+
+```json
+{
+  "bot_id": "eurusd_bot",
+  "action": "open",
+  "symbol": "EURUSD",
+  "side": "BUY",
+  "volume": 0.01,
+  "entry_price": 1.0850,
+  "sl_pips": 10.0,
+  "tp_pips": 20.0
+}
+```
+
 
 ### GET /portfolio/status
 
@@ -1413,7 +1547,27 @@ AgentFxTrading/
 ### 新しいLLM Providerの追加
 
 1. `app/llm_client.py`に新しいクラスを作成
-2. `create_llm_client()`を更新
+
+```python
+class NewProviderClient(LLMClient):
+    def __init__(self, api_key: str, model: str):
+        # クライアントの初期化
+        pass
+    
+    async def chat(self, messages: List[Dict[str, str]], **kwargs) -> str:
+        # チャットロジックの実装
+        pass
+```
+
+
+
+```python
+elif provider == "newprovider":
+    return NewProviderClient(
+        api_key=os.getenv("NEWPROVIDER_API_KEY"),
+        model=os.getenv("LLM_MODEL")
+    )
+```
 
 ### プロンプトの改善
 
@@ -1469,6 +1623,13 @@ AgentFxTrading/
 4. **PRを提出** 🔧 - コード貢献
 5. **ドキュメントを改善** 📚 - ドキュメント改善
 6. **結果を共有** 📈 - バックテスト/ライブ結果を共有
+
+### 開発ガイドライン (Development Guidelines)
+
+- 既存のコードスタイルに従う
+- 新機能のテストを作成する
+- ドキュメントを更新する
+- PRは焦点を絞り、小さく保つ
 
 ### コミュニティ
 

@@ -307,6 +307,7 @@ Bạn có thể chạy cBot bằng **Giao diện cTrader Desktop (GUI)** hoặc 
        --stoplossPip=200.0 \
        --takeprofitPip=450.0 \
        --enableBreakEvenPrice=true
+      ```
 
    * **GBPUSD Judas Sweep (M15 - Săn Thanh Khoản Phiên Á ICT)**:
      ```bash

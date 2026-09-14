@@ -1045,6 +1045,51 @@ You can run the cBot either via **cTrader Desktop GUI** or **Headless Docker CLI
      ```
 
    * **AUDJPY (M15 - Asian/Tokyo Session / Risk Barometer Cross)**:
+     ```bash
+     docker run -d \
+       --name cbot-audjpy \
+       --restart unless-stopped \
+       --network host \
+       -v $(pwd):/workspace \
+       -v /root:/root \
+       ghcr.io/spotware/ctrader-console:latest \
+       run /workspace/cBot/AiAgentBot.algo \
+       --ctid=your_email@example.com \
+       --pwd-file=/root/ctrader_data/ctid_pwd \
+       --account=YOUR_ACCOUNT_ID \
+       --symbol=AUDJPY \
+       --period=m15 \
+       --full-access \
+       --BotId="audjpy_m15" \
+       --ApiUrl="http://127.0.0.1:8000/trade" \
+       --AccountLabel="demo" \
+       --TmsTimeFrame="Hour" \
+       --EmaPeriod=5 \
+       --SessionName="tokyo" \
+       --OrbStartHour=0 \
+       --SessionEndHour=9 \
+       --SessionDstRule="None" \
+       --MinDecisiveBreakoutPips=4.0 \
+       --MinOrWidthPips=10.0 \
+       --OrbBufferPips=1.5 \
+       --BreakevenTriggerAtr=1.2 \
+       --BreakevenOffsetAtr=0.1 \
+       --TrailTriggerAtr=2.0 \
+       --TrailDistanceAtr=1.0 \
+       --PartialCloseRatio=0.5 \
+       --MinSlAtr=0.8 \
+       --MaxSlAtr=3.0 \
+       --MinTpAtr=1.0 \
+       --MaxTpAtr=6.0 \
+       --MaxGivebackAtr=1.0 \
+       --EnablePostTpGate=true \
+       --PostTpPullbackAtr=0.5 \
+       --BounceTradeEnabled=true \
+       --BounceDistanceThreshold=4 \
+       --RiskPerTradePercent=0.2 \
+       --TrendTpDisabled=true
+     ```
+
    * **UK100 / GB100 (M15 - London Session / FTSE 100)** *(Note: UK100 pip = 0.1 index point, so the pips params are ~0.36x DE40's)*:
      ```bash
      docker run -d \
@@ -1087,51 +1132,6 @@ You can run the cBot either via **cTrader Desktop GUI** or **Headless Docker CLI
        --PostTpPullbackAtr=0.5 \
        --BounceTradeEnabled=true \
        --BounceDistanceThreshold=1.5 \
-       --RiskPerTradePercent=0.2 \
-       --TrendTpDisabled=true
-     ```
-
-     ```bash
-     docker run -d \
-       --name cbot-audjpy \
-       --restart unless-stopped \
-       --network host \
-       -v $(pwd):/workspace \
-       -v /root:/root \
-       ghcr.io/spotware/ctrader-console:latest \
-       run /workspace/cBot/AiAgentBot.algo \
-       --ctid=your_email@example.com \
-       --pwd-file=/root/ctrader_data/ctid_pwd \
-       --account=YOUR_ACCOUNT_ID \
-       --symbol=AUDJPY \
-       --period=m15 \
-       --full-access \
-       --BotId="audjpy_m15" \
-       --ApiUrl="http://127.0.0.1:8000/trade" \
-       --AccountLabel="demo" \
-       --TmsTimeFrame="Hour" \
-       --EmaPeriod=5 \
-       --SessionName="tokyo" \
-       --OrbStartHour=0 \
-       --SessionEndHour=9 \
-       --SessionDstRule="None" \
-       --MinDecisiveBreakoutPips=4.0 \
-       --MinOrWidthPips=10.0 \
-       --OrbBufferPips=1.5 \
-       --BreakevenTriggerAtr=1.2 \
-       --BreakevenOffsetAtr=0.1 \
-       --TrailTriggerAtr=2.0 \
-       --TrailDistanceAtr=1.0 \
-       --PartialCloseRatio=0.5 \
-       --MinSlAtr=0.8 \
-       --MaxSlAtr=3.0 \
-       --MinTpAtr=1.0 \
-       --MaxTpAtr=6.0 \
-       --MaxGivebackAtr=1.0 \
-       --EnablePostTpGate=true \
-       --PostTpPullbackAtr=0.5 \
-       --BounceTradeEnabled=true \
-       --BounceDistanceThreshold=4 \
        --RiskPerTradePercent=0.2 \
        --TrendTpDisabled=true
      ```
