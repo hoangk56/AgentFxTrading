@@ -147,6 +147,7 @@ from app.llm_client import create_llm_client, JSONResponseParser
 from app.portfolio import init_portfolio, get_portfolio_manager
 from app.dashboard import router as dashboard_router, broadcast_update, broadcast_tick, broadcast_event, broadcast_decision, record_ai_decision, manager as ws_manager, WebSocketLogHandler
 from app.accounts import init_account_registry, get_account_registry
+from app.cbot_watchdog import record_bot_snapshot
 
 # Attach WebSocket live log handler to root logger
 _ws_handler = WebSocketLogHandler(ws_manager)
@@ -1510,6 +1511,9 @@ def generate_fallback_decision(snapshot: MarketSnapshot, error_msg: str) -> Agen
 async def trade_decision(snapshot: MarketSnapshot):
     account_id = _resolve_account(snapshot)
     is_judas = is_judas_sweep_bot(snapshot)
+    # Heartbeat for the watchdog's stale-bar-feed check: it compares this against the
+    # bot's own session window to catch a cBot that is up but no longer processing bars.
+    record_bot_snapshot(f"{account_id}/{snapshot.bot_id}")
     
     pos_data = None
     if snapshot.position:

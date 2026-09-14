@@ -6,8 +6,10 @@ if str(root) not in sys.path:
 
 import pytest
 import time
+from datetime import datetime, timezone, timedelta
 from unittest.mock import MagicMock, patch
 from pathlib import Path
+from app import cbot_watchdog as wd
 from app.cbot_watchdog import CbotWatchdog
 from app.docker_manager import DockerManager
 
@@ -118,3 +120,176 @@ def test_watchdog_check_and_heal(mock_get_pm, mock_dm):
     # Case 2: Immediate next check -> blocked by cooldown
     actions2 = watchdog.check_and_heal()
     assert len(actions2) == 0
+
+
+# ---------------------------------------------------------------------------
+# Stale bar feed: a running cBot that stopped pushing snapshots mid-session
+# ---------------------------------------------------------------------------
+
+USDJPY_RUN_COMMAND = (
+    "docker run -d \\ --name cbot-usdjpy \\ --restart unless-stopped \\ --network host \\ "
+    "-v /root/AgentFxTrading:/workspace \\ -v /root:/root \\ ghcr.io/spotware/ctrader-console:latest \\ "
+    "run /workspace/cBot/AiAgentBot.algo \\ --ctid=senior1206@gmail.com \\ "
+    "--pwd-file=/root/ctrader_data/ctid_pwd \\ --account=6094347 \\ --symbol=USDJPY \\ --period=m15 \\ "
+    "--full-access \\ --BotId=\"usdjpy_m15\" \\ --ApiUrl=\"http://127.0.0.1:8000/trade\" \\ "
+    "--AccountLabel=\"live\" \\ --SessionName=\"tokyo\" \\ --OrbStartHour=0 \\ --SessionEndHour=9 \\ "
+    "--SessionDstRule=\"None\" \\ --MinDecisiveBreakoutPips=4.0"
+)
+
+LONDON_RUN_COMMAND = (
+    "docker run -d \\ --name cbot-gbpusd \\ --network host \\ run /workspace/cBot/AiAgentBot.algo \\ "
+    "--BotId=\"gbpusd_m15\" \\ --SessionName=\"london\" \\ --OrbStartHour=8 \\ --SessionEndHour=17 \\ "
+    "--SessionDstRule=\"Europe\""
+)
+
+JUDAS_RUN_COMMAND = (
+    "docker run -d \\ --name cbot-gbpusd-judas \\ --network host \\ "
+    "run /workspace/cBot/AsianRangeJudasSweepBot.algo \\ --BotId=\"cbot-gbpusd-judas\" \\ "
+    "--DashboardServerUrl=http://127.0.0.1:8000"
+)
+
+
+@pytest.fixture(autouse=True)
+def _clean_snapshot_telemetry():
+    wd._snapshot_seen_at.clear()
+    yield
+    wd._snapshot_seen_at.clear()
+
+
+def test_parse_session_params_reads_tms_window():
+    params = wd.parse_session_params(USDJPY_RUN_COMMAND)
+    assert params["bot_id"] == "usdjpy_m15"
+    assert params["session_name"] == "tokyo"
+    assert (params["start_hour"], params["end_hour"]) == (0, 9)
+    assert params["dst_rule"] == "None"
+
+
+def test_parse_session_params_skips_bots_without_bar_cycle():
+    assert wd.parse_session_params(JUDAS_RUN_COMMAND) is None
+    assert wd.parse_session_params(None) is None
+    assert wd.parse_session_params("") is None
+
+
+def test_active_session_start_tokyo_no_dst():
+    params = wd.parse_session_params(USDJPY_RUN_COMMAND)
+    inside = datetime(2026, 9, 14, 1, 30, tzinfo=timezone.utc)
+    assert wd.active_session_start(params, inside) == datetime(2026, 9, 14, 0, 0, tzinfo=timezone.utc)
+    assert wd.active_session_start(params, datetime(2026, 9, 14, 12, 0, tzinfo=timezone.utc)) is None
+
+
+def test_active_session_start_london_shifts_with_europe_dst():
+    params = wd.parse_session_params(LONDON_RUN_COMMAND)
+    # Summer (BST): the bot opens at 08:00 local == 07:00 UTC
+    assert wd.active_session_start(params, datetime(2026, 9, 14, 6, 30, tzinfo=timezone.utc)) is None
+    assert wd.active_session_start(params, datetime(2026, 9, 14, 7, 0, tzinfo=timezone.utc)) == \
+        datetime(2026, 9, 14, 7, 0, tzinfo=timezone.utc)
+    # Winter (GMT): back to 08:00 UTC
+    assert wd.active_session_start(params, datetime(2026, 11, 16, 7, 0, tzinfo=timezone.utc)) is None
+    assert wd.active_session_start(params, datetime(2026, 11, 16, 8, 0, tzinfo=timezone.utc)) == \
+        datetime(2026, 11, 16, 8, 0, tzinfo=timezone.utc)
+
+
+def test_active_session_start_honours_session_end_minute_and_fallback():
+    params = wd.parse_session_params(USDJPY_RUN_COMMAND)
+    # SessionEndHour == 0 falls back to a 9h window from the start (GetSessionInfo rule)
+    fallback = dict(params, start_hour=0, end_hour=0, end_minute=0)
+    assert wd.active_session_start(fallback, datetime(2026, 9, 14, 8, 59, tzinfo=timezone.utc)) == \
+        datetime(2026, 9, 14, 0, 0, tzinfo=timezone.utc)
+    assert wd.active_session_start(fallback, datetime(2026, 9, 14, 9, 1, tzinfo=timezone.utc)) is None
+    # SessionEndMinute narrows the window
+    narrowed = dict(params, end_minute=30)
+    assert wd.active_session_start(narrowed, datetime(2026, 9, 14, 9, 29, tzinfo=timezone.utc)) is not None
+    assert wd.active_session_start(narrowed, datetime(2026, 9, 14, 9, 30, tzinfo=timezone.utc)) is None
+
+
+def test_is_forex_weekend_bounds():
+    assert wd.is_forex_weekend(datetime(2026, 9, 11, 21, 30, tzinfo=timezone.utc)) is True   # Fri close
+    assert wd.is_forex_weekend(datetime(2026, 9, 12, 12, 0, tzinfo=timezone.utc)) is True    # Sat
+    assert wd.is_forex_weekend(datetime(2026, 9, 13, 20, 0, tzinfo=timezone.utc)) is True     # Sun pre-open
+    assert wd.is_forex_weekend(datetime(2026, 9, 13, 21, 30, tzinfo=timezone.utc)) is False   # Sun open
+    assert wd.is_forex_weekend(datetime(2026, 9, 14, 2, 0, tzinfo=timezone.utc)) is False     # Mon
+
+
+def _seed_snapshot(bot_id: str, when: datetime) -> None:
+    wd._snapshot_seen_at[f"live-6094347/{bot_id}"] = when.timestamp()
+
+
+def test_stale_feed_reason_flags_silent_bot_inside_its_session():
+    now = datetime(2026, 9, 14, 2, 0, tzinfo=timezone.utc)
+    _seed_snapshot("usdjpy_m15", now - timedelta(hours=1))
+    watchdog = CbotWatchdog(stale_feed_seconds=2400)
+
+    reason = watchdog._stale_feed_reason("cbot-usdjpy", USDJPY_RUN_COMMAND, now)
+    assert reason is not None
+    assert "No bar snapshot for 60 min" in reason
+    assert "'tokyo'" in reason
+
+
+def test_stale_feed_reason_ignores_normal_and_out_of_session_silence():
+    now = datetime(2026, 9, 14, 2, 0, tzinfo=timezone.utc)
+    watchdog = CbotWatchdog(stale_feed_seconds=2400)
+
+    # Reported one bar ago -> healthy
+    _seed_snapshot("usdjpy_m15", now - timedelta(minutes=16))
+    assert watchdog._stale_feed_reason("cbot-usdjpy", USDJPY_RUN_COMMAND, now) is None
+
+    # Silent for an hour, but outside the bot's own session -> expected
+    _seed_snapshot("usdjpy_m15", now - timedelta(hours=1))
+    assert watchdog._stale_feed_reason("cbot-usdjpy", USDJPY_RUN_COMMAND,
+                                       datetime(2026, 9, 14, 12, 0, tzinfo=timezone.utc)) is None
+
+    # Weekend -> broker closed, silence is expected
+    assert watchdog._stale_feed_reason("cbot-usdjpy", USDJPY_RUN_COMMAND,
+                                       datetime(2026, 9, 12, 2, 0, tzinfo=timezone.utc)) is None
+
+
+def test_stale_feed_reason_ignores_bots_that_never_reported():
+    now = datetime(2026, 9, 14, 2, 0, tzinfo=timezone.utc)
+    watchdog = CbotWatchdog(stale_feed_seconds=2400)
+    assert watchdog._stale_feed_reason("cbot-usdjpy", USDJPY_RUN_COMMAND, now) is None
+    assert watchdog._stale_feed_reason("cbot-gbpusd-judas", JUDAS_RUN_COMMAND, now) is None
+
+
+def test_stale_feed_heals_once_per_session_instance():
+    now = datetime(2026, 9, 14, 2, 0, tzinfo=timezone.utc)
+    _seed_snapshot("usdjpy_m15", now - timedelta(hours=1))
+    watchdog = CbotWatchdog(stale_feed_seconds=2400)
+
+    assert watchdog._stale_feed_reason("cbot-usdjpy", USDJPY_RUN_COMMAND, now) is not None
+    # Same session -> latched, no restart loop while the restarted bot warms up
+    assert watchdog._stale_feed_reason("cbot-usdjpy", USDJPY_RUN_COMMAND, now) is None
+    # Next day's Tokyo session -> eligible again
+    tomorrow = datetime(2026, 9, 15, 2, 0, tzinfo=timezone.utc)
+    _seed_snapshot("usdjpy_m15", tomorrow - timedelta(hours=1))
+    assert watchdog._stale_feed_reason("cbot-usdjpy", USDJPY_RUN_COMMAND, tomorrow) is not None
+
+
+@patch("app.cbot_watchdog.docker_manager")
+@patch("app.cbot_watchdog.get_portfolio_manager")
+def test_watchdog_heals_bot_with_stale_bar_feed(mock_get_pm, mock_dm):
+    mock_dm.is_available = True
+    mock_dm.check_cbot_health.return_value = {
+        "status": "running", "stuck": False, "healthy": True, "reason": "Healthy and running"
+    }
+    mock_dm.restart_container.return_value = {"success": True, "message": "restarted"}
+
+    mock_pm = MagicMock()
+    mock_pm.get_cbot_configs.return_value = [
+        {"name": "cbot-usdjpy", "run_command": USDJPY_RUN_COMMAND},
+        {"name": "cbot-gbpusd-judas", "run_command": JUDAS_RUN_COMMAND},
+    ]
+    mock_get_pm.return_value = mock_pm
+
+    wd._snapshot_seen_at["live-6094347/usdjpy_m15"] = time.time() - 3600
+
+    watchdog = CbotWatchdog(stale_feed_seconds=2400)
+    session_start = datetime(2026, 9, 14, 0, 0, tzinfo=timezone.utc)
+    with patch.object(wd, "is_forex_weekend", return_value=False), \
+         patch.object(wd, "active_session_start", return_value=session_start):
+        actions = watchdog.check_and_heal()
+
+    assert len(actions) == 1
+    assert actions[0]["name"] == "cbot-usdjpy"
+    assert "No bar snapshot" in actions[0]["reason"]
+    assert actions[0]["success"] is True
+    mock_dm.restart_container.assert_called_once_with("cbot-usdjpy", timeout=15)
