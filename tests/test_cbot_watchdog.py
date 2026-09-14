@@ -264,6 +264,58 @@ def test_stale_feed_heals_once_per_session_instance():
     assert watchdog._stale_feed_reason("cbot-usdjpy", USDJPY_RUN_COMMAND, tomorrow) is not None
 
 
+NY_INDEX_RUN_COMMAND = (
+    "docker run -d \\ --name cbot-us30 \\ --network host \\ run /workspace/cBot/AiAgentBot.algo \\ "
+    "--BotId=\"us30_m15\" \\ --SessionName=\"newyork_index\" \\ --OrbStartHour=13 \\ --SessionEndHour=20 \\ "
+    "--SessionDstRule=\"US\""
+)
+
+BAR_CYCLE_COMMANDS = {
+    "cbot-usdjpy": USDJPY_RUN_COMMAND,        # FX, Tokyo window, no DST
+    "cbot-gbpusd": LONDON_RUN_COMMAND,        # FX, London window, Europe DST
+    "cbot-us30": NY_INDEX_RUN_COMMAND,        # index, NY window, US DST
+}
+
+
+def test_active_session_start_us_index_shifts_with_us_dst():
+    params = wd.parse_session_params(NY_INDEX_RUN_COMMAND)
+    # Summer (EDT): 13:00 local == 12:00 UTC
+    assert wd.active_session_start(params, datetime(2026, 9, 14, 11, 59, tzinfo=timezone.utc)) is None
+    assert wd.active_session_start(params, datetime(2026, 9, 14, 12, 0, tzinfo=timezone.utc)) == \
+        datetime(2026, 9, 14, 12, 0, tzinfo=timezone.utc)
+    # Winter (EST): back to 13:00 UTC
+    assert wd.active_session_start(params, datetime(2026, 11, 16, 12, 0, tzinfo=timezone.utc)) is None
+    assert wd.active_session_start(params, datetime(2026, 11, 16, 13, 0, tzinfo=timezone.utc)) == \
+        datetime(2026, 11, 16, 13, 0, tzinfo=timezone.utc)
+
+
+def test_stale_feed_never_fires_while_the_market_is_closed():
+    """Saturday and Sunday carry no bars for FX or index bots, so a silent feed must
+    never look like a stall — otherwise every weekend would trigger restarts."""
+    start = datetime(2026, 9, 11, 0, 0, tzinfo=timezone.utc)   # Friday 00:00 UTC
+    step = timedelta(minutes=30)
+    probes = 0
+
+    now = start
+    while now < start + timedelta(days=4):
+        for name, run_command in BAR_CYCLE_COMMANDS.items():
+            params = wd.parse_session_params(run_command)
+            _seed_snapshot(params["bot_id"], now - timedelta(hours=3))
+            reason = CbotWatchdog(stale_feed_seconds=2400)._stale_feed_reason(name, run_command, now)
+            probes += 1
+            if now.weekday() >= 5 or wd.is_forex_weekend(now):
+                assert reason is None, f"{name} false-healed at {now.isoformat()}"
+        now += step
+
+    assert probes > 500
+
+    # ...and the same sweep still catches a genuine mid-session stall on a weekday
+    monday = datetime(2026, 9, 14, 2, 0, tzinfo=timezone.utc)
+    _seed_snapshot("usdjpy_m15", monday - timedelta(hours=3))
+    assert CbotWatchdog(stale_feed_seconds=2400)._stale_feed_reason(
+        "cbot-usdjpy", USDJPY_RUN_COMMAND, monday) is not None
+
+
 @patch("app.cbot_watchdog.docker_manager")
 @patch("app.cbot_watchdog.get_portfolio_manager")
 def test_watchdog_heals_bot_with_stale_bar_feed(mock_get_pm, mock_dm):
