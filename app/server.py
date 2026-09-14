@@ -1778,9 +1778,21 @@ async def handle_telemetry_tick(request: dict):
         ask = float(request.get("ask", 0.0) or 0.0)
         if symbol and (bid > 0 or ask > 0):
             portfolio_manager.update_market_price(symbol, bid, ask, bot_id=bot_id)
+
+        # A tick carries its own P&L sample, so refreshing the dashboard costs one small
+        # broadcast instead of rebuilding the whole positions payload for three account
+        # scopes from the database (~86 ms of CPU per tick - a 1 Hz stream cannot afford it).
         try:
-            await broadcast_tick(symbol=symbol, bid=bid, ask=ask, account_id=account_id)
-            await broadcast_update()
+            pnl = float(request["pnl"]) if request.get("pnl") is not None else None
+            pips = float(request["pips"]) if request.get("pips") is not None else None
+        except (TypeError, ValueError):
+            pnl = pips = None
+        if pnl is not None:
+            portfolio_manager.update_position_metrics(bot_id, pnl, pips or 0.0, account_id=account_id)
+
+        try:
+            await broadcast_tick(symbol=symbol, bid=bid, ask=ask, account_id=account_id,
+                                 bot_id=bot_id, pnl=pnl, pips=pips)
         except Exception:
             pass
             

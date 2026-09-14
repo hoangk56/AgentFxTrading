@@ -953,6 +953,16 @@
         function pnlClass(v){return Number(v)>=0?'kpi-value--profit':'kpi-value--loss'}
         function accountBadge(t){return t==='live'?'<span class="badge badge--live"><span class="badge-dot"></span>LIVE</span>':'<span class="badge badge--demo"><span class="badge-dot"></span>DEMO</span>'}
         function sideChip(s){const c=s==='BUY'?'side-chip--buy':'side-chip--sell';return `<span class="side-chip ${c}">${s}</span>`}
+        // Single renderer for the P&L cell, shared by the row builder and the live tick handler.
+        // Only the broker's own figure is shown; a missing one reads as "—" rather than a guess.
+        function pnlCellHtml(pnl, pips){
+            if(pnl===null||pnl===undefined){
+                return '<span class="td-dim" title="broker-reported P&L arrives with the bot\'s next snapshot">—</span>';
+            }
+            const v=Number(pnl)||0, p=Number(pips)||0;
+            const cls=v>=0?'pnl-chip--profit':'pnl-chip--loss';
+            return `<span class="pnl-chip ${cls}">${v>0?'+':''}$${v.toFixed(2)} (${p>0?'+':''}${p.toFixed(1)}p)</span>`;
+        }
         function botBadge(b){
             if(!b)return '<span class="bot-badge bot-badge--default"><span class="bot-dot"></span>N/A</span>';
             const bl=String(b).toLowerCase(),isJ=bl.includes('judas')||bl.includes('asian')||bl.includes('smc');
@@ -1224,11 +1234,19 @@
                         const newPrice = isBuy ? (tick.bid || tick.ask) : (tick.ask || tick.bid);
                         if (newPrice) {
                             const oldPrice = parseFloat(curPriceCell.textContent) || newPrice;
+                            // Replaces the whole cell, which also drops the "·Xm" snapshot-age
+                            // suffix: a price that just arrived live has no age.
                             curPriceCell.textContent = newPrice;
                             curPriceCell.classList.remove('price-flash-up', 'price-flash-down');
                             void curPriceCell.offsetWidth; // trigger reflow
                             curPriceCell.classList.add(newPrice >= oldPrice ? 'price-flash-up' : 'price-flash-down');
                         }
+                    }
+                    // The bot sends its own broker P&L sample with the tick when a position is
+                    // open, so the chip stays live without the server rebuilding positions.
+                    if (tick.pnl !== undefined && tick.pnl !== null) {
+                        const pnlCell = tr.querySelector('.td-pnl-live');
+                        if (pnlCell) pnlCell.innerHTML = pnlCellHtml(tick.pnl, tick.pips);
                     }
                 }
             });
@@ -1298,17 +1316,9 @@
                 tb.innerHTML='<tr><td colspan="10" class="empty-state">No active positions</td></tr>';
             } else {
                 tb.innerHTML=positions.map(p=>{
-                    const uPnl = Number(p.unrealized_pnl) || 0;
-                    const uPips = Number(p.unrealized_pnl_pips) || 0;
-                    const pnlChipClass = uPnl >= 0 ? 'pnl-chip--profit' : 'pnl-chip--loss';
-                    const pnlSign = uPnl > 0 ? '+' : '';
-                    const pipsSign = uPips > 0 ? '+' : '';
                     const curPrice = (p.current_price !== undefined && p.current_price !== null) ? p.current_price : p.entry_price;
                     const priceAge = (typeof p.price_age_seconds === 'number') ? `<span class="td-dim" title="price from the bot's last snapshot"> ·${Math.floor(p.price_age_seconds/60)}m</span>` : '';
-                    // Only the broker's own figure is shown; a missing one reads as "—" rather than a guess.
-                    const pnlCell = (p.unrealized_pnl === null || p.unrealized_pnl === undefined)
-                        ? `<span class="td-dim" title="broker-reported P&L arrives with the bot's next snapshot">—</span>`
-                        : `<span class="pnl-chip ${pnlChipClass}">${pnlSign}$${uPnl.toFixed(2)} (${pipsSign}${uPips.toFixed(1)}p)</span>`;
+                    const pnlCell = pnlCellHtml(p.unrealized_pnl, p.unrealized_pnl_pips);
                     
                     return `<tr>
                         <td class="col-account account-cell ${ah}">${accountBadge(p.account_type)}<span class="account-name">${p.account_label||''}</span></td>

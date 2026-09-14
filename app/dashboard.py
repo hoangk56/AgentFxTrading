@@ -681,15 +681,33 @@ class ConnectionManager:
             self.connection_meta[websocket]["mode"] = mode
     
     async def broadcast(self, message: dict):
-        """Broadcast message to all connected clients."""
-        dead_connections = []
-        for connection in list(self.active_connections):
-            try:
-                await connection.send_json(message)
-            except Exception:
-                dead_connections.append(connection)
-        for dc in dead_connections:
-            self.disconnect(dc)
+        """Fan a message out to every client without letting one slow client stall the rest.
+
+        With a continuous tick stream a backgrounded browser tab or a dead link would otherwise
+        hold up every other client's sends - and, through the acknowledgement path, the send
+        cadence of the cBots themselves. Each send therefore carries a deadline; a client that
+        misses it is dropped and its own reconnect logic re-syncs it.
+        """
+        connections = list(self.active_connections)
+        if not connections:
+            return
+
+        results = await asyncio.gather(
+            *(self._send_with_deadline(conn, message) for conn in connections),
+            return_exceptions=True,
+        )
+        for conn, result in zip(connections, results):
+            if result is not True:
+                self.disconnect(conn)
+
+    async def _send_with_deadline(self, connection: WebSocket, message: dict,
+                                  timeout_seconds: float = 2.0) -> bool:
+        """Send one message to one client, reporting failure instead of blocking the fan-out."""
+        try:
+            await asyncio.wait_for(connection.send_json(message), timeout=timeout_seconds)
+            return True
+        except Exception:
+            return False
 
     async def broadcast_log(self, raw_line: str):
         """Broadcast formatted log line to all connected clients."""
@@ -799,8 +817,28 @@ async def cbot_websocket_endpoint(websocket: WebSocket):
                     if symbol and (bid > 0 or ask > 0):
                         pm = get_portfolio_manager()
                         pm.update_market_price(symbol, bid, ask, bot_id=bot_id)
-                        await broadcast_tick(symbol, bid, ask, account_id)
-                    await websocket.send_json({"type": "ack", "status": "ok"})
+
+                        # A bot with a position open also sends its own broker P&L sample, which
+                        # keeps the dashboard live between bar snapshots without the server
+                        # reconstructing anything (it cannot: no pip size / FX rate server-side).
+                        try:
+                            pnl = float(payload["pnl"]) if payload.get("pnl") is not None else None
+                            pips = float(payload["pips"]) if payload.get("pips") is not None else None
+                        except (TypeError, ValueError):
+                            pnl = pips = None
+                        if pnl is not None:
+                            pm.update_position_metrics(bot_id, pnl, pips or 0.0, account_id=account_id)
+
+                        # Acknowledge before fanning out: the bot paces its next tick on this reply,
+                        # so its cadence must not depend on the health of dashboard clients.
+                        await websocket.send_json({"type": "ack", "status": "ok"})
+                        try:
+                            await broadcast_tick(symbol, bid, ask, account_id,
+                                                 bot_id=bot_id, pnl=pnl, pips=pips)
+                        except Exception:
+                            pass
+                    else:
+                        await websocket.send_json({"type": "ack", "status": "ok"})
                 else:
                     await websocket.send_json({"type": "ack", "status": "received"})
             except json.JSONDecodeError:
@@ -821,14 +859,24 @@ async def broadcast_update():
         })
 
 
-async def broadcast_tick(symbol: str, bid: float, ask: float, account_id: Optional[str] = None):
-    """Broadcast live tick price update."""
+async def broadcast_tick(symbol: str, bid: float, ask: float, account_id: Optional[str] = None,
+                         bot_id: Optional[str] = None, pnl: Optional[float] = None,
+                         pips: Optional[float] = None):
+    """Broadcast a live tick price update.
+
+    When a bot has a position open it also reports its own P&L sample (broker net profit and
+    pips), which rides along here so the dashboard can refresh prices *and* P&L from a single
+    small message - no positions payload rebuild, no DB access.
+    """
     await manager.broadcast({
         "type": "tick",
         "symbol": symbol,
         "bid": bid,
         "ask": ask,
         "account_id": account_id,
+        "bot_id": bot_id,
+        "pnl": pnl,
+        "pips": pips,
         "timestamp": datetime.now().isoformat()
     })
 

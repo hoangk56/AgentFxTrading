@@ -40,6 +40,40 @@ def test_ui_endpoints():
     data_dec = resp_dec.json()
     assert isinstance(data_dec, list)
 
+    resp_dec_filtered = client.get("/api/dashboard/latest-decisions?limit=3&symbol=EURUSD")
+    assert resp_dec_filtered.status_code == 200
+    assert isinstance(resp_dec_filtered.json(), list)
+    # Test Summary API
+    resp_summary = client.get("/api/dashboard/summary")
+    assert resp_summary.status_code == 200
+    data_sum = resp_summary.json()
+    assert "profit_factor" in data_sum
+    assert "win_rate" in data_sum
+    assert "total_trades" in data_sum
+
+    # Test Demo and Real Dashboard HTML renders cleanly with new widgets
+    resp_demo = client.get("/demo/dashboard")
+    assert resp_demo.status_code == 200
+    html_demo = resp_demo.text
+    assert "market-session-bar" in html_demo
+    assert "pnl-chart" in html_demo
+    assert "equity-chart" in html_demo
+    assert "exposure-chart" in html_demo
+    assert 'id="profit-factor"' in html_demo
+    resp_real = client.get("/real/dashboard")
+    assert resp_real.status_code == 200
+    html_real = resp_real.text
+    assert "market-session-bar" in html_real
+    assert "view-decisions" in html_real
+    assert "view-decisions" in html_demo
+    assert "ai-feed-list" in html_real
+    assert 'id="profit-factor"' in html_real
+    assert "view-news" in html_demo
+    # Ensure view-news is inside <main class="main-content"> before </main>
+    main_close_idx = html_demo.find("</main>")
+    news_view_idx = html_demo.find('id="view-news"')
+    assert news_view_idx != -1 and news_view_idx < main_close_idx
+
 
 def _position():
     return {
@@ -84,36 +118,36 @@ def test_pnl_is_broker_reported_and_never_reconstructed():
     assert pos["current_price"] == 10727.6
     assert pos["price_age_seconds"] is None
 
-    resp_dec_filtered = client.get("/api/dashboard/latest-decisions?limit=3&symbol=EURUSD")
-    assert resp_dec_filtered.status_code == 200
-    assert isinstance(resp_dec_filtered.json(), list)
-    # Test Summary API
-    resp_summary = client.get("/api/dashboard/summary")
-    assert resp_summary.status_code == 200
-    data_sum = resp_summary.json()
-    assert "profit_factor" in data_sum
-    assert "win_rate" in data_sum
-    assert "total_trades" in data_sum
 
-    # Test Demo and Real Dashboard HTML renders cleanly with new widgets
-    resp_demo = client.get("/demo/dashboard")
-    assert resp_demo.status_code == 200
-    html_demo = resp_demo.text
-    assert "market-session-bar" in html_demo
-    assert "pnl-chart" in html_demo
-    assert "equity-chart" in html_demo
-    assert "exposure-chart" in html_demo
-    assert 'id="profit-factor"' in html_demo
-    resp_real = client.get("/real/dashboard")
-    assert resp_real.status_code == 200
-    html_real = resp_real.text
-    assert "market-session-bar" in html_real
-    assert "view-decisions" in html_real
-    assert "view-decisions" in html_demo
-    assert "ai-feed-list" in html_real
-    assert 'id="profit-factor"' in html_real
-    assert "view-news" in html_demo
-    # Ensure view-news is inside <main class="main-content"> before </main>
-    main_close_idx = html_demo.find("</main>")
-    news_view_idx = html_demo.find('id="view-news"')
-    assert news_view_idx != -1 and news_view_idx < main_close_idx
+def test_tick_metrics_merge_into_the_cached_position_report():
+    """A tick refreshes P&L without discarding the rest of the bot's position report."""
+    from app.portfolio import PortfolioManager
+
+    pm = PortfolioManager.__new__(PortfolioManager)          # no DB needed for the cache
+    pm._bot_positions_cache = {"live-1:bot-a": {"side": "BUY", "entry_price": 10727.6,
+                                                "unrealized_pnl": -0.12, "unrealized_pnl_pips": -9.0,
+                                                "_reported_at": 1.0}}
+
+    pm.update_position_metrics("bot-a", 1.24, 68.0, account_id="live-1")
+
+    entry = pm._bot_positions_cache["live-1:bot-a"]
+    assert entry["unrealized_pnl"] == 1.24
+    assert entry["unrealized_pnl_pips"] == 68.0
+    assert entry["_reported_at"] > 1.0
+    # The snapshot's other fields survive: the dashboard still needs entry/SL/TP
+    assert entry["entry_price"] == 10727.6
+    assert entry["side"] == "BUY"
+    # The bare bot_id key is written too, which is how a position row without an account resolves
+    assert pm._bot_positions_cache["bot-a"]["unrealized_pnl"] == 1.24
+
+    # A tick can arrive before the first snapshot (e.g. right after a restart)
+    pm.update_position_metrics("bot-b", -0.5, -25.0, account_id="live-1")
+    assert pm._bot_positions_cache["live-1:bot-b"]["unrealized_pnl_pips"] == -25.0
+
+    # Keys registered by earlier snapshots are refreshed even without an account_id on the tick,
+    # so the key the dashboard resolves first cannot stay behind a stale snapshot value
+    pm2 = PortfolioManager.__new__(PortfolioManager)
+    pm2._bot_positions_cache = {"live-9:bot-c": {"entry_price": 1.1, "unrealized_pnl": 0.0}}
+    pm2.update_position_metrics("bot-c", 2.5, 10.0)
+    assert pm2._bot_positions_cache["live-9:bot-c"]["unrealized_pnl"] == 2.5
+    assert pm2._bot_positions_cache["live-9:bot-c"]["entry_price"] == 1.1

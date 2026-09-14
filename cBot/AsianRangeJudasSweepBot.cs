@@ -5,6 +5,7 @@ using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
+using System.Net.WebSockets;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
@@ -79,6 +80,13 @@ namespace cAlgo.Robots
         public bool EnableDashboardTelemetry { get; set; }
         [Parameter("Dashboard Server URL", Group = "AI Agent Settings", DefaultValue = "http://127.0.0.1:8000")]
         public string DashboardServerUrl { get; set; }
+
+        // Live tick stream over the cBot WebSocket (/ws/cbot): one small message per interval with
+        // bid/ask plus the broker's P&L while a position is open. The HTTP /api/tick route costs
+        // ~86 ms of server CPU per call against ~1.6 ms here, which is why periodic HTTP ticks were
+        // previously switched off entirely. 0 disables the stream.
+        [Parameter("Tick Stream (ms, 0=off)", Group = "AI Agent Settings", DefaultValue = 1000, MinValue = 0)]
+        public int TickStreamMs { get; set; }
         [Parameter("Account Label (optional)", Group = "AI Agent Settings", DefaultValue = "")]
         public string AccountLabel { get; set; }
 
@@ -475,6 +483,16 @@ namespace cAlgo.Robots
         private int    _lastCrossBarIndex   = -1;     // bar index of most recent cross
         private DateTime _lastCrossBarTime  = DateTime.MinValue; // open time of that cross bar (an index taken in an older series is not reusable)
         private const  int CrossSignalWindowBars = 3; // a sweep signal stays actionable for this many bars
+
+        // ---- Live tick stream (/ws/cbot) ----
+        // OnTick only fills in a frame; a background task owns the socket so trade management
+        // never waits on the network.
+        private CancellationTokenSource _tickStreamCts;
+        private readonly object _tickFrameLock = new object();
+        private double _tickFrameBid, _tickFrameAsk, _tickFramePnl, _tickFramePips;
+        private bool _tickFrameHasPnl;
+        private long _tickFrameStamp;
+        private DateTime _lastTickFrameAt = DateTime.MinValue;
         #endregion
 
         #region Robot Events
@@ -526,6 +544,8 @@ namespace cAlgo.Robots
             }
 
             Print(label + " Started successfully. Bot is running...");
+
+            StartTickStream();
 
             _ = SendStateToAgentAsync();
         }
@@ -685,6 +705,9 @@ namespace cAlgo.Robots
                 createOrder();
                 resetConditions();
             }
+
+            // Publish the latest prices/P&L for the tick stream (throttled inside)
+            PublishTickFrame();
         }
 
         private void resetConditions()
@@ -874,6 +897,7 @@ namespace cAlgo.Robots
 
         protected override void OnStop()
         {
+            StopTickStream();
             Print(label + " Stopped.");
         }
         #endregion
@@ -3357,6 +3381,165 @@ Reply strictly with JSON object.";
         }
 
         private DateTime _lastTickTelemetryTime = DateTime.MinValue;
+
+        // ==========================================
+        // LIVE TICK STREAM (/ws/cbot)
+        // ==========================================
+        // One small WebSocket message per interval carrying bid/ask and the position's broker P&L,
+        // instead of a per-tick HTTP POST that rebuilt the dashboard payload from the database.
+        // The socket lives in a background task; OnTick only fills in the latest frame.
+
+        private class TickStreamMessage
+        {
+            public string type { get; set; }
+            public string bot_id { get; set; }
+            public string symbol { get; set; }
+            public double bid { get; set; }
+            public double ask { get; set; }
+            public double? pnl { get; set; }
+            public double? pips { get; set; }
+        }
+
+        private void StartTickStream()
+        {
+            if (!EnableDashboardTelemetry || TickStreamMs <= 0) return;
+
+            var url = BuildTickStreamUrl();
+            if (string.IsNullOrWhiteSpace(url)) return;
+
+            _tickStreamCts = new CancellationTokenSource();
+            var token = _tickStreamCts.Token;
+            Task.Run(() => TickStreamLoopAsync(url, token), token);
+            Print($"[TickStream] Streaming to {url} every {TickStreamMs} ms");
+        }
+
+        private void StopTickStream()
+        {
+            try { _tickStreamCts?.Cancel(); } catch { }
+            _tickStreamCts = null;
+        }
+
+        private string BuildTickStreamUrl()
+        {
+            var baseUrl = !string.IsNullOrWhiteSpace(DashboardServerUrl) ? DashboardServerUrl : ApiUrl;
+            if (string.IsNullOrWhiteSpace(baseUrl)) return null;
+
+            baseUrl = baseUrl.Trim().Trim('"', '\'', '“', '”', '‘', '’', '`');
+            const string tradePath = "/trade";
+            if (baseUrl.EndsWith(tradePath)) baseUrl = baseUrl.Substring(0, baseUrl.Length - tradePath.Length);
+            baseUrl = baseUrl.TrimEnd('/');
+
+            if (baseUrl.StartsWith("https://")) return "wss://" + baseUrl.Substring(8) + "/ws/cbot";
+            if (baseUrl.StartsWith("http://")) return "ws://" + baseUrl.Substring(7) + "/ws/cbot";
+            return null;
+        }
+
+        /// <summary>Sample prices and the position's broker P&L on the cBot thread (throttled).</summary>
+        private void PublishTickFrame()
+        {
+            if (_tickStreamCts == null) return;
+
+            var now = DateTime.UtcNow;
+            if ((now - _lastTickFrameAt).TotalMilliseconds < TickStreamMs) return;
+            _lastTickFrameAt = now;
+
+            double pnl = 0, pips = 0;
+            bool hasPnl = false;
+            var positions = Positions.FindAll(label, SymbolName);
+            if (positions.Length > 0)
+            {
+                var pos = positions[0];
+                pnl = Math.Round(pos.NetProfit, 2);
+                pips = Math.Round(pos.Pips, 1);
+                hasPnl = true;
+            }
+
+            lock (_tickFrameLock)
+            {
+                _tickFrameBid = Symbol.Bid;
+                _tickFrameAsk = Symbol.Ask;
+                _tickFramePnl = pnl;
+                _tickFramePips = pips;
+                _tickFrameHasPnl = hasPnl;
+                _tickFrameStamp++;
+            }
+        }
+
+        private async Task TickStreamLoopAsync(string url, CancellationToken token)
+        {
+            var uri = new Uri(url);
+            var ackBuffer = new byte[512];
+
+            while (!token.IsCancellationRequested)
+            {
+                ClientWebSocket ws = null;
+                try
+                {
+                    ws = new ClientWebSocket();
+                    await ws.ConnectAsync(uri, token);
+                    Print("[TickStream] Connected.");
+
+                    long sentStamp = -1;
+                    while (!token.IsCancellationRequested)
+                    {
+                        // Poll for a freshly captured frame instead of sleeping a whole interval:
+                        // PublishTickFrame already throttles the sampling, and with two independent
+                        // one-second clocks the send was skipped whenever the wake-up landed just before
+                        // the next frame (delivering ~0.65 Hz instead of 1 Hz).
+                        await Task.Delay(Math.Min(250, TickStreamMs), token);
+
+                        double bid, ask, pnl, pips;
+                        bool hasPnl;
+                        long stamp;
+                        lock (_tickFrameLock)
+                        {
+                            bid = _tickFrameBid; ask = _tickFrameAsk;
+                            pnl = _tickFramePnl; pips = _tickFramePips;
+                            hasPnl = _tickFrameHasPnl; stamp = _tickFrameStamp;
+                        }
+                        if (stamp == sentStamp || (bid <= 0 && ask <= 0)) continue;
+
+                        var json = JsonSerializer.Serialize(new TickStreamMessage
+                        {
+                            type = "tick",
+                            bot_id = BotId,
+                            symbol = SymbolName,
+                            bid = bid,
+                            ask = ask,
+                            pnl = hasPnl ? (double?)pnl : null,
+                            pips = hasPnl ? (double?)pips : null
+                        });
+                        var payload = Encoding.UTF8.GetBytes(json);
+                        await ws.SendAsync(new ArraySegment<byte>(payload), WebSocketMessageType.Text, true, token);
+                        sentStamp = stamp;
+
+                        // Drain the ack: an unread receive buffer fills up over a trading day and
+                        // then stalls the server's sends.
+                        while (true)
+                        {
+                            var received = await ws.ReceiveAsync(new ArraySegment<byte>(ackBuffer), token);
+                            if (received.MessageType == WebSocketMessageType.Close)
+                            {
+                                await ws.CloseOutputAsync(WebSocketCloseStatus.NormalClosure, string.Empty, token);
+                                break;
+                            }
+                            if (received.EndOfMessage) break;
+                        }
+                    }
+                }
+                catch (OperationCanceledException) { break; }
+                catch (Exception ex)
+                {
+                    Print($"[TickStream] {ex.GetType().Name}: {ex.Message}");
+                }
+                finally
+                {
+                    try { ws?.Dispose(); } catch { }
+                }
+
+                try { await Task.Delay(5000, token); } catch { break; }
+            }
+        }
 
         private void SendLiveTickTelemetry(bool force = false)
         {
