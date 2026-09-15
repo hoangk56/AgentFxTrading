@@ -1203,7 +1203,7 @@ def evaluate_cycle_gate(snapshot: MarketSnapshot) -> Optional[AgentDecision]:
                 )
             )
         logger.info(
-            f"[CYCLE GATE] Choppy override: fresh {orb.breakout_direction} breakout "
+            f"[CYCLE GATE] {snapshot.bot_id} Choppy override: fresh {orb.breakout_direction} breakout "
             f"(bars_since_breakout={orb.bars_since_breakout}, dist={orb.breakout_distance_pips:.1f}p, "
             f"or_flips={snapshot.market.or_flips}) with aligned momentum -> evaluating entry"
         )
@@ -1614,7 +1614,7 @@ async def trade_decision(snapshot: MarketSnapshot):
         # SMC Judas Sweep Gate Evaluation
         gated_decision = evaluate_judas_sweep_gate(snapshot, account_id=account_id)
         if gated_decision is not None:
-            logger.info(f"[JUDAS GATE] GATED: {gated_decision.action} | Reason: {gated_decision.reason}")
+            logger.info(f"[JUDAS GATE] {account_id}/{snapshot.bot_id} -> GATED: {gated_decision.action} | Reason: {gated_decision.reason}")
             return gated_decision
 
         system_prompt = build_judas_sweep_system_prompt(snapshot)
@@ -1652,7 +1652,7 @@ async def trade_decision(snapshot: MarketSnapshot):
 
         gated_decision = evaluate_cycle_gate(snapshot)
         if gated_decision is not None:
-            logger.info(f"[CYCLE GATE] GATED: {gated_decision.action} | Reason: {gated_decision.reason}")
+            logger.info(f"[CYCLE GATE] {account_id}/{snapshot.bot_id} -> GATED: {gated_decision.action} | Reason: {gated_decision.reason}")
             return gated_decision
 
         system_prompt = build_system_prompt(snapshot)
