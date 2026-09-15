@@ -160,9 +160,9 @@ def test_parse_session_params_reads_tms_window():
     params = wd.parse_session_params(USDJPY_RUN_COMMAND)
     assert params["bot_id"] == "usdjpy_m15"
     assert params["session_name"] == "tokyo"
-    assert (params["start_hour"], params["end_hour"]) == (0, 9)
+    assert (params["start_hour"], params["start_minute"], params["end_hour"]) == (0, 0, 9)
+    assert params["end_minute"] == 0
     assert params["dst_rule"] == "None"
-
 
 def test_parse_session_params_skips_bots_without_bar_cycle():
     assert wd.parse_session_params(JUDAS_RUN_COMMAND) is None
@@ -266,8 +266,8 @@ def test_stale_feed_heals_once_per_session_instance():
 
 NY_INDEX_RUN_COMMAND = (
     "docker run -d \\ --name cbot-us30 \\ --network host \\ run /workspace/cBot/AiAgentBot.algo \\ "
-    "--BotId=\"us30_m15\" \\ --SessionName=\"newyork_index\" \\ --OrbStartHour=13 \\ --SessionEndHour=20 \\ "
-    "--SessionDstRule=\"US\""
+    "--BotId=\"us30_m15\" \\ --SessionName=\"newyork_index\" \\ --OrbStartHour=14 \\ --OrbStartMinute=30 \\ "
+    "--SessionEndHour=21 \\ --SessionDstRule=\"US\""
 )
 
 BAR_CYCLE_COMMANDS = {
@@ -279,15 +279,15 @@ BAR_CYCLE_COMMANDS = {
 
 def test_active_session_start_us_index_shifts_with_us_dst():
     params = wd.parse_session_params(NY_INDEX_RUN_COMMAND)
-    # Summer (EDT): 13:00 local == 12:00 UTC
-    assert wd.active_session_start(params, datetime(2026, 9, 14, 11, 59, tzinfo=timezone.utc)) is None
-    assert wd.active_session_start(params, datetime(2026, 9, 14, 12, 0, tzinfo=timezone.utc)) == \
-        datetime(2026, 9, 14, 12, 0, tzinfo=timezone.utc)
-    # Winter (EST): back to 13:00 UTC
-    assert wd.active_session_start(params, datetime(2026, 11, 16, 12, 0, tzinfo=timezone.utc)) is None
-    assert wd.active_session_start(params, datetime(2026, 11, 16, 13, 0, tzinfo=timezone.utc)) == \
-        datetime(2026, 11, 16, 13, 0, tzinfo=timezone.utc)
-
+    assert params["start_minute"] == 30
+    # Summer (EDT): 09:30 AM local == 13:30 UTC (base 14 - 1 = 13:30)
+    assert wd.active_session_start(params, datetime(2026, 9, 14, 13, 29, tzinfo=timezone.utc)) is None
+    assert wd.active_session_start(params, datetime(2026, 9, 14, 13, 30, tzinfo=timezone.utc)) == \
+        datetime(2026, 9, 14, 13, 30, tzinfo=timezone.utc)
+    # Winter (EST): back to 14:30 UTC (09:30 AM local)
+    assert wd.active_session_start(params, datetime(2026, 11, 16, 14, 29, tzinfo=timezone.utc)) is None
+    assert wd.active_session_start(params, datetime(2026, 11, 16, 14, 30, tzinfo=timezone.utc)) == \
+        datetime(2026, 11, 16, 14, 30, tzinfo=timezone.utc)
 
 def test_stale_feed_never_fires_while_the_market_is_closed():
     """Saturday and Sunday carry no bars for FX or index bots, so a silent feed must

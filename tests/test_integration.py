@@ -763,6 +763,80 @@ def test_nyse_open_buffer_active_and_inactive():
     assert decision_outside is None
 
 
+def test_us_index_premarket_cash_open_buffer():
+    from app.server import evaluate_cycle_gate, MarketSnapshot, TmsSignals, OrbData, SessionInfo, BarData
+
+    # 1. At 13:00 UTC (9:00 AM NY - premarket): US30 must be gated to HOLD
+    snap_premarket = MarketSnapshot(
+        bot_id="cbot-us30",
+        symbol="US30",
+        timeframe="Minute15",
+        ask=52300.0,
+        bid=52298.0,
+        bars=[BarData(time="2026-09-08 13:00:00")],
+        session=SessionInfo(session_name="newyork_index", phase="active", is_trading_time=True),
+        tms=TmsSignals(bias="BULLISH", bars_since_cross=1, cross_up=True, price_above_ema=True, long_entry=True),
+        orb=OrbData(
+            or_complete=True,
+            breakout_direction="up",
+            breakout_distance_pips=150.0,
+            in_entry_window=True,
+            is_decisive=True,
+            bars_since_breakout=1
+        )
+    )
+    dec_premarket = evaluate_cycle_gate(snap_premarket)
+    assert dec_premarket is not None
+    assert dec_premarket.action == "HOLD"
+    assert "US Index Pre-market / Cash Open Buffer active" in dec_premarket.reason
+
+    # 2. At 13:30 UTC (9:30 AM NY - exact cash open): still in opening range buffer -> HOLD
+    snap_cash_open = MarketSnapshot(
+        bot_id="cbot-us30",
+        symbol="US30",
+        timeframe="Minute15",
+        ask=52300.0,
+        bid=52298.0,
+        bars=[BarData(time="2026-09-08 13:30:00")],
+        session=SessionInfo(session_name="newyork_index", phase="active", is_trading_time=True),
+        tms=TmsSignals(bias="BULLISH", bars_since_cross=1, cross_up=True, price_above_ema=True, long_entry=True),
+        orb=OrbData(
+            or_complete=True,
+            breakout_direction="up",
+            breakout_distance_pips=150.0,
+            in_entry_window=True,
+            is_decisive=True,
+            bars_since_breakout=1
+        )
+    )
+    dec_cash_open = evaluate_cycle_gate(snap_cash_open)
+    assert dec_cash_open is not None
+    assert dec_cash_open.action == "HOLD"
+    assert "US Index Pre-market / Cash Open Buffer active" in dec_cash_open.reason
+
+    # 3. At 13:45 UTC (9:45 AM NY - first cash open M15 candle closed): outside buffer -> passes!
+    snap_open_complete = MarketSnapshot(
+        bot_id="cbot-us30",
+        symbol="US30",
+        timeframe="Minute15",
+        ask=52300.0,
+        bid=52298.0,
+        bars=[BarData(time="2026-09-08 13:45:00")],
+        session=SessionInfo(session_name="newyork_index", phase="active", is_trading_time=True),
+        tms=TmsSignals(bias="BULLISH", bars_since_cross=1, cross_up=True, price_above_ema=True, long_entry=True),
+        orb=OrbData(
+            or_complete=True,
+            breakout_direction="up",
+            breakout_distance_pips=150.0,
+            in_entry_window=True,
+            is_decisive=True,
+            bars_since_breakout=1
+        )
+    )
+    dec_open_complete = evaluate_cycle_gate(snap_open_complete)
+    assert dec_open_complete is None
+
+
 def test_gold_min_decisive_breakout_gate():
     from app.server import evaluate_cycle_gate, MarketSnapshot, TmsSignals, OrbData, SessionInfo, BarData
 

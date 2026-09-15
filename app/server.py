@@ -981,18 +981,33 @@ def evaluate_cycle_gate(snapshot: MarketSnapshot) -> Optional[AgentDecision]:
         if current_dt is None:
             current_dt = datetime.datetime.now(datetime.timezone.utc)
 
+        is_us_index = any(s in snapshot.symbol.upper() for s in ["US30", "DJ30", "USTEC", "NAS100"])
+        is_us_index_premarket = False
         is_nyse_buffer = False
         try:
             from zoneinfo import ZoneInfo
             ny_dt = current_dt.astimezone(ZoneInfo("America/New_York"))
             ny_minute = ny_dt.hour * 60 + ny_dt.minute
-            # 9:10 AM NY is 550 min; 9:35 AM NY is 575 min
+            # For US Equity Indices: Pre-market & Cash Open M15 formation (before 9:45 AM NY = 585 min)
+            is_us_index_premarket = is_us_index and (ny_minute < 585)
+            # For general NY session (Gold, FX): 9:10 AM NY (550 min) to 9:35 AM NY (575 min)
             is_nyse_buffer = (550 <= ny_minute <= 575)
         except Exception:
             utc_dt = current_dt.astimezone(datetime.timezone.utc)
             utc_minute = utc_dt.hour * 60 + utc_dt.minute
+            # In summer UTC-4: 9:45 AM NY is 13:45 UTC (825 min); in winter UTC-5: 14:45 UTC (885 min)
+            is_us_index_premarket = is_us_index and (utc_minute < 825)
             # 13:10 UTC is 790 min; 13:35 UTC is 815 min
             is_nyse_buffer = (790 <= utc_minute <= 815)
+
+        if is_us_index_premarket:
+            return AgentDecision(
+                action="HOLD",
+                volume_lots=0.01,
+                sl_pips=0.0,
+                tp_pips=0.0,
+                reason="Cycle gate: US Index Pre-market / Cash Open Buffer active (trading prohibited before 9:45 AM NY / 13:45 UTC summer). Awaiting Cash Open Range formation."
+            )
 
         if is_nyse_buffer:
             return AgentDecision(
@@ -1002,7 +1017,6 @@ def evaluate_cycle_gate(snapshot: MarketSnapshot) -> Optional[AgentDecision]:
                 tp_pips=0.0,
                 reason="Cycle gate: NYSE Cash Open Buffer active (13:10 - 13:35 UTC / 9:10 - 9:35 AM NY). Pre-market liquidity sweep protection."
             )
-
     # Gate 2.2: Loss Streak Gate (Circuit breaker)
     if snapshot.loss_streak >= 3:
         return AgentDecision(

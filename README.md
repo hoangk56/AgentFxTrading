@@ -744,8 +744,9 @@ You can run the cBot either via **cTrader Desktop GUI** or **Headless Docker CLI
        --TmsTimeFrame="Hour" \
        --EmaPeriod=5 \
        --SessionName="newyork_index" \
-       --OrbStartHour=13 \
-       --SessionEndHour=20 \
+       --OrbStartHour=14 \
+       --OrbStartMinute=30 \
+       --SessionEndHour=21 \
        --SessionDstRule="US" \
        --MinDecisiveBreakoutPips=30.0 \
        --MinOrWidthPips=80.0 \
@@ -790,8 +791,9 @@ You can run the cBot either via **cTrader Desktop GUI** or **Headless Docker CLI
        --TmsTimeFrame="Hour" \
        --EmaPeriod=5 \
        --SessionName="newyork_index" \
-       --OrbStartHour=13 \
-       --SessionEndHour=20 \
+       --OrbStartHour=14 \
+       --OrbStartMinute=30 \
+       --SessionEndHour=21 \
        --SessionDstRule="US" \
        --MinDecisiveBreakoutPips=25.0 \
        --MinOrWidthPips=70.0 \

@@ -107,6 +107,9 @@ namespace cAlgo.Robots
         [Parameter("ORB Start Hour (Winter UTC)", Group = "ORB", DefaultValue = 13)]
         public int OrbStartHour { get; set; }
 
+        [Parameter("ORB Start Minute", Group = "ORB", DefaultValue = 0, MinValue = 0, MaxValue = 59)]
+        public int OrbStartMinute { get; set; }
+
         [Parameter("ORB Opening Range (minutes)", Group = "ORB", DefaultValue = 15, MinValue = 1)]
         public int OrbOpeningRangeMinutes { get; set; }
 
@@ -975,21 +978,18 @@ namespace cAlgo.Robots
 
             int barHour = barTime.Hour;
             int barMinute = barTime.Minute;
-            int orEndMinute = adjustedStartHour * 60 + OrbOpeningRangeMinutes;
-            int orEndHour = orEndMinute / 60;
-            orEndMinute = orEndMinute % 60;
-
             int barTotalMinutes = barHour * 60 + barMinute;
-            int orStartMinutes = adjustedStartHour * 60;
+            int orStartMinutes = adjustedStartHour * 60 + OrbStartMinute;
+            int orEndMinutes = orStartMinutes + OrbOpeningRangeMinutes;
 
-            if (barTotalMinutes >= orStartMinutes && barTotalMinutes < (adjustedStartHour * 60 + OrbOpeningRangeMinutes))
+            if (barTotalMinutes >= orStartMinutes && barTotalMinutes < orEndMinutes)
             {
                 if (Bars[index].High > _orHigh) _orHigh = Bars[index].High;
                 if (Bars[index].Low < _orLow) _orLow = Bars[index].Low;
             }
 
             // Check if OR window has passed
-            if (barTotalMinutes >= (adjustedStartHour * 60 + OrbOpeningRangeMinutes) && !_orComplete && _orHigh > double.MinValue)
+            if (barTotalMinutes >= orEndMinutes && !_orComplete && _orHigh > double.MinValue)
             {
                 double orWidthPips = (_orHigh - _orLow) / Symbol.PipSize;
                 if (orWidthPips >= MinOrWidthPips)
@@ -1124,7 +1124,7 @@ namespace cAlgo.Robots
         {
             var now = Server.TimeInUtc;
             int adjustedStartHour = GetAdjustedHour(now, OrbStartHour, SessionDstRule);
-            DateTime sessionStartTime = now.Date.AddHours(adjustedStartHour);
+            DateTime sessionStartTime = now.Date.AddHours(adjustedStartHour).AddMinutes(OrbStartMinute);
             
             // Handle overnight session start if needed
             if (now < sessionStartTime && adjustedStartHour > 12)
@@ -1535,7 +1535,7 @@ namespace cAlgo.Robots
             int adjustedStartHour = GetAdjustedHour(now, OrbStartHour, SessionDstRule);
             int adjustedEndHour = GetAdjustedHour(now, SessionEndHour, SessionDstRule);
 
-            int sessionStart = adjustedStartHour * 60;
+            int sessionStart = adjustedStartHour * 60 + OrbStartMinute;
             int sessionEnd = adjustedEndHour * 60 + SessionEndMinute;
 
             // If session end is 0, use a default 9-hour session from start

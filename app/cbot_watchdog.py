@@ -68,6 +68,7 @@ def parse_session_params(run_command: Optional[str]) -> Optional[Dict[str, Any]]
         "bot_id": text("BotId"),
         "session_name": text("SessionName") or "unknown",
         "start_hour": start_hour,
+        "start_minute": number("OrbStartMinute") or 0,
         "end_hour": end_hour,
         "end_minute": number("SessionEndMinute") or 0,
         "dst_rule": text("SessionDstRule") or "None",
@@ -118,11 +119,11 @@ def active_session_start(params: Dict[str, Any], now_utc: datetime.datetime) -> 
     start_hour = _adjusted_hour(now_utc, params["start_hour"], params["dst_rule"])
     end_hour = _adjusted_hour(now_utc, params["end_hour"], params["dst_rule"])
 
-    start_minutes = start_hour * 60
+    start_minute = params.get("start_minute", 0)
+    start_minutes = start_hour * 60 + start_minute
     end_minutes = end_hour * 60 + params["end_minute"]
     if params["end_hour"] == 0:
         end_minutes = start_minutes + 540
-
     overnight = start_minutes > end_minutes
     now_minutes = now_utc.hour * 60 + now_utc.minute
     if overnight:
@@ -135,7 +136,7 @@ def active_session_start(params: Dict[str, Any], now_utc: datetime.datetime) -> 
     day = now_utc.date()
     if overnight and now_minutes < end_minutes:
         day -= datetime.timedelta(days=1)
-    return datetime.datetime.combine(day, datetime.time(start_hour, 0), tzinfo=datetime.timezone.utc)
+    return datetime.datetime.combine(day, datetime.time(start_hour, start_minute), tzinfo=datetime.timezone.utc)
 import time
 from typing import Dict, List, Optional, Any
 from app.docker_manager import docker_manager
