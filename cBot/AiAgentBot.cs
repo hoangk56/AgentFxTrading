@@ -390,6 +390,7 @@ namespace cAlgo.Robots
         // ---- Position Memory (MFE tracking) ----
         private Dictionary<int, double> _positionMfe = new Dictionary<int, double>();
         private Dictionary<int, int> _positionEntryBar = new Dictionary<int, int>();
+        private Dictionary<int, double> _positionInitialRiskPips = new Dictionary<int, double>();
 
         private HashSet<int> _breakevenApplied = new HashSet<int>();
         // ---- Giveback / Post-TP Gate tuning ----
@@ -1240,6 +1241,7 @@ namespace cAlgo.Robots
             {
                 _positionMfe.Remove(id);
                 _positionEntryBar.Remove(id);
+                _positionInitialRiskPips.Remove(id);
                 _breakevenApplied.Remove(id);
             }
 
@@ -1251,6 +1253,12 @@ namespace cAlgo.Robots
                 {
                     _positionMfe[pos.Id] = pnlPips;
                     _positionEntryBar[pos.Id] = Bars.Count - 1;
+                    double initRisk = 0;
+                    if (pos.StopLoss != null && pos.StopLoss.Value > 0)
+                    {
+                        initRisk = Math.Abs(pos.EntryPrice - pos.StopLoss.Value) / Symbol.PipSize;
+                    }
+                    _positionInitialRiskPips[pos.Id] = initRisk;
                 }
                 else if (pnlPips > _positionMfe[pos.Id])
                 {
@@ -1418,6 +1426,8 @@ namespace cAlgo.Robots
 
             string symUp = SymbolName.ToUpperInvariant();
             bool isIndex = symUp.Contains("US30") || symUp.Contains("USTEC") || symUp.Contains("DE40") || symUp.Contains("NAS100") || symUp.Contains("GER40") || symUp.Contains("DJ30") || symUp.Contains("UK100") || symUp.Contains("GB100");
+            bool isMetal = symUp.Contains("XAU") || symUp.Contains("GOLD");
+            bool isForex = !isIndex && !isMetal;
 
             foreach (var pos in GetBotPositions())
             {
@@ -1425,37 +1435,54 @@ namespace cAlgo.Robots
                 double mfe = _positionMfe[pos.Id];
                 
                 // Giveback protection arms once the trade has reached meaningful profit.
-                // 1.5 ATR arming (min 1000/300 pips) meant the guard never activated, but 0.4 ATR
-                // alone armed inside tick noise. Arm only after the peak has cleared the Break-Even
-                // trigger AND half of the real risk (the SL is OR-boundary based, routinely 1.5-3x
-                // ATR), so a scratch exit in the noise band cannot fire.
-                // GBPUSD 2026-09-11 08:16Z: MFE 2.0p on a 14p SL closed +0.6p after 58s; with these
-                // floors the guard arms at 7.0p and the trade is left to BE / Trail / TP.
+                // Arm only after the peak has cleared the Break-Even trigger AND half of the initial risk.
+                // Crucially, use the cached INITIAL risk; using dynamic pos.StopLoss caused the risk floor
+                // to collapse to near-zero as soon as Break-Even moved SL to entry + 0.7p.
                 double activationThreshold = GivebackArmAtrFraction * atrInPips;
                 if (BreakevenTriggerAtr > 0)
                 {
                     activationThreshold = Math.Max(activationThreshold, BreakevenTriggerAtr * atrInPips);
                 }
-                if (pos.StopLoss != null && pos.StopLoss.Value > 0)
+                
+                double initialRisk = _positionInitialRiskPips.ContainsKey(pos.Id) && _positionInitialRiskPips[pos.Id] > 0
+                    ? _positionInitialRiskPips[pos.Id]
+                    : ((pos.StopLoss != null && pos.StopLoss.Value > 0) ? Math.Abs(pos.EntryPrice - pos.StopLoss.Value) / Symbol.PipSize : 0);
+                if (initialRisk > 0)
                 {
-                    double riskPips = Math.Abs(pos.EntryPrice - pos.StopLoss.Value) / Symbol.PipSize;
-                    activationThreshold = Math.Max(activationThreshold, riskPips * GivebackArmRiskFraction);
+                    activationThreshold = Math.Max(activationThreshold, initialRisk * GivebackArmRiskFraction);
                 }
+
                 if (isIndex)
                 {
                     double minIndexPips = symUp.Contains("US30") ? 300.0 : 150.0;
                     activationThreshold = Math.Max(activationThreshold, minIndexPips);
                 }
+                else if (isForex)
+                {
+                    // Forex pairs: Arm Giveback ONLY after the trade has reached meaningful profit (>= 1.5 ATR or >= 14.0 pips).
+                    // Normal 3-5 pip M15 noise pullbacks MUST NOT strangle the trade when it has barely started.
+                    // Early protection is handled safely by Break-Even and Trailing Stop.
+                    double minForexPips = Math.Max(14.0, 1.5 * atrInPips);
+                    activationThreshold = Math.Max(activationThreshold, minForexPips);
+                }
+                else if (isMetal)
+                {
+                    // Metals (Gold): Arm Giveback only after clearing at least 1.5 ATR (min 150 pips / $1.50).
+                    double minMetalPips = Math.Max(150.0, 1.5 * atrInPips);
+                    activationThreshold = Math.Max(activationThreshold, minMetalPips);
+                }
+
                 if (mfe < activationThreshold) continue;
 
                 double pnlPips = GetPnlPips(pos);
                 double giveback = mfe - pnlPips;
 
                 // 1. Percentage-based MFE Giveback Guard.
-                // Tier 1 (Normal profit): Indices max 45% giveback, Forex/Metals use MaxGivebackMfeRatio.
+                // Tier 1 (Normal profit): Allow at least 45% giveback (locks in at least 55% of peak profit)
+                // to grant breathing room for normal price retracements.
                 // Tier 2 (Large profit - MFE >= 2.5x ATR hoặc MFE >= 1200p trên US30 / 600p USTEC / 400p DE40 hoặc >= 65% TP):
                 // Tighten giveback from 45% down to 35% (Indices) and 30% (Forex/Metals) to lock in at least 65-70% of peak gains!
-                double effectiveMfeRatio = isIndex ? Math.Max(MaxGivebackMfeRatio, 0.45) : MaxGivebackMfeRatio;
+                double effectiveMfeRatio = MaxGivebackMfeRatio > 0 ? Math.Max(MaxGivebackMfeRatio, 0.45) : 0;
 
                 double totalTpPips = 0;
                 if (pos.TakeProfit != null)
@@ -1485,7 +1512,7 @@ namespace cAlgo.Robots
                 if (effectiveMfeRatio > 0 && giveback >= (mfe * effectiveMfeRatio))
                 {
                     pos.Close();
-                    string tierLabel = isTier2Giveback ? "Tier 2 (Tight 35%)" : "Tier 1";
+                    string tierLabel = isTier2Giveback ? "Tier 2 (Tight 30-35%)" : "Tier 1";
                     if (ShowLogs) Print($"[Giveback % {tierLabel}] Pos#{pos.Id} locked profit: gave back {giveback:F1}p (>= {effectiveMfeRatio:P0} of peak MFE {mfe:F1}p, now={pnlPips:F1}p)");
                     continue;
                 }
