@@ -3880,6 +3880,13 @@ Reply strictly with JSON object.";
                 }
 
                 double maxUnits = maxVol * Symbol.LotSize;
+                double brokerMinLots = Symbol.VolumeInUnitsMin / Symbol.LotSize;
+                if (maxVol > 0 && brokerMinLots > maxVol)
+                {
+                    Print($"[Guardrail] Blocked: Broker minimum volume ({brokerMinLots:F2} lots) exceeds maxVol ({maxVol:F2} lots). Trade rejected.");
+                    _ = ReportGuardrailBlockedAsync("MinLotExceedsMaxVol", $"Broker min {brokerMinLots:F2} lots > maxVol {maxVol:F2} lots");
+                    return;
+                }
                 if (volume > maxUnits) volume = maxUnits;
                 if (volume < Symbol.VolumeInUnitsMin) volume = Symbol.VolumeInUnitsMin;
                 if (volume > Symbol.VolumeInUnitsMax) volume = Symbol.VolumeInUnitsMax;

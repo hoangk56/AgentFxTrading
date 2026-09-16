@@ -183,6 +183,9 @@ namespace cAlgo.Robots
 
         [Parameter("Max SL Pips (0=auto)", Group = "Guardrails", DefaultValue = 0, MinValue = 0, Step = 10)]
         public double MaxAbsoluteSlPips { get; set; }
+        [Parameter("Max Allowed Lots (0=unlimited)", Group = "Guardrails", DefaultValue = 0.20, MinValue = 0, Step = 0.01)]
+        public double MaxAllowedLots { get; set; }
+
 
         [Parameter("Max Loss Streak", Group = "Guardrails", DefaultValue = 3, MinValue = 0)]
         public int MaxLossStreak { get; set; }
@@ -2086,15 +2089,22 @@ namespace cAlgo.Robots
                 slPips = Math.Min(slPips, MaxAbsoluteSlPips);
             }
 
-            // Hard Dollar Risk Cap for minimum volume constraints (e.g. 0.01 lot XAUUSD / Crypto / Indices)
-            if (MaxDollarRiskPerTrade > 0)
+            // Hard Guardrail 1: Broker minimum contract size vs MaxAllowedLots
+            double brokerMinLots = Symbol.VolumeInUnitsMin / Symbol.LotSize;
+            if (MaxAllowedLots > 0 && brokerMinLots > MaxAllowedLots)
             {
-                double maxAllowedSlForMinVol = MaxDollarRiskPerTrade / (Symbol.VolumeInUnitsMin * Symbol.PipValue);
-                if (slPips > maxAllowedSlForMinVol)
-                {
-                    if (ShowLogs) Print($"[Guardrail] SL clamped from {slPips:F1}p to {maxAllowedSlForMinVol:F1}p to respect MaxDollarRisk ${MaxDollarRiskPerTrade:F2}");
-                    slPips = maxAllowedSlForMinVol;
-                }
+                if (ShowLogs) Print($"[Guardrail] Blocked: Broker minimum volume ({brokerMinLots:F2} lots) exceeds MaxAllowedLots ({MaxAllowedLots:F2} lots). Account cannot safely trade this instrument.");
+                _ = ReportGuardrailBlockedAsync("MinLotExceedsCap", $"Broker min volume {brokerMinLots:F2} lots > MaxAllowedLots {MaxAllowedLots:F2} lots");
+                return;
+            }
+
+            // Hard Guardrail 2: Dollar risk of broker's minimum volume at technical SL
+            double minVolDollarRisk = Symbol.VolumeInUnitsMin * slPips * Symbol.PipValue;
+            if (MaxDollarRiskPerTrade > 0 && minVolDollarRisk > MaxDollarRiskPerTrade)
+            {
+                if (ShowLogs) Print($"[Guardrail] Blocked: Broker minimum volume ({brokerMinLots:F2} lots) at technical SL ({slPips:F1}p) incurs ${minVolDollarRisk:F2} risk, exceeding MaxDollarRisk ${MaxDollarRiskPerTrade:F2}. Trade rejected to prevent oversized contract risk.");
+                _ = ReportGuardrailBlockedAsync("MinVolumeExceedsDollarRisk", $"Min vol {brokerMinLots:F2} lots at {slPips:F1}p SL incurs ${minVolDollarRisk:F2} > max ${MaxDollarRiskPerTrade:F2}");
+                return;
             }
 
             // Scale TP to maintain favorable Risk:Reward ratio relative to SL
@@ -2108,7 +2118,29 @@ namespace cAlgo.Robots
             
             double volume = Symbol.NormalizeVolumeInUnits(volumeInUnits, RoundingMode.Down);
             if (volume < Symbol.VolumeInUnitsMin) volume = Symbol.VolumeInUnitsMin;
+
+            // Cap volume at MaxAllowedLots if configured
+            if (MaxAllowedLots > 0 && (volume / Symbol.LotSize) > MaxAllowedLots)
+            {
+                volume = Symbol.NormalizeVolumeInUnits(MaxAllowedLots * Symbol.LotSize, RoundingMode.Down);
+                if (volume < Symbol.VolumeInUnitsMin)
+                {
+                    if (ShowLogs) Print($"[Guardrail] Blocked: Capping to MaxAllowedLots ({MaxAllowedLots:F2} lots) falls below broker minimum ({brokerMinLots:F2} lots).");
+                    _ = ReportGuardrailBlockedAsync("BelowMinLotAfterCap", $"Capping at {MaxAllowedLots:F2} lots falls below broker min {brokerMinLots:F2} lots");
+                    return;
+                }
+            }
+
             if (volume > Symbol.VolumeInUnitsMax) volume = Symbol.VolumeInUnitsMax;
+
+            // Final sanity check: order dollar risk
+            double finalDollarRisk = volume * slPips * Symbol.PipValue;
+            if (MaxDollarRiskPerTrade > 0 && finalDollarRisk > MaxDollarRiskPerTrade * 1.05)
+            {
+                if (ShowLogs) Print($"[Guardrail] Blocked: Order dollar risk ${finalDollarRisk:F2} exceeds MaxDollarRisk ${MaxDollarRiskPerTrade:F2}.");
+                _ = ReportGuardrailBlockedAsync("ExceedsMaxDollarRisk", $"Order risk ${finalDollarRisk:F2} > max ${MaxDollarRiskPerTrade:F2}");
+                return;
+            }
 
             var tradeType = decision.action == "BUY" ? TradeType.Buy : TradeType.Sell;
 
