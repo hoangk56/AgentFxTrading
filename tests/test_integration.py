@@ -340,7 +340,9 @@ def test_eth_crypto_classification():
         assert "Breakout overextended" not in decision.reason
 
 def test_exhaustion_breakout_guard_ustec():
-    from app.server import evaluate_cycle_gate, MarketSnapshot, TmsSignals, OrbData
+    from app.server import evaluate_cycle_gate, MarketSnapshot, TmsSignals, OrbData, SessionInfo, BarData
+    active_ny_session = SessionInfo(session_name="newyork_index", phase="active", is_trading_time=True, minutes_to_end=200)
+    mock_ny_bar = [BarData(time="2026-09-16T15:00:00Z", open=29500, high=29520, low=29490, close=29507)]
 
     # Case 1: USTEC on 2026-09-04 scenario:
     # Breakout distance = 695p, decisive, in entry window, but NO bounce.
@@ -360,7 +362,9 @@ def test_exhaustion_breakout_guard_ustec():
             is_decisive=True,
             in_entry_window=True,
             bars_since_breakout=0
-        )
+        ),
+        session=active_ny_session,
+        bars=mock_ny_bar
     )
     decision1 = evaluate_cycle_gate(snap_ustec_exhausted)
     assert decision1 is not None
@@ -383,7 +387,9 @@ def test_exhaustion_breakout_guard_ustec():
             is_decisive=True,
             in_entry_window=True,
             bars_since_breakout=1
-        )
+        ),
+        session=active_ny_session,
+        bars=mock_ny_bar
     )
     decision2 = evaluate_cycle_gate(snap_ustec_fresh)
     assert decision2 is None  # Allowed to proceed to LLM!
@@ -404,7 +410,9 @@ def test_exhaustion_breakout_guard_ustec():
             is_decisive=True,
             in_entry_window=True,
             bars_since_breakout=3
-        )
+        ),
+        session=active_ny_session,
+        bars=mock_ny_bar
     )
     decision3 = evaluate_cycle_gate(snap_ustec_bounce)
     assert decision3 is None  # Model 2 Bounce allowed!
@@ -425,7 +433,9 @@ def test_exhaustion_breakout_guard_ustec():
             is_decisive=True,
             in_entry_window=True,
             bars_since_breakout=3
-        )
+        ),
+        session=active_ny_session,
+        bars=mock_ny_bar
     )
     decision4 = evaluate_cycle_gate(snap_ustec_overextended)
     assert decision4 is not None

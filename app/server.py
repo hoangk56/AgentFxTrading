@@ -1674,6 +1674,27 @@ async def trade_decision(snapshot: MarketSnapshot):
 
     # Check portfolio risk before allowing new trades
     has_open = snapshot.position is not None or (snapshot.active_positions is not None and len(snapshot.active_positions) > 0)
+    # Check News Blackout Shield (e.g. Red news or EIA Crude Oil inventories) before opening new positions
+    if not has_open:
+        try:
+            from app.news_service import is_news_blackout_active
+            is_bo, bo_title, bo_mins = await is_news_blackout_active(snapshot.symbol, pause_before_mins=30, pause_after_mins=30)
+            if is_bo:
+                logger.info(f"[{account_id}/{snapshot.bot_id}] News Blackout Shield active: {bo_title} ({bo_mins}m remaining). Gated HOLD.")
+                return AgentDecision(
+                    action="HOLD",
+                    volume_lots=0.01,
+                    sl_pips=0,
+                    tp_pips=0,
+                    reason=f"News Blackout Shield active: {bo_title} ({bo_mins}m remaining)",
+                    request_id=snapshot.request_id,
+                    bot_id=snapshot.bot_id,
+                    symbol=snapshot.symbol,
+                    timeframe=snapshot.timeframe
+                )
+        except Exception as ex_news:
+            logger.warning(f"[{account_id}/{snapshot.bot_id}] Error checking news blackout shield: {ex_news}")
+
     if not has_open:
         can_trade, reason = portfolio_manager.check_risk(
             symbol=snapshot.symbol,

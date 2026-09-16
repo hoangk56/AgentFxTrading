@@ -314,9 +314,14 @@ def is_symbol_related_to_currencies(symbol: str, currencies: List[str]) -> bool:
         "GER30": {"EUR"},
         "UK100": {"GBP"},
         "JP225": {"JPY"},
-        "AUS200": {"AUD"}
+        "AUS200": {"AUD"},
+        "XTIUSD": {"USD"},
+        "USOIL": {"USD"},
+        "WTI": {"USD"},
+        "XBRUSD": {"USD", "GBP"},
+        "UKOIL": {"USD", "GBP"},
+        "BRENT": {"USD", "GBP"}
     }
-
     sym_currencies = set()
     if sym in known_symbol_currencies:
         sym_currencies.update(known_symbol_currencies[sym])
@@ -343,6 +348,22 @@ async def is_news_blackout_active(symbol: str, pause_before_mins: int = 30, paus
     clusters = cluster_red_news(events)
     now_utc = datetime.now(timezone.utc)
 
+    # Special handling for Crude Oil (XTIUSD, XBRUSD, USOIL, UKOIL, etc.):
+    # EIA Crude Oil Inventories (often tagged Low/Medium on calendar) causes extreme volatility on Wednesday.
+    sym_upper = str(symbol or "").strip().upper()
+    is_oil = any(k in sym_upper for k in ["XTI", "XBR", "OIL", "WTI", "BRENT"])
+    if is_oil:
+        for ev in events:
+            ev_title = str(ev.get("title", "")).strip()
+            if "crude oil inventories" in ev_title.lower():
+                raw_date = ev.get("date", "")
+                dt_utc = parse_iso_or_ff_date(raw_date)
+                if dt_utc:
+                    start_bo = dt_utc - timedelta(minutes=pause_before_mins)
+                    end_bo = dt_utc + timedelta(minutes=pause_after_mins)
+                    if start_bo <= now_utc <= end_bo:
+                        remaining_mins = max(1, int((end_bo - now_utc).total_seconds() // 60))
+                        return True, f"EIA {ev_title}", remaining_mins
     for cluster in clusters:
         if not is_symbol_related_to_currencies(symbol, cluster.get("currencies", [])):
             continue
