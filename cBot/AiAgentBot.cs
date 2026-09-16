@@ -925,6 +925,21 @@ namespace cAlgo.Robots
             bool macroBounceBull = BounceTradeEnabled && (g > r) && (g > g1) && (macroDistPrev <= BounceDistanceThreshold) && (macroDistCurr > macroDistPrev) && !haTurnedRed;
             bool macroBounceBear = BounceTradeEnabled && (g < r) && (g < g1) && (macroDistPrev <= BounceDistanceThreshold) && (macroDistCurr > macroDistPrev) && !haTurnedGreen;
 
+            // Macro Exit signals (H1 timeframe confirmed structural reversal)
+            bool macroExitLong = false;
+            bool macroExitShort = false;
+            string macroExitReason = "";
+            if (crossDnNow || (bias == "BEARISH" && haTurnedRed))
+            {
+                macroExitLong = true;
+                macroExitReason = crossDnNow ? "macro_tdi_cross_down" : "macro_bias_bearish";
+            }
+            if (crossUpNow || (bias == "BULLISH" && haTurnedGreen))
+            {
+                macroExitShort = true;
+                macroExitReason = crossUpNow ? "macro_tdi_cross_up" : "macro_bias_bullish";
+            }
+
             var signals = new TmsSignals
             {
                 bias = bias,
@@ -941,9 +956,9 @@ namespace cAlgo.Robots
                 within_window = macroBarsSinceCross >= 0 && macroBarsSinceCross <= MaxBarsAfterCross,
                 long_entry = bias == "BULLISH" && haGreen && stochBull,
                 short_entry = bias == "BEARISH" && !haGreen && stochBear,
-                exit_long = false,
-                exit_short = false,
-                exit_reason = "",
+                exit_long = macroExitLong,
+                exit_short = macroExitShort,
+                exit_reason = macroExitReason,
                 tdi_level = tdiLevel,
                 green_tf_value = Math.Round(g, 2),
                 green_tf_slope = Math.Round(g - g1, 3),

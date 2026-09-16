@@ -68,6 +68,21 @@ def test_sell_wrong_side_flag_rejected_and_correct_allowed():
     assert validate_tms_close_decision(ok_snap, {"action": "CLOSE_ALL"}) is None
 
 
+
+def test_chart_exit_rejected_when_macro_trend_intact():
+    """M15 exit_long=True must be rejected if Macro H1 still has exit_long=False and drawdown < 60%."""
+    snap = _snapshot(exit_long=True)
+    snap.tms = TmsSignals(bias="BULLISH", exit_long=False, exit_short=False)
+    reason = validate_tms_close_decision(snap, {"action": "CLOSE_ALL"})
+    assert reason is not None
+    assert "macro_exit_long=False" in reason
+
+
+def test_macro_exit_allowed():
+    """When Macro H1 signals exit_long=True, CLOSE_ALL is accepted even if chart hasn't flagged it."""
+    snap = _snapshot(exit_long=False)
+    snap.tms = TmsSignals(bias="BEARISH", exit_long=True, exit_short=False)
+    assert validate_tms_close_decision(snap, {"action": "CLOSE_ALL"}) is None
 def test_flat_position_not_guarded():
     snap = _snapshot()
     snap.position = None

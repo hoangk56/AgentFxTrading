@@ -585,7 +585,7 @@ You analyze market structure and propose trade actions. The deterministic execut
 -> Any mismatch or conflicting signal -> HOLD.
 ### Exit Criteria:
 1. session.phase = "ending" -> CLOSE_ALL (EOD safety).
-2. Confirmed Reversal Signal: exit_long = true (for BUY) or exit_short = true (for SELL) indicating a true TDI cross / momentum reversal -> CLOSE_ALL.
+2. Confirmed Reversal Signal: Macro H1 structural reversal (Macro exit_long=true for BUY, Macro exit_short=true for SELL) -> CLOSE_ALL. Intra-timeframe chart noise (M15 pullbacks while Macro H1 trend is intact) MUST be held (HOLD) to allow ATR Trailing Stop and OR range to work.
 3. Significant Giveback on Winning Trade: Giveback reaches Tier 1 (40% Forex / 55% Indices) or Tier 2 (30% Forex / 35% Indices on large gains >= 2.5x ATR / 65% TP) with momentum stall or reversal -> CLOSE_ALL (Lock-in profit).
 4. Otherwise (trade in normal consolidation or healthy pullback within trend) -> HOLD (let ATR SL/TP and Trailing Stop manage the trade).
 
@@ -673,11 +673,11 @@ def validate_tms_close_decision(snapshot: MarketSnapshot, decision_dict: Dict[st
 
     Returns a rejection reason when the exit must be downgraded to HOLD, or None when valid.
     Accepts the exit only when one of these holds:
-      - the position-side exit signal is true (BUY -> exit_long, SELL -> exit_short), or
-      - adverse excursion >= 60% of the SL distance (capital protection), or
-      - profit >= 1:1 R (locking gains).
-    Blocks panic exits that cite the wrong-side flag (e.g. closing a BUY because
-    'exit_short' / TDI cross up fired) while the trade is barely in drawdown.
+      - Macro H1 exit signal is true (BUY -> macro.exit_long, SELL -> macro.exit_short), or
+      - Chart exit signal is true IF macro is unavailable (fallback for chart-only tests/setups), or
+      - Adverse excursion >= 60% of the SL distance (capital protection), or
+      - Profit >= 1:1 R (locking gains).
+    Blocks premature exits on minor M15 pullbacks when Macro H1 structure remains intact.
     """
     pos = snapshot.position
     if pos is None:
@@ -691,12 +691,13 @@ def validate_tms_close_decision(snapshot: MarketSnapshot, decision_dict: Dict[st
 
     chart = snapshot.chart_tms
     macro = snapshot.tms
+    # Priority given to Macro H1 exit signals to avoid getting shaken out by M15 minor pullbacks
     if side == "BUY":
-        exit_flag_ok = bool((chart and chart.exit_long) or (macro and macro.exit_long))
-        flag_desc = f"exit_long={exit_flag_ok}, exit_short={bool((chart and chart.exit_short) or (macro and macro.exit_short))}"
+        exit_flag_ok = bool(macro and macro.exit_long) if macro else bool(chart and chart.exit_long)
+        flag_desc = f"macro_exit_long={bool(macro and macro.exit_long)}, chart_exit_long={bool(chart and chart.exit_long)}"
     elif side == "SELL":
-        exit_flag_ok = bool((chart and chart.exit_short) or (macro and macro.exit_short))
-        flag_desc = f"exit_short={exit_flag_ok}, exit_long={bool((chart and chart.exit_long) or (macro and macro.exit_long))}"
+        exit_flag_ok = bool(macro and macro.exit_short) if macro else bool(chart and chart.exit_short)
+        flag_desc = f"macro_exit_short={bool(macro and macro.exit_short)}, chart_exit_short={bool(chart and chart.exit_short)}"
     else:
         return None
 
@@ -2083,11 +2084,10 @@ def build_user_prompt(snapshot: MarketSnapshot) -> str:
         f"- Cross direction: {tms.cross_direction or 'none'}",
         f"- TDI level: {tms.tdi_level}",
         f"- Macro Green Slope: {tms.green_tf_slope:.3f}",
-        f"- HA Bullish: {tms.long_entry}, Stoch Bullish: {tms.stoch_bull}",
         f"- Macro TDI Bounce: Bull={tms.tdi_bounce_bull}, Bear={tms.tdi_bounce_bear}",
+        f"- Macro Exit Signals ({macro_tf}): exit_long={tms.exit_long}, exit_short={tms.exit_short} ({tms.exit_reason or 'none'})",
         f"- Post-TP Gate Active: {tms.post_tp_gate_active} (Blocking {tms.post_tp_gate_side or 'None'})",
     ]
-
     # Chart execution TMS signals (e.g. M15/M5)
     if snapshot.chart_tms:
         ctms = snapshot.chart_tms
