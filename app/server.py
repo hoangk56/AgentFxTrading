@@ -523,10 +523,9 @@ def build_system_prompt(snapshot: MarketSnapshot) -> str:
 ## Core Contract: "LLM proposes, Code disposes"
 You analyze market structure and propose trade actions. The deterministic execution harness (cBot + Portfolio Manager) enforces hard guardrails (spread checks, correlation limits, trailing stops, and EOD force-flatten). Always output valid structured JSON.
 
-## SL/TP ARE COMPUTED BY THE ATR ENGINE — DO NOT GUESS PIPS
-- The cBot overrides any sl_pips / tp_pips you return with ATR-based distances
-  (SL = ATR SL Multiplier x ATR, TP = ATR TP Multiplier x ATR, clamped by Min/Max ATR guardrails).
-- Return sl_pips = 0 and tp_pips = 0. Your job is DIRECTION (action), SIZING (volume_lots), and TIMING — never pip targets.
+## SL/TP AND SIZING ARE COMPUTED DETERMINISTICALLY BY THE ENGINE
+- The cBot overrides any sl_pips / tp_pips you return with ATR-based distances.
+- Return sl_pips = 0, tp_pips = 0, and volume_lots = 0.0. Your job is strictly DIRECTION (action) and TIMING — never pip targets or lot sizing.
 
 ## Strategy Logic
 
@@ -570,10 +569,9 @@ You analyze market structure and propose trade actions. The deterministic execut
   - Stop Loss is hard-capped by ATR guardrails and max dollar risk ($10–$15 max per trade on a $700 account).
   - On Gold (XAUUSD), 1 pip = $0.01. Do NOT trade with massive SLs > 1200 pips ($12).
   - On Crypto and Indices, several hundred pips is minimal noise (a small fraction of 1 ATR). Evaluate the actual chart trend structure.
-### 6. Risk & Sizing (handled by the engine — context only)
+### 6. Risk & Sizing (handled 100% by the engine — context only)
 - SL/TP distances are computed by the cBot ATR engine (ATR on the chart timeframe); you do NOT provide them.
-- Position volume is computed by the engine from risk-per-trade % and ATR-based SL. `volume_lots` you return is a *relative* suggestion only and may be overridden.
-
+- Position volume is computed strictly by the cBot engine from risk-per-trade % (0.2%) and ATR-based SL. Always output volume_lots = 0.0.
 ## Decision Rules Summary
 
 ### Entry Criteria (ALL must be satisfied):
@@ -595,7 +593,7 @@ You analyze market structure and propose trade actions. The deterministic execut
 
 {{
   "action": "BUY" | "SELL" | "CLOSE_ALL" | "HOLD",
-  "volume_lots": 0.01,
+  "volume_lots": 0.0,
   "sl_pips": 0,
   "tp_pips": 0,
   "reason": "Clear, concise technical justification (TMS bias, ORB breakout, Regime ER, Momentum slope)"
@@ -1853,9 +1851,10 @@ async def trade_decision(snapshot: MarketSnapshot):
                     f"{decision_dict.get('reason', '')}"
                 )
 
+        vol_display = "Auto (Risk Engine)" if float(decision_dict.get('volume_lots', 0) or 0) == 0 else f"{decision_dict.get('volume_lots')} lots"
         logger.info(
             f"[LLM DECISION] {account_id}/{snapshot.bot_id} -> Action: {decision_dict.get('action', 'HOLD')} | "
-            f"Vol: {decision_dict.get('volume_lots', 0.01)} lots | SL: {decision_dict.get('sl_pips', 0)}p | "
+            f"Vol: {vol_display} | SL: {decision_dict.get('sl_pips', 0)}p | "
             f"TP: {decision_dict.get('tp_pips', 0)}p | Conf: {decision_dict.get('confidence', 80.0):.1f}% | "
             f"Reason: {decision_dict.get('reason', '')}"
         )
