@@ -144,7 +144,7 @@ def sanitize_bot_id(bot_id: Optional[str]) -> str:
         cleaned = cleaned.split(" --")[0].strip()
     return cleaned.strip("\"'“”‘’`") or "default"
 from app.llm_client import create_llm_client, JSONResponseParser
-from app.portfolio import init_portfolio, get_portfolio_manager
+from app.portfolio import init_portfolio, get_portfolio_manager, is_us_index
 from app.dashboard import router as dashboard_router, broadcast_update, broadcast_tick, broadcast_event, broadcast_decision, record_ai_decision, manager as ws_manager, WebSocketLogHandler
 from app.accounts import init_account_registry, get_account_registry
 from app.cbot_watchdog import record_bot_snapshot
@@ -582,6 +582,7 @@ You analyze market structure and propose trade actions. The deterministic execut
    - **Model 3 (Fakeout Trap / Liquidity Sweep)**: Market is choppy (`or_flips > 0`), price recently broke opposite to Macro Bias (hunting liquidity), but immediately recovered back over 50% OR to trigger a Breakout aligned with Macro Bias.
 3. Session is active (not ending / not closed).
 4. Loss streak < 3.
+5. **US Indices Alignment**: For US indices (US30, USTEC, US500), all open positions MUST align in the same direction. Conflicting trades (e.g. BUY USTEC while US30 is open SELL) are strictly PROHIBITED.
 -> Any mismatch or conflicting signal -> HOLD.
 ### Exit Criteria:
 1. session.phase = "ending" -> CLOSE_ALL (EOD safety).
@@ -919,8 +920,51 @@ def resolve_breakout_limits(symbol: str, atr_pips: Optional[float]) -> tuple:
 def breakout_distance_prompt() -> str:
     """Per-class Model 1 ceilings for the LLM prompt (single source: BREAKOUT_DISTANCE_LIMITS)."""
     return ", ".join(f"<= {cap:.0f}p on {label}" for _tokens, label, _da, cap, _aa, _acap in BREAKOUT_DISTANCE_LIMITS)
+def check_us_index_conflict(symbol: str, snapshot: MarketSnapshot, account_id: str) -> Optional[str]:
+    """
+    Check if a proposed US index trade direction conflicts with an existing open US index position.
+    Returns a description of the opposing open position if a conflict exists, or None.
+    """
+    if not is_us_index(symbol):
+        return None
+    try:
+        pm = get_portfolio_manager()
+        conn = pm._get_conn()
+        try:
+            cursor = conn.execute(
+                "SELECT symbol, side FROM positions WHERE status = 'open' AND account_id = ?",
+                (account_id,)
+            )
+            open_pos = cursor.fetchall()
+            if not open_pos:
+                return None
 
-def evaluate_cycle_gate(snapshot: MarketSnapshot) -> Optional[AgentDecision]:
+            tms_bias = (snapshot.tms.bias or "").upper() if snapshot.tms else ""
+            orb_dir = (snapshot.orb.breakout_direction or "").lower() if snapshot.orb else ""
+
+            potential_buy = (tms_bias == "BULLISH" or orb_dir == "up")
+            potential_sell = (tms_bias == "BEARISH" or orb_dir == "down")
+
+            opposing = []
+            for row in open_pos:
+                pos_sym = row[0]
+                pos_side = str(row[1]).upper()
+                if is_us_index(pos_sym):
+                    if pos_side == "BUY" and potential_sell and not potential_buy:
+                        opposing.append(f"{pos_sym} ({pos_side})")
+                    elif pos_side == "SELL" and potential_buy and not potential_sell:
+                        opposing.append(f"{pos_sym} ({pos_side})")
+
+            return ", ".join(opposing) if opposing else None
+        finally:
+            conn.close()
+    except Exception as e:
+        logger.debug(f"Error checking US index conflict: {e}")
+        return None
+
+
+
+def evaluate_cycle_gate(snapshot: MarketSnapshot, account_id: Optional[str] = None) -> Optional[AgentDecision]:
     """
     Deterministic Cycle Gate (Cost Gate) for TMS + ORB Strategy.
     Evaluates whether an expensive LLM call can be safely bypassed with an immediate deterministic action.
@@ -962,7 +1006,8 @@ def evaluate_cycle_gate(snapshot: MarketSnapshot) -> Optional[AgentDecision]:
     is_ny_session = (
         "newyork" in session_name
         or "ny" in session_name
-        or any(s in snapshot.symbol.upper() for s in ["US30", "DJ30", "USTEC", "NAS100", "XAU", "GOLD"])
+        or is_us_index(snapshot.symbol)
+        or any(s in snapshot.symbol.upper() for s in ["XAU", "GOLD"])
     )
 
     if is_ny_session:
@@ -980,7 +1025,7 @@ def evaluate_cycle_gate(snapshot: MarketSnapshot) -> Optional[AgentDecision]:
         if current_dt is None:
             current_dt = datetime.datetime.now(datetime.timezone.utc)
 
-        is_us_index = any(s in snapshot.symbol.upper() for s in ["US30", "DJ30", "USTEC", "NAS100"])
+        is_us_index_sym = is_us_index(snapshot.symbol)
         is_us_index_premarket = False
         is_nyse_buffer = False
         try:
@@ -988,14 +1033,14 @@ def evaluate_cycle_gate(snapshot: MarketSnapshot) -> Optional[AgentDecision]:
             ny_dt = current_dt.astimezone(ZoneInfo("America/New_York"))
             ny_minute = ny_dt.hour * 60 + ny_dt.minute
             # For US Equity Indices: Pre-market & Cash Open M15 formation (before 9:45 AM NY = 585 min)
-            is_us_index_premarket = is_us_index and (ny_minute < 585)
+            is_us_index_premarket = is_us_index_sym and (ny_minute < 585)
             # For general NY session (Gold, FX): 9:10 AM NY (550 min) to 9:35 AM NY (575 min)
             is_nyse_buffer = (550 <= ny_minute <= 575)
         except Exception:
             utc_dt = current_dt.astimezone(datetime.timezone.utc)
             utc_minute = utc_dt.hour * 60 + utc_dt.minute
             # In summer UTC-4: 9:45 AM NY is 13:45 UTC (825 min); in winter UTC-5: 14:45 UTC (885 min)
-            is_us_index_premarket = is_us_index and (utc_minute < 825)
+            is_us_index_premarket = is_us_index_sym and (utc_minute < 825)
             # 13:10 UTC is 790 min; 13:35 UTC is 815 min
             is_nyse_buffer = (790 <= utc_minute <= 815)
 
@@ -1015,6 +1060,22 @@ def evaluate_cycle_gate(snapshot: MarketSnapshot) -> Optional[AgentDecision]:
                 sl_pips=0.0,
                 tp_pips=0.0,
                 reason="Cycle gate: NYSE Cash Open Buffer active (13:10 - 13:35 UTC / 9:10 - 9:35 AM NY). Pre-market liquidity sweep protection."
+            )
+
+
+    # Gate 2.1.3: US Index Alignment Gate (Directional Macro Flow)
+    # Đảm bảo các chỉ số chứng khoán Mỹ (US30, USTEC, US500) phải giao dịch đồng pha theo dòng tiền vĩ mô.
+    # Ngăn chặn quét tín hiệu / gọi LLM khi đang có vị thế chỉ số Mỹ khác mở ngược chiều.
+    if is_us_index(snapshot.symbol):
+        acc_id = account_id or _resolve_account(snapshot)
+        opposing = check_us_index_conflict(snapshot.symbol, snapshot, acc_id)
+        if opposing:
+            return AgentDecision(
+                action="HOLD",
+                volume_lots=0.01,
+                sl_pips=0.0,
+                tp_pips=0.0,
+                reason=f"Cycle gate: US Index Alignment Guard - opposing open position in {opposing}. All US indices (US30, USTEC, US500) must trade in the same direction."
             )
     # Gate 2.2: Loss Streak Gate (Circuit breaker)
     if snapshot.loss_streak >= 3:
@@ -1663,7 +1724,7 @@ async def trade_decision(snapshot: MarketSnapshot):
             f"Regime={regime_str} (ER={er_str}) | Pos={pos_str} | Session={sess_str}"
         )
 
-        gated_decision = evaluate_cycle_gate(snapshot)
+        gated_decision = evaluate_cycle_gate(snapshot, account_id=account_id)
         if gated_decision is not None:
             logger.info(f"[CYCLE GATE] {account_id}/{snapshot.bot_id} -> GATED: {gated_decision.action} | Reason: {gated_decision.reason}")
             return gated_decision
@@ -1837,6 +1898,22 @@ async def trade_decision(snapshot: MarketSnapshot):
             )
             decision_dict["action"] = "HOLD"
             decision_dict["reason"] = f"[Guardrail Blocked] Confidence {conf_val:.1f}% < {min_conf_threshold:.1f}% threshold. {decision_dict.get('reason', '')}"
+
+        # Server-side Guardrail: US Index Alignment & Portfolio Risk Check on final decision
+        if action_str in ("BUY", "SELL"):
+            can_trade, risk_reason = portfolio_manager.check_risk(
+                symbol=snapshot.symbol,
+                side=action_str,
+                volume=float(decision_dict.get("volume_lots") or 0.01),
+                account_balance=snapshot.account_balance,
+                account_id=account_id
+            )
+            if not can_trade:
+                logger.warning(
+                    f"[{account_id}/{snapshot.bot_id}] [RISK GUARD] {action_str} rejected -> HOLD: {risk_reason}"
+                )
+                decision_dict["action"] = "HOLD"
+                decision_dict["reason"] = f"[Risk Guard] {risk_reason}. {decision_dict.get('reason', '')}"
 
         # TMS/ORB CLOSE_ALL Guard: block panic exits with a wrong-side or missing reversal signal.
         if not is_judas and action_str == "CLOSE_ALL":

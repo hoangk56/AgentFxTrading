@@ -18,6 +18,16 @@ class PortfolioConfig:
     MAX_DAILY_LOSS = -200.0  # USD
     MAX_MARGIN_USAGE_PCT = 50.0  # % of account
     
+US_INDEX_SYMBOLS = {"US30", "DJ30", "USTEC", "NAS100", "US500", "SPX500"}
+
+
+def is_us_index(symbol: Optional[str]) -> bool:
+    """Check if a symbol is a US Equity Index."""
+    if not symbol:
+        return False
+    sym_up = symbol.upper()
+    return any(tok in sym_up for tok in US_INDEX_SYMBOLS)
+
 
 
 class PortfolioManager:
@@ -156,6 +166,22 @@ class PortfolioManager:
         """
         conn = self._get_conn()
         try:
+            # 1. US Index Correlation / Directional Alignment Check
+            # All US Equity Indices (US30, USTEC, US500) must align with macro trend direction.
+            # Blocking opposing positions across US indices prevents portfolio self-hedging and divergence losses.
+            if is_us_index(symbol) and side.upper() in ("BUY", "SELL"):
+                cursor = conn.execute(
+                    "SELECT symbol, side FROM positions WHERE status = 'open' AND account_id = ?",
+                    (account_id,)
+                )
+                open_positions = cursor.fetchall()
+                for row in open_positions:
+                    pos_sym = row[0]
+                    pos_side = str(row[1]).upper()
+                    if is_us_index(pos_sym):
+                        if pos_side != side.upper():
+                            return False, f"US Index alignment conflict: cannot open {side.upper()} {symbol} while {pos_sym} has open {pos_side} position"
+
             # 4. Daily loss limit
             today = date.today().isoformat()
             cursor = conn.execute(
