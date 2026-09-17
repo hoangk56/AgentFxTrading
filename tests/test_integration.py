@@ -476,6 +476,12 @@ def test_breakout_distance_limits_resolver():
     # ATR-scaled inside the cap, clamped to the cap once ATR is large
     assert resolve_breakout_limits("USTEC", 200.0) == (260.0, 640.0)
     assert resolve_breakout_limits("USTEC", 5000.0) == (700.0, 2100.0)
+    assert resolve_breakout_limits("JP225", 500.0) == (750.0, 1700.0)
+    assert resolve_breakout_limits("JP225", None) == (1200.0, 3500.0)
+    assert resolve_breakout_limits("HK50", 400.0) == (600.0, 1360.0)
+    assert resolve_breakout_limits("HK50", None) == (800.0, 2200.0)
+    assert resolve_breakout_limits("US500", 80.0) == (112.0, 272.0)
+    assert resolve_breakout_limits("US500", None) == (150.0, 450.0)
     # Unknown symbol falls back to the Forex majors class - never to an index ceiling
     assert resolve_breakout_limits("EURUSD", 10.0) == (15.0, 34.0)
     assert resolve_breakout_limits("EURGBP", 10.0) == (15.0, 34.0)

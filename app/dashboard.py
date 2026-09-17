@@ -401,7 +401,7 @@ def get_asset_exposure(account_id: str = "all") -> Dict:
             by_asset_class["Crypto"] += vol
         elif "XAU" in sym or "GOLD" in sym:
             by_asset_class["Gold/Metals"] += vol
-        elif "US30" in sym or "USTEC" in sym or "DE40" in sym or "NAS" in sym or "UK100" in sym:
+        elif any(idx in sym for idx in ["US30", "USTEC", "DE40", "NAS", "UK100", "JP225", "NIKKEI", "HK50", "US500"]):
             by_asset_class["Indices"] += vol
         else:
             by_asset_class["Forex"] += vol

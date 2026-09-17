@@ -461,7 +461,7 @@ def _pip_size_for_symbol(sym_up: str) -> float:
     Symbol.PipSize the cBot reports in the snapshot; this table only covers bots that omit it.
     Verified against live Asian ranges: USTEC 0.1, UK100 0.1, XAUUSD 0.01, GBPUSD 0.0001.
     """
-    if any(idx in sym_up for idx in ["US30", "USTEC", "DE40", "NAS100", "DJ30", "GER40", "UK100", "GB100"]):
+    if any(idx in sym_up for idx in ["US30", "USTEC", "DE40", "NAS100", "DJ30", "GER40", "UK100", "GB100", "JP225", "NIKKEI", "JPN225", "HK50", "HSI", "US500", "SPX500"]):
         return 0.1
     if any(k in sym_up for k in ["BTC", "ETH", "XAU", "GOLD", "JPY"]):
         return 0.01
@@ -474,7 +474,7 @@ def format_price(price: Optional[float], symbol: str) -> str:
     sym = (symbol or "").upper()
     if "JPY" in sym:
         return f"{price:.3f}"
-    elif any(k in sym for k in ["XAU", "GOLD", "US30", "USTEC", "DE40", "NAS100", "DJ30", "GER40", "UK100", "GB100", "BTC", "ETH", "SOL", "XRP"]):
+    elif any(k in sym for k in ["XAU", "GOLD", "US30", "USTEC", "DE40", "NAS100", "DJ30", "GER40", "UK100", "GB100", "JP225", "NIKKEI", "JPN225", "HK50", "HSI", "US500", "SPX500", "BTC", "ETH", "SOL", "XRP"]):
         return f"{price:.2f}"
     else:
         return f"{price:.5f}"
@@ -487,7 +487,7 @@ def build_system_prompt(snapshot: MarketSnapshot) -> str:
     sym_up = snapshot.symbol.upper()
     is_gold = "XAU" in sym_up or "GOLD" in sym_up
     is_crypto = any(cr in sym_up for cr in ["BTC", "ETH", "SOL", "XRP", "CRYPTO"])
-    is_index = any(idx in sym_up for idx in ["US30", "USTEC", "DE40", "NAS100", "DJ30", "GER40", "UK100", "GB100"])
+    is_index = any(idx in sym_up for idx in ["US30", "USTEC", "DE40", "NAS100", "DJ30", "GER40", "UK100", "GB100", "JP225", "NIKKEI", "JPN225", "HK50", "HSI", "US500", "SPX500"])
 
     if is_crypto:
         asset_type = "Cryptocurrency (High Volatility Momentum)"
@@ -820,8 +820,8 @@ def evaluate_judas_sweep_gate(snapshot: MarketSnapshot, account_id: Optional[str
                 min_asian_pips, max_asian_pips = 800.0, 35000.0     # $8 to $350 USD on ETH
             elif any(idx in sym_up for idx in ["UK100", "GB100"]):
                 min_asian_pips, max_asian_pips = 120.0, 800.0       # 12-80 FTSE points (UK100 pip = 0.1 pt)
-            elif any(idx in sym_up for idx in ["US30", "USTEC", "DE40", "NAS100", "DJ30", "GER40"]):
-                min_asian_pips, max_asian_pips = 50.0, 2000.0
+            elif any(idx in sym_up for idx in ["US30", "USTEC", "DE40", "NAS100", "DJ30", "GER40", "JP225", "NIKKEI", "HK50", "US500"]):
+                min_asian_pips, max_asian_pips = 50.0, 4000.0
             else:
                 min_asian_pips, max_asian_pips = 12.0, 100.0  # Allow tight 12-20p Asian sessions for EURUSD/GBPUSD
             
@@ -887,8 +887,11 @@ BREAKOUT_DISTANCE_LIMITS = (
     # (symbol tokens, prompt label, direct ATR x, direct cap, absolute ATR x, absolute cap)
     (("USTEC", "NAS100"), "USTEC/NAS100", 1.3, 700.0, 3.2, 2100.0),
     (("US30", "DJ30"), "US30/DJ30", 1.5, 950.0, 3.4, 2800.0),
+    (("US500", "SPX500"), "US500/SPX500", 1.4, 150.0, 3.4, 450.0),
     (("DE40", "GER40"), "DE40/GER40", 1.5, 700.0, 3.4, 1900.0),
     (("UK100", "GB100"), "UK100/GB100", 1.5, 550.0, 3.4, 1600.0),
+    (("JP225", "NIKKEI", "JPN225"), "JP225/Nikkei", 1.5, 1200.0, 3.4, 3500.0),
+    (("HK50", "HSI"), "HK50/HangSeng", 1.5, 800.0, 3.4, 2200.0),
     (("XAU", "GOLD"), "Gold", 1.8, 900.0, 3.6, 2600.0),
     (("BTC", "CRYPTO"), "BTC/Crypto", 1.5, 37500.0, 3.5, 130000.0),
     (("ETH", "SOL", "XRP"), "ETH/SOL/XRP", 1.5, 5250.0, 3.5, 35000.0),
@@ -1292,7 +1295,7 @@ def build_judas_sweep_user_prompt(snapshot: MarketSnapshot) -> str:
     sym_up = snapshot.symbol.upper()
     if "XAU" in sym_up or "GOLD" in sym_up:
         spread_pips = round(abs(snapshot.ask - snapshot.bid) / 0.01, 1)
-    elif any(idx in sym_up for idx in ["US30", "USTEC", "DE40", "NAS100", "UK100", "GB100"]):
+    elif any(idx in sym_up for idx in ["US30", "USTEC", "DE40", "NAS100", "UK100", "GB100", "JP225", "NIKKEI", "HK50", "US500", "SPX500"]):
         spread_pips = round(abs(snapshot.ask - snapshot.bid), 1)
     elif any(cr in sym_up for cr in ["BTC", "ETH"]):
         spread_pips = round(abs(snapshot.ask - snapshot.bid), 1)
@@ -1306,7 +1309,7 @@ def build_judas_sweep_user_prompt(snapshot: MarketSnapshot) -> str:
             atr_pips = strat.atr / 0.01 if strat.atr < 5.0 else strat.atr
         elif "XAU" in sym_up or "GOLD" in sym_up:
             atr_pips = strat.atr / 0.01 if strat.atr < 100.0 else strat.atr
-        elif any(idx in sym_up for idx in ["US30", "USTEC", "DE40", "NAS100", "UK100", "GB100"]):
+        elif any(idx in sym_up for idx in ["US30", "USTEC", "DE40", "NAS100", "UK100", "GB100", "JP225", "NIKKEI", "HK50", "US500", "SPX500"]):
             atr_pips = strat.atr
         elif any(cr in sym_up for cr in ["BTC", "ETH", "SOL", "XRP"]):
             atr_pips = strat.atr / 0.01 if "ETH" in sym_up and strat.atr < 100.0 else strat.atr
