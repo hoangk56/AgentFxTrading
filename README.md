@@ -62,9 +62,10 @@ AgentFxTrading is an **autonomous forex trading system** that combines the power
 
 ## 🚀 Features
 
-### 🤖 Dual AI Strategy Engines
+### 🤖 Multi-Engine AI Strategy Framework (3 Engines)
 - **1. TMS + ORB Engine (`AiAgentBot`)**: Trend Momentum Signal (Heikin Ashi + TDI + Stochastic) combined with Opening Range Breakout and dynamic Kaufman Efficiency Regimes.
 - **2. Asian Range Judas Sweep Engine (`AsianRangeJudasSweepBot`)**: ICT Smart Money Concepts capturing liquidity sweeps of Asian Session High/Low (00:00–06:00 UTC) during London (07:00–10:00 UTC) and New York (12:30–16:00 UTC) Killzones with Order Block/FVG confirmation.
+- **3. FlowRSI / Nested RSI SMC Engine (`FlowRsiBot`)**: Multi-timeframe momentum convergence combining Fast RSI (7) and Slow RSI (14) crossovers with ICT Smart Money Concepts (Fair Value Gap - FVG, Premium/Discount Equilibrium zones, and Swing Liquidity Sweeps). Features integrated dynamic SL/TP, true zero-loss break-even, gated trailing stop, and direct AI agent bridge validation.
 - **Multi-LLM Support**: Qwen, OpenAI GPT-4o, Claude 3.5 Sonnet, Gemini 2.0 Flash, DeepSeek V3/R1.
 - **Context-Aware Analysis**: Multi-timeframe trend alignment (M15 + H1 + H4), swing structure, and real-time news filter.
 - **Multi-Symbol Trading**: Run multiple bots on different pairs
@@ -260,6 +261,14 @@ You can run the cBot either via **cTrader Desktop GUI** or **Headless Docker CLI
    docker run --rm -v $(pwd):/workspace -v /root:/root \
      ghcr.io/spotware/ctrader-console:latest build /root/cAlgo/Sources/Robots/AsianRangeJudasSweepBot/AsianRangeJudasSweepBot/AsianRangeJudasSweepBot.csproj
    cp /root/cAlgo/Sources/Robots/AsianRangeJudasSweepBot.algo cBot/AsianRangeJudasSweepBot.algo
+
+   # 3. Build FlowRSI SMC Bot (FlowRsiBot)
+   docker run --rm -v $(pwd):/workspace -v /root:/root \
+     ghcr.io/spotware/ctrader-console:latest create cbot FlowRsiBot
+   cp cBot/FlowRsiBot.cs /root/cAlgo/Sources/Robots/FlowRsiBot/FlowRsiBot/FlowRsiBot.cs
+   docker run --rm -v $(pwd):/workspace -v /root:/root \
+     ghcr.io/spotware/ctrader-console:latest build /root/cAlgo/Sources/Robots/FlowRsiBot/FlowRsiBot/FlowRsiBot.csproj
+   cp /root/cAlgo/Sources/Robots/FlowRsiBot.algo cBot/FlowRsiBot.algo
    ```
 3. **Multi-Account Deployment Guidelines (Running Demo &amp; Live Simultaneously)**:
 
@@ -542,6 +551,36 @@ You can run the cBot either via **cTrader Desktop GUI** or **Headless Docker CLI
        --takeprofitPip=350.0 \
        --enableBreakEvenPrice=true \
        --riskFactor=0.2
+     ```
+
+   * **EURUSD FlowRSI (M15 - Nested RSI & FVG SMC Engine)**:
+     ```bash
+     docker run -d \
+       --name cbot-eurusd-flowrsi \
+       --restart unless-stopped \
+       --network host \
+       -v $(pwd):/workspace \
+       -v /root:/root \
+       ghcr.io/spotware/ctrader-console:latest \
+       run /workspace/cBot/FlowRsiBot.algo \
+       --ctid=your_email@example.com \
+       --pwd-file=/root/ctrader_data/ctid_pwd \
+       --account=YOUR_ACCOUNT_ID \
+       --symbol=EURUSD \
+       --period=m15 \
+       --full-access \
+       --BotId="FlowRSI-EURUSD" \
+       --ApiUrl="http://127.0.0.1:8000/trade" \
+       --AccountLabel="demo" \
+       --FastRsiPeriod=7 \
+       --SlowRsiPeriod=14 \
+       --EnableSmcFilter=true \
+       --EnableFvgDetection=true \
+       --EnablePremiumDiscountFilter=true \
+       --RiskPercentage=1.0 \
+       --MaxRiskPerTradeMoney=50.0 \
+       --TargetRiskReward=1.5 \
+       --UseAiGateMode=true
      ```
 
    * **XAUUSD TMS+ORB (M15 - New York Session)**:
@@ -1536,7 +1575,9 @@ AgentFxTrading/
 │   ├── portfolio.py       # Portfolio risk management
 │   └── db.py              # Database layer (PostgreSQL / SQLite)
 ├── cBot/
-│   └── AiAgentBot.cs      # cTrader cBot
+│   ├── AiAgentBot.cs               # TMS + ORB Strategy cBot
+│   ├── AsianRangeJudasSweepBot.cs # ICT Asian Range Judas Sweep cBot
+│   └── FlowRsiBot.cs              # Nested RSI & SMC Flow cBot
 ├── scripts/
 │   ├── backup_postgres.sh # Automated daily backup (03:00 AM)
 │   └── migrate_sqlite_to_pg.py # SQLite to PG migration

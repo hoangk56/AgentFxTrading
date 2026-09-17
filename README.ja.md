@@ -62,9 +62,10 @@ AgentFxTradingは、AIの力を実証済みのテクニカル分析戦略と組�
 
 ## 🚀 機能
 
-### 🤖 デュアルAI戦略エンジン
+### 🤖 マルチAI戦略エンジンフレームワーク（3エンジン）
 - **1. TMS + ORB エンジン (`AiAgentBot`)**: トレンドモメンタムシグナル（Heikin Ashi + TDI + Stochastic）とオープニングレンジブレイクアウトを組み合わせ、動的カウフマン効率相場判定を実装。
 - **2. アジアンレンジ・ジューダススイープ エンジン (`AsianRangeJudasSweepBot`)**: ICTスマートマネーコンセプト（SMC）に基づき、東京・アジアセッション高値・安値（00:00–06:00 UTC）の流動性ハント（ダマシ）をロンドン（07:00–10:00 UTC）およびNY重なり（12:30–16:00 UTC）キルゾーンで捕らえ、Order Block / FVGで高R:Rスナイパー反転を狙う。
+- **3. FlowRSI / ネスト型RSI SMCエンジン (`FlowRsiBot`)**: 短期RSI（7）と長期RSI（14）のゴールデンクロス/デッドクロスによるモメンタム収束と、ICTスマートマネーコンセプト（FVGインバランス検出、Premium/Discount均衡ゾーン判定、スイング流動性ハント）を統合。動的SL/TP、ドローダウンを防ぐTrue Break-Even（真の建値決済）、条件付きトレーリングストップ、およびAIエージェントによるリアルタイム判定ゲートウェイを標準搭載。
 - **マルチLLM対応**：Qwen、OpenAI GPT-4o、Claude 3.5 Sonnet、Gemini 2.0 Flash、DeepSeek V3/R1。
 - **マルチタイムフレーム分析**：M15 + H1 + H4のトレンド同期、スイング構造分析、リアルタイム経済指標フィルター。
 ### 💼 ポートフォリオ管理
@@ -262,6 +263,14 @@ cBotは**cTraderデスクトップGUI**または**ヘッドレスDocker CLI**（
    docker run --rm -v $(pwd):/workspace -v /root:/root \
      ghcr.io/spotware/ctrader-console:latest build /root/cAlgo/Sources/Robots/AsianRangeJudasSweepBot/AsianRangeJudasSweepBot/AsianRangeJudasSweepBot.csproj
    cp /root/cAlgo/Sources/Robots/AsianRangeJudasSweepBot.algo cBot/AsianRangeJudasSweepBot.algo
+
+   # 3. FlowRSI SMC Botのビルド (FlowRsiBot)
+   docker run --rm -v $(pwd):/workspace -v /root:/root \
+     ghcr.io/spotware/ctrader-console:latest create cbot FlowRsiBot
+   cp cBot/FlowRsiBot.cs /root/cAlgo/Sources/Robots/FlowRsiBot/FlowRsiBot/FlowRsiBot.cs
+   docker run --rm -v $(pwd):/workspace -v /root:/root \
+     ghcr.io/spotware/ctrader-console:latest build /root/cAlgo/Sources/Robots/FlowRsiBot/FlowRsiBot/FlowRsiBot.csproj
+   cp /root/cAlgo/Sources/Robots/FlowRsiBot.algo cBot/FlowRsiBot.algo
    ```
 3. **マルチアカウント運用のガイドライン（DemoとLiveの同時実行）**:
 
@@ -544,6 +553,36 @@ cBotは**cTraderデスクトップGUI**または**ヘッドレスDocker CLI**（
        --takeprofitPip=350.0 \
        --enableBreakEvenPrice=true \
        --riskFactor=0.2
+     ```
+
+   * **EURUSD FlowRSI (M15 - ネスト型RSI & FVG SMC エンジン)**:
+     ```bash
+     docker run -d \
+       --name cbot-eurusd-flowrsi \
+       --restart unless-stopped \
+       --network host \
+       -v $(pwd):/workspace \
+       -v /root:/root \
+       ghcr.io/spotware/ctrader-console:latest \
+       run /workspace/cBot/FlowRsiBot.algo \
+       --ctid=your_email@example.com \
+       --pwd-file=/root/ctrader_data/ctid_pwd \
+       --account=YOUR_ACCOUNT_ID \
+       --symbol=EURUSD \
+       --period=m15 \
+       --full-access \
+       --BotId="FlowRSI-EURUSD" \
+       --ApiUrl="http://127.0.0.1:8000/trade" \
+       --AccountLabel="demo" \
+       --FastRsiPeriod=7 \
+       --SlowRsiPeriod=14 \
+       --EnableSmcFilter=true \
+       --EnableFvgDetection=true \
+       --EnablePremiumDiscountFilter=true \
+       --RiskPercentage=1.0 \
+       --MaxRiskPerTradeMoney=50.0 \
+       --TargetRiskReward=1.5 \
+       --UseAiGateMode=true
      ```
 
    * **XAUUSD TMS+ORB (M15 - ニューヨークセッション)**:
@@ -1536,7 +1575,9 @@ AgentFxTrading/
 │   ├── portfolio.py       # ポートフォリオリスク管理
 │   └── db.py              # データベース層 (PostgreSQL / SQLite)
 ├── cBot/
-│   └── AiAgentBot.cs      # cTrader cBot
+│   ├── AiAgentBot.cs               # TMS + ORB 戦略 cBot
+│   ├── AsianRangeJudasSweepBot.cs # ICT アジアンレンジ・ジューダススイープ cBot
+│   └── FlowRsiBot.cs              # ネスト型RSI & SMC Flow cBot
 ├── scripts/
 │   ├── backup_postgres.sh # 自動日次バックアップ (03:00)
 │   └── migrate_sqlite_to_pg.py # PostgreSQL移行スクリプト

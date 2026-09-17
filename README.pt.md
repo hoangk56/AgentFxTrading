@@ -62,9 +62,10 @@ AgentFxTrading é um **sistema de negociação forex automatizado** que combina 
 
 ## 🚀 Recursos
 
-### 🤖 Motores Duplos de Estratégia de IA
+### 🤖 Estrutura de Motores de Estratégia de IA (3 Motores)
 - **1. Motor TMS + ORB (`AiAgentBot`)**: Sinais de Momentum de Tendência (Heikin Ashi + TDI + Stochastic) combinados com rompimento de Opening Range e regimes dinâmicos de eficiência de Kaufman.
 - **2. Motor Asian Range Judas Sweep (`AsianRangeJudasSweepBot`)**: Conceito de Smart Money (SMC) capturando caçadas de liquidez (Judas Swing) nas máximas e mínimas da sessão asiática (00:00–06:00 UTC) durante os Killzones de Londres (07:00–10:00 UTC) e Nova York (12:30–16:00 UTC) com confirmação em Order Block / FVG.
+- **3. Motor FlowRSI / Nested RSI SMC (`FlowRsiBot`)**: Convergência de momentum multi-timeframe combinando cruzamentos de RSI Rápido (7) e RSI Lento (14) com conceitos de Smart Money ICT (detecção de desequilíbrio Fair Value Gap - FVG, zonas de equilíbrio Premium/Discount e caçadas de liquidez Swing Liquidity Sweeps). Apresenta SL/TP dinâmico integrado, True Break-Even (zero-perda) contra drawdown, trailing stop condicional e validação direta de decisões via ponte AI Agent.
 - **Suporte Multi-LLM**: Qwen, OpenAI GPT-4o, Claude 3.5 Sonnet, Gemini 2.0 Flash, DeepSeek V3/R1.
 - **Análise Multi-Timeframe**: Alinhamento de tendência M15 + H1 + H4, estrutura de swing e filtro de notícias em tempo real.
 ### 💼 Gestão de Portfólio
@@ -258,6 +259,14 @@ Você pode executar o cBot através da **Interface Gráfica cTrader Desktop (GUI
    docker run --rm -v $(pwd):/workspace -v /root:/root \
      ghcr.io/spotware/ctrader-console:latest build /root/cAlgo/Sources/Robots/AsianRangeJudasSweepBot/AsianRangeJudasSweepBot/AsianRangeJudasSweepBot.csproj
    cp /root/cAlgo/Sources/Robots/AsianRangeJudasSweepBot.algo cBot/AsianRangeJudasSweepBot.algo
+
+   # 3. Compilar o bot FlowRSI SMC (FlowRsiBot)
+   docker run --rm -v $(pwd):/workspace -v /root:/root \
+     ghcr.io/spotware/ctrader-console:latest create cbot FlowRsiBot
+   cp cBot/FlowRsiBot.cs /root/cAlgo/Sources/Robots/FlowRsiBot/FlowRsiBot/FlowRsiBot.cs
+   docker run --rm -v $(pwd):/workspace -v /root:/root \
+     ghcr.io/spotware/ctrader-console:latest build /root/cAlgo/Sources/Robots/FlowRsiBot/FlowRsiBot/FlowRsiBot.csproj
+   cp /root/cAlgo/Sources/Robots/FlowRsiBot.algo cBot/FlowRsiBot.algo
    ```
 3. **Diretrizes de Implantação Multi-Contas (Executando Demo e Real Simultaneamente)**:
 
@@ -539,6 +548,36 @@ Você pode executar o cBot através da **Interface Gráfica cTrader Desktop (GUI
        --takeprofitPip=350.0 \
        --enableBreakEvenPrice=true \
        --riskFactor=0.2
+     ```
+
+   * **EURUSD FlowRSI (M15 - Motor Nested RSI & FVG SMC)**:
+     ```bash
+     docker run -d \
+       --name cbot-eurusd-flowrsi \
+       --restart unless-stopped \
+       --network host \
+       -v $(pwd):/workspace \
+       -v /root:/root \
+       ghcr.io/spotware/ctrader-console:latest \
+       run /workspace/cBot/FlowRsiBot.algo \
+       --ctid=seu_email@example.com \
+       --pwd-file=/root/ctrader_data/ctid_pwd \
+       --account=ID_DA_CONTA \
+       --symbol=EURUSD \
+       --period=m15 \
+       --full-access \
+       --BotId="FlowRSI-EURUSD" \
+       --ApiUrl="http://127.0.0.1:8000/trade" \
+       --AccountLabel="demo" \
+       --FastRsiPeriod=7 \
+       --SlowRsiPeriod=14 \
+       --EnableSmcFilter=true \
+       --EnableFvgDetection=true \
+       --EnablePremiumDiscountFilter=true \
+       --RiskPercentage=1.0 \
+       --MaxRiskPerTradeMoney=50.0 \
+       --TargetRiskReward=1.5 \
+       --UseAiGateMode=true
      ```
 
    * **XAUUSD TMS+ORB (M15 - Sessão de Nova York)**:
@@ -1531,7 +1570,9 @@ AgentFxTrading/
 │   ├── portfolio.py       # Gestão de risco de portfólio
 │   └── db.py              # Camada de banco de dados (PostgreSQL / SQLite)
 ├── cBot/
-│   └── AiAgentBot.cs      # cTrader cBot
+│   ├── AiAgentBot.cs               # cBot estratégia TMS + ORB
+│   ├── AsianRangeJudasSweepBot.cs # cBot ICT Judas Sweep asiático
+│   └── FlowRsiBot.cs              # cBot Nested RSI & SMC Flow
 ├── scripts/
 │   ├── backup_postgres.sh # Backup diário automático (03:00)
 │   └── migrate_sqlite_to_pg.py # Script de migração para PG

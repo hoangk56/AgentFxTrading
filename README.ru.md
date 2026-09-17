@@ -62,9 +62,10 @@ AgentFxTrading - это **автоматизированная система т
 
 ## 🚀 Возможности
 
-### 🤖 Двойная Архитектура ИИ-Стратегий
+### 🤖 Тройная Архитектура ИИ-Стратегий (3 Движка)
 - **1. Движок TMS + ORB (`AiAgentBot`)**: Сигналы трендового импульса (Heikin Ashi + TDI + Stochastic) в сочетании с пробоем Opening Range и динамическим определением режимов эффективности Кауфмана.
 - **2. Движок Asian Range Judas Sweep (`AsianRangeJudasSweepBot`)**: Концепция Smart Money (SMC) для отлова манипулятивных ложных пробоев (Judas Swing) ликвидности азиатской сессии (00:00–06:00 UTC) в киллзонах Лондона (07:00–10:00 UTC) и Нью-Йорка (12:30–16:00 UTC) с подтверждением Order Block / FVG.
+- **3. Движок FlowRSI / Nested RSI SMC (`FlowRsiBot`)**: Мультитаймфреймовая конвергенция импульса на основе пересечения быстрого RSI (7) и медленного RSI (14) в сочетании с концепциями ICT Smart Money (детекция дисбалансов FVG, зон равновесия Premium/Discount и захвата ликвидности Swing Liquidity Sweeps). Включает динамический SL/TP, защиту от просадки True Break-Even (безубыток), трейлинг-стоп по условиям и прямую валидацию решений через AI-шлюз.
 - **Мульти-LLM Поддержка**: Qwen, OpenAI GPT-4o, Claude 3.5 Sonnet, Gemini 2.0 Flash, DeepSeek V3/R1.
 - **Мультитаймфрейм Анализ**: Синхронизация тренда M15 + H1 + H4, структура свингов (BSL/SSL) и фильтр новостей в реальном времени.
 ### 💼 Управление Портфелем
@@ -262,6 +263,14 @@ python app/server.py
    docker run --rm -v $(pwd):/workspace -v /root:/root \
      ghcr.io/spotware/ctrader-console:latest build /root/cAlgo/Sources/Robots/AsianRangeJudasSweepBot/AsianRangeJudasSweepBot/AsianRangeJudasSweepBot.csproj
    cp /root/cAlgo/Sources/Robots/AsianRangeJudasSweepBot.algo cBot/AsianRangeJudasSweepBot.algo
+
+   # 3. Сборка FlowRSI SMC бота (FlowRsiBot)
+   docker run --rm -v $(pwd):/workspace -v /root:/root \
+     ghcr.io/spotware/ctrader-console:latest create cbot FlowRsiBot
+   cp cBot/FlowRsiBot.cs /root/cAlgo/Sources/Robots/FlowRsiBot/FlowRsiBot/FlowRsiBot.cs
+   docker run --rm -v $(pwd):/workspace -v /root:/root \
+     ghcr.io/spotware/ctrader-console:latest build /root/cAlgo/Sources/Robots/FlowRsiBot/FlowRsiBot/FlowRsiBot.csproj
+   cp /root/cAlgo/Sources/Robots/FlowRsiBot.algo cBot/FlowRsiBot.algo
    ```
 3. **Рекомендации по Развертыванию Нескольких Счетов (Одновременный Запуск Demo и Live)**:
 
@@ -544,6 +553,36 @@ python app/server.py
        --takeprofitPip=350.0 \
        --enableBreakEvenPrice=true \
        --riskFactor=0.2
+     ```
+
+   * **EURUSD FlowRSI (M15 - Движок Nested RSI & FVG SMC)**:
+     ```bash
+     docker run -d \
+       --name cbot-eurusd-flowrsi \
+       --restart unless-stopped \
+       --network host \
+       -v $(pwd):/workspace \
+       -v /root:/root \
+       ghcr.io/spotware/ctrader-console:latest \
+       run /workspace/cBot/FlowRsiBot.algo \
+       --ctid=your_email@example.com \
+       --pwd-file=/root/ctrader_data/ctid_pwd \
+       --account=YOUR_ACCOUNT_ID \
+       --symbol=EURUSD \
+       --period=m15 \
+       --full-access \
+       --BotId="FlowRSI-EURUSD" \
+       --ApiUrl="http://127.0.0.1:8000/trade" \
+       --AccountLabel="demo" \
+       --FastRsiPeriod=7 \
+       --SlowRsiPeriod=14 \
+       --EnableSmcFilter=true \
+       --EnableFvgDetection=true \
+       --EnablePremiumDiscountFilter=true \
+       --RiskPercentage=1.0 \
+       --MaxRiskPerTradeMoney=50.0 \
+       --TargetRiskReward=1.5 \
+       --UseAiGateMode=true
      ```
 
    * **XAUUSD TMS+ORB (M15 - Нью-Йоркская сессия)**:
@@ -1536,7 +1575,9 @@ AgentFxTrading/
 │   ├── portfolio.py       # Управление рисками портфеля
 │   └── db.py              # Слой базы данных (PostgreSQL / SQLite)
 ├── cBot/
-│   └── AiAgentBot.cs      # cTrader cBot
+│   ├── AiAgentBot.cs               # cBot стратегии TMS + ORB
+│   ├── AsianRangeJudasSweepBot.cs # cBot ICT Judas Sweep азиатского диапазона
+│   └── FlowRsiBot.cs              # cBot Nested RSI & SMC Flow
 ├── scripts/
 │   ├── backup_postgres.sh # Автоматический бэкап (03:00)
 │   └── migrate_sqlite_to_pg.py # Скрипт миграции в PostgreSQL

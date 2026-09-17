@@ -62,9 +62,10 @@ AgentFxTrading是一个**自动外汇交易系统**，结合AI的力量与经过
 
 ## 🚀 功能特性
 
-### 🤖 双AI策略引擎架构
+### 🤖 三引擎AI策略架构体系 (3 Engines)
 - **1. TMS + ORB 趋势突破引擎 (`AiAgentBot`)**: 结合趋势动量信号（Heikin Ashi + TDI + Stochastic）与开盘区间突破，支持动态Kaufman效率市场状态识别。
 - **2. 亚洲时段流动性猎杀引擎 (`AsianRangeJudasSweepBot`)**: 基于ICT聪敏钱概念（SMC），在伦敦（07:00–10:00 UTC）及纽约重叠时段（12:30–16:00 UTC）猎杀亚洲时段高低点流动性，结合订单块 (Order Block) / 价值缺口 (FVG) 进行狙击反转。
+- **3. FlowRSI / 嵌套RSI SMC动量引擎 (`FlowRsiBot`)**: 多级别动量共振，结合快线RSI（7）与慢线RSI（14）的金叉/死叉，深度融合ICT聪敏钱概念（FVG价值缺口平衡检测、Premium/Discount折溢价均衡区间、波段流动性猎杀）。内置动态止损止盈、防回撤True Break-Even保本、条件追踪止损以及AI智能体实时验证决策网关。
 - **多LLM大模型支持**：Qwen、OpenAI GPT-4o、Claude 3.5 Sonnet、Gemini 2.0 Flash、DeepSeek V3/R1。
 - **多时间框架深度分析**：M15 + H1 + H4 多级别趋势对齐、摆动高低点结构与实时新闻过滤器。
 ### 💼 投资组合管理
@@ -262,6 +263,14 @@ python app/server.py
    docker run --rm -v $(pwd):/workspace -v /root:/root \
      ghcr.io/spotware/ctrader-console:latest build /root/cAlgo/Sources/Robots/AsianRangeJudasSweepBot/AsianRangeJudasSweepBot/AsianRangeJudasSweepBot.csproj
    cp /root/cAlgo/Sources/Robots/AsianRangeJudasSweepBot.algo cBot/AsianRangeJudasSweepBot.algo
+
+   # 3. 编译 FlowRSI SMC 机器人 (FlowRsiBot)
+   docker run --rm -v $(pwd):/workspace -v /root:/root \
+     ghcr.io/spotware/ctrader-console:latest create cbot FlowRsiBot
+   cp cBot/FlowRsiBot.cs /root/cAlgo/Sources/Robots/FlowRsiBot/FlowRsiBot/FlowRsiBot.cs
+   docker run --rm -v $(pwd):/workspace -v /root:/root \
+     ghcr.io/spotware/ctrader-console:latest build /root/cAlgo/Sources/Robots/FlowRsiBot/FlowRsiBot/FlowRsiBot.csproj
+   cp /root/cAlgo/Sources/Robots/FlowRsiBot.algo cBot/FlowRsiBot.algo
    ```
 3. **多账户部署指南（同时运行模拟盘与实盘账户）**:
 
@@ -544,6 +553,36 @@ python app/server.py
        --takeprofitPip=350.0 \
        --enableBreakEvenPrice=true \
        --riskFactor=0.2
+     ```
+
+   * **EURUSD FlowRSI (M15 - 嵌套RSI & FVG SMC 引擎)**:
+     ```bash
+     docker run -d \
+       --name cbot-eurusd-flowrsi \
+       --restart unless-stopped \
+       --network host \
+       -v $(pwd):/workspace \
+       -v /root:/root \
+       ghcr.io/spotware/ctrader-console:latest \
+       run /workspace/cBot/FlowRsiBot.algo \
+       --ctid=your_email@example.com \
+       --pwd-file=/root/ctrader_data/ctid_pwd \
+       --account=YOUR_ACCOUNT_ID \
+       --symbol=EURUSD \
+       --period=m15 \
+       --full-access \
+       --BotId="FlowRSI-EURUSD" \
+       --ApiUrl="http://127.0.0.1:8000/trade" \
+       --AccountLabel="demo" \
+       --FastRsiPeriod=7 \
+       --SlowRsiPeriod=14 \
+       --EnableSmcFilter=true \
+       --EnableFvgDetection=true \
+       --EnablePremiumDiscountFilter=true \
+       --RiskPercentage=1.0 \
+       --MaxRiskPerTradeMoney=50.0 \
+       --TargetRiskReward=1.5 \
+       --UseAiGateMode=true
      ```
 
    * **XAUUSD TMS+ORB (M15 - 纽约时段)**:
@@ -1536,7 +1575,9 @@ AgentFxTrading/
 │   ├── portfolio.py       # 投资组合风险管理
 │   └── db.py              # 数据库层 (PostgreSQL / SQLite)
 ├── cBot/
-│   └── AiAgentBot.cs      # cTrader cBot
+│   ├── AiAgentBot.cs               # TMS + ORB 策略 cBot
+│   ├── AsianRangeJudasSweepBot.cs # ICT 亚洲时段流动性猎杀 cBot
+│   └── FlowRsiBot.cs              # 嵌套RSI & SMC Flow cBot
 ├── scripts/
 │   ├── backup_postgres.sh # 自动每日备份 (03:00)
 │   └── migrate_sqlite_to_pg.py # 迁移脚本

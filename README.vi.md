@@ -62,9 +62,10 @@ AgentFxTrading là **hệ thống giao dịch forex tự động** kết hợp s
 
 ## 🚀 Tính Năng
 
-### 🤖 Hệ Thống Kép Đa Chiến Thuật (Dual Strategy Engines)
+### 🤖 Hệ Thống Đa Chiến Thuật AI (3 Engines)
 - **1. Động cơ TMS + ORB (`AiAgentBot`)**: Kết hợp Trend Momentum Signal (Heikin Ashi + TDI + Stochastic) với Opening Range Breakout và nhận diện Kaufman Efficiency Regimes linh hoạt.
 - **2. Động cơ Asian Range Judas Sweep (`AsianRangeJudasSweepBot`)**: Bắt sóng đảo chiều săn quét thanh khoản ICT Smart Money Concepts tại đỉnh/đáy phiên Á (00:00–06:00 UTC) trong các khung giờ vàng London (07:00–10:00 UTC) và New York (12:30–16:00 UTC) với xác nhận Order Block / FVG.
+- **3. Động cơ FlowRSI / Nested RSI SMC (`FlowRsiBot`)**: Hội tụ động lượng đa khung thời gian kết hợp điểm giao cắt RSI nhanh (7) và RSI chậm (14) với ICT Smart Money Concepts (Fair Value Gap - FVG, vùng cân bằng Premium/Discount Equilibrium, và bẫy quét thanh khoản Swing Liquidity Sweeps). Tích hợp SL/TP động, hòa vốn True Break-Even chống drawdown, trailing stop theo điều kiện, và xác thực quyết định trực tiếp qua cầu nối AI Agent.
 - **Hỗ Trợ Đa LLM**: Qwen, OpenAI GPT-4o, Claude 3.5 Sonnet, Gemini 2.0 Flash, DeepSeek V3/R1.
 - **Phân Tích Đa Khung Thời Gian**: Đồng bộ xu hướng M15 + H1 + H4, cấu trúc swing high/low và bộ lọc tin tức thời gian thực.
 ### 💼 Quản Lý Danh Mục
@@ -258,6 +259,14 @@ Bạn có thể chạy cBot bằng **Giao diện cTrader Desktop (GUI)** hoặc 
    docker run --rm -v $(pwd):/workspace -v /root:/root \
      ghcr.io/spotware/ctrader-console:latest build /root/cAlgo/Sources/Robots/AsianRangeJudasSweepBot/AsianRangeJudasSweepBot/AsianRangeJudasSweepBot.csproj
    cp /root/cAlgo/Sources/Robots/AsianRangeJudasSweepBot.algo cBot/AsianRangeJudasSweepBot.algo
+
+   # 3. Biên dịch FlowRSI SMC Bot (FlowRsiBot)
+   docker run --rm -v $(pwd):/workspace -v /root:/root \
+     ghcr.io/spotware/ctrader-console:latest create cbot FlowRsiBot
+   cp cBot/FlowRsiBot.cs /root/cAlgo/Sources/Robots/FlowRsiBot/FlowRsiBot/FlowRsiBot.cs
+   docker run --rm -v $(pwd):/workspace -v /root:/root \
+     ghcr.io/spotware/ctrader-console:latest build /root/cAlgo/Sources/Robots/FlowRsiBot/FlowRsiBot/FlowRsiBot.csproj
+   cp /root/cAlgo/Sources/Robots/FlowRsiBot.algo cBot/FlowRsiBot.algo
    ```
 
 3. **Hướng Dẫn Chạy Đa Tài Khoản (Song Song DEMO &amp; LIVE Không Xung Đột)**:
@@ -541,6 +550,36 @@ Bạn có thể chạy cBot bằng **Giao diện cTrader Desktop (GUI)** hoặc 
        --takeprofitPip=350.0 \
        --enableBreakEvenPrice=true \
        --riskFactor=0.2
+     ```
+
+   * **EURUSD FlowRSI (M15 - Nested RSI & FVG SMC Engine)**:
+     ```bash
+     docker run -d \
+       --name cbot-eurusd-flowrsi \
+       --restart unless-stopped \
+       --network host \
+       -v $(pwd):/workspace \
+       -v /root:/root \
+       ghcr.io/spotware/ctrader-console:latest \
+       run /workspace/cBot/FlowRsiBot.algo \
+       --ctid=email_cua_ban@example.com \
+       --pwd-file=/root/ctrader_data/ctid_pwd \
+       --account=SO_TAI_KHOAN \
+       --symbol=EURUSD \
+       --period=m15 \
+       --full-access \
+       --BotId="FlowRSI-EURUSD" \
+       --ApiUrl="http://127.0.0.1:8000/trade" \
+       --AccountLabel="demo" \
+       --FastRsiPeriod=7 \
+       --SlowRsiPeriod=14 \
+       --EnableSmcFilter=true \
+       --EnableFvgDetection=true \
+       --EnablePremiumDiscountFilter=true \
+       --RiskPercentage=1.0 \
+       --MaxRiskPerTradeMoney=50.0 \
+       --TargetRiskReward=1.5 \
+       --UseAiGateMode=true
      ```
 
    * **XAUUSD TMS+ORB (M15 - Phiên New York)**:
@@ -1537,7 +1576,9 @@ AgentFxTrading/
 │   ├── portfolio.py       # Quản lý rủi ro danh mục
 │   └── db.py              # Tầng cơ sở dữ liệu (PostgreSQL / SQLite)
 ├── cBot/
-│   └── AiAgentBot.cs      # cTrader cBot
+│   ├── AiAgentBot.cs               # cBot chiến thuật TMS + ORB
+│   ├── AsianRangeJudasSweepBot.cs # cBot săn thanh khoản ICT Judas Sweep
+│   └── FlowRsiBot.cs              # cBot lướt sóng Nested RSI & SMC Flow
 ├── scripts/
 │   ├── backup_postgres.sh # Tự động sao lưu hàng ngày (03:00 sáng)
 │   └── migrate_sqlite_to_pg.py # Script di chuyển dữ liệu SQLite sang PostgreSQL
