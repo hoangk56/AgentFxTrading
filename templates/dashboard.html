@@ -497,8 +497,13 @@
             <!-- Docker Bots View -->
             <div id="view-docker" class="view-section">
                 <section class="panel" id="bot-management-section">
-                    <div class="panel-header">
+                    <div class="panel-header" style="display:flex; align-items:center; gap:12px; flex-wrap:wrap;">
                         <span class="panel-title"><i data-lucide="bot" class="panel-icon text-blue"></i> Docker Bot Management</span>
+                        <div class="bot-filter-tabs" style="display:inline-flex; gap:4px; background:var(--bg-surface); padding:2px; border-radius:6px; border:1px solid var(--border);">
+                            <button id="btn-bot-filter-all" class="log-btn bot-filter-btn" data-filter="all" style="padding:4px 10px; font-size:0.75rem;">All (<span id="count-bots-all">0</span>)</button>
+                            <button id="btn-bot-filter-live" class="log-btn bot-filter-btn" data-filter="live" style="padding:4px 10px; font-size:0.75rem;">Live (<span id="count-bots-live">0</span>)</button>
+                            <button id="btn-bot-filter-demo" class="log-btn bot-filter-btn" data-filter="demo" style="padding:4px 10px; font-size:0.75rem;">Demo (<span id="count-bots-demo">0</span>)</button>
+                        </div>
                         <button id="add-bot-btn" class="log-btn" style="margin-left:auto;"><i data-lucide="plus" class="btn-icon"></i> Add Bot</button>
                     </div>
                     <div class="panel-body">
@@ -789,32 +794,69 @@
             });
         }
         // --- Docker Bot Management ---
+        let activeBotFilter = 'all';
+        let cachedBots = [];
+        let cachedDockerOk = true;
+
         async function fetchBots() {
             try {
                 const res = await fetch("/api/bots");
                 const data = await res.json();
-                renderBots(data.bots, data.docker_available);
+                cachedBots = data.bots || [];
+                cachedDockerOk = data.docker_available;
+                renderBots();
             } catch(e) { console.error("Error fetching bots", e); }
         }
-        function renderBots(bots, dockerOk) {
+        function renderBots() {
             const tbody = document.getElementById("bots-tbody");
-            if(!dockerOk) {
+            if(!cachedDockerOk) {
                 tbody.innerHTML = `<tr><td colspan="7" class="td-dim" style="color:var(--color-loss)">Docker is not available on the server. Please ensure Docker daemon is running.</td></tr>`;
                 return;
             }
-            if(!bots || bots.length === 0) {
+            if(!cachedBots || cachedBots.length === 0) {
                 tbody.innerHTML = `<tr><td colspan="7" class="td-dim">No bots configured.</td></tr>`;
                 return;
             }
+
+            const countAll = cachedBots.length;
+            const countLive = cachedBots.filter(b => b.account_type === 'live').length;
+            const countDemo = cachedBots.filter(b => b.account_type !== 'live').length;
+            const elAll = document.getElementById('count-bots-all');
+            const elLive = document.getElementById('count-bots-live');
+            const elDemo = document.getElementById('count-bots-demo');
+            if (elAll) elAll.textContent = countAll;
+            if (elLive) elLive.textContent = countLive;
+            if (elDemo) elDemo.textContent = countDemo;
+
+            document.querySelectorAll('.bot-filter-btn').forEach(btn => {
+                if (btn.dataset.filter === activeBotFilter) {
+                    btn.classList.add('active');
+                    btn.style.background = 'var(--accent-soft)';
+                    btn.style.color = 'var(--accent-bright)';
+                    btn.style.borderColor = 'var(--accent)';
+                } else {
+                    btn.classList.remove('active');
+                    btn.style.background = '';
+                    btn.style.color = '';
+                    btn.style.borderColor = '';
+                }
+                btn.onclick = () => {
+                    activeBotFilter = btn.dataset.filter;
+                    renderBots();
+                };
+            });
             
-            const targetType = (currentMode === 'real' || currentMode === 'live') ? 'live' : 'demo';
-            const filteredBots = bots.filter(b => (b.account_type || 'demo') === targetType);
+            let filteredBots = cachedBots;
+            if (activeBotFilter === 'live') {
+                filteredBots = cachedBots.filter(b => b.account_type === 'live');
+            } else if (activeBotFilter === 'demo') {
+                filteredBots = cachedBots.filter(b => b.account_type !== 'live');
+            }
                 
             if(!filteredBots.length) {
-                tbody.innerHTML = `<tr><td colspan="7" class="td-dim">No ${targetType.toUpperCase()} bots configured. Use "+ Add Bot" to create one.</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="7" class="td-dim">No ${activeBotFilter.toUpperCase()} bots configured. Use "+ Add Bot" to create one.</td></tr>`;
                 return;
             }
-
             let html = "";
             filteredBots.forEach(b => {
                 const isRunning = b.status === "running";
