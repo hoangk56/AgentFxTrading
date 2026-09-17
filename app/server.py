@@ -1703,6 +1703,14 @@ async def trade_decision(snapshot: MarketSnapshot):
             f"{fvg_str} | Zone={zone_str} | Candidate={cand_str} | Pos={pos_str}"
         )
 
+        # Gate Check: If no entry candidate and no open position, gate as HOLD without calling LLM
+        if cand_str == "NONE" and not snapshot.position:
+            logger.info(
+                f"[FLOW_RSI GATE] {account_id}/{snapshot.bot_id} -> GATED: HOLD | "
+                f"Reason: No active Nested RSI setup (Fast={snapshot.fast_rsi}, Slow={snapshot.slow_rsi}, Signal={rsi_cross})"
+            )
+            return AgentDecision(action="HOLD", confidence=85.0, reason=f"No active setup (RSI={rsi_cross}, FVG={snapshot.fvg_type})")
+
         # Build specialized FlowRSI system & user prompt
         system_prompt = (
             "You are an elite Quantitative FX Co-Pilot specializing in Nested RSI momentum and SMC market structure.\n"

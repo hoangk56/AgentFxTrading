@@ -430,6 +430,14 @@ namespace cAlgo.Robots
                 }
 
                 Print($"[FlowRSI] Initialized Successfully! FastRSI({FastRsiPeriod}), SlowRSI({SlowRsiPeriod}), SMC Filter: {EnableSmcFilter}");
+
+                // 6. Dispatch initial boot snapshot to AI Server
+                if (UseAiGateMode && RunningMode == RunningMode.RealTime)
+                {
+                    var activePositions = GetBotPositions();
+                    bool hasOpenPos = activePositions.Count > 0;
+                    EvaluateStrategySignals(hasOpenPos);
+                }
             }
             catch (Exception ex)
             {
@@ -660,8 +668,7 @@ namespace cAlgo.Robots
             }
 
             // 7. Single-Flight Coordinated AI Snapshot Dispatch (Judas Pattern)
-            bool gateOpen = UseAiGateMode && (candidateAction == "BUY" || candidateAction == "SELL");
-            bool shouldCallAi = (UseAiGateMode && RunningMode == RunningMode.RealTime) && (gateOpen || hasOpenPos);
+            bool shouldCallAi = (UseAiGateMode && RunningMode == RunningMode.RealTime);
 
             if (shouldCallAi)
             {
