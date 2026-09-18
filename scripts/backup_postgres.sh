@@ -7,6 +7,7 @@
 # =============================================================================
 
 set -euo pipefail
+umask 077
 
 PROJECT_ROOT="${PROJECT_ROOT:-$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)}"
 ENV_FILE="${PROJECT_ROOT}/.env"

@@ -40,7 +40,7 @@ packages are compiled and sitting in `cBot/`. The dashboard is reachable only on
 | Docker CE | official docker.com apt repo | `forge` in `docker` group so the Python SDK can use the socket |
 | systemd unit | `/etc/systemd/system/agentfx.service` | see below |
 | Backup cron | `/etc/cron.d/agentfx-backup` | `0 3 * * * forge /home/forge/AgentFxTrading/scripts/backup_postgres.sh` |
-| Firewall | `ufw` | `allow OpenSSH`, `enable` |
+| Firewall | `ufw` | `allow <each port from sshd -T>/tcp`, `enable` (not the `OpenSSH` profile, which assumes port 22) |
 
 Paths are derived from two script variables, `FORGE_USER=forge` and
 `FORGE_HOME=/home/forge`, so nothing else is hard-coded.
@@ -122,7 +122,7 @@ satisfied, so re-running the script is the upgrade path.
     poll `curl -fs http://127.0.0.1:8000/api/watchdog/status` for up to 30 s;
     abort with `journalctl -u agentfx -n 50` output if it never answers.
 14. **`install_backup_cron`** — write `/etc/cron.d/agentfx-backup`.
-15. **`configure_firewall`** — `ufw allow OpenSSH`; `ufw --force enable`.
+15. **`configure_firewall`** — allow every port reported by `sshd -T` (refuse to enable ufw if none); `ufw --force enable`.
 16. **`print_summary`** — what was installed, the SSH tunnel command
     (`ssh -L 8000:127.0.0.1:8000 forge@<ip>`), where `.env` is and which keys
     still need filling, and that Phase 2's "Setup Instances" screen is where

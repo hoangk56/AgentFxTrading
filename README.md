@@ -203,9 +203,20 @@ Afterwards open the dashboard through a tunnel:
 ssh -L 8000:127.0.0.1:8000 forge@YOUR_VPS_IP
 ```
 
+**Before closing your root session**, confirm the key works from another terminal: `ssh forge@YOUR_VPS_IP 'sudo -n true && echo LOGIN_OK'`. Password login (including root) is disabled once the installer finishes.
+
 then browse `http://127.0.0.1:8000`, put your LLM key in `/home/forge/AgentFxTrading/.env`, and `sudo systemctl restart agentfx`.
 
-Re-running the same command later is safe — it pulls the latest code and rebuilds the bots. To skip the prompt, set `FORGE_SSH_KEY="ssh-ed25519 AAAA..."` before the command.
+Re-running the same command later is safe — it pulls the latest code and rebuilds the bots.
+
+To skip the prompt, export the key and let `sudo` pass it through:
+
+```bash
+export FORGE_SSH_KEY="ssh-ed25519 AAAA... you@laptop"
+curl -fsSL https://raw.githubusercontent.com/kienphan/AgentFxTrading/main/scripts/install.sh | sudo -E bash
+```
+
+The same applies to the optional `AGENTFX_REPO` / `AGENTFX_BRANCH` overrides.
 
 > The installer keeps the cTrader home at `/home/forge/ctrader` (mounted as `/root` inside containers). If you copy a `docker run` command from the sections below onto an installed VPS, replace `-v /root:/root` with `-v /home/forge/ctrader:/root`.
 
