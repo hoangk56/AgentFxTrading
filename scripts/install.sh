@@ -106,6 +106,74 @@ preflight() {
   log "Ubuntu ${os_version} detected"
 }
 
+# --- render helpers ------------------------------------------------------------
+render_env() {
+  # usage: render_env "<.env.example>" "<database_url>" "<ctrader_home>"  → prints a fresh .env
+  local example="$1" db_url="$2" ctrader_home="$3"
+  # Drop the template's DATABASE_URL / CTRADER_HOME lines (commented or not), then append real values.
+  grep -vE '^#? ?(DATABASE_URL|CTRADER_HOME)=' "$example" || true
+  printf '\nDATABASE_URL=%s\n' "$db_url"
+  printf 'CTRADER_HOME=%s\n' "$ctrader_home"
+}
+
+render_systemd_unit() {
+  cat <<EOF
+[Unit]
+Description=AgentFxTrading FastAPI server
+After=network-online.target postgresql.service docker.service
+Wants=network-online.target
+
+[Service]
+User=${FORGE_USER}
+Group=${FORGE_GROUP}
+WorkingDirectory=${REPO_DIR}
+ExecStart=${REPO_DIR}/.venv/bin/uvicorn app.server:app --host 127.0.0.1 --port 8000
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target
+EOF
+}
+
+render_sshd_dropin() {
+  cat <<'EOF'
+# Managed by AgentFxTrading scripts/install.sh — key-only SSH.
+# Named 00-* on purpose: sshd uses the FIRST value it sees for a keyword and
+# cloud images ship 50-cloud-init.conf with PasswordAuthentication yes.
+PasswordAuthentication no
+KbdInteractiveAuthentication no
+PubkeyAuthentication yes
+PermitRootLogin prohibit-password
+EOF
+}
+
+render_backup_cron() {
+  printf '0 3 * * * %s %s/scripts/backup_postgres.sh\n' "$FORGE_USER" "$REPO_DIR"
+}
+
+write_env() {
+  step "Writing ${REPO_DIR}/.env"
+  local env_file="${REPO_DIR}/.env" db_url
+  db_url="postgresql://${DB_USER}:$(urlencode "$DB_PASSWORD")@127.0.0.1:5432/${DB_NAME}"
+  if [[ -f "$env_file" ]]; then
+    log ".env already exists — keeping it"
+    if ! grep -qE '^DATABASE_URL=' "$env_file"; then
+      printf 'DATABASE_URL=%s\n' "$db_url" >> "$env_file"
+      log "Appended DATABASE_URL"
+    fi
+    if ! grep -qE '^CTRADER_HOME=' "$env_file"; then
+      printf 'CTRADER_HOME=%s\n' "$CTRADER_HOME" >> "$env_file"
+      log "Appended CTRADER_HOME=${CTRADER_HOME}"
+    fi
+  else
+    render_env "${REPO_DIR}/.env.example" "$db_url" "$CTRADER_HOME" > "$env_file"
+    log "Created .env with DATABASE_URL and CTRADER_HOME (LLM keys left as placeholders)"
+  fi
+  chown "${FORGE_USER}:${FORGE_GROUP}" "$env_file"
+  chmod 0600 "$env_file"
+}
+
 # --- main ---
 main() {
   preflight
