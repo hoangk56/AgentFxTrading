@@ -362,6 +362,67 @@ build_algos() {
   chown -R "${FORGE_USER}:${FORGE_GROUP}" "$CTRADER_HOME" "${REPO_DIR}/cBot"
 }
 
+install_systemd_unit() {
+  step "Installing systemd service ${SERVICE_NAME}"
+  render_systemd_unit > "/etc/systemd/system/${SERVICE_NAME}.service"
+  systemctl daemon-reload
+  systemctl enable "$SERVICE_NAME" >/dev/null
+  systemctl restart "$SERVICE_NAME"
+  local i
+  for i in $(seq 1 30); do
+    if curl -fs http://127.0.0.1:8000/api/watchdog/status >/dev/null 2>&1; then
+      log "Service is answering on 127.0.0.1:8000 (after ${i}s)"
+      return 0
+    fi
+    sleep 1
+  done
+  journalctl -u "$SERVICE_NAME" -n 50 --no-pager >&2 || true
+  die "Service did not answer within 30s — see journal output above"
+}
+
+install_backup_cron() {
+  step "Installing daily database backup"
+  chmod +x "${REPO_DIR}/scripts/backup_postgres.sh"
+  render_backup_cron > /etc/cron.d/agentfx-backup
+  chmod 0644 /etc/cron.d/agentfx-backup
+  log "Backups run daily at 03:00 into ${REPO_DIR}/backups"
+}
+
+configure_firewall() {
+  step "Configuring ufw"
+  ufw allow OpenSSH >/dev/null
+  ufw --force enable >/dev/null
+  log "ufw enabled: only OpenSSH is allowed inbound"
+}
+
+print_summary() {
+  local ip
+  ip="$(curl -fs4 --max-time 5 https://api.ipify.org 2>/dev/null || hostname -I | awk '{print $1}')"
+  cat <<EOF
+
+=============================================================================
+ AgentFxTrading installed
+=============================================================================
+ User         : ${FORGE_USER}  (passwordless sudo, SSH key only)
+ Project      : ${REPO_DIR}
+ Service      : systemctl status ${SERVICE_NAME}
+ Database     : postgresql://${DB_USER}:***@127.0.0.1:5432/${DB_NAME}  (full URL in .env)
+ cBots built  : ${REPO_DIR}/cBot/{AiAgentBot,AsianRangeJudasSweepBot,FlowRsiBot}.algo
+ cTrader home : ${CTRADER_HOME}  (mounted as /root inside cBot containers)
+
+ Next steps
+ 1. Open the dashboard through an SSH tunnel from your machine:
+      ssh -L 8000:127.0.0.1:8000 ${FORGE_USER}@${ip}
+    then browse http://127.0.0.1:8000
+ 2. Put your LLM API key in ${REPO_DIR}/.env
+    (LLM_PROVIDER, DASHSCOPE_API_KEY, ...), then:  sudo systemctl restart ${SERVICE_NAME}
+ 3. Add your cTrader account and start bots from
+    Dashboard → Docker Bot Management → Setup Instances.
+ Re-running this installer is safe; it updates the checkout and rebuilds bots.
+=============================================================================
+EOF
+}
+
 # --- main ---
 main() {
   preflight
@@ -376,6 +437,10 @@ main() {
   write_env
   prepare_ctrader_home
   build_algos
+  install_systemd_unit
+  install_backup_cron
+  configure_firewall
+  print_summary
 }
 
 # Run main when executed (`bash install.sh`) or piped (`curl ... | bash`,
