@@ -197,13 +197,13 @@ curl -fsSL https://raw.githubusercontent.com/kienphan/AgentFxTrading/main/script
 
 It asks for one thing — the SSH public key that will log in as the `forge` user — and then installs PostgreSQL 17, Docker, the FastAPI server as a systemd service (`agentfx.service`, user `forge`, bound to `127.0.0.1:8000`), compiles the three cBot `.algo` packages, and enables a daily database backup. Password SSH login is disabled.
 
+**Before closing your root session**, confirm the key works from another terminal: `ssh forge@YOUR_VPS_IP 'sudo -n true && echo LOGIN_OK'`. Password login (including root) is disabled once the installer finishes.
+
 Afterwards open the dashboard through a tunnel:
 
 ```bash
 ssh -L 8000:127.0.0.1:8000 forge@YOUR_VPS_IP
 ```
-
-**Before closing your root session**, confirm the key works from another terminal: `ssh forge@YOUR_VPS_IP 'sudo -n true && echo LOGIN_OK'`. Password login (including root) is disabled once the installer finishes.
 
 then browse `http://127.0.0.1:8000`, put your LLM key in `/home/forge/AgentFxTrading/.env`, and `sudo systemctl restart agentfx`.
 

@@ -73,3 +73,7 @@ backups/
 
 # Superpowers SDD scratch workspace
 .superpowers/
+
+# Local docs (specs/plans); screenshots stay tracked because README embeds them
+docs/*
+!docs/screenshots/
