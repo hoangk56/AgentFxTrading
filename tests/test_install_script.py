@@ -90,3 +90,10 @@ def test_generate_password_is_48_hex_chars():
     out = run_fn("generate_password").stdout.strip()
     assert len(out) == 48
     int(out, 16)
+
+
+def test_err_trap_fires_for_failures_inside_functions():
+    result = run_fn("CURRENT_STEP='demo step'; f() { false; }; f; echo unreachable")
+    assert result.returncode != 0
+    assert "unreachable" not in result.stdout
+    assert 'Install failed during step "demo step"' in result.stderr

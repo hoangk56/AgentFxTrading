@@ -13,7 +13,7 @@
 # script is the upgrade path.
 # Design: docs/superpowers/specs/2026-09-18-vps-install-script-design.md
 # =============================================================================
-set -euo pipefail
+set -Eeuo pipefail
 
 # --- configuration -----------------------------------------------------------
 FORGE_USER="${FORGE_USER:-forge}"
