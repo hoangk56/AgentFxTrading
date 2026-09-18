@@ -187,7 +187,7 @@ WS   /ws/dashboard             # WebSocket for real-time dashboard updates
 - cTrader 4.x+ (Need an account? Sign up at [IC Markets cTrader](https://ic.com/?camp=95400) for Raw Spreads & low latency)
 - LLM API key (Qwen/OpenAI/Claude/Gemini/DeepSeek)
 
-### 🚀 One-line VPS install (Ubuntu 22.04 / 24.04)
+### 🚀 One-line VPS install (Ubuntu 22.04 / 24.04 / 26.04)
 
 On a fresh VPS, as root, run:
 

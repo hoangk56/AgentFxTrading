@@ -73,6 +73,16 @@ def test_validate_ssh_key_rejects_garbage():
     assert run_fn("validate_ssh_key 'not a key at all'").returncode != 0
 
 
+@pytest.mark.parametrize("version", ["22.04", "24.04", "26.04"])
+def test_supported_ubuntu_version_accepts_lts_releases(version):
+    assert run_fn(f"supported_ubuntu_version '{version}'").returncode == 0
+
+
+@pytest.mark.parametrize("version", ["20.04", "25.10", "26.10", ""])
+def test_supported_ubuntu_version_rejects_other_releases(version):
+    assert run_fn(f"supported_ubuntu_version '{version}'").returncode != 0
+
+
 def test_db_password_from_env_decodes_password(tmp_path):
     env_file = tmp_path / ".env"
     env_file.write_text('X=1\nDATABASE_URL="postgresql://agentfx:kaz%40112358.@127.0.0.1:5432/agentfx"\n')
@@ -85,6 +95,30 @@ def test_db_password_from_env_missing_file_or_var(tmp_path):
     env_file = tmp_path / ".env"
     env_file.write_text("LLM_PROVIDER=qwen\n")
     assert run_fn(f"db_password_from_env '{env_file}'").stdout == ""
+
+
+# Real `sshd -T` prints >4 KiB with passwordauthentication near the top, so the kernel
+# delivers it in two write()s. This fake reproduces that shape with the producer
+# descheduled between them — the case where `grep -q` closes the pipe early.
+FAKE_SSHD_T_TWO_WRITES = (
+    "sshd() { printf 'permitrootlogin prohibit-password\\npasswordauthentication no\\n'; "
+    "sleep 0.1; printf 'ciphers %8192s\\n' x; }"
+)
+
+
+def test_sshd_password_auth_disabled_when_sshd_keeps_writing_after_the_match():
+    result = run_fn(f"{FAKE_SSHD_T_TWO_WRITES}; sshd_password_auth_disabled")
+    assert result.returncode == 0, result.stderr
+
+
+def test_sshd_password_auth_disabled_rejects_yes():
+    result = run_fn("sshd() { printf 'passwordauthentication yes\\n'; }; sshd_password_auth_disabled")
+    assert result.returncode != 0
+
+
+def test_sshd_password_auth_disabled_fails_when_sshd_T_fails():
+    result = run_fn("sshd() { return 255; }; sshd_password_auth_disabled")
+    assert result.returncode != 0
 
 
 def test_generate_password_is_48_hex_chars():
