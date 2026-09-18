@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # =============================================================================
-# AgentFxTrading — one-shot installer for a fresh Ubuntu 22.04 / 24.04 VPS
+# AgentFxTrading — one-shot installer for a fresh Ubuntu 22.04 / 24.04 / 26.04 VPS
 #
 #   curl -fsSL https://raw.githubusercontent.com/kienphan/AgentFxTrading/main/scripts/install.sh | sudo bash
 #
@@ -73,6 +73,14 @@ validate_ssh_key() {
   return "$rc"
 }
 
+supported_ubuntu_version() {
+  # usage: supported_ubuntu_version "<VERSION_ID>"  → 0 iff it is an LTS release this script is tested on
+  case "$1" in
+    22.04|24.04|26.04) return 0 ;;
+    *) return 1 ;;
+  esac
+}
+
 db_password_from_env() {
   # usage: db_password_from_env "<path/.env>"  → prints decoded password from DATABASE_URL (or nothing)
   local env_file="$1" url pw
@@ -83,6 +91,16 @@ db_password_from_env() {
   pw="${pw#*:}"      # pass@host...
   pw="${pw%%@*}"     # pass (still percent-encoded, so '@' inside it is safe)
   urldecode "$pw"
+}
+
+sshd_password_auth_disabled() {
+  # usage: sshd_password_auth_disabled  → 0 iff `sshd -T` reports passwordauthentication no
+  # Capture first, grep second. `sshd -T | grep -q` is a false negative under pipefail:
+  # the keyword sits in the first 4 KiB, grep -q exits on it, sshd (which only ignores
+  # SIGPIPE after -T) dies writing the rest → exit 141. Seen on OpenSSH 10.2 (Ubuntu 26.04).
+  local effective
+  effective="$(sshd -T 2>/dev/null)" || return 1
+  grep -qix 'passwordauthentication no' <<<"$effective"
 }
 
 generate_password() { openssl rand -hex 24; }
@@ -98,10 +116,8 @@ preflight() {
   # shellcheck disable=SC1091
   os_version="$(. /etc/os-release && printf '%s' "${VERSION_ID:-}")"
   [[ "$os_id" == "ubuntu" ]] || die "Ubuntu only (detected: ${os_id:-unknown})"
-  case "$os_version" in
-    22.04|24.04) ;;
-    *) die "Ubuntu 22.04 or 24.04 required (detected: ${os_version:-unknown})" ;;
-  esac
+  supported_ubuntu_version "$os_version" \
+    || die "Ubuntu 22.04, 24.04 or 26.04 required (detected: ${os_version:-unknown})"
   command -v systemctl >/dev/null || die "systemd is required"
   log "Ubuntu ${os_version} detected"
 }
@@ -235,7 +251,7 @@ harden_sshd() {
   render_sshd_dropin > /etc/ssh/sshd_config.d/00-agentfx.conf
   sshd -t || die "sshd -t failed; NOT reloading. Inspect /etc/ssh/sshd_config.d/00-agentfx.conf"
   systemctl reload ssh 2>/dev/null || systemctl restart ssh
-  sshd -T 2>/dev/null | grep -qix 'passwordauthentication no' \
+  sshd_password_auth_disabled \
     || die "Effective sshd config still allows password login; look for directives above the Include line in /etc/ssh/sshd_config"
   log "Password authentication disabled; root login is key-only"
 }
