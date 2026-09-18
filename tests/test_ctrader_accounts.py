@@ -188,7 +188,11 @@ def test_delete_removes_row_and_file(ctrader_home):
     ({"label": "x" * 41}, "label"),
     ({"label": 'Has "quote"'}, "quotes"),
     ({"label": "line\nbreak"}, "quotes"),
-    ({"label": "!!!"}, "letter or digit"),
+    ({"label": "Back\\slash"}, "backslashes"),
+    ({"label": "<b>bold</b>"}, "angle brackets"),
+    ({"ctid_email": "o'brien@example.com"}, "email"),
+    ({"ctid_email": "back\\slash@example.com"}, "email"),
+    ({"label": "!!!"}, "ASCII letter or digit"),
     ({"label": "Not Live", "account_type": "demo"}, "live"),
     ({"password": ""}, "password"),
     ({"account_type": "paper"}, "account_type"),
@@ -215,3 +219,30 @@ def test_unwritable_ctrader_home_is_500_and_no_row(ctrader_home, monkeypatch):
     assert res.status_code == 500
     assert res.json()["success"] is False and "password file" in res.json()["message"]
     assert client.get("/api/ctrader-accounts").json()["accounts"] == []
+
+
+def test_create_keeps_a_preconfigured_dashboard_account_id(ctrader_home):
+    """A .env-style id like 'demo-1' must survive registering the same number in Setup Instances."""
+    reg = get_account_registry()
+    reg.upsert_configured_account("demo-1", "7654321", "demo", "Demo Test")
+    res = client.post("/api/ctrader-accounts", json=_payload(label="Main", account_number="7654321"))
+    assert res.status_code == 201, res.text
+    assert reg.resolve_account_id("7654321", "demo") == "demo-1"
+    row = next(t for t in reg.list_accounts() if t["account_number"] == "7654321" and t["account_type"] == "demo")
+    assert row["account_id"] == "demo-1" and row["label"] == "Main" and row["is_configured"] == 1
+
+
+@pytest.mark.parametrize("label, ok", [("Oliver", True), ("Delivery", True), ("Olive", False), ("Liverpool", False), ("Live", False)])
+def test_demo_live_rule_matches_the_bots_table_markers(ctrader_home, label, ok):
+    res = client.post("/api/ctrader-accounts", json=_payload(label=label))
+    assert (res.status_code == 201) == ok, res.text
+
+
+def test_ctrader_home_defaults_to_root(monkeypatch):
+    from app.ctrader_accounts import ctrader_home, password_file_paths
+    monkeypatch.delenv("CTRADER_HOME", raising=False)
+    assert ctrader_home() == "/root"
+    host, container = password_file_paths("demo-main")
+    assert str(host) == "/root/ctrader_data/ctid_demo-main_pwd" and container == "/root/ctrader_data/ctid_demo-main_pwd"
+    monkeypatch.setenv("CTRADER_HOME", "  ")
+    assert ctrader_home() == "/root"

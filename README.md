@@ -317,7 +317,7 @@ You can run the cBot either via **cTrader Desktop GUI** or **Headless Docker CLI
      DASHBOARD_ACCOUNTS=demo-10101649|10101649|demo|Demo Account;live-88888888|88888888|live|Live Main
      ```
 
-   > 💡 **Prefer clicking?** Open the dashboard → **Docker Bot Management** → **Setup Instances**. Pick (or create) a cTrader account, tick the symbol × strategy cells you want, and click **Create instances**. The screen generates exactly the commands listed below from the README presets, saves them as bot configs and starts the containers. The cTID password is written to `$CTRADER_HOME/ctrader_data/ctid_<account>_pwd` (mode 0600) and never stored in the database.
+   > 💡 **Prefer clicking?** Open the dashboard → **Docker Bot Management** → **Setup Instances**. Pick (or create) a cTrader account, tick the symbol × strategy cells you want, and click **Create instances**. The screen generates exactly the commands listed below from the README presets, saves them as bot configs and starts the containers. The cTID password is written to `$CTRADER_HOME/ctrader_data/ctid_<slug>_pwd` (mode 0600) and never stored in the database.
 
 4. **Run Multi-Instance Docker Containers**:
 

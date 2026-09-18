@@ -45,13 +45,14 @@ def validate_account_input(label: str, ctid_email: str, password: str, account_n
         raise AccountValidationError("account_type must be 'live' or 'demo'")
     if not 1 <= len(label) <= LABEL_MAX_LEN:
         raise AccountValidationError(f"label must be 1-{LABEL_MAX_LEN} characters")
-    if '"' in label or "\n" in label or "\r" in label:
-        raise AccountValidationError("label must not contain quotes or newlines")
+    if any(c in label for c in ('"', "\\", "<", ">", "\n", "\r")):
+        raise AccountValidationError("label must not contain quotes, backslashes, angle brackets or newlines")
     if not re.search(r"[a-z0-9]", label.lower()):
-        raise AccountValidationError("label must contain at least one letter or digit")
-    if account_type == "demo" and "live" in slugify(account_type, label):
-        raise AccountValidationError("a demo account label must not contain 'live' (the dashboard uses it to detect live bots)")
-    if "@" not in ctid_email or re.search(r'[\s"]', ctid_email):
+        raise AccountValidationError("label must contain at least one ASCII letter or digit")
+    name_prefix = slugify(account_type, label) + "-"     # container names are cbot-<slug>-<symbol>…
+    if account_type == "demo" and ("-live" in name_prefix or "live-" in name_prefix):
+        raise AccountValidationError("a demo account label must not produce '-live' or 'live-' in the container name (the dashboard uses those to detect live bots)")
+    if "@" not in ctid_email or re.search(r'[\s"\'\\]', ctid_email):
         raise AccountValidationError("ctid_email must be an email address")
     if not account_number.isdigit():
         raise AccountValidationError("account_number must contain digits only")
@@ -105,7 +106,8 @@ def create_ctrader_account(registry: AccountRegistry, *, label: str, ctid_email:
     except Exception:
         host_path.unlink(missing_ok=True)
         raise
-    registry.upsert_configured_account(f"{account_type}-{account_number}", account_number, account_type, label)
+    account_id = registry.resolve_account_id(account_number, account_type) or f"{account_type}-{account_number}"
+    registry.upsert_configured_account(account_id, account_number, account_type, label)
     logger.info(f"cTrader account created: {slug} ({account_type} {account_number})")
     return public_view(row)
 

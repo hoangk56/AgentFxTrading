@@ -1060,7 +1060,8 @@ async def api_setup_presets():
 
 
 @router.post("/api/setup/instances")
-async def api_setup_instances(req: SetupInstancesRequest):
+# sync on purpose: up to 22 serial docker starts must not block the event loop (/trade, websockets)
+def api_setup_instances(req: SetupInstancesRequest):
     """Save (and optionally start) one cbot_configs row per selected preset cell. Never aborts the batch."""
     account = get_account_registry().get_ctrader_account(req.account_id)
     if not account:
