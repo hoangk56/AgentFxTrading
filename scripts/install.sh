@@ -297,6 +297,71 @@ install_docker() {
   log "User ${FORGE_USER} is in the docker group"
 }
 
+run_as_forge() { sudo -u "$FORGE_USER" -H "$@"; }
+
+clone_repo() {
+  step "Fetching repository into ${REPO_DIR}"
+  if [[ -d "${REPO_DIR}/.git" ]]; then
+    run_as_forge git -C "$REPO_DIR" fetch --quiet origin "$AGENTFX_BRANCH"
+    run_as_forge git -C "$REPO_DIR" checkout --quiet "$AGENTFX_BRANCH"
+    run_as_forge git -C "$REPO_DIR" pull --ff-only --quiet origin "$AGENTFX_BRANCH"
+    log "Updated existing checkout (${AGENTFX_BRANCH})"
+  else
+    run_as_forge git clone --quiet --branch "$AGENTFX_BRANCH" "$AGENTFX_REPO" "$REPO_DIR"
+    log "Cloned ${AGENTFX_REPO} (${AGENTFX_BRANCH})"
+  fi
+}
+
+setup_venv() {
+  step "Python virtualenv and dependencies"
+  [[ -x "${REPO_DIR}/.venv/bin/python" ]] || run_as_forge python3 -m venv "${REPO_DIR}/.venv"
+  run_as_forge "${REPO_DIR}/.venv/bin/pip" install -q --upgrade pip
+  run_as_forge "${REPO_DIR}/.venv/bin/pip" install -q -r "${REPO_DIR}/requirements.txt"
+  log "Dependencies installed"
+}
+
+prepare_ctrader_home() {
+  step "Preparing ${CTRADER_HOME}"
+  install -d -m 0755 -o "$FORGE_USER" -g "$FORGE_GROUP" "$CTRADER_HOME"
+  install -d -m 0700 -o "$FORGE_USER" -g "$FORGE_GROUP" "${CTRADER_HOME}/ctrader_data"
+  log "ctrader_data/ ready for cTID password files"
+}
+
+ctrader_console() {
+  # Runs the Spotware CLI with the same mounts every cBot container uses.
+  docker run --rm -v "${REPO_DIR}:/workspace" -v "${CTRADER_HOME}:/root" "$CTRADER_IMAGE" "$@"
+}
+
+build_algo() {
+  # usage: build_algo <BotName>   compiles cBot/<BotName>.cs → cBot/<BotName>.algo
+  local name="$1"
+  local src="${REPO_DIR}/cBot/${name}.cs"
+  local out="${REPO_DIR}/cBot/${name}.algo"
+  local robots="${CTRADER_HOME}/cAlgo/Sources/Robots"
+  local csproj="${robots}/${name}/${name}/${name}.csproj"
+  [[ -f "$src" ]] || die "Missing cBot source: ${src}"
+  if [[ -f "$out" && "$out" -nt "$src" ]]; then
+    log "${name}.algo is newer than ${name}.cs — skipping"
+    return 0
+  fi
+  [[ -f "$csproj" ]] || ctrader_console create cbot "$name"
+  cp "$src" "${robots}/${name}/${name}/${name}.cs"
+  ctrader_console build "/root/cAlgo/Sources/Robots/${name}/${name}/${name}.csproj"
+  cp "${robots}/${name}.algo" "$out"
+  log "Built ${name}.algo"
+}
+
+build_algos() {
+  step "Building cBot .algo packages (this pulls ${CTRADER_IMAGE})"
+  docker pull -q "$CTRADER_IMAGE"
+  local name
+  for name in AiAgentBot AsianRangeJudasSweepBot FlowRsiBot; do
+    build_algo "$name"
+  done
+  # The console container runs as root, so hand everything back to forge.
+  chown -R "${FORGE_USER}:${FORGE_GROUP}" "$CTRADER_HOME" "${REPO_DIR}/cBot"
+}
+
 # --- main ---
 main() {
   preflight
@@ -306,6 +371,11 @@ main() {
   harden_sshd
   install_postgresql
   install_docker
+  clone_repo
+  setup_venv
+  write_env
+  prepare_ctrader_home
+  build_algos
 }
 
 # Run main when executed (`bash install.sh`) or piped (`curl ... | bash`,
