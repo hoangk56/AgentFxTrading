@@ -13,10 +13,7 @@ TARGETS = [
     'cbot-uk100',
     'cbot-de40',
     'cbot-ustec',
-    'cbot-us30',
-    'cbot-btcusd-judas',
-    'cbot-eurjpy-judas',
-    'cbot-eurusd-judas'
+    'cbot-us30'
 ]
 
 def main():
