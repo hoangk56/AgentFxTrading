@@ -8,6 +8,7 @@
 #   FORGE_SSH_KEY   public key for the forge user (otherwise prompted on /dev/tty)
 #   AGENTFX_REPO    git URL to clone   (default: upstream GitHub repo)
 #   AGENTFX_BRANCH  branch to check out (default: main)
+#   (export them and run `... | sudo -E bash`; plain `sudo` strips the environment)
 #
 # Idempotent: every step checks its own post-condition first, so re-running the
 # script is the upgrade path.
@@ -58,9 +59,8 @@ urlencode() {
 }
 
 urldecode() {
-  # usage: urldecode "<string>"  → reverses urlencode
-  local s="${1//+/ }"
-  printf '%b' "${s//%/\\x}"
+  # usage: urldecode "<string>"  → reverses urlencode (libpq semantics: '+' is literal, only %XX decodes)
+  printf '%b' "${1//%/\\x}"
 }
 
 validate_ssh_key() {
@@ -154,6 +154,7 @@ render_backup_cron() {
 
 write_env() {
   step "Writing ${REPO_DIR}/.env"
+  umask 077
   local env_file="${REPO_DIR}/.env" db_url
   db_url="postgresql://${DB_USER}:$(urlencode "$DB_PASSWORD")@127.0.0.1:5432/${DB_NAME}"
   if [[ -f "$env_file" ]]; then
@@ -178,7 +179,7 @@ read_ssh_key() {
   step "SSH public key for user ${FORGE_USER}"
   local key="${FORGE_SSH_KEY:-}"
   if [[ -z "$key" ]]; then
-    [[ -r /dev/tty ]] || die "FORGE_SSH_KEY is not set and there is no terminal to prompt on. Re-run with FORGE_SSH_KEY='ssh-ed25519 AAAA... you@laptop'"
+    { : </dev/tty; } 2>/dev/null || die "FORGE_SSH_KEY is not set and there is no terminal to prompt on. Re-run with FORGE_SSH_KEY='ssh-ed25519 AAAA... you@laptop'"
     printf 'Paste the SSH public key that will log in as %s (one line, e.g. "ssh-ed25519 AAAA... you@laptop"):\n> ' "$FORGE_USER" > /dev/tty
     IFS= read -r key < /dev/tty
   fi
@@ -189,11 +190,11 @@ read_ssh_key() {
   log "Key accepted (${key%% *})"
 }
 
-apt_install() { apt-get install -y -q "$@"; }
+apt_install() { apt-get -o DPkg::Lock::Timeout=600 install -y -q "$@"; }
 
 install_base_packages() {
   step "Installing base packages"
-  apt-get update -q
+  apt-get -o DPkg::Lock::Timeout=600 update -q
   apt_install git curl ca-certificates gnupg lsb-release openssl cron ufw \
     python3 python3-venv python3-dev build-essential libpq-dev
 }
@@ -234,6 +235,8 @@ harden_sshd() {
   render_sshd_dropin > /etc/ssh/sshd_config.d/00-agentfx.conf
   sshd -t || die "sshd -t failed; NOT reloading. Inspect /etc/ssh/sshd_config.d/00-agentfx.conf"
   systemctl reload ssh 2>/dev/null || systemctl restart ssh
+  sshd -T 2>/dev/null | grep -qix 'passwordauthentication no' \
+    || die "Effective sshd config still allows password login; look for directives above the Include line in /etc/ssh/sshd_config"
   log "Password authentication disabled; root login is key-only"
 }
 
@@ -247,7 +250,7 @@ install_postgresql() {
       -o /usr/share/postgresql-common/pgdg/apt.postgresql.org.asc
     printf 'deb [signed-by=/usr/share/postgresql-common/pgdg/apt.postgresql.org.asc] https://apt.postgresql.org/pub/repos/apt %s-pgdg main\n' \
       "$(lsb_release -cs)" > /etc/apt/sources.list.d/pgdg.list
-    apt-get update -q
+    apt-get -o DPkg::Lock::Timeout=600 update -q
     apt_install postgresql-17
   fi
   systemctl enable --now postgresql
@@ -289,7 +292,7 @@ install_docker() {
     chmod a+r /etc/apt/keyrings/docker.asc
     printf 'deb [arch=%s signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/ubuntu %s stable\n' \
       "$(dpkg --print-architecture)" "$(lsb_release -cs)" > /etc/apt/sources.list.d/docker.list
-    apt-get update -q
+    apt-get -o DPkg::Lock::Timeout=600 update -q
     apt_install docker-ce docker-ce-cli containerd.io
   fi
   systemctl enable --now docker
@@ -298,6 +301,16 @@ install_docker() {
 }
 
 run_as_forge() { sudo -u "$FORGE_USER" -H "$@"; }
+
+verify_db_connection() {
+  step "Verifying DATABASE_URL from .env can connect"
+  local db_url
+  db_url="$(grep -E '^DATABASE_URL=' "${REPO_DIR}/.env" | tail -n1 | cut -d= -f2- | tr -d "\"'")"
+  [[ -n "$db_url" ]] || die ".env has no DATABASE_URL"
+  run_as_forge psql "$db_url" -tAc 'SELECT 1' >/dev/null \
+    || die "Cannot connect with DATABASE_URL from .env (app would silently fall back to SQLite)"
+  log "PostgreSQL connection OK"
+}
 
 clone_repo() {
   step "Fetching repository into ${REPO_DIR}"
@@ -390,9 +403,15 @@ install_backup_cron() {
 
 configure_firewall() {
   step "Configuring ufw"
-  ufw allow OpenSSH >/dev/null
+  local ports p allowed=""
+  ports="$(sshd -T 2>/dev/null | awk '$1=="port"{print $2}')"
+  [[ -n "$ports" ]] || die "Cannot determine sshd port from 'sshd -T'; refusing to enable ufw"
+  for p in $ports; do
+    ufw allow "${p}/tcp" >/dev/null
+    allowed="${allowed}${p} "
+  done
   ufw --force enable >/dev/null
-  log "ufw enabled: only OpenSSH is allowed inbound"
+  log "ufw enabled: only SSH (tcp ${allowed% }) allowed inbound"
 }
 
 print_summary() {
@@ -411,12 +430,16 @@ print_summary() {
  cTrader home : ${CTRADER_HOME}  (mounted as /root inside cBot containers)
 
  Next steps
- 1. Open the dashboard through an SSH tunnel from your machine:
+ 1. BEFORE closing this session, prove the key works from ANOTHER terminal:
+      ssh ${FORGE_USER}@${ip} 'sudo -n true && echo LOGIN_OK'
+    Password and root-password logins are now disabled. If this fails, fix
+    ${FORGE_HOME}/.ssh/authorized_keys from this session first.
+ 2. Open the dashboard through an SSH tunnel from your machine:
       ssh -L 8000:127.0.0.1:8000 ${FORGE_USER}@${ip}
     then browse http://127.0.0.1:8000
- 2. Put your LLM API key in ${REPO_DIR}/.env
+ 3. Put your LLM API key in ${REPO_DIR}/.env
     (LLM_PROVIDER, DASHSCOPE_API_KEY, ...), then:  sudo systemctl restart ${SERVICE_NAME}
- 3. Add your cTrader account and start bots from
+ 4. Add your cTrader account and start bots from
     Dashboard → Docker Bot Management → Setup Instances.
  Re-running this installer is safe; it updates the checkout and rebuilds bots.
 =============================================================================
@@ -425,6 +448,7 @@ EOF
 
 # --- main ---
 main() {
+  cd /
   preflight
   read_ssh_key
   install_base_packages
@@ -435,6 +459,7 @@ main() {
   clone_repo
   setup_venv
   write_env
+  verify_db_connection
   prepare_ctrader_home
   build_algos
   install_systemd_unit

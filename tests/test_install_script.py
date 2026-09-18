@@ -56,6 +56,7 @@ def test_urlencode(raw, encoded):
 @pytest.mark.parametrize("encoded,raw", [
     ("kaz%40112358.", "kaz@112358."),
     ("p%20w%3Ad%2F%23%3F", "p w:d/#?"),
+    ("a+b%2Bc", "a+b+c"),
 ])
 def test_urldecode(encoded, raw):
     result = run_fn(f"urldecode '{encoded}'")
