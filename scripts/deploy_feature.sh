@@ -35,7 +35,7 @@ while [ "$#" -gt 0 ]; do
     case "$1" in
         --all-cbots)
             echo "==> Restarting all active cBot containers..."
-            docker restart cbot-jp225 cbot-hk50 cbot-us500 cbot-xauusd cbot-us30 cbot-ustec cbot-de40 cbot-uk100 cbot-gbpusd-judas cbot-xauusd-judas cbot-uk100-judas cbot-ustec-judas
+            docker restart cbot-jp225 cbot-hk50 cbot-us500 cbot-xauusd cbot-us30 cbot-ustec cbot-de40 cbot-uk100 cbot-xauusd-judas cbot-uk100-judas cbot-ustec-judas
             shift
             ;;
         --cbot)
