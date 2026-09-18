@@ -103,7 +103,7 @@ namespace cAlgo.Robots
         #endregion
 
         #region Risk Management Engine
-        [Parameter("Risk per Trade (% Equity)", Group = "Risk Management", DefaultValue = 1.0, MinValue = 0.1, MaxValue = 10.0)]
+        [Parameter("Risk per Trade (% Equity)", Group = "Risk Management", DefaultValue = 0.2, MinValue = 0.01, MaxValue = 10.0, Step = 0.1)]
         public double RiskPercentage { get; set; }
 
         [Parameter("Max Dollar Risk Per Trade ($)", Group = "Risk Management", DefaultValue = 50.0, MinValue = 5.0)]

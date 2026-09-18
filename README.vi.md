@@ -576,7 +576,7 @@ Bạn có thể chạy cBot bằng **Giao diện cTrader Desktop (GUI)** hoặc 
        --EnableSmcFilter=true \
        --EnableFvgDetection=true \
        --EnablePremiumDiscountFilter=true \
-       --RiskPercentage=1.0 \
+       --RiskPercentage=0.2 \
        --MaxRiskPerTradeMoney=50.0 \
        --TargetRiskReward=1.5 \
        --UseAiGateMode=true

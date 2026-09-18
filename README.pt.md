@@ -574,7 +574,7 @@ Você pode executar o cBot através da **Interface Gráfica cTrader Desktop (GUI
        --EnableSmcFilter=true \
        --EnableFvgDetection=true \
        --EnablePremiumDiscountFilter=true \
-       --RiskPercentage=1.0 \
+       --RiskPercentage=0.2 \
        --MaxRiskPerTradeMoney=50.0 \
        --TargetRiskReward=1.5 \
        --UseAiGateMode=true
