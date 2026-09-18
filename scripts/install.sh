@@ -174,9 +174,76 @@ write_env() {
   chmod 0600 "$env_file"
 }
 
+read_ssh_key() {
+  step "SSH public key for user ${FORGE_USER}"
+  local key="${FORGE_SSH_KEY:-}"
+  if [[ -z "$key" ]]; then
+    [[ -r /dev/tty ]] || die "FORGE_SSH_KEY is not set and there is no terminal to prompt on. Re-run with FORGE_SSH_KEY='ssh-ed25519 AAAA... you@laptop'"
+    printf 'Paste the SSH public key that will log in as %s (one line, e.g. "ssh-ed25519 AAAA... you@laptop"):\n> ' "$FORGE_USER" > /dev/tty
+    IFS= read -r key < /dev/tty
+  fi
+  key="$(printf '%s' "$key" | tr -d '\r' | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//')"
+  [[ -n "$key" ]] || die "SSH public key is empty — refusing to continue because password login will be disabled"
+  validate_ssh_key "$key" || die "Not a valid SSH public key: ${key:0:40}..."
+  SSH_PUBLIC_KEY="$key"
+  log "Key accepted (${key%% *})"
+}
+
+apt_install() { apt-get install -y -q "$@"; }
+
+install_base_packages() {
+  step "Installing base packages"
+  apt-get update -q
+  apt_install git curl ca-certificates gnupg lsb-release openssl cron ufw \
+    python3 python3-venv python3-dev build-essential libpq-dev
+}
+
+create_forge_user() {
+  step "Creating user ${FORGE_USER}"
+  if id "$FORGE_USER" >/dev/null 2>&1; then
+    log "User ${FORGE_USER} already exists"
+  else
+    adduser --disabled-password --gecos "" "$FORGE_USER"
+  fi
+  usermod -aG sudo "$FORGE_USER"
+  printf '%s ALL=(ALL) NOPASSWD:ALL\n' "$FORGE_USER" > "/etc/sudoers.d/${FORGE_USER}"
+  chmod 0440 "/etc/sudoers.d/${FORGE_USER}"
+  visudo -cf "/etc/sudoers.d/${FORGE_USER}" >/dev/null || die "Generated sudoers file is invalid"
+
+  install -d -m 0700 -o "$FORGE_USER" -g "$FORGE_GROUP" "${FORGE_HOME}/.ssh"
+  local auth="${FORGE_HOME}/.ssh/authorized_keys"
+  touch "$auth"
+  if grep -qxF "$SSH_PUBLIC_KEY" "$auth"; then
+    log "Key already present in authorized_keys"
+  else
+    printf '%s\n' "$SSH_PUBLIC_KEY" >> "$auth"
+    log "Key added to authorized_keys"
+  fi
+  chown "${FORGE_USER}:${FORGE_GROUP}" "$auth"
+  chmod 0600 "$auth"
+}
+
+harden_sshd() {
+  step "Hardening sshd (key-only login)"
+  grep -qxF "$SSH_PUBLIC_KEY" "${FORGE_HOME}/.ssh/authorized_keys" \
+    || die "authorized_keys does not contain the key — refusing to disable password login"
+  install -d -m 0755 /etc/ssh/sshd_config.d
+  if ! grep -qE '^Include /etc/ssh/sshd_config\.d/\*\.conf' /etc/ssh/sshd_config; then
+    sed -i '1i Include /etc/ssh/sshd_config.d/*.conf' /etc/ssh/sshd_config
+  fi
+  render_sshd_dropin > /etc/ssh/sshd_config.d/00-agentfx.conf
+  sshd -t || die "sshd -t failed; NOT reloading. Inspect /etc/ssh/sshd_config.d/00-agentfx.conf"
+  systemctl reload ssh 2>/dev/null || systemctl restart ssh
+  log "Password authentication disabled; root login is key-only"
+}
+
 # --- main ---
 main() {
   preflight
+  read_ssh_key
+  install_base_packages
+  create_forge_user
+  harden_sshd
 }
 
 # Run main when executed (`bash install.sh`) or piped (`curl ... | bash`,
