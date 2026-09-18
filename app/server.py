@@ -446,17 +446,35 @@ class MarketSnapshot(BaseModel):
 # ---- Output Format ----
 class AgentDecision(BaseModel):
     action: str  # "BUY", "SELL", "CLOSE_ALL", "HOLD", "ADJUST"
-    volume_lots: float = 0.01
-    sl_pips: float = 0.0
-    tp_pips: float = 0.0
-    new_sl_price: float = 0.0
-    new_tp_price: float = 0.0
-    confidence: float = 80.0
-    reason: str
+    volume_lots: Optional[float] = 0.01
+    sl_pips: Optional[float] = 0.0
+    tp_pips: Optional[float] = 0.0
+    new_sl_price: Optional[float] = 0.0
+    new_tp_price: Optional[float] = 0.0
+    confidence: Optional[float] = 80.0
+    reason: str = ""
     request_id: Optional[str] = None
     bot_id: Optional[str] = None
     symbol: Optional[str] = None
     timeframe: Optional[str] = None
+
+    @field_validator("volume_lots", "sl_pips", "tp_pips", "new_sl_price", "new_tp_price", "confidence", mode="before")
+    @classmethod
+    def coerce_none_to_default(cls, v, info):
+        defaults = {
+            "volume_lots": 0.01,
+            "sl_pips": 0.0,
+            "tp_pips": 0.0,
+            "new_sl_price": 0.0,
+            "new_tp_price": 0.0,
+            "confidence": 80.0,
+        }
+        if v is None or v == "":
+            return defaults.get(info.field_name, 0.0)
+        try:
+            return float(v)
+        except (ValueError, TypeError):
+            return defaults.get(info.field_name, 0.0)
 
 def is_judas_sweep_bot(snapshot: MarketSnapshot) -> bool:
     """Detect whether snapshot belongs to an Asian Range Judas Sweep / SMC bot."""
@@ -914,7 +932,7 @@ BREAKOUT_DISTANCE_LIMITS = (
     (("US500", "SPX500"), "US500/SPX500", 1.4, 150.0, 3.4, 450.0),
     (("DE40", "GER40"), "DE40/GER40", 1.5, 700.0, 3.4, 1900.0),
     (("UK100", "GB100"), "UK100/GB100", 1.5, 550.0, 3.4, 1600.0),
-    (("JP225", "NIKKEI", "JPN225"), "JP225/Nikkei", 1.5, 1200.0, 3.4, 3500.0),
+    (("JP225", "NIKKEI", "JPN225"), "JP225/Nikkei", 1.8, 3000.0, 3.8, 7000.0),
     (("HK50", "HSI"), "HK50/HangSeng", 1.5, 800.0, 3.4, 2200.0),
     (("XAU", "GOLD"), "Gold", 1.8, 900.0, 3.6, 2600.0),
     (("BTC", "CRYPTO"), "BTC/Crypto", 1.5, 37500.0, 3.5, 130000.0),

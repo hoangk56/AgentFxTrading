@@ -2117,9 +2117,22 @@ namespace cAlgo.Robots
             double minVolDollarRisk = Symbol.VolumeInUnitsMin * slPips * Symbol.PipValue;
             if (MaxDollarRiskPerTrade > 0 && minVolDollarRisk > MaxDollarRiskPerTrade)
             {
-                if (ShowLogs) Print($"[Guardrail] Blocked: Broker minimum volume ({brokerMinLots:F2} lots) at technical SL ({slPips:F1}p) incurs ${minVolDollarRisk:F2} risk, exceeding MaxDollarRisk ${MaxDollarRiskPerTrade:F2}. Trade rejected to prevent oversized contract risk.");
-                _ = ReportGuardrailBlockedAsync("MinVolumeExceedsDollarRisk", $"Min vol {brokerMinLots:F2} lots at {slPips:F1}p SL incurs ${minVolDollarRisk:F2} > max ${MaxDollarRiskPerTrade:F2}");
-                return;
+                // Dynamic SL Adaptation: If a wide structural OR stop loss exceeds MaxDollarRiskPerTrade,
+                // clamp slPips to the max affordable SL as long as it remains technically viable (>= minSlPips).
+                double perUnitPipCost = Symbol.VolumeInUnitsMin * Symbol.PipValue;
+                double maxAffordableSlPips = perUnitPipCost > 0 ? (MaxDollarRiskPerTrade / perUnitPipCost) : 0;
+                if (maxAffordableSlPips >= minSlPips)
+                {
+                    if (ShowLogs) Print($"[Dynamic Risk Adaptation] Clamped wide structural SL from {slPips:F1}p to {maxAffordableSlPips:F1}p so min volume ({brokerMinLots:F2} lots) strictly respects MaxDollarRisk (${MaxDollarRiskPerTrade:F2}). SL remains viable (>= minSl {minSlPips:F1}p).");
+                    slPips = maxAffordableSlPips;
+                    minVolDollarRisk = Symbol.VolumeInUnitsMin * slPips * Symbol.PipValue;
+                }
+                else
+                {
+                    if (ShowLogs) Print($"[Guardrail] Blocked: Broker minimum volume ({brokerMinLots:F2} lots) at technical SL ({slPips:F1}p) incurs ${minVolDollarRisk:F2} risk, exceeding MaxDollarRisk ${MaxDollarRiskPerTrade:F2} and min viable SL ({minSlPips:F1}p). Trade rejected to prevent oversized contract risk.");
+                    _ = ReportGuardrailBlockedAsync("MinVolumeExceedsDollarRisk", $"Min vol {brokerMinLots:F2} lots at {slPips:F1}p SL incurs ${minVolDollarRisk:F2} > max ${MaxDollarRiskPerTrade:F2} (min viable SL: {minSlPips:F1}p)");
+                    return;
+                }
             }
 
             // Scale TP to maintain favorable Risk:Reward ratio relative to SL

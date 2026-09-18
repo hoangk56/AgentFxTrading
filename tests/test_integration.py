@@ -240,7 +240,8 @@ def test_judas_sweep_low_confidence_blocked():
         "account_equity": 10000.0
     }
     # LLM returns BUY but with 65.0% confidence (< 75.0% threshold)
-    with patch.object(app.server.llm_client, 'chat', new=AsyncMock(return_value='{"action": "BUY", "volume_lots": 0.02, "sl_pips": 39.0, "tp_pips": 46.0, "confidence": 65.0, "reason": "Judas sweep with low confidence"}')):
+    with patch("app.news_service.is_news_blackout_active", new=AsyncMock(return_value=(False, "", 0))), \
+         patch.object(app.server.llm_client, 'chat', new=AsyncMock(return_value='{"action": "BUY", "volume_lots": 0.02, "sl_pips": 39.0, "tp_pips": 46.0, "confidence": 65.0, "reason": "Judas sweep with low confidence"}')):
         res = client.post("/trade", json=payload)
         assert res.status_code == 200
         data = res.json()
@@ -476,8 +477,8 @@ def test_breakout_distance_limits_resolver():
     # ATR-scaled inside the cap, clamped to the cap once ATR is large
     assert resolve_breakout_limits("USTEC", 200.0) == (260.0, 640.0)
     assert resolve_breakout_limits("USTEC", 5000.0) == (700.0, 2100.0)
-    assert resolve_breakout_limits("JP225", 500.0) == (750.0, 1700.0)
-    assert resolve_breakout_limits("JP225", None) == (1200.0, 3500.0)
+    assert resolve_breakout_limits("JP225", 500.0) == (900.0, 1900.0)
+    assert resolve_breakout_limits("JP225", None) == (3000.0, 7000.0)
     assert resolve_breakout_limits("HK50", 400.0) == (600.0, 1360.0)
     assert resolve_breakout_limits("HK50", None) == (800.0, 2200.0)
     assert resolve_breakout_limits("US500", 80.0) == (112.0, 272.0)
@@ -489,6 +490,27 @@ def test_breakout_distance_limits_resolver():
     assert resolve_breakout_limits("BTCUSD", None) == (37500.0, 130000.0)
     # Model 1 window must stay tighter than the Model 2 (retest) window
     assert MODEL1_ENTRY_WINDOW_BARS < MAX_BARS_SINCE_BREAKOUT_MODEL2
+def test_agent_decision_null_coercion():
+    """Verify AgentDecision gracefully coerces None/null values to safe numeric defaults."""
+    from app.server import AgentDecision
+    decision = AgentDecision.model_validate({
+        "action": "SELL",
+        "volume_lots": None,
+        "sl_pips": None,
+        "tp_pips": None,
+        "new_sl_price": None,
+        "new_tp_price": None,
+        "confidence": None,
+        "reason": "Test null coercion"
+    })
+    assert decision.action == "SELL"
+    assert decision.volume_lots == 0.01
+    assert decision.sl_pips == 0.0
+    assert decision.tp_pips == 0.0
+    assert decision.new_sl_price == 0.0
+    assert decision.new_tp_price == 0.0
+    assert decision.confidence == 80.0
+    assert decision.reason == "Test null coercion"
 def test_model1_entry_window_matches_the_cbot_parameter_default():
     """MODEL1_ENTRY_WINDOW_BARS and the cBot's MaxBarsAfterBreakout default must agree.
 
