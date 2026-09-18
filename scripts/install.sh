@@ -237,6 +237,66 @@ harden_sshd() {
   log "Password authentication disabled; root login is key-only"
 }
 
+install_postgresql() {
+  step "Installing PostgreSQL 17"
+  if dpkg -s postgresql-17 >/dev/null 2>&1; then
+    log "postgresql-17 already installed"
+  else
+    install -d /usr/share/postgresql-common/pgdg
+    curl -fsSL https://www.postgresql.org/media/keys/ACCC4CF8.asc \
+      -o /usr/share/postgresql-common/pgdg/apt.postgresql.org.asc
+    printf 'deb [signed-by=/usr/share/postgresql-common/pgdg/apt.postgresql.org.asc] https://apt.postgresql.org/pub/repos/apt %s-pgdg main\n' \
+      "$(lsb_release -cs)" > /etc/apt/sources.list.d/pgdg.list
+    apt-get update -q
+    apt_install postgresql-17
+  fi
+  systemctl enable --now postgresql
+
+  # Password: reuse the one in an existing .env (re-run), otherwise generate.
+  # The role password is always set to match, so DB and .env never disagree.
+  DB_PASSWORD="$(db_password_from_env "${REPO_DIR}/.env")"
+  if [[ -n "$DB_PASSWORD" ]]; then
+    log "Reusing database password from existing .env"
+  else
+    DB_PASSWORD="$(generate_password)"
+    log "Generated a new database password"
+  fi
+  local pw_sql
+  pw_sql="$(printf '%s' "$DB_PASSWORD" | sed "s/'/''/g")"
+
+  if sudo -u postgres psql -tAc "SELECT 1 FROM pg_roles WHERE rolname='${DB_USER}'" | grep -q 1; then
+    sudo -u postgres psql -qc "ALTER ROLE ${DB_USER} WITH LOGIN PASSWORD '${pw_sql}'"
+    log "Role ${DB_USER} exists — password synced"
+  else
+    sudo -u postgres psql -qc "CREATE ROLE ${DB_USER} WITH LOGIN PASSWORD '${pw_sql}'"
+    log "Role ${DB_USER} created"
+  fi
+  if sudo -u postgres psql -tAc "SELECT 1 FROM pg_database WHERE datname='${DB_NAME}'" | grep -q 1; then
+    log "Database ${DB_NAME} exists"
+  else
+    sudo -u postgres createdb -O "$DB_USER" "$DB_NAME"
+    log "Database ${DB_NAME} created"
+  fi
+}
+
+install_docker() {
+  step "Installing Docker CE"
+  if dpkg -s docker-ce >/dev/null 2>&1; then
+    log "docker-ce already installed"
+  else
+    install -m 0755 -d /etc/apt/keyrings
+    curl -fsSL https://download.docker.com/linux/ubuntu/gpg -o /etc/apt/keyrings/docker.asc
+    chmod a+r /etc/apt/keyrings/docker.asc
+    printf 'deb [arch=%s signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/ubuntu %s stable\n' \
+      "$(dpkg --print-architecture)" "$(lsb_release -cs)" > /etc/apt/sources.list.d/docker.list
+    apt-get update -q
+    apt_install docker-ce docker-ce-cli containerd.io
+  fi
+  systemctl enable --now docker
+  usermod -aG docker "$FORGE_USER"
+  log "User ${FORGE_USER} is in the docker group"
+}
+
 # --- main ---
 main() {
   preflight
@@ -244,6 +304,8 @@ main() {
   install_base_packages
   create_forge_user
   harden_sshd
+  install_postgresql
+  install_docker
 }
 
 # Run main when executed (`bash install.sh`) or piped (`curl ... | bash`,
