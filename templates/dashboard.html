@@ -521,7 +521,8 @@
                 <section class="panel" id="bot-management-section">
                     <div class="panel-header">
                         <span class="panel-title"><i data-lucide="bot" class="panel-icon text-blue"></i> Docker Bot Management</span>
-                        <button id="add-bot-btn" class="log-btn" style="margin-left:auto;"><i data-lucide="plus" class="btn-icon"></i> Add Bot</button>
+                        <button id="setup-instances-btn" class="log-btn" style="margin-left:auto;"><i data-lucide="layout-grid" class="btn-icon"></i> Setup Instances</button>
+                        <button id="add-bot-btn" class="log-btn"><i data-lucide="plus" class="btn-icon"></i> Add Bot</button>
                     </div>
                     <div class="panel-body">
                     <div id="bot-form-container" style="display:none; margin-bottom: 16px; padding: 16px; background: var(--bg-surface); border: 1px solid var(--border); border-radius: 6px;">
@@ -546,6 +547,56 @@
                             <button id="save-restart-bot-btn" class="log-btn" style="background:var(--accent-soft); color:var(--accent-bright); border-color:var(--accent);"><i data-lucide="zap" class="btn-icon"></i> Save &amp; Restart Bot</button>
                             <button id="cancel-bot-btn" class="log-btn">Cancel</button>
                         </div>
+                    </div>
+                    <div id="setup-panel" style="display:none; margin-bottom: 16px; padding: 16px; background: var(--bg-surface); border: 1px solid var(--border); border-radius: 6px;">
+                        <h4 style="margin-top:0; margin-bottom:12px; color:var(--accent-bright);">Setup Instances from Presets</h4>
+                        <div class="bot-form-grid">
+                            <div>
+                                <label style="font-size:0.72rem; color:var(--text-muted); display:block; margin-bottom:4px;">cTrader Account</label>
+                                <div style="display:flex; gap:6px; align-items:center;">
+                                    <select id="setup-account" class="log-select" style="flex:1;"></select>
+                                    <button id="setup-account-delete" class="log-btn" title="Delete selected account" style="display:none;">🗑</button>
+                                </div>
+                            </div>
+                        </div>
+                        <div id="setup-new-account" style="display:none; margin-top:12px;">
+                            <div class="bot-form-grid">
+                                <div>
+                                    <label style="font-size:0.72rem; color:var(--text-muted); display:block; margin-bottom:4px;">Label (1–40 chars)</label>
+                                    <input type="text" id="setup-acc-label" class="log-input" style="width:100%" placeholder="Demo Main" maxlength="40">
+                                </div>
+                                <div>
+                                    <label style="font-size:0.72rem; color:var(--text-muted); display:block; margin-bottom:4px;">cTID email</label>
+                                    <input type="text" id="setup-acc-email" class="log-input" style="width:100%" placeholder="you@example.com" autocomplete="off">
+                                </div>
+                                <div>
+                                    <label style="font-size:0.72rem; color:var(--text-muted); display:block; margin-bottom:4px;">cTID password (written to a 0600 file, never stored)</label>
+                                    <input id="setup-acc-password" type="password" class="log-input" style="width:100%" autocomplete="new-password">
+                                </div>
+                                <div>
+                                    <label style="font-size:0.72rem; color:var(--text-muted); display:block; margin-bottom:4px;">Account number</label>
+                                    <input type="text" id="setup-acc-number" class="log-input" style="width:100%" placeholder="10101649" inputmode="numeric">
+                                </div>
+                            </div>
+                            <div style="margin-top:10px; display:flex; gap:14px; align-items:center; flex-wrap:wrap;">
+                                <label style="font-size:0.75rem;"><input type="radio" name="setup-acc-type" value="demo" checked> Demo</label>
+                                <label style="font-size:0.75rem;"><input type="radio" name="setup-acc-type" value="live"> Live</label>
+                                <button id="setup-account-save" class="log-btn" style="background:var(--profit-soft); color:var(--profit); border-color:var(--profit);"><i data-lucide="save" class="btn-icon"></i> Save account</button>
+                                <span id="setup-account-msg" class="td-dim"></span>
+                            </div>
+                        </div>
+                        <div class="table-wrap" style="margin-top:14px;">
+                            <table class="data-table" id="setup-grid">
+                                <thead><tr id="setup-grid-head"><th>Symbol</th></tr></thead>
+                                <tbody id="setup-grid-body"><tr><td class="td-dim">Loading presets...</td></tr></tbody>
+                            </table>
+                        </div>
+                        <div style="margin-top: 14px; display:flex; gap: 12px; align-items:center; flex-wrap:wrap;">
+                            <label style="font-size:0.75rem;"><input type="checkbox" id="setup-save-only"> Save only, don't start</label>
+                            <button id="setup-create-btn" class="log-btn" disabled style="background:var(--accent-soft); color:var(--accent-bright); border-color:var(--accent);"><i data-lucide="rocket" class="btn-icon"></i> Create instances</button>
+                            <button id="setup-cancel-btn" class="log-btn">Close</button>
+                        </div>
+                        <ul id="setup-results" style="list-style:none; padding:0; margin:12px 0 0; font-size:0.78rem; line-height:1.7;"></ul>
                     </div>
                         <div class="table-wrap">
                             <table class="data-table" id="bots-table">
@@ -944,12 +995,159 @@
             }
         }
 
+        // --- Setup Instances (README presets) ---
+        const SETUP_NEW_ACCOUNT = "__new__";
+        let setupPresets = null;      // {strategies, symbols, cells} from /api/setup/presets
+        let setupAccounts = [];       // from /api/ctrader-accounts
+        const setupEl = (id) => document.getElementById(id);
+        const setupEscape = (s) => String(s ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+
+        async function fetchSetupPresets() {
+            if (setupPresets) return setupPresets;
+            const res = await fetch("/api/setup/presets");
+            if (!res.ok) throw new Error(`HTTP ${res.status}`);
+            setupPresets = await res.json();
+            return setupPresets;
+        }
+
+        async function fetchCtraderAccounts(selectId = null) {
+            try {
+                const res = await fetch("/api/ctrader-accounts");
+                setupAccounts = (await res.json()).accounts || [];
+            } catch (e) { console.error("Error fetching cTrader accounts", e); setupAccounts = []; }
+            const sel = setupEl("setup-account");
+            let html = `<option value="">— select account —</option>`;
+            setupAccounts.forEach(a => {
+                html += `<option value="${a.id}">${a.account_type.toUpperCase()} · ${setupEscape(a.label)} (${setupEscape(a.account_number)})</option>`;
+            });
+            html += `<option value="${SETUP_NEW_ACCOUNT}">＋ New account…</option>`;
+            sel.innerHTML = html;
+            sel.value = selectId !== null ? String(selectId) : (setupAccounts.length ? "" : SETUP_NEW_ACCOUNT);
+            onSetupAccountChange();
+        }
+
+        function onSetupAccountChange() {
+            const v = setupEl("setup-account").value;
+            setupEl("setup-new-account").style.display = v === SETUP_NEW_ACCOUNT ? "block" : "none";
+            setupEl("setup-account-delete").style.display = (v && v !== SETUP_NEW_ACCOUNT) ? "inline-flex" : "none";
+            updateSetupCreateState();
+        }
+
+        function renderSetupGrid(p) {
+            const strategies = Object.keys(p.strategies);
+            const cellMap = {};
+            p.cells.forEach(c => { cellMap[`${c.symbol}|${c.strategy}`] = c; });
+            setupEl("setup-grid-head").innerHTML = `<th>Symbol</th>` + strategies.map(s =>
+                `<th style="text-align:center"><label style="cursor:pointer; white-space:nowrap;"><input type="checkbox" class="setup-col-all" data-strategy="${s}" title="Select all ${setupEscape(p.strategies[s].label)}"> ${setupEscape(p.strategies[s].label)}</label></th>`
+            ).join("");
+            setupEl("setup-grid-body").innerHTML = p.symbols.map(sym => {
+                const tds = strategies.map(s => {
+                    const c = cellMap[`${sym}|${s}`];
+                    if (!c) return `<td style="text-align:center" class="td-dim">–</td>`;
+                    return `<td style="text-align:center"><input type="checkbox" class="setup-cell" data-symbol="${sym}" data-strategy="${s}" title="${c.period} · ${setupEscape(c.session)}"></td>`;
+                }).join("");
+                return `<tr><td><strong>${sym}</strong></td>${tds}</tr>`;
+            }).join("");
+            document.querySelectorAll("#setup-grid .setup-cell").forEach(cb => cb.addEventListener("change", updateSetupCreateState));
+            document.querySelectorAll("#setup-grid .setup-col-all").forEach(cb => cb.addEventListener("change", () => {
+                document.querySelectorAll(`#setup-grid .setup-cell[data-strategy="${cb.dataset.strategy}"]`).forEach(c => { c.checked = cb.checked; });
+                updateSetupCreateState();
+            }));
+        }
+
+        function selectedSetupCells() {
+            return Array.from(document.querySelectorAll("#setup-grid .setup-cell:checked"))
+                .map(cb => ({ symbol: cb.dataset.symbol, strategy: cb.dataset.strategy }));
+        }
+
+        function updateSetupCreateState() {
+            const v = setupEl("setup-account").value;
+            setupEl("setup-create-btn").disabled = !(v && v !== SETUP_NEW_ACCOUNT && selectedSetupCells().length > 0);
+        }
+
+        async function openSetupPanel() {
+            setupEl("bot-form-container").style.display = "none";
+            setupEl("setup-panel").style.display = "block";
+            setupEl("setup-results").innerHTML = "";
+            try {
+                renderSetupGrid(await fetchSetupPresets());
+            } catch (e) {
+                setupEl("setup-grid-body").innerHTML = `<tr><td class="td-dim" style="color:var(--loss)">Failed to load presets: ${setupEscape(e)}</td></tr>`;
+            }
+            await fetchCtraderAccounts();
+        }
+
+        async function saveCtraderAccount() {
+            const msg = setupEl("setup-account-msg");
+            const body = {
+                label: setupEl("setup-acc-label").value.trim(),
+                ctid_email: setupEl("setup-acc-email").value.trim(),
+                password: setupEl("setup-acc-password").value,
+                account_number: setupEl("setup-acc-number").value.trim(),
+                account_type: document.querySelector('input[name="setup-acc-type"]:checked').value,
+            };
+            msg.textContent = "Saving…";
+            try {
+                const res = await fetch("/api/ctrader-accounts", {
+                    method: "POST", headers: {"Content-Type": "application/json"}, body: JSON.stringify(body)
+                });
+                const data = await res.json();
+                if (!res.ok || !data.success) { msg.textContent = data.message || `Error ${res.status}`; return; }
+                msg.textContent = "";
+                setupEl("setup-acc-password").value = "";
+                await fetchCtraderAccounts(data.account.id);
+            } catch (e) { msg.textContent = "Error: " + e; }
+        }
+
+        async function deleteCtraderAccount() {
+            const id = setupEl("setup-account").value;
+            const acc = setupAccounts.find(a => String(a.id) === id);
+            if (!acc) return;
+            if (!confirm(`Delete account "${acc.label}" (${acc.account_number})?\nExisting bot configs keep working; the stored password file is removed.`)) return;
+            try {
+                const res = await fetch(`/api/ctrader-accounts/${id}`, { method: "DELETE" });
+                const data = await res.json();
+                if (!data.success) alert(data.message || "Error");
+                await fetchCtraderAccounts();
+            } catch (e) { alert("Error: " + e); }
+        }
+
+        async function createSetupInstances() {
+            const btn = setupEl("setup-create-btn");
+            const list = setupEl("setup-results");
+            const payload = {
+                account_id: Number(setupEl("setup-account").value),
+                selections: selectedSetupCells(),
+                start: !setupEl("setup-save-only").checked,
+            };
+            btn.disabled = true;
+            list.innerHTML = `<li class="td-dim">Creating ${payload.selections.length} instance(s)…</li>`;
+            try {
+                const res = await fetch("/api/setup/instances", {
+                    method: "POST", headers: {"Content-Type": "application/json"}, body: JSON.stringify(payload)
+                });
+                const data = await res.json();
+                if (!res.ok) { list.innerHTML = `<li style="color:var(--loss)">❌ ${setupEscape(data.message || `HTTP ${res.status}`)}</li>`; return; }
+                const icons = { started: "✅", saved: "💾", exists: "⏭", error: "❌" };
+                list.innerHTML = (data.results || []).map(r =>
+                    `<li>${icons[r.status] || "•"} <strong>${setupEscape(r.name || r.symbol)}</strong> <span class="td-dim">${setupEscape(r.symbol)} · ${setupEscape(r.strategy)}</span> — ${setupEscape(r.message || r.status)}</li>`
+                ).join("");
+                document.querySelectorAll("#setup-grid input[type=checkbox]:checked").forEach(cb => { cb.checked = false; });
+                fetchBots();
+            } catch (e) {
+                list.innerHTML = `<li style="color:var(--loss)">Error: ${setupEscape(e)}</li>`;
+            } finally {
+                updateSetupCreateState();
+            }
+        }
+
         document.addEventListener("DOMContentLoaded", () => {
             fetchBots();
             setInterval(fetchBots, 10000); // Auto-refresh bot status
             
             const formContainer = document.getElementById("bot-form-container");
             document.getElementById("add-bot-btn").addEventListener("click", () => {
+                setupEl("setup-panel").style.display = "none";
                 document.getElementById("bot-form-mode").value = "add";
                 document.getElementById("bot-form-title").textContent = "Add New Bot Configuration";
                 const nameInput = document.getElementById("bot-name");
@@ -961,9 +1159,16 @@
                 formContainer.style.display = "block";
             });
             document.getElementById("cancel-bot-btn").addEventListener("click", () => formContainer.style.display = "none");
-            
+
             document.getElementById("save-bot-btn").addEventListener("click", () => submitBotForm(false));
             document.getElementById("save-restart-bot-btn").addEventListener("click", () => submitBotForm(true));
+
+            setupEl("setup-instances-btn").addEventListener("click", openSetupPanel);
+            setupEl("setup-cancel-btn").addEventListener("click", () => { setupEl("setup-panel").style.display = "none"; });
+            setupEl("setup-account").addEventListener("change", onSetupAccountChange);
+            setupEl("setup-account-save").addEventListener("click", saveCtraderAccount);
+            setupEl("setup-account-delete").addEventListener("click", deleteCtraderAccount);
+            setupEl("setup-create-btn").addEventListener("click", createSetupInstances);
         });
         function formatMoney(v) {
             if (v === null || v === undefined) return "$0.00";
