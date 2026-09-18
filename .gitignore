@@ -70,3 +70,6 @@ backups/
 
 # cBot build artifacts
 *.algo
+
+# Superpowers SDD scratch workspace
+.superpowers/
