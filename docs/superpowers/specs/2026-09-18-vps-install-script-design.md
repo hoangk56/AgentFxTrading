@@ -32,7 +32,7 @@ packages are compiled and sitting in `cBot/`. The dashboard is reachable only on
 |---|---|---|
 | Service user | `forge` (groups: `sudo`, `docker`) | `/etc/sudoers.d/forge` → `forge ALL=(ALL) NOPASSWD:ALL`, mode 0440 |
 | SSH | `/home/forge/.ssh/authorized_keys` (0600, dir 0700) | key from `FORGE_SSH_KEY` env or `/dev/tty` prompt |
-| sshd | `/etc/ssh/sshd_config.d/99-agentfx.conf` | `PasswordAuthentication no`, `PubkeyAuthentication yes`, `PermitRootLogin prohibit-password`, `KbdInteractiveAuthentication no` |
+| sshd | `/etc/ssh/sshd_config.d/00-agentfx.conf` | `PasswordAuthentication no`, `PubkeyAuthentication yes`, `PermitRootLogin prohibit-password`, `KbdInteractiveAuthentication no`. Named `00-` because sshd uses the **first** value for a keyword and cloud images ship `50-cloud-init.conf` with `PasswordAuthentication yes`. |
 | Repo | `/home/forge/AgentFxTrading` | `git clone`; `.venv` inside; owned by `forge` |
 | cTrader home | `/home/forge/ctrader` | mounted into every cBot container as `/root`, so in-container paths (`/root/ctrader_data/ctid_pwd`, `/root/cAlgo/...`) stay identical to the README |
 | Credentials dir | `/home/forge/ctrader/ctrader_data` (0700) | created empty; Phase 2 writes `ctid_<slug>_pwd` files here |
@@ -85,8 +85,10 @@ satisfied, so re-running the script is the upgrade path.
 4. **`create_forge_user`** — `adduser --disabled-password --gecos ""` if missing;
    add to `sudo`; write sudoers drop-in; write `authorized_keys` (append if the key
    is not already present); fix ownership/modes.
-5. **`harden_sshd`** — write the drop-in above; run `sshd -t`; only if it passes,
-   `systemctl reload ssh`. Runs **after** the key is in place.
+5. **`harden_sshd`** — refuse to proceed unless `authorized_keys` contains the key;
+   ensure `sshd_config` has the `Include /etc/ssh/sshd_config.d/*.conf` line; write
+   the drop-in above; run `sshd -t`; only if it passes, `systemctl reload ssh`.
+   Runs **after** the key is in place.
 6. **`install_postgresql`** — add PGDG repo + key; install `postgresql-17`;
    `systemctl enable --now postgresql`; create role/db if absent
    (`psql -tAc "SELECT 1 FROM pg_roles WHERE rolname='agentfx'"`). The password
