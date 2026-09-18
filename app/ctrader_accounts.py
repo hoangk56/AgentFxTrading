@@ -35,21 +35,9 @@ def ctrader_home() -> str:
 
 
 def slugify(account_type: str, label: str) -> str:
-    """`<type>-<label>` in [a-z0-9-], max 24 chars: ('live', 'IC Markets #2') -> 'live-ic-markets-2'.
-
-    Demo accounts are conventionally labeled "Demo <name>" (see the account
-    presets and test fixtures), so a label already starting with "demo-" once
-    slugified is not doubled up into "demo-demo-<name>". Live labels are not
-    collapsed the same way: "live" is deliberately allowed inside a live
-    label (see validate_account_input), and "Live IC" is expected to slug to
-    "live-live-ic".
-    """
+    """`<type>-<label>` in [a-z0-9-], max 24 chars: ('live', 'IC Markets #2') -> 'live-ic-markets-2'."""
     body = re.sub(r"[^a-z0-9]+", "-", label.lower()).strip("-")
-    if account_type == "demo" and body.startswith(f"{account_type}-"):
-        slug = body
-    else:
-        slug = f"{account_type}-{body}"
-    return slug[:SLUG_MAX_LEN].rstrip("-")
+    return f"{account_type}-{body}"[:SLUG_MAX_LEN].rstrip("-")
 
 
 def validate_account_input(label: str, ctid_email: str, password: str, account_number: str, account_type: str) -> None:

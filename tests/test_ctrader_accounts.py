@@ -108,7 +108,7 @@ def ctrader_home(tmp_path, monkeypatch):
 
 
 def _payload(**overrides):
-    base = {"label": "Demo Main", "ctid_email": "me@example.com", "password": "s3cret!",
+    base = {"label": "Main", "ctid_email": "me@example.com", "password": "s3cret!",
             "account_number": "10101649", "account_type": "demo"}
     base.update(overrides)
     return base
@@ -129,7 +129,7 @@ def test_create_account_writes_row_file_and_dashboard_tab(ctrader_home):
     assert body["success"] is True
     acc = body["account"]
     assert acc["slug"] == "demo-main"
-    assert acc["label"] == "Demo Main" and acc["account_type"] == "demo" and acc["account_number"] == "10101649"
+    assert acc["label"] == "Main" and acc["account_type"] == "demo" and acc["account_number"] == "10101649"
     assert "password" not in acc and "pwd_file" not in acc
     assert "s3cret!" not in res.text
 
@@ -142,7 +142,7 @@ def test_create_account_writes_row_file_and_dashboard_tab(ctrader_home):
     assert row["pwd_file"] == "/root/ctrader_data/ctid_demo-main_pwd"     # in-container path
 
     tabs = get_account_registry().list_accounts()
-    assert any(t["account_id"] == "demo-10101649" and t["label"] == "Demo Main" and t["is_configured"] == 1 for t in tabs)
+    assert any(t["account_id"] == "demo-10101649" and t["label"] == "Main" and t["is_configured"] == 1 for t in tabs)
 
 
 def test_list_omits_secrets(ctrader_home):
