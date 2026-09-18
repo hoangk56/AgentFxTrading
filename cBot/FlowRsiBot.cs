@@ -206,6 +206,9 @@ namespace cAlgo.Robots
 
         [Parameter("Filter Medium Impact News", Group = "News Filter", DefaultValue = false)]
         public bool FilterMediumImpact { get; set; }
+
+        [Parameter("Target News Currencies (Empty = Auto)", Group = "News Filter", DefaultValue = "")]
+        public string TargetNewsCurrencies { get; set; }
         #endregion
 
         #region Telegram Alerts
@@ -473,9 +476,9 @@ namespace cAlgo.Robots
             try
             {
                 // Check if news window active
-                if (IsNewsSuspensionActive())
+                if (IsNewsSuspensionActive(out string newsReason))
                 {
-                    if (ShowLogs) Print("[FlowRSI] Market entry suspended due to High-Impact News event window.");
+                    if (ShowLogs) Print($"[FlowRSI] Market entry suspended due to High-Impact News event window: {newsReason}");
                     return;
                 }
 
@@ -1144,9 +1147,9 @@ namespace cAlgo.Robots
                     }
 
                     // News filter guard
-                    if (IsNewsSuspensionActive())
+                    if (IsNewsSuspensionActive(out string newsReason))
                     {
-                        if (ShowLogs) Print("[AI Entry Blocked] Market entry suspended due to High-Impact News event window.");
+                        if (ShowLogs) Print($"[AI Entry Blocked] Market entry suspended due to High-Impact News event window: {newsReason}");
                         return;
                     }
 
@@ -1552,8 +1555,78 @@ namespace cAlgo.Robots
         #endregion
 
         #region ForexFactory News Filter
+        private bool IsCurrencyAffected(string newsCountry)
+        {
+            if (string.IsNullOrWhiteSpace(newsCountry)) return false;
+            string country = newsCountry.Trim().ToUpperInvariant();
+
+            // 1. Manual user override if specified
+            if (!string.IsNullOrWhiteSpace(TargetNewsCurrencies))
+            {
+                var customCurrs = TargetNewsCurrencies.Split(new[] { ',', ';', ' ' }, StringSplitOptions.RemoveEmptyEntries);
+                foreach (var c in customCurrs)
+                {
+                    if (string.Equals(c.Trim(), country, StringComparison.OrdinalIgnoreCase))
+                        return true;
+                }
+                return false;
+            }
+
+            string sym = SymbolName.Trim().ToUpperInvariant();
+
+            // 2. Direct Forex & Cross match (e.g. EUR, USD, GBP, JPY, AUD, CAD, CHF, NZD in EURUSD, GBPJPY, etc.)
+            if (sym.Contains(country)) return true;
+
+            // 3. Metals (Gold / Silver)
+            if ((sym.Contains("XAU") || sym.Contains("GOLD") || sym.Contains("XAG") || sym.Contains("SILVER")) && country == "USD")
+                return true;
+
+            // 4. US Indices
+            if ((sym.Contains("US30") || sym.Contains("DJ30") || sym.Contains("DOW") ||
+                 sym.Contains("USTEC") || sym.Contains("NAS100") || sym.Contains("US100") || sym.Contains("NDX") || sym.Contains("NASDAQ") ||
+                 sym.Contains("US500") || sym.Contains("SPX500") || sym.Contains("SP500")) && country == "USD")
+                return true;
+
+            // 5. European Indices
+            if ((sym.Contains("DE40") || sym.Contains("GER40") || sym.Contains("GER30") || sym.Contains("DAX") ||
+                 sym.Contains("F40") || sym.Contains("FRA40") || sym.Contains("CAC40") || sym.Contains("STOXX")) && country == "EUR")
+                return true;
+
+            // 6. UK Indices
+            if ((sym.Contains("UK100") || sym.Contains("FTSE")) && country == "GBP")
+                return true;
+
+            // 7. Japan Indices
+            if ((sym.Contains("JP225") || sym.Contains("JPN225") || sym.Contains("NIKKEI")) && country == "JPY")
+                return true;
+
+            // 8. Australia Indices
+            if ((sym.Contains("AUS200") || sym.Contains("ASX200")) && country == "AUD")
+                return true;
+
+            // 9. Hong Kong / China
+            if ((sym.Contains("HK50") || sym.Contains("HSI")) && (country == "HKD" || country == "CNY" || country == "USD"))
+                return true;
+
+            // 10. Commodities (Crude Oil)
+            if ((sym.Contains("OIL") || sym.Contains("WTI") || sym.Contains("BRENT") || sym.Contains("XTI") || sym.Contains("XBR")) && (country == "USD" || country == "CAD"))
+                return true;
+
+            // 11. Crypto
+            if ((sym.Contains("BTC") || sym.Contains("ETH") || sym.Contains("SOL")) && country == "USD")
+                return true;
+
+            return false;
+        }
+
         private bool IsNewsSuspensionActive()
         {
+            return IsNewsSuspensionActive(out _);
+        }
+
+        private bool IsNewsSuspensionActive(out string activeNewsReason)
+        {
+            activeNewsReason = string.Empty;
             if (!EnableNewsFilter || RunningMode != RunningMode.RealTime) return false;
 
             DateTime nowUtc = DateTime.UtcNow;
@@ -1561,8 +1634,11 @@ namespace cAlgo.Robots
             {
                 foreach (var ev in _newsEvents)
                 {
-                    if (ev.UtcTime >= nowUtc.AddMinutes(-MinsAfterNews) && ev.UtcTime <= nowUtc.AddMinutes(MinsBeforeNews))
+                    if (!IsCurrencyAffected(ev.Currency)) continue;
+
+                    if (nowUtc >= ev.UtcTime.AddMinutes(-MinsBeforeNews) && nowUtc <= ev.UtcTime.AddMinutes(MinsAfterNews))
                     {
+                        activeNewsReason = $"[{ev.Currency}] {ev.Title} ({ev.UtcTime:HH:mm} UTC)";
                         return true;
                     }
                 }

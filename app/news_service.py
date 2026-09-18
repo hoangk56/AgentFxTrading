@@ -304,17 +304,39 @@ def is_symbol_related_to_currencies(symbol: str, currencies: List[str]) -> bool:
         "XAUUSD": {"USD"},
         "GOLD": {"USD"},
         "XAGUSD": {"USD"},
+        "SILVER": {"USD"},
         "BTCUSD": {"USD"},
         "ETHUSD": {"USD"},
         "US30": {"USD"},
+        "DJ30": {"USD"},
+        "WS30": {"USD"},
+        "DOW": {"USD"},
         "NAS100": {"USD"},
+        "USTEC": {"USD"},
+        "US100": {"USD"},
+        "NDX": {"USD"},
         "SPX500": {"USD"},
         "US500": {"USD"},
+        "SP500": {"USD"},
+        "DE40": {"EUR"},
         "GER40": {"EUR"},
         "GER30": {"EUR"},
+        "DAX": {"EUR"},
+        "DAX40": {"EUR"},
         "UK100": {"GBP"},
+        "FTSE": {"GBP"},
+        "FTSE100": {"GBP"},
         "JP225": {"JPY"},
+        "JPN225": {"JPY"},
+        "NIKKEI": {"JPY"},
+        "HK50": {"HKD", "CNY", "USD"},
+        "HSI": {"HKD", "CNY", "USD"},
         "AUS200": {"AUD"},
+        "ASX200": {"AUD"},
+        "FRA40": {"EUR"},
+        "CAC40": {"EUR"},
+        "STOXX50": {"EUR"},
+        "EUSTX50": {"EUR"},
         "XTIUSD": {"USD"},
         "USOIL": {"USD"},
         "WTI": {"USD"},
@@ -322,17 +344,26 @@ def is_symbol_related_to_currencies(symbol: str, currencies: List[str]) -> bool:
         "UKOIL": {"USD", "GBP"},
         "BRENT": {"USD", "GBP"}
     }
+    # Strip common broker suffixes like .pro, _i, _raw, #, m
+    base_sym = re.sub(r'[\._#].*$', '', sym)
+    if base_sym.endswith("M") and len(base_sym) == 7:
+        base_sym = base_sym[:6]
+
     sym_currencies = set()
     if sym in known_symbol_currencies:
         sym_currencies.update(known_symbol_currencies[sym])
+    elif base_sym in known_symbol_currencies:
+        sym_currencies.update(known_symbol_currencies[base_sym])
+    elif len(base_sym) == 6:
+        sym_currencies.add(base_sym[:3])
+        sym_currencies.add(base_sym[3:])
     elif len(sym) == 6:
         sym_currencies.add(sym[:3])
         sym_currencies.add(sym[3:])
     else:
-        for c_code in ["USD", "EUR", "GBP", "JPY", "AUD", "CAD", "CHF", "NZD", "CNY"]:
+        for c_code in ["USD", "EUR", "GBP", "JPY", "AUD", "CAD", "CHF", "NZD", "CNY", "HKD"]:
             if c_code in sym:
                 sym_currencies.add(c_code)
-
     for c in currs:
         if c in sym_currencies or c in sym:
             return True

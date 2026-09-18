@@ -1931,6 +1931,7 @@ namespace cAlgo.Robots
             foreach (var item in _newsEvents)
             {
                 if (highImpactOnly && item.Impact != "High") continue;
+                if (!IsCurrencyAffected(item.Country)) continue;
 
                 if (now >= item.Date.AddMinutes(-pauseBeforeNewsMins) && now <= item.Date.AddMinutes(pauseAfterNewsMins))
                 {
@@ -1945,15 +1946,48 @@ namespace cAlgo.Robots
         {
             if (string.IsNullOrWhiteSpace(newsCountry)) return false;
             string country = newsCountry.Trim().ToUpperInvariant();
-            string sym = SymbolName.ToUpperInvariant();
+            string sym = SymbolName.Trim().ToUpperInvariant();
 
-            // Direct match (e.g. EUR, USD, GBP, JPY in EURUSD, GBPJPY)
+            // 1. Direct Forex & Cross match (e.g. EUR, USD, GBP, JPY in EURUSD, GBPJPY)
             if (sym.Contains(country)) return true;
 
-            // Metals, Indices & Crypto mapped to primary currency
-            if ((sym.Contains("XAU") || sym.Contains("GOLD") || sym.Contains("US30") || sym.Contains("USTEC") || sym.Contains("BTC") || sym.Contains("ETH")) && country == "USD")
+            // 2. Metals (Gold / Silver)
+            if ((sym.Contains("XAU") || sym.Contains("GOLD") || sym.Contains("XAG") || sym.Contains("SILVER")) && country == "USD")
                 return true;
-            if (sym.Contains("DE40") && country == "EUR")
+
+            // 3. US Indices
+            if ((sym.Contains("US30") || sym.Contains("DJ30") || sym.Contains("DOW") ||
+                 sym.Contains("USTEC") || sym.Contains("NAS100") || sym.Contains("US100") || sym.Contains("NDX") || sym.Contains("NASDAQ") ||
+                 sym.Contains("US500") || sym.Contains("SPX500") || sym.Contains("SP500")) && country == "USD")
+                return true;
+
+            // 4. European Indices
+            if ((sym.Contains("DE40") || sym.Contains("GER40") || sym.Contains("GER30") || sym.Contains("DAX") ||
+                 sym.Contains("F40") || sym.Contains("FRA40") || sym.Contains("CAC40") || sym.Contains("STOXX")) && country == "EUR")
+                return true;
+
+            // 5. UK Indices
+            if ((sym.Contains("UK100") || sym.Contains("FTSE")) && country == "GBP")
+                return true;
+
+            // 6. Japan Indices
+            if ((sym.Contains("JP225") || sym.Contains("JPN225") || sym.Contains("NIKKEI")) && country == "JPY")
+                return true;
+
+            // 7. Australia Indices
+            if ((sym.Contains("AUS200") || sym.Contains("ASX200")) && country == "AUD")
+                return true;
+
+            // 8. Hong Kong / China
+            if ((sym.Contains("HK50") || sym.Contains("HSI")) && (country == "HKD" || country == "CNY" || country == "USD"))
+                return true;
+
+            // 9. Commodities (Crude Oil)
+            if ((sym.Contains("OIL") || sym.Contains("WTI") || sym.Contains("BRENT") || sym.Contains("XTI") || sym.Contains("XBR")) && (country == "USD" || country == "CAD"))
+                return true;
+
+            // 10. Crypto
+            if ((sym.Contains("BTC") || sym.Contains("ETH") || sym.Contains("SOL")) && country == "USD")
                 return true;
 
             return false;

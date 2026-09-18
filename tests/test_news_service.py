@@ -82,7 +82,22 @@ def test_symbol_currency_correlation():
     assert news_service.is_symbol_related_to_currencies("EURUSD", ["JPY"]) is False
     assert news_service.is_symbol_related_to_currencies("BTCUSD", ["USD"]) is True
     assert news_service.is_symbol_related_to_currencies("GER40", ["EUR"]) is True
+    assert news_service.is_symbol_related_to_currencies("DE40", ["EUR"]) is True
+    assert news_service.is_symbol_related_to_currencies("DE40", ["USD"]) is False
+    assert news_service.is_symbol_related_to_currencies("USTEC", ["USD"]) is True
+    assert news_service.is_symbol_related_to_currencies("HK50", ["USD"]) is True
+    assert news_service.is_symbol_related_to_currencies("HK50", ["CNY"]) is True
+    assert news_service.is_symbol_related_to_currencies("JP225", ["JPY"]) is True
+    assert news_service.is_symbol_related_to_currencies("US30", ["USD"]) is True
+    assert news_service.is_symbol_related_to_currencies("EURUSD.pro", ["USD"]) is True
+    assert news_service.is_symbol_related_to_currencies("USDJPY_raw", ["JPY"]) is True
+    assert news_service.is_symbol_related_to_currencies("USDJPY", ["AUD"]) is False
 
+def test_api_news_raw_endpoint():
+    resp = client.get("/api/news/raw?range=thisweek")
+    assert resp.status_code == 200
+    data = resp.json()
+    assert isinstance(data, list)
 def test_prompt_generation_and_bilingual_parser():
     cluster = {
         "id": "mock_hash",

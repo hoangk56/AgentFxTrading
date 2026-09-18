@@ -1008,6 +1008,19 @@ class NewsAssessRequest(BaseModel):
     range: str = "thisweek"
     notes: str = ""
     cluster_data: Optional[Dict[str, Any]] = None
+@router.get("/api/news/raw")
+async def api_news_raw(range: str = "thisweek", refresh: bool = False):
+    """
+    Returns raw ForexFactory events JSON for cBots and downstream consumers.
+    Leverages backend caching (15-min TTL) to prevent 429 rate-limiting.
+    """
+    try:
+        events = await news_service.fetch_forexfactory_raw_events(range, force_refresh=refresh)
+        return events
+    except Exception as ex:
+        logger.error(f"[News API] Error fetching raw calendar: {ex}")
+        return []
+
 @router.get("/api/news/calendar")
 async def api_news_calendar(range: str = "thisweek", refresh: bool = False):
     try:
