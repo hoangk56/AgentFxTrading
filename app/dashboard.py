@@ -995,6 +995,51 @@ async def api_restart_bot(name: str):
     result = docker_manager.restart_container(name)
     return result
 
+# --- cTrader accounts & preset-based instance setup (Setup Instances screen) ---
+from fastapi.responses import JSONResponse
+from app import ctrader_accounts as ctrader_accounts_service
+
+
+def _error(status: int, message: str) -> JSONResponse:
+    return JSONResponse(status_code=status, content={"success": False, "message": message})
+
+
+class CtraderAccountRequest(BaseModel):
+    label: str = ""
+    ctid_email: str = ""
+    password: str = ""
+    account_number: str = ""
+    account_type: str = "demo"
+
+
+@router.get("/api/ctrader-accounts")
+async def api_list_ctrader_accounts():
+    return {"accounts": ctrader_accounts_service.list_ctrader_accounts(get_account_registry())}
+
+
+@router.post("/api/ctrader-accounts", status_code=201)
+async def api_create_ctrader_account(req: CtraderAccountRequest):
+    try:
+        account = ctrader_accounts_service.create_ctrader_account(
+            get_account_registry(), label=req.label, ctid_email=req.ctid_email, password=req.password,
+            account_number=req.account_number, account_type=req.account_type,
+        )
+    except ctrader_accounts_service.AccountValidationError as e:
+        return _error(422, str(e))
+    except ctrader_accounts_service.DuplicateSlugError as e:
+        return _error(409, str(e))
+    except OSError as e:
+        return _error(500, f"Could not write password file: {e}")
+    return {"success": True, "account": account}
+
+
+@router.delete("/api/ctrader-accounts/{account_id}")
+async def api_delete_ctrader_account(account_id: int):
+    if not ctrader_accounts_service.delete_ctrader_account(get_account_registry(), account_id):
+        return _error(404, "Account not found")
+    return {"success": True}
+
+
 @router.get("/api/watchdog/status")
 async def api_watchdog_status():
     from app.cbot_watchdog import cbot_watchdog

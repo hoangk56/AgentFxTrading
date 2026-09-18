@@ -80,3 +80,138 @@ def test_seed_from_env_still_uses_the_upsert(registry, monkeypatch):
     registry.seed_from_env()
     ids = sorted(a["account_id"] for a in registry.list_accounts())
     assert ids == ["demo-1", "live-main"]
+
+
+# ---------------------------------------------------------------------------
+# Service + API
+# ---------------------------------------------------------------------------
+import stat
+
+from fastapi.testclient import TestClient
+
+from app.server import app
+from app.accounts import get_account_registry
+from app.ctrader_accounts import slugify
+
+client = TestClient(app)
+
+
+@pytest.fixture
+def ctrader_home(tmp_path, monkeypatch):
+    """Point CTRADER_HOME at a temp dir and start each test with an empty ctrader_accounts table."""
+    monkeypatch.setenv("CTRADER_HOME", str(tmp_path))
+    reg = get_account_registry()
+    with reg._get_connection() as conn:
+        conn.execute("DELETE FROM ctrader_accounts")
+        conn.commit()
+    return tmp_path
+
+
+def _payload(**overrides):
+    base = {"label": "Demo Main", "ctid_email": "me@example.com", "password": "s3cret!",
+            "account_number": "10101649", "account_type": "demo"}
+    base.update(overrides)
+    return base
+
+
+def test_slugify():
+    assert slugify("demo", "Main") == "demo-main"
+    assert slugify("live", "IC Markets #2") == "live-ic-markets-2"
+    assert slugify("live", "  Spaces  ") == "live-spaces"
+    long = slugify("demo", "a very long account label indeed")
+    assert len(long) <= 24 and not long.endswith("-") and long.startswith("demo-")
+
+
+def test_create_account_writes_row_file_and_dashboard_tab(ctrader_home):
+    res = client.post("/api/ctrader-accounts", json=_payload())
+    assert res.status_code == 201, res.text
+    body = res.json()
+    assert body["success"] is True
+    acc = body["account"]
+    assert acc["slug"] == "demo-main"
+    assert acc["label"] == "Demo Main" and acc["account_type"] == "demo" and acc["account_number"] == "10101649"
+    assert "password" not in acc and "pwd_file" not in acc
+    assert "s3cret!" not in res.text
+
+    pwd = ctrader_home / "ctrader_data" / "ctid_demo-main_pwd"
+    assert pwd.read_text() == "s3cret!"
+    assert stat.S_IMODE(pwd.stat().st_mode) == 0o600
+    assert stat.S_IMODE(pwd.parent.stat().st_mode) == 0o700
+
+    row = get_account_registry().get_ctrader_account(acc["id"])
+    assert row["pwd_file"] == "/root/ctrader_data/ctid_demo-main_pwd"     # in-container path
+
+    tabs = get_account_registry().list_accounts()
+    assert any(t["account_id"] == "demo-10101649" and t["label"] == "Demo Main" and t["is_configured"] == 1 for t in tabs)
+
+
+def test_list_omits_secrets(ctrader_home):
+    client.post("/api/ctrader-accounts", json=_payload())
+    client.post("/api/ctrader-accounts", json=_payload(label="IC", account_type="live", account_number="6094347"))
+    res = client.get("/api/ctrader-accounts")
+    assert res.status_code == 200
+    accounts = res.json()["accounts"]
+    assert [a["slug"] for a in accounts] == ["live-ic", "demo-main"]
+    for a in accounts:
+        assert set(a) == {"id", "slug", "ctid_email", "account_number", "account_type", "label", "created_at"}
+    assert "s3cret" not in res.text
+
+
+def test_duplicate_slug_is_409_and_writes_no_second_file(ctrader_home):
+    assert client.post("/api/ctrader-accounts", json=_payload()).status_code == 201
+    res = client.post("/api/ctrader-accounts", json=_payload(account_number="222", password="other"))
+    assert res.status_code == 409
+    assert res.json() == {"success": False, "message": res.json()["message"]}
+    assert "demo-main" in res.json()["message"]
+    assert (ctrader_home / "ctrader_data" / "ctid_demo-main_pwd").read_text() == "s3cret!"   # untouched
+    assert len(client.get("/api/ctrader-accounts").json()["accounts"]) == 1
+
+
+def test_delete_removes_row_and_file(ctrader_home):
+    acc = client.post("/api/ctrader-accounts", json=_payload()).json()["account"]
+    pwd = ctrader_home / "ctrader_data" / "ctid_demo-main_pwd"
+    assert pwd.exists()
+    res = client.delete(f"/api/ctrader-accounts/{acc['id']}")
+    assert res.status_code == 200 and res.json() == {"success": True}
+    assert not pwd.exists()
+    assert client.get("/api/ctrader-accounts").json()["accounts"] == []
+    res = client.delete(f"/api/ctrader-accounts/{acc['id']}")
+    assert res.status_code == 404 and res.json()["success"] is False
+
+
+@pytest.mark.parametrize("bad, fragment", [
+    ({"ctid_email": "not-an-email"}, "email"),
+    ({"ctid_email": "a b@example.com"}, "email"),
+    ({"account_number": "12ab"}, "digits"),
+    ({"account_number": ""}, "digits"),
+    ({"label": ""}, "label"),
+    ({"label": "x" * 41}, "label"),
+    ({"label": 'Has "quote"'}, "quotes"),
+    ({"label": "line\nbreak"}, "quotes"),
+    ({"label": "!!!"}, "letter or digit"),
+    ({"label": "Not Live", "account_type": "demo"}, "live"),
+    ({"password": ""}, "password"),
+    ({"account_type": "paper"}, "account_type"),
+])
+def test_validation_returns_422_and_writes_nothing(ctrader_home, bad, fragment):
+    res = client.post("/api/ctrader-accounts", json=_payload(**bad))
+    assert res.status_code == 422, res.text
+    assert res.json()["success"] is False
+    assert fragment in res.json()["message"]
+    assert not (ctrader_home / "ctrader_data").exists()
+    assert client.get("/api/ctrader-accounts").json()["accounts"] == []
+
+
+def test_live_label_may_contain_live(ctrader_home):
+    res = client.post("/api/ctrader-accounts", json=_payload(label="Live IC", account_type="live", account_number="6094347"))
+    assert res.status_code == 201 and res.json()["account"]["slug"] == "live-live-ic"
+
+
+def test_unwritable_ctrader_home_is_500_and_no_row(ctrader_home, monkeypatch):
+    blocker = ctrader_home / "blocker"
+    blocker.write_text("not a directory")
+    monkeypatch.setenv("CTRADER_HOME", str(blocker))
+    res = client.post("/api/ctrader-accounts", json=_payload())
+    assert res.status_code == 500
+    assert res.json()["success"] is False and "password file" in res.json()["message"]
+    assert client.get("/api/ctrader-accounts").json()["accounts"] == []
