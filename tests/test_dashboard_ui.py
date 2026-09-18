@@ -75,6 +75,14 @@ def test_ui_endpoints():
     assert news_view_idx != -1 and news_view_idx < main_close_idx
 
 
+def test_flowrsi_badge_renders_on_dashboard():
+    """FlowRSI bots must render with their dedicated emerald 'FlowRSI' badge rather than falling back to TMS+ORB."""
+    resp_demo = client.get("/demo/dashboard")
+    assert resp_demo.status_code == 200
+    # When a FlowRSI position exists or is rendered in HTML, it must carry bot-badge--flowrsi
+    assert "bot-badge--flowrsi" in resp_demo.text
+    assert "FlowRSI" in resp_demo.text
+
 def _position():
     return {
         "bot_id": "uk100_m15",

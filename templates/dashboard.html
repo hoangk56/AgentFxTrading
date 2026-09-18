@@ -209,11 +209,22 @@
                                         </td>
                                         <td>
                                             {% set b_lower = (pos.bot_id or '') | lower %}
+                                            {% set is_flowrsi = 'flowrsi' in b_lower or 'flow_rsi' in b_lower or 'nestedrsi' in b_lower %}
                                             {% set is_judas = 'judas' in b_lower or 'asian' in b_lower or 'smc' in b_lower %}
                                             <div class="bot-cell">
-                                                <span class="bot-badge {% if is_judas %}bot-badge--judas{% else %}bot-badge--tms{% endif %}">
-                                                    <span class="bot-dot"></span>{% if is_judas %}Judas SMC{% else %}TMS+ORB{% endif %}
+                                                {% if is_flowrsi %}
+                                                <span class="bot-badge bot-badge--flowrsi">
+                                                    <span class="bot-dot"></span>FlowRSI
                                                 </span>
+                                                {% elif is_judas %}
+                                                <span class="bot-badge bot-badge--judas">
+                                                    <span class="bot-dot"></span>Judas SMC
+                                                </span>
+                                                {% else %}
+                                                <span class="bot-badge bot-badge--tms">
+                                                    <span class="bot-dot"></span>TMS+ORB
+                                                </span>
+                                                {% endif %}
                                                 <span class="bot-id-text" title="{{ pos.bot_id }}">{{ pos.bot_id }}</span>
                                             </div>
                                         </td>
@@ -285,11 +296,22 @@
                                         </td>
                                         <td>
                                             {% set b_lower = (trade.bot_id or '') | lower %}
+                                            {% set is_flowrsi = 'flowrsi' in b_lower or 'flow_rsi' in b_lower or 'nestedrsi' in b_lower %}
                                             {% set is_judas = 'judas' in b_lower or 'asian' in b_lower or 'smc' in b_lower %}
                                             <div class="bot-cell">
-                                                <span class="bot-badge {% if is_judas %}bot-badge--judas{% else %}bot-badge--tms{% endif %}">
-                                                    <span class="bot-dot"></span>{% if is_judas %}Judas SMC{% else %}TMS+ORB{% endif %}
+                                                {% if is_flowrsi %}
+                                                <span class="bot-badge bot-badge--flowrsi">
+                                                    <span class="bot-dot"></span>FlowRSI
                                                 </span>
+                                                {% elif is_judas %}
+                                                <span class="bot-badge bot-badge--judas">
+                                                    <span class="bot-dot"></span>Judas SMC
+                                                </span>
+                                                {% else %}
+                                                <span class="bot-badge bot-badge--tms">
+                                                    <span class="bot-dot"></span>TMS+ORB
+                                                </span>
+                                                {% endif %}
                                                 <span class="bot-id-text" title="{{ trade.bot_id }}">{{ trade.bot_id }}</span>
                                             </div>
                                         </td>
@@ -964,9 +986,13 @@
         }
         function botBadge(b){
             if(!b)return '<span class="bot-badge bot-badge--default"><span class="bot-dot"></span>N/A</span>';
-            const bl=String(b).toLowerCase(),isJ=bl.includes('judas')||bl.includes('asian')||bl.includes('smc');
+            const bl=String(b).toLowerCase();
+            const isF=bl.includes('flowrsi')||bl.includes('flow_rsi')||bl.includes('nestedrsi');
+            const isJ=bl.includes('judas')||bl.includes('asian')||bl.includes('smc');
+            const badgeCls = isF ? 'bot-badge--flowrsi' : (isJ ? 'bot-badge--judas' : 'bot-badge--tms');
+            const badgeText = isF ? 'FlowRSI' : (isJ ? 'Judas SMC' : 'TMS+ORB');
             return `<div class="bot-cell">
-                <span class="bot-badge ${isJ?'bot-badge--judas':'bot-badge--tms'}"><span class="bot-dot"></span>${isJ?'Judas SMC':'TMS+ORB'}</span>
+                <span class="bot-badge ${badgeCls}"><span class="bot-dot"></span>${badgeText}</span>
                 <span class="bot-id-text" title="${b}">${b}</span>
             </div>`;
         }
