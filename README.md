@@ -187,6 +187,28 @@ WS   /ws/dashboard             # WebSocket for real-time dashboard updates
 - cTrader 4.x+ (Need an account? Sign up at [IC Markets cTrader](https://ic.com/?camp=95400) for Raw Spreads & low latency)
 - LLM API key (Qwen/OpenAI/Claude/Gemini/DeepSeek)
 
+### 🚀 One-line VPS install (Ubuntu 22.04 / 24.04)
+
+On a fresh VPS, as root, run:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/kienphan/AgentFxTrading/main/scripts/install.sh | sudo bash
+```
+
+It asks for one thing — the SSH public key that will log in as the `forge` user — and then installs PostgreSQL 17, Docker, the FastAPI server as a systemd service (`agentfx.service`, user `forge`, bound to `127.0.0.1:8000`), compiles the three cBot `.algo` packages, and enables a daily database backup. Password SSH login is disabled.
+
+Afterwards open the dashboard through a tunnel:
+
+```bash
+ssh -L 8000:127.0.0.1:8000 forge@YOUR_VPS_IP
+```
+
+then browse `http://127.0.0.1:8000`, put your LLM key in `/home/forge/AgentFxTrading/.env`, and `sudo systemctl restart agentfx`.
+
+Re-running the same command later is safe — it pulls the latest code and rebuilds the bots. To skip the prompt, set `FORGE_SSH_KEY="ssh-ed25519 AAAA..."` before the command.
+
+> The installer keeps the cTrader home at `/home/forge/ctrader` (mounted as `/root` inside containers). If you copy a `docker run` command from the sections below onto an installed VPS, replace `-v /root:/root` with `-v /home/forge/ctrader:/root`.
+
 ### 1. Install Python Dependencies
 
 ```bash
