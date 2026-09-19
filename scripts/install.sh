@@ -451,7 +451,7 @@ print_summary() {
     Password and root-password logins are now disabled. If this fails, fix
     ${FORGE_HOME}/.ssh/authorized_keys from this session first.
  2. Open the dashboard through an SSH tunnel from your machine:
-      ssh -L 8000:127.0.0.1:8000 ${FORGE_USER}@${ip}
+      ssh -N -L 8000:127.0.0.1:8000 ${FORGE_USER}@${ip}
     then browse http://127.0.0.1:8000
  3. Put your LLM API key in ${REPO_DIR}/.env
     (LLM_PROVIDER, DASHSCOPE_API_KEY, ...), then:  sudo systemctl restart ${SERVICE_NAME}
