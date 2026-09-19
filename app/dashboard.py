@@ -995,6 +995,105 @@ async def api_restart_bot(name: str):
     result = docker_manager.restart_container(name)
     return result
 
+# --- cTrader accounts & preset-based instance setup (Setup Instances screen) ---
+from fastapi.responses import JSONResponse
+from app import ctrader_accounts as ctrader_accounts_service
+
+
+def _error(status: int, message: str) -> JSONResponse:
+    return JSONResponse(status_code=status, content={"success": False, "message": message})
+
+
+class CtraderAccountRequest(BaseModel):
+    label: str = ""
+    ctid_email: str = ""
+    password: str = ""
+    account_number: str = ""
+    account_type: str = "demo"
+
+
+@router.get("/api/ctrader-accounts")
+async def api_list_ctrader_accounts():
+    return {"accounts": ctrader_accounts_service.list_ctrader_accounts(get_account_registry())}
+
+
+@router.post("/api/ctrader-accounts", status_code=201)
+async def api_create_ctrader_account(req: CtraderAccountRequest):
+    try:
+        account = ctrader_accounts_service.create_ctrader_account(
+            get_account_registry(), label=req.label, ctid_email=req.ctid_email, password=req.password,
+            account_number=req.account_number, account_type=req.account_type,
+        )
+    except ctrader_accounts_service.AccountValidationError as e:
+        return _error(422, str(e))
+    except ctrader_accounts_service.DuplicateSlugError as e:
+        return _error(409, str(e))
+    except OSError as e:
+        return _error(500, f"Could not write password file: {e}")
+    return {"success": True, "account": account}
+
+
+@router.delete("/api/ctrader-accounts/{account_id}")
+async def api_delete_ctrader_account(account_id: int):
+    if not ctrader_accounts_service.delete_ctrader_account(get_account_registry(), account_id):
+        return _error(404, "Account not found")
+    return {"success": True}
+
+
+from app.cbot_presets import PRESETS, build_run_command, container_name, describe_cell, presets_payload
+
+
+class InstanceSelection(BaseModel):
+    symbol: str
+    strategy: str
+
+
+class SetupInstancesRequest(BaseModel):
+    account_id: int
+    selections: List[InstanceSelection]
+    start: bool = True
+
+
+@router.get("/api/setup/presets")
+async def api_setup_presets():
+    return presets_payload()
+
+
+@router.post("/api/setup/instances")
+# sync on purpose: up to 22 serial docker starts must not block the event loop (/trade, websockets)
+def api_setup_instances(req: SetupInstancesRequest):
+    """Save (and optionally start) one cbot_configs row per selected preset cell. Never aborts the batch."""
+    account = get_account_registry().get_ctrader_account(req.account_id)
+    if not account:
+        return _error(404, "Account not found")
+    pm = get_portfolio_manager()
+    ctrader_home = ctrader_accounts_service.ctrader_home()
+    results = []
+    for sel in req.selections:
+        symbol, strategy = sel.symbol.strip().upper(), sel.strategy.strip()
+        entry = {"symbol": symbol, "strategy": strategy, "name": "", "status": "error", "message": ""}
+        results.append(entry)
+        if (strategy, symbol) not in PRESETS:
+            entry["message"] = f"No preset for {strategy} × {symbol}"
+            continue
+        name = container_name(account["slug"], strategy, symbol)
+        entry["name"] = name
+        cmd = build_run_command(account, strategy, symbol, str(PROJECT_ROOT), ctrader_home)
+        # get_cbot_config first: add_cbot_config only recognises sqlite3.IntegrityError, not psycopg2's
+        if pm.get_cbot_config(name) or not pm.add_cbot_config(name, describe_cell(strategy, symbol, account["label"]), cmd):
+            entry.update(status="exists", message="Bot config already exists")
+            continue
+        if not req.start:
+            entry.update(status="saved", message="Config saved")
+            continue
+        result = docker_manager.start_container(name, cmd)
+        if result.get("success"):
+            entry.update(status="started", message=result.get("message", "Container started"))
+        else:
+            entry["message"] = result.get("message", "Docker error")   # config row kept so the user can retry
+    return {"results": results}
+
+
 @router.get("/api/watchdog/status")
 async def api_watchdog_status():
     from app.cbot_watchdog import cbot_watchdog

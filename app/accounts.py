@@ -69,21 +69,38 @@ class AccountRegistry:
             );
             """)
             cursor.execute("CREATE UNIQUE INDEX IF NOT EXISTS idx_accounts_number_type ON accounts(account_number, account_type);")
+            # cTrader login accounts used by the dashboard's "Setup Instances" screen.
+            # pwd_file is the in-container path; the password itself lives only on disk.
+            cursor.execute("""
+            CREATE TABLE IF NOT EXISTS ctrader_accounts (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                slug TEXT UNIQUE NOT NULL,
+                ctid_email TEXT NOT NULL,
+                account_number TEXT NOT NULL,
+                account_type TEXT NOT NULL CHECK(account_type IN ('live','demo')),
+                label TEXT NOT NULL,
+                pwd_file TEXT NOT NULL,
+                created_at TEXT DEFAULT CURRENT_TIMESTAMP
+            );
+            """)
             conn.commit()
             
     def seed_from_env(self):
-        accounts = parse_dashboard_accounts_env()
+        for acc in parse_dashboard_accounts_env():
+            self.upsert_configured_account(acc["account_id"], acc["account_number"], acc["account_type"], acc["label"])
+
+    def upsert_configured_account(self, account_id: str, account_number: str, account_type: str, label: str) -> None:
+        """Insert or relabel a dashboard account and mark it configured (unique on number+type)."""
         with self._get_connection() as conn:
             cursor = conn.cursor()
-            for acc in accounts:
-                cursor.execute("""
-                INSERT INTO accounts (account_id, account_number, account_type, label, is_configured)
-                VALUES (?, ?, ?, ?, 1)
-                ON CONFLICT(account_number, account_type) DO UPDATE SET
-                    account_id = excluded.account_id,
-                    label = excluded.label,
-                    is_configured = 1
-                """, (acc["account_id"], acc["account_number"], acc["account_type"], acc["label"]))
+            cursor.execute("""
+            INSERT INTO accounts (account_id, account_number, account_type, label, is_configured)
+            VALUES (?, ?, ?, ?, 1)
+            ON CONFLICT(account_number, account_type) DO UPDATE SET
+                account_id = excluded.account_id,
+                label = excluded.label,
+                is_configured = 1
+            """, (account_id, account_number, account_type, label))
             conn.commit()
             
     def upsert_from_bot(self, account_number: str, account_type: str, label: Optional[str], balance: float, equity: float) -> str:
@@ -159,6 +176,53 @@ class AccountRegistry:
             cursor.execute("SELECT account_type FROM accounts WHERE account_number = ? ORDER BY is_configured DESC LIMIT 1", (account_number,))
             row = cursor.fetchone()
             return row["account_type"] if row else None
+
+    # --- cTrader accounts (Setup Instances screen) ---
+
+    _CTRADER_COLUMNS = "id, slug, ctid_email, account_number, account_type, label, pwd_file, created_at"
+
+    def list_ctrader_accounts(self) -> List[Dict]:
+        with self._get_connection() as conn:
+            cursor = conn.cursor()
+            cursor.execute(f"""
+            SELECT {self._CTRADER_COLUMNS} FROM ctrader_accounts
+            ORDER BY CASE WHEN account_type = 'live' THEN 0 ELSE 1 END, label ASC
+            """)
+            return [dict(row) for row in cursor.fetchall()]
+
+    def get_ctrader_account(self, account_id: int) -> Optional[Dict]:
+        with self._get_connection() as conn:
+            cursor = conn.cursor()
+            cursor.execute(f"SELECT {self._CTRADER_COLUMNS} FROM ctrader_accounts WHERE id = ?", (account_id,))
+            row = cursor.fetchone()
+            return dict(row) if row else None
+
+    def get_ctrader_account_by_slug(self, slug: str) -> Optional[Dict]:
+        with self._get_connection() as conn:
+            cursor = conn.cursor()
+            cursor.execute(f"SELECT {self._CTRADER_COLUMNS} FROM ctrader_accounts WHERE slug = ?", (slug,))
+            row = cursor.fetchone()
+            return dict(row) if row else None
+
+    def insert_ctrader_account(self, slug: str, ctid_email: str, account_number: str, account_type: str,
+                               label: str, pwd_file: str) -> Dict:
+        """Insert and return the new row. Raises the driver's IntegrityError on a duplicate slug."""
+        with self._get_connection() as conn:
+            cursor = conn.cursor()
+            cursor.execute("""
+            INSERT INTO ctrader_accounts (slug, ctid_email, account_number, account_type, label, pwd_file)
+            VALUES (?, ?, ?, ?, ?, ?)
+            """, (slug, ctid_email, account_number, account_type, label, pwd_file))
+            conn.commit()
+        # Re-read by slug: lastrowid is not available through the PostgreSQL wrapper.
+        return self.get_ctrader_account_by_slug(slug)
+
+    def delete_ctrader_account(self, account_id: int) -> bool:
+        with self._get_connection() as conn:
+            cursor = conn.cursor()
+            cursor.execute("DELETE FROM ctrader_accounts WHERE id = ?", (account_id,))
+            conn.commit()
+            return cursor.rowcount > 0
 
 # Global registry accessor pattern
 _account_registry = None

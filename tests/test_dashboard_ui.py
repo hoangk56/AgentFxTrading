@@ -159,3 +159,20 @@ def test_tick_metrics_merge_into_the_cached_position_report():
     pm2.update_position_metrics("bot-c", 2.5, 10.0)
     assert pm2._bot_positions_cache["live-9:bot-c"]["unrealized_pnl"] == 2.5
     assert pm2._bot_positions_cache["live-9:bot-c"]["entry_price"] == 1.1
+
+
+def test_setup_instances_panel_is_in_docker_view():
+    html = client.get("/demo/dashboard").text
+    docker_idx = html.find('id="view-docker"')
+    logs_idx = html.find('id="view-logs"')
+    panel_idx = html.find('id="setup-panel"')
+    button_idx = html.find('id="setup-instances-btn"')
+    assert docker_idx != -1 and panel_idx != -1 and button_idx != -1
+    assert docker_idx < button_idx < panel_idx < logs_idx        # inside the Docker view, next to Add Bot
+    assert "Setup Instances" in html
+    for element_id in ("setup-account", "setup-new-account", "setup-acc-password", "setup-grid",
+                       "setup-save-only", "setup-create-btn", "setup-results"):
+        assert f'id="{element_id}"' in html, element_id
+    assert 'id="setup-acc-password" type="password"' in html
+    for endpoint in ("/api/setup/presets", "/api/setup/instances", "/api/ctrader-accounts"):
+        assert endpoint in html, endpoint
