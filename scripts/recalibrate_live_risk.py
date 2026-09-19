@@ -11,7 +11,6 @@ TARGETS = [
     'cbot-us500',
     'cbot-uk100',
     'cbot-de40',
-    'cbot-ustec',
     'cbot-us30'
 ]
 
