@@ -2,7 +2,7 @@
 # =============================================================================
 # AgentFxTrading — one-shot installer for a fresh Ubuntu 22.04 / 24.04 / 26.04 VPS
 #
-#   curl -fsSL https://raw.githubusercontent.com/kienphan/AgentFxTrading/main/scripts/install.sh | sudo bash
+#   curl -fsSL https://raw.githubusercontent.com/hoangk56/AgentFxTrading/main/scripts/install.sh | sudo bash
 #
 # Optional environment overrides:
 #   FORGE_SSH_KEY   public key for the forge user (otherwise prompted on /dev/tty)
@@ -22,7 +22,7 @@ FORGE_GROUP="${FORGE_GROUP:-$FORGE_USER}"
 FORGE_HOME="${FORGE_HOME:-/home/${FORGE_USER}}"
 REPO_DIR="${REPO_DIR:-${FORGE_HOME}/AgentFxTrading}"
 CTRADER_HOME="${CTRADER_HOME:-${FORGE_HOME}/ctrader}"
-AGENTFX_REPO="${AGENTFX_REPO:-https://github.com/kienphan/AgentFxTrading.git}"
+AGENTFX_REPO="${AGENTFX_REPO:-https://github.com/hoangk56/AgentFxTrading.git}"
 AGENTFX_BRANCH="${AGENTFX_BRANCH:-main}"
 CTRADER_IMAGE="${CTRADER_IMAGE:-ghcr.io/spotware/ctrader-console:latest}"
 DB_NAME="agentfx"

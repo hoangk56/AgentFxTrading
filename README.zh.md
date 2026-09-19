@@ -7,9 +7,9 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Python 3.9+](https://img.shields.io/badge/python-3.9+-blue.svg)](https://www.python.org/downloads/)
 [![cTrader](https://img.shields.io/badge/cTrader-4.x+-green.svg)](https://ctdn.com/)
-[![Stars](https://img.shields.io/github/stars/kienphan/AgentFxTrading?style=social)](https://github.com/kienphan/AgentFxTrading/stargazers)
-[![Forks](https://img.shields.io/github/forks/kienphan/AgentFxTrading?style=social)](https://github.com/kienphan/AgentFxTrading/network/members)
-[![Issues](https://img.shields.io/github/issues/kienphan/AgentFxTrading)](https://github.com/kienphan/AgentFxTrading/issues)
+[![Stars](https://img.shields.io/github/stars/hoangk56/AgentFxTrading?style=social)](https://github.com/hoangk56/AgentFxTrading/stargazers)
+[![Forks](https://img.shields.io/github/forks/hoangk56/AgentFxTrading?style=social)](https://github.com/hoangk56/AgentFxTrading/network/members)
+[![Issues](https://img.shields.io/github/issues/hoangk56/AgentFxTrading)](https://github.com/hoangk56/AgentFxTrading/issues)
 [![Donate](https://img.shields.io/badge/Donate-Buy%20Me%20A%20Coffee-ffdd00?style=flat&logo=buy-me-a-coffee&logoColor=black)](https://buymeacoffee.com/kaz126)
 
 [🇬🇧 English](README.md) | [🇻🇳 Tiếng Việt](README.vi.md) | [🇨🇳 中文](README.zh.md) | [🇵🇹 Português](README.pt.md) | [🇯🇵 日本語](README.ja.md) | [🇷🇺 Русский](README.ru.md)
@@ -193,7 +193,7 @@ WS   /ws/dashboard             # 仪表板实时更新 WebSocket
 
 ```bash
 # 克隆仓库
-git clone https://github.com/kienphan/AgentFxTrading.git
+git clone https://github.com/hoangk56/AgentFxTrading.git
 cd AgentFxTrading
 
 # 安装依赖
@@ -1676,8 +1676,8 @@ elif provider == "newprovider":
 
 ### 社区
 
-- 💬 [讨论](https://github.com/kienphan/AgentFxTrading/discussions)
-- 🐛 [问题](https://github.com/kienphan/AgentFxTrading/issues)
+- 💬 [讨论](https://github.com/hoangk56/AgentFxTrading/discussions)
+- 🐛 [问题](https://github.com/hoangk56/AgentFxTrading/issues)
 - 📧 邮箱：senior1206@gmail.com
 
 ---

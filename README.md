@@ -7,9 +7,9 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Python 3.9+](https://img.shields.io/badge/python-3.9+-blue.svg)](https://www.python.org/downloads/)
 [![cTrader](https://img.shields.io/badge/cTrader-4.x+-green.svg)](https://ctdn.com/)
-[![Stars](https://img.shields.io/github/stars/kienphan/AgentFxTrading?style=social)](https://github.com/kienphan/AgentFxTrading/stargazers)
-[![Forks](https://img.shields.io/github/forks/kienphan/AgentFxTrading?style=social)](https://github.com/kienphan/AgentFxTrading/network/members)
-[![Issues](https://img.shields.io/github/issues/kienphan/AgentFxTrading)](https://github.com/kienphan/AgentFxTrading/issues)
+[![Stars](https://img.shields.io/github/stars/hoangk56/AgentFxTrading?style=social)](https://github.com/hoangk56/AgentFxTrading/stargazers)
+[![Forks](https://img.shields.io/github/forks/hoangk56/AgentFxTrading?style=social)](https://github.com/hoangk56/AgentFxTrading/network/members)
+[![Issues](https://img.shields.io/github/issues/hoangk56/AgentFxTrading)](https://github.com/hoangk56/AgentFxTrading/issues)
 [![Donate](https://img.shields.io/badge/Donate-Buy%20Me%20A%20Coffee-ffdd00?style=flat&logo=buy-me-a-coffee&logoColor=black)](https://buymeacoffee.com/kaz126)
 
 [🇬🇧 English](README.md) | [🇻🇳 Tiếng Việt](README.vi.md) | [🇨🇳 中文](README.zh.md) | [🇵🇹 Português](README.pt.md) | [🇯🇵 日本語](README.ja.md) | [🇷🇺 Русский](README.ru.md)
@@ -192,7 +192,7 @@ WS   /ws/dashboard             # WebSocket for real-time dashboard updates
 On a fresh VPS, as root, run:
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/kienphan/AgentFxTrading/main/scripts/install.sh | sudo bash
+curl -fsSL https://raw.githubusercontent.com/hoangk56/AgentFxTrading/main/scripts/install.sh | sudo bash
 ```
 
 It asks for one thing — the SSH public key that will log in as the `forge` user — and then installs PostgreSQL 17, Docker, the FastAPI server as a systemd service (`agentfx.service`, user `forge`, bound to `127.0.0.1:8000`), compiles the three cBot `.algo` packages, and enables a daily database backup. Password SSH login is disabled.
@@ -213,7 +213,7 @@ To skip the prompt, export the key and let `sudo` pass it through:
 
 ```bash
 export FORGE_SSH_KEY="ssh-ed25519 AAAA... you@laptop"
-curl -fsSL https://raw.githubusercontent.com/kienphan/AgentFxTrading/main/scripts/install.sh | sudo -E bash
+curl -fsSL https://raw.githubusercontent.com/hoangk56/AgentFxTrading/main/scripts/install.sh | sudo -E bash
 ```
 
 The same applies to the optional `AGENTFX_REPO` / `AGENTFX_BRANCH` overrides.
@@ -224,7 +224,7 @@ The same applies to the optional `AGENTFX_REPO` / `AGENTFX_BRANCH` overrides.
 
 ```bash
 # Clone repository
-git clone https://github.com/kienphan/AgentFxTrading.git
+git clone https://github.com/hoangk56/AgentFxTrading.git
 cd AgentFxTrading
 
 # Install dependencies
@@ -1712,8 +1712,8 @@ Contributions are welcome! Here's how you can help:
 
 ### Community
 
-- 💬 [Discussions](https://github.com/kienphan/AgentFxTrading/discussions)
-- 🐛 [Issues](https://github.com/kienphan/AgentFxTrading/issues)
+- 💬 [Discussions](https://github.com/hoangk56/AgentFxTrading/discussions)
+- 🐛 [Issues](https://github.com/hoangk56/AgentFxTrading/issues)
 - 📧 Email: senior1206@gmail.com
 
 ---
