@@ -202,7 +202,7 @@ It asks for one thing — the SSH public key that will log in as the `forge` use
 Afterwards open the dashboard through a tunnel:
 
 ```bash
-ssh -L 8000:127.0.0.1:8000 forge@YOUR_VPS_IP
+ssh -N -L 8000:127.0.0.1:8000 forge@YOUR_VPS_IP
 ```
 
 then browse `http://127.0.0.1:8000`, put your LLM key in `/home/forge/AgentFxTrading/.env`, and `sudo systemctl restart agentfx`.
