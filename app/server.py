@@ -934,7 +934,7 @@ BREAKOUT_DISTANCE_LIMITS = (
     (("UK100", "GB100"), "UK100/GB100", 1.5, 550.0, 3.4, 1600.0),
     (("JP225", "NIKKEI", "JPN225"), "JP225/Nikkei", 1.8, 3000.0, 3.8, 7000.0),
     (("HK50", "HSI"), "HK50/HangSeng", 1.5, 800.0, 3.4, 2200.0),
-    (("XAU", "GOLD"), "Gold", 1.8, 900.0, 3.6, 2600.0),
+    (("XAU", "GOLD"), "Gold", 1.8, 1500.0, 3.6, 3500.0),
     (("BTC", "CRYPTO"), "BTC/Crypto", 1.5, 37500.0, 3.5, 130000.0),
     (("ETH", "SOL", "XRP"), "ETH/SOL/XRP", 1.5, 5250.0, 3.5, 35000.0),
     (("JPY",), "JPY Crosses", 1.6, 55.0, 3.6, 120.0),
@@ -1227,16 +1227,16 @@ def evaluate_cycle_gate(snapshot: MarketSnapshot, account_id: Optional[str] = No
             )
         )
 
-    # For Gold (XAUUSD / GOLD), enforce minimum decisive breakout distance >= 250.0 pips ($2.50)
+    # For Gold (XAUUSD / GOLD), enforce minimum decisive breakout distance >= 150.0 pips ($1.50)
     # to filter out minor noise / false breakouts around OR boundaries.
-    min_decisive_threshold = 250.0 if ("XAU" in sym_upper or "GOLD" in sym_upper) else None
+    min_decisive_threshold = 150.0 if ("XAU" in sym_upper or "GOLD" in sym_upper) else None
     if min_decisive_threshold and orb.breakout_distance_pips < min_decisive_threshold and not has_bounce:
         return AgentDecision(
             action="HOLD",
             volume_lots=0.01,
             sl_pips=0.0,
             tp_pips=0.0,
-            reason=f"Cycle gate: Gold breakout not decisive ({orb.breakout_distance_pips:.1f}p < min {min_decisive_threshold:.1f}p / $2.50 threshold)"
+            reason=f"Cycle gate: Gold breakout not decisive ({orb.breakout_distance_pips:.1f}p < min {min_decisive_threshold:.1f}p / $1.50 threshold)"
         )
 
     if not orb.is_decisive and not has_bounce:

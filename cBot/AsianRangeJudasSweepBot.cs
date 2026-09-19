@@ -513,7 +513,7 @@ namespace cAlgo.Robots
                 {
                     minAsianRangePips = 200.0;  // $2.00 min Asian Range
                     maxAsianRangePips = 8000.0; // $80.00 max Asian Range
-                    if (sweepBufferPips <= 15.0) sweepBufferPips = 30.0; // $0.30 sweep buffer
+                    if (sweepBufferPips <= 50.0) sweepBufferPips = 500.0; // $5.00 sweep buffer for Gold
                     if (stoplossPip <= 200.0) stoplossPip = 350.0; // $3.50 default SL for Gold
                     if (takeprofitPip <= 400.0) takeprofitPip = 700.0; // $7.00 default TP for Gold
                     Print($"[Auto-Scale XAUUSD] Scaled Asian Range for Gold: Min={minAsianRangePips}p, Max={maxAsianRangePips}p, Buffer={sweepBufferPips}p, SL={stoplossPip}p, TP={takeprofitPip}p");
