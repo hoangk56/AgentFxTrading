@@ -934,7 +934,7 @@ BREAKOUT_DISTANCE_LIMITS = (
     (("UK100", "GB100"), "UK100/GB100", 1.5, 550.0, 3.4, 1600.0),
     (("JP225", "NIKKEI", "JPN225"), "JP225/Nikkei", 1.8, 3000.0, 3.8, 7000.0),
     (("HK50", "HSI"), "HK50/HangSeng", 1.5, 800.0, 3.4, 2200.0),
-    (("XAU", "GOLD"), "Gold", 1.8, 900.0, 3.6, 2600.0),
+    (("XAU", "GOLD"), "Gold", 1.8, 1500.0, 3.6, 3500.0),
     (("BTC", "CRYPTO"), "BTC/Crypto", 1.5, 37500.0, 3.5, 130000.0),
     (("ETH", "SOL", "XRP"), "ETH/SOL/XRP", 1.5, 5250.0, 3.5, 35000.0),
     (("JPY",), "JPY Crosses", 1.6, 55.0, 3.6, 120.0),
@@ -1227,16 +1227,16 @@ def evaluate_cycle_gate(snapshot: MarketSnapshot, account_id: Optional[str] = No
             )
         )
 
-    # For Gold (XAUUSD / GOLD), enforce minimum decisive breakout distance >= 250.0 pips ($2.50)
+    # For Gold (XAUUSD / GOLD), enforce minimum decisive breakout distance >= 150.0 pips ($1.50)
     # to filter out minor noise / false breakouts around OR boundaries.
-    min_decisive_threshold = 250.0 if ("XAU" in sym_upper or "GOLD" in sym_upper) else None
+    min_decisive_threshold = 150.0 if ("XAU" in sym_upper or "GOLD" in sym_upper) else None
     if min_decisive_threshold and orb.breakout_distance_pips < min_decisive_threshold and not has_bounce:
         return AgentDecision(
             action="HOLD",
             volume_lots=0.01,
             sl_pips=0.0,
             tp_pips=0.0,
-            reason=f"Cycle gate: Gold breakout not decisive ({orb.breakout_distance_pips:.1f}p < min {min_decisive_threshold:.1f}p / $2.50 threshold)"
+            reason=f"Cycle gate: Gold breakout not decisive ({orb.breakout_distance_pips:.1f}p < min {min_decisive_threshold:.1f}p / $1.50 threshold)"
         )
 
     if not orb.is_decisive and not has_bounce:
@@ -1555,6 +1555,10 @@ The cBot currently HAS OPEN POSITIONS in the order book. Your PRIMARY MISSION is
 2. Action Decisions:
    - HOLD: Position healthy and progressing towards TP. (Default choice during normal fluctuations).
    - ADJUST: Move SL to Break-Even OR Trailing Stop behind a verified structural swing/Order Block.
+     ⚠️ CRITICAL STOP LOSS GEOMETRY CONSTRAINT:
+       * For an open BUY position: new_sl_price MUST BE STRICTLY LESS THAN Current Bid (new_sl_price < {format_price(snapshot.bid, snapshot.symbol)}). A stop at or above market price is geometrically impossible and rejected!
+       * For an open SELL position: new_sl_price MUST BE STRICTLY GREATER THAN Current Ask (new_sl_price > {format_price(snapshot.ask, snapshot.symbol)}). A stop at or below market price is geometrically impossible and rejected!
+       * If an open position is UNDERWATER and technical structure breaks against it, NEVER attempt to tighten SL past the market price! You MUST output action "CLOSE_ALL" instead!
      ⚠️ MANDATORY PROFIT LOCK-IN & BREAK-EVEN RULES:
        * When a position reaches >= 40% of the distance to TP (or >= 1.0x R:R), you MUST ADJUST SL to Break-Even or trail behind the nearest M15 swing!
        * Minimum profit required BEFORE moving SL to Break-Even / Trailing:
@@ -1564,9 +1568,10 @@ The cBot currently HAS OPEN POSITIONS in the order book. Your PRIMARY MISSION is
          - Forex: Position in profit by at least +15 to +20 pips OR >= 40% distance to TP.
        * SPREAD BUFFER ON BREAK-EVEN: When moving SL to protect an order, set SL with breathing room beyond entry (e.g. entry + $10 on BTC, entry + $1 on ETH, entry + $0.50 on Gold for BUY) to lock in commission/spread!
      ⚠️ MANDATORY OUTPUT: You MUST specify the exact absolute price level in "new_sl_price" (e.g. 2475.50 for ETHUSD, 79900.00 for BTCUSD, 2898.50 for XAUUSD) and/or "new_tp_price". NEVER leave new_sl_price as 0.0 when ADJUSTing!
-   - CLOSE_ALL: Exit immediately if:
-       a) Trade was in substantial profit and reverses, printing a confirmed opposing CHoCH on M15 (e.g. decisive close back below Asian Low / entry for BUY). Do NOT hold all the way to full SL!
-       b) Major opposing H1/H4 structural reversal occurs.
+   - CLOSE_ALL: Exit immediately at market if:
+       a) Position is UNDERWATER and M15/H1 technical structure breaks against the trade (e.g. price broke below Asian Low / entry for BUY, or opposing CHoCH). Cut losses immediately at market; NEVER hold all the way to full SL or attempt impossible stops!
+       b) Trade was in substantial profit and reverses, printing a confirmed opposing CHoCH on M15 (e.g. decisive close back below Asian Low / entry for BUY). Do NOT hold all the way to full SL!
+       c) Major opposing H1/H4 structural reversal occurs.
    - BUY / SELL: Scale-in ONLY if trend is extremely strong with fresh unmitigated Order Block.
 === 7. ASSET-SPECIFIC PIP & PRICE RULES ===
 - Crypto (ETHUSD, BTCUSD): 1 pip = 0.01 ($0.01 move). Always calculate and output exact absolute price in "new_sl_price" and "new_tp_price".
@@ -1961,16 +1966,35 @@ async def trade_decision(snapshot: MarketSnapshot):
                     logger.warning(f"Judas ADJUST validation error: {ex}")
                     adjust_reject_reason = None
                 if adjust_reject_reason:
-                    logger.warning(
-                        f"[{account_id}/{snapshot.bot_id}] [JUDAS ADJUST GUARD] ADJUST rejected -> HOLD: "
-                        f"{adjust_reject_reason}. Position left untouched."
+                    pos = snapshot.position
+                    underwater = pos and (
+                        pos.resolved_pnl < -0.1 or 
+                        (pos.entry_price and snapshot.bid and pos.resolved_side == "BUY" and snapshot.bid < pos.entry_price) or
+                        (pos.entry_price and snapshot.ask and pos.resolved_side == "SELL" and snapshot.ask > pos.entry_price)
                     )
-                    decision_dict["action"] = "HOLD"
-                    decision_dict["reason"] = (
-                        f"[ADJUST Guard] {adjust_reject_reason}. Position left untouched. "
-                        f"{decision_dict.get('reason', '')}"
-                    )
+                    reason_text = str(decision_dict.get("reason", "")).lower()
+                    structural_invalidation = any(k in reason_text for k in ["break", "broke", "invalid", "fail", "exit", "close", "reversal", "underwater"])
+                    wrong_side_sl = "a stop above the market cannot protect a long" in adjust_reject_reason or "a stop below the market cannot protect a short" in adjust_reject_reason
 
+                    if underwater and wrong_side_sl and structural_invalidation:
+                        logger.warning(
+                            f"[{account_id}/{snapshot.bot_id}] [JUDAS ADJUST GUARD] LLM attempted impossible SL on underwater position ({adjust_reject_reason}) due to structural breakdown. Converting ADJUST -> CLOSE_ALL to protect capital."
+                        )
+                        decision_dict["action"] = "CLOSE_ALL"
+                        decision_dict["reason"] = (
+                            f"[ADJUST Guard -> Emergency Exit] Structural breakdown on underwater position with impossible SL ({adjust_reject_reason}). Converted to CLOSE_ALL. "
+                            f"{decision_dict.get('reason', '')}"
+                        )
+                    else:
+                        logger.warning(
+                            f"[{account_id}/{snapshot.bot_id}] [JUDAS ADJUST GUARD] ADJUST rejected -> HOLD: "
+                            f"{adjust_reject_reason}. Position left untouched."
+                        )
+                        decision_dict["action"] = "HOLD"
+                        decision_dict["reason"] = (
+                            f"[ADJUST Guard] {adjust_reject_reason}. Position left untouched. "
+                            f"{decision_dict.get('reason', '')}"
+                        )
         # Server-side Guardrail: Block BUY/SELL entries with low confidence (< 75.0%)
         min_conf_threshold = 75.0
         action_str = str(decision_dict.get("action", "HOLD")).upper()

@@ -138,3 +138,44 @@ def test_count_positions_opened_on(tmp_path, caplog):
     assert pm.count_positions_opened_on("cbot-ustec-judas", "USTEC", "BUY", "live-6094347", today) == 1
     assert pm.count_positions_opened_on("cbot-ustec-judas", "USTEC", "SELL", "live-6094347", today) == 0
     assert pm.count_positions_opened_on("cbot-ustec-judas", "USTEC", "BUY", "live-9999999", today) == 0
+
+def test_adjust_underwater_structural_breakdown_converts_to_close_all():
+    """When LLM attempts an invalid SL above market on an underwater BUY due to structural break, convert to CLOSE_ALL."""
+    from unittest.mock import AsyncMock, patch
+    from fastapi.testclient import TestClient
+    import app.server
+
+    client = TestClient(app.server.app)
+    payload = {
+        "bot_id": "cbot-uk100-judas",
+        "symbol": "UK100",
+        "timeframe": "Minute15",
+        "ask": 10769.5,
+        "bid": 10768.5,
+        "position": {
+            "side": "BUY",
+            "entry_price": 10777.6,
+            "sl_price": 10627.6,
+            "tp_price": 11213.6,
+            "pnl": -3.65,
+            "volume": 0.3,
+        },
+        "strategy": {
+            "asian_high": 10819.2,
+            "asian_low": 10780.4,
+            "asian_range_pips": 388.0,
+            "killzone_session": "London",
+            "bias_direction": "MANAGE_ONLY",
+            "traditional_signal": "MANAGE_ONLY",
+        },
+        "account_id": "live-6094347",
+        "account_balance": 565.24,
+        "account_equity": 559.50,
+    }
+    llm_resp = '{"action": "ADJUST", "new_sl_price": 10783.4, "confidence": 80.0, "reason": "Position is underwater (-$3.65) and M15 structure has broken bearishly below Asian Low. Moving SL."}'
+    with patch.object(app.server.llm_client, "chat", new=AsyncMock(return_value=llm_resp)):
+        res = client.post("/trade", json=payload)
+    assert res.status_code == 200
+    data = res.json()
+    assert data["action"] == "CLOSE_ALL"
+    assert "Emergency Exit" in data["reason"]
