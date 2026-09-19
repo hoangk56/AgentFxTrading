@@ -42,6 +42,9 @@ def main():
             else:
                 new_cmd.append(arg)
 
+        if name == 'cbot-jp225' and not any(a.startswith('--MaxAllowedLots=') for a in new_cmd):
+            new_cmd.append('--MaxAllowedLots=2.0')
+            modified = True
         if not modified:
             print(f"[i] {name} does not have 1.0 risk arg. Skipping.")
             continue

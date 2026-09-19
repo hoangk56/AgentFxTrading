@@ -3547,6 +3547,7 @@ Reply strictly with JSON object.";
                     Print("[TickStream] Connected.");
 
                     long sentStamp = -1;
+                    DateTime lastSendTime = DateTime.UtcNow;
                     while (!token.IsCancellationRequested)
                     {
                         // Poll for a freshly captured frame instead of sleeping a whole interval:
@@ -3564,22 +3565,38 @@ Reply strictly with JSON object.";
                             pnl = _tickFramePnl; pips = _tickFramePips;
                             hasPnl = _tickFrameHasPnl; stamp = _tickFrameStamp;
                         }
-                        if (stamp == sentStamp || (bid <= 0 && ask <= 0)) continue;
 
-                        var json = JsonSerializer.Serialize(new TickStreamMessage
+                        bool isNewTick = (stamp != sentStamp && (bid > 0 || ask > 0));
+                        bool isHeartbeatDue = (DateTime.UtcNow - lastSendTime).TotalSeconds >= 15.0;
+                        if (!isNewTick && !isHeartbeatDue) continue;
+
+                        string json;
+                        if (isNewTick)
                         {
-                            type = "tick",
-                            bot_id = BotId,
-                            symbol = SymbolName,
-                            bid = bid,
-                            ask = ask,
-                            pnl = hasPnl ? (double?)pnl : null,
-                            pips = hasPnl ? (double?)pips : null
-                        });
+                            json = JsonSerializer.Serialize(new TickStreamMessage
+                            {
+                                type = "tick",
+                                bot_id = BotId,
+                                symbol = SymbolName,
+                                bid = bid,
+                                ask = ask,
+                                pnl = hasPnl ? (double?)pnl : null,
+                                pips = hasPnl ? (double?)pips : null
+                            });
+                            sentStamp = stamp;
+                        }
+                        else
+                        {
+                            json = JsonSerializer.Serialize(new
+                            {
+                                type = "ping",
+                                bot_id = BotId
+                            });
+                        }
+
                         var payload = Encoding.UTF8.GetBytes(json);
                         await ws.SendAsync(new ArraySegment<byte>(payload), WebSocketMessageType.Text, true, token);
-                        sentStamp = stamp;
-
+                        lastSendTime = DateTime.UtcNow;
                         // Drain the ack: an unread receive buffer fills up over a trading day and
                         // then stalls the server's sends.
                         while (true)
