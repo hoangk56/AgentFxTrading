@@ -142,3 +142,17 @@ def test_unknown_account_is_404(fake_docker):
 def test_empty_selection_is_ok(account, fake_docker):
     res = _post(account["id"], [])
     assert res.status_code == 200 and res.json() == {"results": []}
+
+
+def test_installed_lists_each_saved_cell_with_its_account(account, fake_docker):
+    assert client.get("/api/setup/installed").json() == {"installed": []}
+    _post(account["id"], [{"symbol": "XAUUSD", "strategy": "tms_orb"}, {"symbol": "EURUSD", "strategy": "flowrsi"}], start=False)
+    res = client.get("/api/setup/installed")
+    assert res.status_code == 200
+    assert res.json()["installed"] == [
+        {"symbol": "XAUUSD", "strategy": "tms_orb", "name": "cbot-demo-setup-xauusd",
+         "account_id": account["id"], "account_label": "Setup", "account_type": "demo"},
+        {"symbol": "EURUSD", "strategy": "flowrsi", "name": "cbot-demo-setup-eurusd-flowrsi",
+         "account_id": account["id"], "account_label": "Setup", "account_type": "demo"},
+    ]
+    assert fake_docker.calls == []   # a listing never touches Docker

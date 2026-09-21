@@ -10,7 +10,7 @@ if str(root) not in sys.path:
 
 from app.cbot_presets import (
     DEFAULT_IMAGE, PRESETS, STRATEGIES, SYMBOLS,
-    build_run_command, container_name, describe_cell, presets_payload,
+    build_run_command, container_name, describe_cell, installed_cells, presets_payload,
 )
 
 ROOT = "/home/forge/AgentFxTrading"
@@ -171,3 +171,26 @@ def test_presets_payload_shape():
     for c in payload["cells"]:
         assert set(c) == {"symbol", "strategy", "period", "session"}
         assert "params" not in c
+
+
+def test_installed_cells_maps_config_names_back_to_cell_and_account():
+    names = {
+        "cbot-demo-main-xauusd",          # DEMO tms_orb XAUUSD
+        "cbot-live-ic-xauusd",            # LIVE tms_orb XAUUSD (same cell, second account)
+        "cbot-live-ic-eurusd-flowrsi",    # LIVE flowrsi EURUSD
+        "cbot-manual-thing",              # hand-made config: not a preset name, ignored
+    }
+    rows = installed_cells([DEMO, LIVE], names)
+    assert rows == [
+        {"symbol": "XAUUSD", "strategy": "tms_orb", "name": "cbot-demo-main-xauusd",
+         "account_id": 1, "account_label": "Demo Main", "account_type": "demo"},
+        {"symbol": "XAUUSD", "strategy": "tms_orb", "name": "cbot-live-ic-xauusd",
+         "account_id": 2, "account_label": "IC", "account_type": "live"},
+        {"symbol": "EURUSD", "strategy": "flowrsi", "name": "cbot-live-ic-eurusd-flowrsi",
+         "account_id": 2, "account_label": "IC", "account_type": "live"},
+    ]
+
+
+def test_installed_cells_is_empty_without_accounts_or_configs():
+    assert installed_cells([], {"cbot-demo-main-xauusd"}) == []
+    assert installed_cells([DEMO, LIVE], set()) == []

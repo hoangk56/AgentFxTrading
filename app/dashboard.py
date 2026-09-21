@@ -1061,7 +1061,7 @@ async def api_delete_ctrader_account(account_id: int):
     return {"success": True}
 
 
-from app.cbot_presets import PRESETS, build_run_command, container_name, describe_cell, presets_payload
+from app.cbot_presets import PRESETS, build_run_command, container_name, describe_cell, installed_cells, presets_payload
 
 
 class InstanceSelection(BaseModel):
@@ -1078,6 +1078,13 @@ class SetupInstancesRequest(BaseModel):
 @router.get("/api/setup/presets")
 async def api_setup_presets():
     return presets_payload()
+
+
+@router.get("/api/setup/installed")
+async def api_setup_installed():
+    """Preset cells that already have a bot config, with the account each was created for (no Docker calls)."""
+    config_names = {cfg["name"] for cfg in get_portfolio_manager().get_cbot_configs()}
+    return {"installed": installed_cells(get_account_registry().list_ctrader_accounts(), config_names)}
 
 
 @router.post("/api/setup/instances")

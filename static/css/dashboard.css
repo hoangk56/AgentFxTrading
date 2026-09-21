@@ -250,6 +250,20 @@ body.app-shell{font-family:var(--font-ui);background:var(--bg-app);color:var(--t
     }
 }
 
+/* Setup Instances grid: "👤 account" note under a checkbox whose bot config already exists */
+.setup-cell-note {
+    font-size: 0.62rem;
+    line-height: 1.2;
+    color: var(--text-muted);
+    max-width: 110px;
+    margin: 2px auto 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    cursor: help;
+}
+.setup-cell-note:empty { display: none; }
+
 /* --- Desktop Sidebar Layout --- */
 @media(min-width: 1024px) {
     .app-body {

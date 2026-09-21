@@ -8,7 +8,7 @@ symbol, period, BotId, ApiUrl, AccountLabel, Judas' label/DashboardServerUrl)
 are emitted by `build_run_command`, so a preset never knows which account
 runs it.
 """
-from typing import Dict, List, Tuple
+from typing import Collection, Dict, Iterable, List, Tuple
 
 DEFAULT_IMAGE = "ghcr.io/spotware/ctrader-console:latest"
 API_URL = "http://127.0.0.1:8000/trade"
@@ -147,6 +147,27 @@ def build_run_command(account: dict, strategy: str, symbol: str, project_root: s
         parts += [f'--label="{name}"', f'--DashboardServerUrl="{DASHBOARD_URL}"']
     parts += [f"--{key}={_fmt(value)}" for key, value in preset["params"].items()]
     return " ".join(parts)
+
+
+def installed_cells(accounts: Iterable[dict], config_names: Collection[str]) -> List[dict]:
+    """Preset cells that already have a cbot_configs row, attributed to the account whose slug named them.
+
+    One row per (cell, account): the same cell can be installed for several accounts. Configs not
+    named by `container_name` (hand-written, or from a since-deleted account) are not reported.
+    Ordered by the grid (PRESETS order) then by `accounts` order, so the UI needs no sorting.
+    """
+    accounts = list(accounts)
+    rows = []
+    for (strategy, symbol) in PRESETS:
+        for account in accounts:
+            name = container_name(account["slug"], strategy, symbol)
+            if name in config_names:
+                rows.append({
+                    "symbol": symbol, "strategy": strategy, "name": name,
+                    "account_id": account["id"], "account_label": account["label"],
+                    "account_type": account["account_type"],
+                })
+    return rows
 
 
 def presets_payload() -> dict:
