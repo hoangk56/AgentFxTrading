@@ -165,8 +165,20 @@ def _fmt(value) -> str:
     return f'"{value}"'
 
 
+# Preset "session" label -> the token `container_name` puts after the symbol, so `docker ps` shows
+# which session a bot trades without reading its --SessionName flag.
+SESSION_SLUGS: Dict[str, str] = {
+    "Tokyo": "tokyo",
+    "London": "london",
+    "New York": "newyork",
+    _JUDAS_SESSION: "KZ-london-ny",
+    "All sessions": "all",
+}
+
+
 def container_name(slug: str, strategy: str, symbol: str) -> str:
-    return f"cbot-{slug}-{symbol.lower()}{STRATEGIES[strategy]['suffix']}"
+    session = SESSION_SLUGS[PRESETS[(strategy, symbol)]["session"]]
+    return f"cbot-{slug}-{symbol.lower()}-{session}{STRATEGIES[strategy]['suffix']}"
 
 
 def describe_cell(strategy: str, symbol: str, account_label: str) -> str:
