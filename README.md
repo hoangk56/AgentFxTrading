@@ -1496,6 +1496,42 @@ ELSE:
 | **ATR Period** | `14` | `14` | `14` |
 | **ATR SL Multiplier** | `1.5x ATR` | `1.5x ATR` | `1.5x ATR` |
 | **ATR TP Multiplier** | `2.0x ATR` | `2.0x ATR` | `2.0x ATR` |
+
+### 🧩 Derived Presets (Setup Instances screen)
+
+The dashboard's **Setup Instances** grid offers every strategy on every symbol (15 × 3 = 45 cells). The 22 cells above are the `docker run` blocks verbatim; the remaining 23 are derived from the nearest block, scaled by pip size (indices `0.1`, XAU/BTC/ETH/JPY `0.01`, forex `0.0001`). Only the flags that differ from the source block are listed — everything else is identical to it.
+
+**TMS + ORB** (from XAUUSD `$2 / $4 / $0.5`, New York session, M15)
+
+| Symbol | Min Decisive Breakout | Min OR Width | ORB Buffer | Scale |
+| :--- | :--- | :--- | :--- | :--- |
+| BTCUSD | `10000 pips` ($100) | `20000 pips` ($200) | `2500 pips` ($25) | XAUUSD ×50 |
+| ETHUSD | `800 pips` ($8) | `1600 pips` ($16) | `200 pips` ($2) | XAUUSD ×4 |
+
+**Asian Range Judas Sweep** (M15, London + NY killzones)
+
+| Symbol | Min / Max Asian Range | Sweep Buffer | AI SL Floor | Breakeven | SL / TP | Risk | Source |
+| :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
+| USDJPY, USDCAD, AUDUSD | `15.0 / 45.0` | `3.5` | `15.0` | `20.0` | `15.0 / 35.0` | default | = EURUSD / GBPUSD |
+| AUDJPY | `25.0 / 70.0` | `5.0` | `25.0` | `30.0` | `25.0 / 50.0` | default | = GBPJPY / EURJPY |
+| US30 | `600 / 4000` (60 / 400 pt) | `150` | `750` | `1000` | `750 / 1750` | `0.2%` | UK100 ×5 |
+| USTEC | `500 / 3000` (50 / 300 pt) | `120` | `600` | `800` | `600 / 1400` | `0.2%` | UK100 ×4 |
+| DE40 | `350 / 2500` (35 / 250 pt) | `90` | `450` | `600` | `450 / 1000` | `0.2%` | UK100 ×3 |
+
+**FlowRSI** (from the EURUSD block: RSI 7/14, SMC + FVG + Premium/Discount filters, 0.2% / $50 risk, RR 1.5, AI gate)
+
+The RSI and risk flags do not depend on the symbol, so forex pairs (GBPUSD, USDJPY, GBPJPY, EURJPY, USDCAD, AUDUSD, AUDJPY) run the EURUSD block unchanged, with the cBot's pip defaults (`FvgMinPips=2`, `MaxSpreadPips=30`, `TrailingStopDistancePips=15`, `BreakEvenExtraPips=0.5`). Gold, indices and crypto override those four:
+
+| Symbol | `FvgMinPips` | `MaxSpreadPips` | `TrailingStopDistancePips` | `BreakEvenExtraPips` |
+| :--- | :--- | :--- | :--- | :--- |
+| XAUUSD | `50` ($0.5) | `50` ($0.5) | `300` ($3) | `20` ($0.2) |
+| US30 | `100` (10 pt) | `60` (6 pt) | `300` (30 pt) | `10` (1 pt) |
+| USTEC | `80` (8 pt) | `50` (5 pt) | `250` (25 pt) | `10` (1 pt) |
+| DE40 | `50` (5 pt) | `40` (4 pt) | `200` (20 pt) | `10` (1 pt) |
+| UK100 | `30` (3 pt) | `30` (3 pt) | `100` (10 pt) | `5` (0.5 pt) |
+| BTCUSD | `5000` ($50) | `5000` ($50) | `30000` ($300) | `1000` ($10) |
+| ETHUSD | `300` ($3) | `500` ($5) | `2000` ($20) | `100` ($1) |
+
 ### Portfolio Manager Settings
 
 Edit `app/portfolio.py`:

@@ -66,7 +66,7 @@ def test_presets_endpoint_shape():
     assert set(data["strategies"]) == {"tms_orb", "judas", "flowrsi"}
     assert data["strategies"]["judas"]["label"] == "Judas Sweep"
     assert len(data["symbols"]) == 15
-    assert len(data["cells"]) == 22
+    assert len(data["cells"]) == 45
     assert all(set(c) == {"symbol", "strategy", "period", "session"} for c in data["cells"])
 
 
@@ -112,7 +112,7 @@ def test_existing_name_is_reported_and_not_started(account, fake_docker):
 
 def test_unknown_pair_is_error_and_batch_continues(account, fake_docker):
     res = _post(account["id"], [
-        {"symbol": "BTCUSD", "strategy": "tms_orb"},       # no such preset
+        {"symbol": "NZDUSD", "strategy": "tms_orb"},       # symbol not in the matrix
         {"symbol": "eurusd", "strategy": "flowrsi"},        # symbol case-normalised
         {"symbol": "XAUUSD", "strategy": "nope"},
     ])
