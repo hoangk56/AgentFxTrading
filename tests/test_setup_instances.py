@@ -75,30 +75,30 @@ def test_start_saves_config_and_starts_each_new_selection(account, fake_docker, 
     assert res.status_code == 200, res.text
     results = res.json()["results"]
     assert [r["status"] for r in results] == ["started", "started"]
-    assert [r["name"] for r in results] == ["cbot-demo-setup-xauusd", "cbot-demo-setup-gbpusd-judas"]
+    assert [r["name"] for r in results] == ["cbot-demo-setup-xauusd-newyork", "cbot-demo-setup-gbpusd-KZ-london-ny-judas"]
     assert results[0]["message"] == "ok"
 
     row = get_account_registry().get_ctrader_account(account["id"])
     expected = build_run_command(row, "tms_orb", "XAUUSD", str(dashboard_module.PROJECT_ROOT), str(tmp_path))
-    assert fake_docker.calls[0] == ("cbot-demo-setup-xauusd", expected)
+    assert fake_docker.calls[0] == ("cbot-demo-setup-xauusd-newyork", expected)
     assert len(fake_docker.calls) == 2
 
     pm = get_portfolio_manager()
-    cfg = pm.get_cbot_config("cbot-demo-setup-xauusd")
+    cfg = pm.get_cbot_config("cbot-demo-setup-xauusd-newyork")
     assert cfg["run_command"] == expected
     assert cfg["description"] == "TMS+ORB XAUUSD m15 — Setup"
     assert f"-v {tmp_path}:/root" in expected                       # CTRADER_HOME from env
     assert "--pwd-file=/root/ctrader_data/ctid_demo-setup_pwd" in expected
-    assert pm.get_cbot_config("cbot-demo-setup-gbpusd-judas")["description"] == "Judas Sweep GBPUSD m15 — Setup"
+    assert pm.get_cbot_config("cbot-demo-setup-gbpusd-KZ-london-ny-judas")["description"] == "Judas Sweep GBPUSD m15 — Setup"
 
 
 def test_save_only_never_calls_docker(account, fake_docker):
     res = _post(account["id"], [{"symbol": "EURUSD", "strategy": "flowrsi"}], start=False)
     results = res.json()["results"]
-    assert results == [{"symbol": "EURUSD", "strategy": "flowrsi", "name": "cbot-demo-setup-eurusd-flowrsi",
+    assert results == [{"symbol": "EURUSD", "strategy": "flowrsi", "name": "cbot-demo-setup-eurusd-all-flowrsi",
                         "status": "saved", "message": "Config saved"}]
     assert fake_docker.calls == []
-    assert get_portfolio_manager().get_cbot_config("cbot-demo-setup-eurusd-flowrsi") is not None
+    assert get_portfolio_manager().get_cbot_config("cbot-demo-setup-eurusd-all-flowrsi") is not None
 
 
 def test_existing_name_is_reported_and_not_started(account, fake_docker):
@@ -106,7 +106,7 @@ def test_existing_name_is_reported_and_not_started(account, fake_docker):
     assert first[0]["status"] == "started"
     second = _post(account["id"], [{"symbol": "US30", "strategy": "tms_orb"}]).json()["results"]
     assert second[0]["status"] == "exists"
-    assert second[0]["name"] == "cbot-demo-setup-us30"
+    assert second[0]["name"] == "cbot-demo-setup-us30-newyork"
     assert len(fake_docker.calls) == 1
 
 
@@ -129,7 +129,7 @@ def test_docker_failure_keeps_config_for_retry(account, monkeypatch):
     res = _post(account["id"], [{"symbol": "DE40", "strategy": "tms_orb"}])
     result = res.json()["results"][0]
     assert result["status"] == "error" and result["message"] == "boom"
-    assert get_portfolio_manager().get_cbot_config("cbot-demo-setup-de40") is not None
+    assert get_portfolio_manager().get_cbot_config("cbot-demo-setup-de40-london") is not None
 
 
 def test_unknown_account_is_404(fake_docker):
@@ -150,9 +150,9 @@ def test_installed_lists_each_saved_cell_with_its_account(account, fake_docker):
     res = client.get("/api/setup/installed")
     assert res.status_code == 200
     assert res.json()["installed"] == [
-        {"symbol": "XAUUSD", "strategy": "tms_orb", "name": "cbot-demo-setup-xauusd",
+        {"symbol": "XAUUSD", "strategy": "tms_orb", "name": "cbot-demo-setup-xauusd-newyork",
          "account_id": account["id"], "account_label": "Setup", "account_type": "demo"},
-        {"symbol": "EURUSD", "strategy": "flowrsi", "name": "cbot-demo-setup-eurusd-flowrsi",
+        {"symbol": "EURUSD", "strategy": "flowrsi", "name": "cbot-demo-setup-eurusd-all-flowrsi",
          "account_id": account["id"], "account_label": "Setup", "account_type": "demo"},
     ]
     assert fake_docker.calls == []   # a listing never touches Docker

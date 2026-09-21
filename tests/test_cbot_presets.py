@@ -9,7 +9,7 @@ if str(root) not in sys.path:
     sys.path.insert(0, str(root))
 
 from app.cbot_presets import (
-    DEFAULT_IMAGE, PRESETS, STRATEGIES, SYMBOLS,
+    DEFAULT_IMAGE, PRESETS, SESSION_SLUGS, STRATEGIES, SYMBOLS,
     build_run_command, container_name, describe_cell, installed_cells, presets_payload,
 )
 
@@ -53,11 +53,11 @@ def test_every_cell_is_well_formed():
 def test_tms_orb_golden_command():
     cmd = build_run_command(DEMO, "tms_orb", "EURUSD", ROOT, HOME)
     assert cmd == (
-        "docker run -d --name cbot-demo-main-eurusd --restart unless-stopped --network host "
+        "docker run -d --name cbot-demo-main-eurusd-london --restart unless-stopped --network host "
         f"-v {ROOT}:/workspace -v {HOME}:/root {DEFAULT_IMAGE} run /workspace/cBot/AiAgentBot.algo "
         "--ctid=me@example.com --pwd-file=/root/ctrader_data/ctid_demo-main_pwd --account=10101649 "
         "--symbol=EURUSD --period=m15 --full-access "
-        '--BotId="cbot-demo-main-eurusd" --ApiUrl="http://127.0.0.1:8000/trade" --AccountLabel="Demo Main" '
+        '--BotId="cbot-demo-main-eurusd-london" --ApiUrl="http://127.0.0.1:8000/trade" --AccountLabel="Demo Main" '
         '--TmsTimeFrame="Hour" --EmaPeriod=5 --SessionName="london" --OrbStartHour=8 --SessionEndHour=17 '
         '--SessionDstRule="Europe" --MinDecisiveBreakoutPips=3.0 --MinOrWidthPips=6.0 --OrbBufferPips=1.0 '
         "--BreakevenTriggerAtr=1.2 --BreakevenOffsetAtr=0.1 --TrailTriggerAtr=2.0 --TrailDistanceAtr=1.0 "
@@ -70,12 +70,12 @@ def test_tms_orb_golden_command():
 def test_judas_golden_command():
     cmd = build_run_command(LIVE, "judas", "GBPUSD", ROOT, HOME)
     assert cmd == (
-        "docker run -d --name cbot-live-ic-gbpusd-judas --restart unless-stopped --network host "
+        "docker run -d --name cbot-live-ic-gbpusd-KZ-london-ny-judas --restart unless-stopped --network host "
         f"-v {ROOT}:/workspace -v {HOME}:/root {DEFAULT_IMAGE} run /workspace/cBot/AsianRangeJudasSweepBot.algo "
         "--ctid=me@example.com --pwd-file=/root/ctrader_data/ctid_live-ic_pwd --account=6094347 "
         "--symbol=GBPUSD --period=m15 --full-access "
-        '--BotId="cbot-live-ic-gbpusd-judas" --ApiUrl="http://127.0.0.1:8000/trade" --AccountLabel="IC" '
-        '--label="cbot-live-ic-gbpusd-judas" --DashboardServerUrl="http://127.0.0.1:8000" '
+        '--BotId="cbot-live-ic-gbpusd-KZ-london-ny-judas" --ApiUrl="http://127.0.0.1:8000/trade" --AccountLabel="IC" '
+        '--label="cbot-live-ic-gbpusd-KZ-london-ny-judas" --DashboardServerUrl="http://127.0.0.1:8000" '
         "--UseDirectAiApi=false --UseAiGateMode=true --minAsianRangePips=15.0 --maxAsianRangePips=45.0 "
         "--sweepBufferPips=3.5 --AiSlMinFloorPips=15.0 --breakEvenTrigger=20.0 --stoplossPip=15.0 "
         "--takeprofitPip=35.0 --enableBreakEvenPrice=true"
@@ -85,11 +85,11 @@ def test_judas_golden_command():
 def test_flowrsi_golden_command():
     cmd = build_run_command(DEMO, "flowrsi", "EURUSD", ROOT, HOME)
     assert cmd == (
-        "docker run -d --name cbot-demo-main-eurusd-flowrsi --restart unless-stopped --network host "
+        "docker run -d --name cbot-demo-main-eurusd-all-flowrsi --restart unless-stopped --network host "
         f"-v {ROOT}:/workspace -v {HOME}:/root {DEFAULT_IMAGE} run /workspace/cBot/FlowRsiBot.algo "
         "--ctid=me@example.com --pwd-file=/root/ctrader_data/ctid_demo-main_pwd --account=10101649 "
         "--symbol=EURUSD --period=m15 --full-access "
-        '--BotId="cbot-demo-main-eurusd-flowrsi" --ApiUrl="http://127.0.0.1:8000/trade" --AccountLabel="Demo Main" '
+        '--BotId="cbot-demo-main-eurusd-all-flowrsi" --ApiUrl="http://127.0.0.1:8000/trade" --AccountLabel="Demo Main" '
         "--FastRsiPeriod=7 --SlowRsiPeriod=14 --EnableSmcFilter=true --EnableFvgDetection=true "
         "--EnablePremiumDiscountFilter=true --RiskPercentage=0.2 --MaxRiskPerTradeMoney=50.0 "
         "--TargetRiskReward=1.5 --UseAiGateMode=true"
@@ -174,10 +174,22 @@ def test_flowrsi_gold_index_crypto_override_the_pip_sized_params():
         assert "--FastRsiPeriod=7 --SlowRsiPeriod=14" in cmd, sym
 
 
+def test_container_name_carries_the_session():
+    assert container_name("demo-main", "tms_orb", "XAUUSD") == "cbot-demo-main-xauusd-newyork"
+    assert container_name("demo-main", "tms_orb", "EURUSD") == "cbot-demo-main-eurusd-london"
+    assert container_name("demo-main", "tms_orb", "USDJPY") == "cbot-demo-main-usdjpy-tokyo"
+    assert container_name("live-ic", "judas", "XAUUSD") == "cbot-live-ic-xauusd-KZ-london-ny-judas"
+    assert container_name("live-ic", "flowrsi", "EURUSD") == "cbot-live-ic-eurusd-all-flowrsi"
+
+
+def test_every_preset_session_has_a_slug_in_its_name():
+    for (strategy, symbol), cell in PRESETS.items():
+        name = container_name("demo-main", strategy, symbol)
+        assert f"-{SESSION_SLUGS[cell['session']]}" in name, (strategy, symbol)
+        assert name.endswith(SESSION_SLUGS[cell["session"]] + STRATEGIES[strategy]["suffix"]), name
+
+
 def test_live_vs_demo_naming():
-    assert container_name("demo-main", "tms_orb", "XAUUSD") == "cbot-demo-main-xauusd"
-    assert container_name("live-ic", "judas", "XAUUSD") == "cbot-live-ic-xauusd-judas"
-    assert container_name("live-ic", "flowrsi", "EURUSD") == "cbot-live-ic-eurusd-flowrsi"
     # /api/bots detects live bots by "live-" in the name; demo names must not contain it
     assert "live-" in container_name("live-ic", "tms_orb", "US30")
     assert "live" not in container_name("demo-main", "tms_orb", "US30")
@@ -222,22 +234,23 @@ def test_presets_payload_shape():
 
 def test_installed_cells_maps_config_names_back_to_cell_and_account():
     names = {
-        "cbot-demo-main-xauusd",          # DEMO tms_orb XAUUSD
-        "cbot-live-ic-xauusd",            # LIVE tms_orb XAUUSD (same cell, second account)
-        "cbot-live-ic-eurusd-flowrsi",    # LIVE flowrsi EURUSD
-        "cbot-manual-thing",              # hand-made config: not a preset name, ignored
+        "cbot-demo-main-xauusd-newyork",          # DEMO tms_orb XAUUSD
+        "cbot-live-ic-xauusd-newyork",            # LIVE tms_orb XAUUSD (same cell, second account)
+        "cbot-live-ic-eurusd-all-flowrsi",        # LIVE flowrsi EURUSD
+        "cbot-live-ic-xauusd",                    # pre-session name: no longer a preset name, ignored
+        "cbot-manual-thing",                      # hand-made config: not a preset name, ignored
     }
     rows = installed_cells([DEMO, LIVE], names)
     assert rows == [
-        {"symbol": "XAUUSD", "strategy": "tms_orb", "name": "cbot-demo-main-xauusd",
+        {"symbol": "XAUUSD", "strategy": "tms_orb", "name": "cbot-demo-main-xauusd-newyork",
          "account_id": 1, "account_label": "Demo Main", "account_type": "demo"},
-        {"symbol": "XAUUSD", "strategy": "tms_orb", "name": "cbot-live-ic-xauusd",
+        {"symbol": "XAUUSD", "strategy": "tms_orb", "name": "cbot-live-ic-xauusd-newyork",
          "account_id": 2, "account_label": "IC", "account_type": "live"},
-        {"symbol": "EURUSD", "strategy": "flowrsi", "name": "cbot-live-ic-eurusd-flowrsi",
+        {"symbol": "EURUSD", "strategy": "flowrsi", "name": "cbot-live-ic-eurusd-all-flowrsi",
          "account_id": 2, "account_label": "IC", "account_type": "live"},
     ]
 
 
 def test_installed_cells_is_empty_without_accounts_or_configs():
-    assert installed_cells([], {"cbot-demo-main-xauusd"}) == []
+    assert installed_cells([], {"cbot-demo-main-xauusd-newyork"}) == []
     assert installed_cells([DEMO, LIVE], set()) == []
