@@ -15,6 +15,11 @@ class CbotConfig(BaseModel):
     run_command: str
 
 class DockerManager:
+    # Lost-connection lines in the tail before a container counts as a reconnect loop. The loop
+    # cycles every ~300 ms, so a rejected login fills the 40-line tail within seconds; a real
+    # 1-2 s outage stays below this and, once "restored", is ignored anyway.
+    RECONNECT_LOOP_MIN_LOSSES = 5
+
     def __init__(self):
         try:
             self.client = docker.from_env()
@@ -191,6 +196,26 @@ class DockerManager:
                 "stuck": True,
                 "reason": "Continuous login error loop without successful recovery"
             }
+
+        # cTrader CLI 5.10+ prints no "Login failed" when the cTID is rejected (e.g. "Password was
+        # not set for this cTID"): it alternates lost/establishing ~3x per second forever. A short
+        # outage looks the same but ends with "restored"/"established", so only flag a loop that
+        # has not recovered after its last "lost" line.
+        lost_idx = [i for i, l in enumerate(lines) if "the connection has been lost" in l.lower()]
+        if len(lost_idx) >= self.RECONNECT_LOOP_MIN_LOSSES:
+            after_last_lost = (l.lower() for l in lines[lost_idx[-1] + 1:])
+            recovered = any(
+                "connection has been established" in l or "connection has been restored" in l or "logged in" in l
+                for l in after_last_lost
+            )
+            if not recovered:
+                return {
+                    "name": name,
+                    "status": status,
+                    "healthy": False,
+                    "stuck": True,
+                    "reason": f"Reconnect loop: {len(lost_idx)} 'connection has been lost' in the last {len(lines)} lines without re-establishing"
+                }
 
         return {
             "name": name,
