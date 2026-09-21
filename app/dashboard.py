@@ -769,20 +769,28 @@ async def websocket_endpoint(websocket: WebSocket):
                     if msg_type in ("ping", "subscribe"):
                         summary = get_portfolio_summary(account_id)
                         positions = get_active_positions(account_id)
+                        history = get_trade_history(50, account_id)
+                        pnl_history = get_daily_pnl_history(30, account_id)
                         await websocket.send_json({
                             "type": "update",
                             "account_id": account_id,
                             "summary": summary,
-                            "positions": positions
+                            "positions": positions,
+                            "history": history,
+                            "pnl_history": pnl_history
                         })
                 elif data == "ping":
                     summary = get_portfolio_summary("all")
                     positions = get_active_positions("all")
+                    history = get_trade_history(50, "all")
+                    pnl_history = get_daily_pnl_history(30, "all")
                     await websocket.send_json({
                         "type": "update",
                         "account_id": "all",
                         "summary": summary,
-                        "positions": positions
+                        "positions": positions,
+                        "history": history,
+                        "pnl_history": pnl_history
                     })
             except Exception as parse_err:
                 logger.debug(f"WS message error: {parse_err}")
@@ -846,18 +854,24 @@ async def cbot_websocket_endpoint(websocket: WebSocket):
     except WebSocketDisconnect:
         logger.info(f"[cBot WS] Bot {bot_id} disconnected")
 
-async def broadcast_update():
-    """Broadcast dashboard summary and positions to all connected clients."""
-    for target in ["demo", "live", "all"]:
+async def broadcast_update(account_id: Optional[str] = None):
+    """Broadcast dashboard summary, active positions, recent trades, and daily P&L to all connected clients."""
+    targets = ["demo", "live", "all"]
+    if account_id and account_id not in targets:
+        targets.append(account_id)
+    for target in targets:
         summary = get_portfolio_summary(target)
         positions = get_active_positions(target)
+        history = get_trade_history(50, target)
+        pnl_history = get_daily_pnl_history(30, target)
         await manager.broadcast({
             "type": "update",
             "account_id": target,
             "summary": summary,
-            "positions": positions
+            "positions": positions,
+            "history": history,
+            "pnl_history": pnl_history
         })
-
 
 async def broadcast_tick(symbol: str, bid: float, ask: float, account_id: Optional[str] = None,
                          bot_id: Optional[str] = None, pnl: Optional[float] = None,

@@ -2186,7 +2186,11 @@ async def report_position(request: dict):
             if success:
                 logger.info(f"[PORTFOLIO EVENT] OPEN | {account_id}/{bot_id} | {symbol} {side} {volume} lots @ {entry_price} | SL={sl_pips}p TP={tp_pips}p")
                 try:
-                    await broadcast_update()
+                    await broadcast_update(account_id=account_id)
+                except Exception:
+                    pass
+                try:
+                    await broadcast_event("TRADE_OPEN", f"OPEN {symbol} {side} {volume}L {bot_id}", bot_id=bot_id, account_id=str(account_id))
                 except Exception:
                     pass
                 return {"status": "success", "message": "Position registered"}
@@ -2196,7 +2200,7 @@ async def report_position(request: dict):
         elif action in ("ping", "sync"):
             logger.info(f"[PORTFOLIO EVENT] SYNC | {account_id}/{bot_id} | Balance: ${account_balance:.2f} | Equity: ${account_equity:.2f}")
             try:
-                await broadcast_update()
+                await broadcast_update(account_id=account_id)
             except Exception:
                 pass
             return {"status": "success", "message": f"Account {account_id} synced", "account_id": account_id}
@@ -2219,10 +2223,14 @@ async def report_position(request: dict):
             
             if success:
                 try:
-                    await broadcast_update()
+                    await broadcast_update(account_id=account_id)
                 except Exception:
                     pass
                 logger.info(f"[PORTFOLIO EVENT] CLOSE | {account_id}/{bot_id} | {symbol} | PnL: ${pnl:.2f}")
+                try:
+                    await broadcast_event("TRADE_CLOSE", f"CLOSE {symbol} {bot_id} PnL: ${pnl:.2f}", bot_id=bot_id, account_id=str(account_id))
+                except Exception:
+                    pass
                 return {"status": "success", "message": "Position closed"}
             else:
                 return {"status": "error", "message": "Failed to close position"}
