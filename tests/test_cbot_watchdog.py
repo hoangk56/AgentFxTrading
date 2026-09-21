@@ -104,6 +104,28 @@ def test_check_cbot_health_not_running():
     assert health["healthy"] is False
     assert health["stuck"] is False
 
+@patch("app.cbot_watchdog.docker_manager")
+@patch("app.cbot_watchdog.get_portfolio_manager")
+def test_check_and_heal_caches_health_for_the_dashboard(mock_get_pm, mock_dm):
+    mock_dm.is_available = True
+    mock_pm = MagicMock()
+    mock_pm.get_cbot_configs.return_value = [{"name": "cbot-a"}, {"name": "cbot-b"}]
+    mock_get_pm.return_value = mock_pm
+    healthy = {"status": "running", "healthy": True, "stuck": False, "reason": "Healthy and running"}
+    exited = {"status": "exited", "healthy": False, "stuck": False, "reason": "Container is exited"}
+    mock_dm.check_cbot_health.side_effect = lambda name: healthy if name == "cbot-a" else exited
+
+    watchdog = CbotWatchdog()
+    assert watchdog.last_health("cbot-a") is None          # nothing before the first cycle
+    watchdog.check_and_heal()
+    assert watchdog.last_health("cbot-a") == healthy
+    assert watchdog.last_health("cbot-b") == exited
+
+    # A bot whose config was deleted drops out on the next cycle.
+    mock_pm.get_cbot_configs.return_value = [{"name": "cbot-a"}]
+    watchdog.check_and_heal()
+    assert watchdog.last_health("cbot-b") is None
+
 def test_watchdog_cooldown_and_backoff():
     watchdog = CbotWatchdog(
         cooldown_seconds=10,

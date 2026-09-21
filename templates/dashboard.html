@@ -862,12 +862,17 @@
             });
         }
         // --- Docker Bot Management ---
+        let botsFetchInFlight = false;   // a slow poll must not stack up behind itself
+        let botActionInFlight = false;   // a poll must not re-render over a row that says "Stopping…"
         async function fetchBots() {
+            if (botsFetchInFlight || botActionInFlight) return;
+            botsFetchInFlight = true;
             try {
                 const res = await fetch("/api/bots");
                 const data = await res.json();
                 renderBots(data.bots, data.docker_available);
             } catch(e) { console.error("Error fetching bots", e); }
+            finally { botsFetchInFlight = false; }
         }
         function renderBots(bots, dockerOk) {
             const tbody = document.getElementById("bots-tbody");
@@ -923,10 +928,10 @@
             });
             tbody.innerHTML = html;
             
-            document.querySelectorAll(".action-start").forEach(btn => btn.addEventListener("click", e => actionBot(e.target.dataset.name, "start")));
-            document.querySelectorAll(".action-stop").forEach(btn => btn.addEventListener("click", e => actionBot(e.target.dataset.name, "stop")));
-            document.querySelectorAll(".action-delete").forEach(btn => btn.addEventListener("click", e => deleteBot(e.target.dataset.name)));
-            document.querySelectorAll(".action-restart").forEach(btn => btn.addEventListener("click", e => actionBot(e.target.dataset.name, "restart")));
+            document.querySelectorAll(".action-start").forEach(btn => btn.addEventListener("click", e => actionBot(e.currentTarget.dataset.name, "start", e.currentTarget)));
+            document.querySelectorAll(".action-stop").forEach(btn => btn.addEventListener("click", e => actionBot(e.currentTarget.dataset.name, "stop", e.currentTarget)));
+            document.querySelectorAll(".action-delete").forEach(btn => btn.addEventListener("click", e => deleteBot(e.currentTarget.dataset.name, e.currentTarget)));
+            document.querySelectorAll(".action-restart").forEach(btn => btn.addEventListener("click", e => actionBot(e.currentTarget.dataset.name, "restart", e.currentTarget)));
             document.querySelectorAll(".action-edit").forEach(btn => btn.addEventListener("click", e => {
                 const bName = btn.dataset.name;
                 const bDesc = btn.dataset.desc;
@@ -945,20 +950,33 @@
                 document.getElementById("bot-cmd").focus();
             }));
         }
-        async function actionBot(name, action) {
+        const BOT_ACTION_PENDING = { start: "Starting…", stop: "Stopping…", restart: "Restarting…", delete: "Deleting…" };
+        // Docker stop/restart wait up to 10 s for the cBot to exit; lock the row and say so meanwhile.
+        function lockBotRow(btn, action) {
+            const buttons = btn ? Array.from(btn.closest("tr").querySelectorAll("button")) : [];
+            buttons.forEach(b => { b.disabled = true; });
+            if (btn) btn.textContent = BOT_ACTION_PENDING[action] || "Working…";
+            botActionInFlight = true;
+            return () => { botActionInFlight = false; buttons.forEach(b => { b.disabled = false; }); fetchBots(); };
+        }
+        async function actionBot(name, action, btn) {
+            const unlock = lockBotRow(btn, action);
             try {
                 const res = await fetch(`/api/bots/${name}/${action}`, { method: "POST" });
                 const data = await res.json();
                 if(!data.success) alert(data.message || "Error");
-                fetchBots();
             } catch(e) { alert("Error: " + e); }
+            finally { unlock(); }
         }
-        async function deleteBot(name) {
-            if(!confirm(`Delete bot ${name}?`)) return;
+        async function deleteBot(name, btn) {
+            if(!confirm(`Delete bot ${name}? This stops and removes its container.`)) return;
+            const unlock = lockBotRow(btn, "delete");
             try {
-                await fetch(`/api/bots/${name}`, { method: "DELETE" });
-                fetchBots();
+                const res = await fetch(`/api/bots/${name}`, { method: "DELETE" });
+                const data = await res.json();
+                if(!data.success) alert(data.message || "Error deleting bot");
             } catch(e) { alert("Error: " + e); }
+            finally { unlock(); }
         }
         
         async function submitBotForm(restart = false) {

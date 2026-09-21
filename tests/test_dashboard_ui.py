@@ -176,3 +176,12 @@ def test_setup_instances_panel_is_in_docker_view():
     assert 'id="setup-acc-password" type="password"' in html
     for endpoint in ("/api/setup/presets", "/api/setup/instances", "/api/ctrader-accounts"):
         assert endpoint in html, endpoint
+
+
+def test_bot_action_buttons_show_pending_state_and_polls_do_not_overlap():
+    html = client.get("/demo/dashboard").text
+    # A docker stop/restart takes 7-10 s: the clicked row must say so instead of looking dead.
+    for label in ("Starting…", "Stopping…", "Restarting…", "Deleting…"):
+        assert label in html, label
+    # A 10 s poll must never re-render over a pending row, nor stack up while a slow poll runs.
+    assert "if (botsFetchInFlight || botActionInFlight) return;" in html
