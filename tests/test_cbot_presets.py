@@ -10,7 +10,7 @@ if str(root) not in sys.path:
 
 from app.cbot_presets import (
     DEFAULT_IMAGE, PRESETS, STRATEGIES, SYMBOLS,
-    build_run_command, container_name, describe_cell, presets_payload,
+    build_run_command, container_name, describe_cell, installed_cells, presets_payload,
 )
 
 ROOT = "/home/forge/AgentFxTrading"
@@ -20,28 +20,15 @@ DEMO = {"id": 1, "slug": "demo-main", "ctid_email": "me@example.com", "account_n
 LIVE = {"id": 2, "slug": "live-ic", "ctid_email": "me@example.com", "account_number": "6094347",
         "account_type": "live", "label": "IC", "pwd_file": "/root/ctrader_data/ctid_live-ic_pwd"}
 
-# The spec matrix: 15 symbols, 22 cells.
-EXPECTED_MATRIX = {
-    "XAUUSD": {"tms_orb", "judas"},
-    "EURUSD": {"tms_orb", "judas", "flowrsi"},
-    "GBPUSD": {"tms_orb", "judas"},
-    "USDJPY": {"tms_orb"},
-    "GBPJPY": {"tms_orb", "judas"},
-    "EURJPY": {"tms_orb", "judas"},
-    "USDCAD": {"tms_orb"},
-    "AUDUSD": {"tms_orb"},
-    "AUDJPY": {"tms_orb"},
-    "US30": {"tms_orb"},
-    "USTEC": {"tms_orb"},
-    "DE40": {"tms_orb"},
-    "UK100": {"tms_orb", "judas"},
-    "BTCUSD": {"judas"},
-    "ETHUSD": {"judas"},
-}
+# The full matrix: every strategy on every symbol, 15 × 3 = 45 cells.
+EXPECTED_MATRIX = {sym: {"tms_orb", "judas", "flowrsi"} for sym in (
+    "XAUUSD", "EURUSD", "GBPUSD", "USDJPY", "GBPJPY", "EURJPY", "USDCAD", "AUDUSD",
+    "AUDJPY", "US30", "USTEC", "DE40", "UK100", "BTCUSD", "ETHUSD",
+)}
 
 
-def test_matrix_is_exactly_the_readme_cells():
-    assert len(PRESETS) == 22
+def test_matrix_covers_every_strategy_on_every_symbol():
+    assert len(PRESETS) == 45
     actual = {}
     for strategy, symbol in PRESETS:
         actual.setdefault(symbol, set()).add(strategy)
@@ -127,6 +114,66 @@ def test_readme_quirks_are_kept_verbatim():
     assert "--riskFactor" not in xau_judas
 
 
+def test_crypto_tms_orb_scales_from_gold_on_the_new_york_session():
+    btc = build_run_command(DEMO, "tms_orb", "BTCUSD", ROOT, HOME)
+    assert " --symbol=BTCUSD --period=m15 " in btc
+    assert '--SessionName="newyork" --OrbStartHour=13 --SessionEndHour=21 --SessionDstRule="US"' in btc
+    assert "--MinDecisiveBreakoutPips=10000.0 --MinOrWidthPips=20000.0 --OrbBufferPips=2500.0" in btc   # $100/$200/$25
+    assert "--BounceDistanceThreshold=10 " in btc
+    eth = build_run_command(DEMO, "tms_orb", "ETHUSD", ROOT, HOME)
+    assert "--MinDecisiveBreakoutPips=800.0 --MinOrWidthPips=1600.0 --OrbBufferPips=200.0" in eth       # $8/$16/$2
+    assert PRESETS[("tms_orb", "BTCUSD")]["session"] == "New York"
+
+
+def test_judas_forex_cells_reuse_the_major_and_cross_presets():
+    major = "--minAsianRangePips=15.0 --maxAsianRangePips=45.0 --sweepBufferPips=3.5 --AiSlMinFloorPips=15.0 --breakEvenTrigger=20.0 --stoplossPip=15.0 --takeprofitPip=35.0"
+    cross = "--minAsianRangePips=25.0 --maxAsianRangePips=70.0 --sweepBufferPips=5.0 --AiSlMinFloorPips=25.0 --breakEvenTrigger=30.0 --stoplossPip=25.0 --takeprofitPip=50.0"
+    for sym in ("USDJPY", "USDCAD", "AUDUSD"):
+        cmd = build_run_command(DEMO, "judas", sym, ROOT, HOME)
+        assert major in cmd and "--riskFactor" not in cmd, sym
+    cmd = build_run_command(DEMO, "judas", "AUDJPY", ROOT, HOME)
+    assert cross in cmd and "--riskFactor" not in cmd
+
+
+def test_judas_index_cells_scale_from_uk100_with_index_risk():
+    expected = {   # UK100 ×5 / ×4 / ×3 (pip 0.1): min/max range, sweep buffer, SL floor, BE, SL, TP
+        "US30":  "--minAsianRangePips=600.0 --maxAsianRangePips=4000.0 --sweepBufferPips=150.0 --AiSlMinFloorPips=750.0 --breakEvenTrigger=1000.0 --stoplossPip=750.0 --takeprofitPip=1750.0",
+        "USTEC": "--minAsianRangePips=500.0 --maxAsianRangePips=3000.0 --sweepBufferPips=120.0 --AiSlMinFloorPips=600.0 --breakEvenTrigger=800.0 --stoplossPip=600.0 --takeprofitPip=1400.0",
+        "DE40":  "--minAsianRangePips=350.0 --maxAsianRangePips=2500.0 --sweepBufferPips=90.0 --AiSlMinFloorPips=450.0 --breakEvenTrigger=600.0 --stoplossPip=450.0 --takeprofitPip=1000.0",
+    }
+    for sym, params in expected.items():
+        cmd = build_run_command(LIVE, "judas", sym, ROOT, HOME)
+        assert params in cmd, sym
+        assert cmd.endswith("--enableBreakEvenPrice=true --riskFactor=0.2"), sym
+
+
+def test_flowrsi_forex_cells_match_the_eurusd_block_exactly():
+    base = build_run_command(DEMO, "flowrsi", "EURUSD", ROOT, HOME)
+    for sym in ("GBPUSD", "USDJPY", "GBPJPY", "EURJPY", "USDCAD", "AUDUSD", "AUDJPY"):
+        cmd = build_run_command(DEMO, "flowrsi", sym, ROOT, HOME)
+        assert cmd == base.replace("EURUSD", sym).replace("eurusd", sym.lower()), sym
+        assert "--FvgMinPips" not in cmd and "--MaxSpreadPips" not in cmd, sym
+
+
+def test_flowrsi_gold_index_crypto_override_the_pip_sized_params():
+    expected = {   # FvgMinPips, MaxSpreadPips, TrailingStopDistancePips, BreakEvenExtraPips
+        "XAUUSD": (50.0, 50.0, 300.0, 20.0),
+        "US30":   (100.0, 60.0, 300.0, 10.0),
+        "USTEC":  (80.0, 50.0, 250.0, 10.0),
+        "DE40":   (50.0, 40.0, 200.0, 10.0),
+        "UK100":  (30.0, 30.0, 100.0, 5.0),
+        "BTCUSD": (5000.0, 5000.0, 30000.0, 1000.0),
+        "ETHUSD": (300.0, 500.0, 2000.0, 100.0),
+    }
+    for sym, (fvg, spread, trail, be) in expected.items():
+        cmd = build_run_command(DEMO, "flowrsi", sym, ROOT, HOME)
+        assert cmd.endswith(
+            "--TargetRiskReward=1.5 --UseAiGateMode=true "
+            f"--FvgMinPips={fvg} --MaxSpreadPips={spread} --TrailingStopDistancePips={trail} --BreakEvenExtraPips={be}"
+        ), sym
+        assert "--FastRsiPeriod=7 --SlowRsiPeriod=14" in cmd, sym
+
+
 def test_live_vs_demo_naming():
     assert container_name("demo-main", "tms_orb", "XAUUSD") == "cbot-demo-main-xauusd"
     assert container_name("live-ic", "judas", "XAUUSD") == "cbot-live-ic-xauusd-judas"
@@ -165,9 +212,32 @@ def test_presets_payload_shape():
     payload = presets_payload()
     assert payload["strategies"] == STRATEGIES
     assert payload["symbols"] == SYMBOLS
-    assert len(payload["cells"]) == 22
+    assert len(payload["cells"]) == 45
     cell = next(c for c in payload["cells"] if c["symbol"] == "USTEC" and c["strategy"] == "tms_orb")
     assert cell == {"symbol": "USTEC", "strategy": "tms_orb", "period": "m5", "session": "New York"}
     for c in payload["cells"]:
         assert set(c) == {"symbol", "strategy", "period", "session"}
         assert "params" not in c
+
+
+def test_installed_cells_maps_config_names_back_to_cell_and_account():
+    names = {
+        "cbot-demo-main-xauusd",          # DEMO tms_orb XAUUSD
+        "cbot-live-ic-xauusd",            # LIVE tms_orb XAUUSD (same cell, second account)
+        "cbot-live-ic-eurusd-flowrsi",    # LIVE flowrsi EURUSD
+        "cbot-manual-thing",              # hand-made config: not a preset name, ignored
+    }
+    rows = installed_cells([DEMO, LIVE], names)
+    assert rows == [
+        {"symbol": "XAUUSD", "strategy": "tms_orb", "name": "cbot-demo-main-xauusd",
+         "account_id": 1, "account_label": "Demo Main", "account_type": "demo"},
+        {"symbol": "XAUUSD", "strategy": "tms_orb", "name": "cbot-live-ic-xauusd",
+         "account_id": 2, "account_label": "IC", "account_type": "live"},
+        {"symbol": "EURUSD", "strategy": "flowrsi", "name": "cbot-live-ic-eurusd-flowrsi",
+         "account_id": 2, "account_label": "IC", "account_type": "live"},
+    ]
+
+
+def test_installed_cells_is_empty_without_accounts_or_configs():
+    assert installed_cells([], {"cbot-demo-main-xauusd"}) == []
+    assert installed_cells([DEMO, LIVE], set()) == []

@@ -174,8 +174,18 @@ def test_setup_instances_panel_is_in_docker_view():
                        "setup-save-only", "setup-create-btn", "setup-results"):
         assert f'id="{element_id}"' in html, element_id
     assert 'id="setup-acc-password" type="password"' in html
-    for endpoint in ("/api/setup/presets", "/api/setup/instances", "/api/ctrader-accounts"):
+    for endpoint in ("/api/setup/presets", "/api/setup/instances", "/api/setup/installed", "/api/ctrader-accounts"):
         assert endpoint in html, endpoint
+
+
+def test_setup_grid_marks_cells_already_installed_for_an_account():
+    html = client.get("/demo/dashboard").text
+    # Each preset cell carries a note slot; the installed list fills it with the account label(s)
+    # without re-rendering the grid (which would drop the user's ticks).
+    assert 'class="setup-cell-note"' in html
+    assert "function refreshSetupInstalled" in html
+    # refreshed when the panel opens and again after "Create instances"
+    assert html.count("await refreshSetupInstalled()") >= 2
 
 
 def test_bot_action_buttons_show_pending_state_and_polls_do_not_overlap():
