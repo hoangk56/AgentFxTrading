@@ -195,7 +195,7 @@ On a fresh VPS, as root, run:
 curl -fsSL https://raw.githubusercontent.com/hoangk56/AgentFxTrading/main/scripts/install.sh | sudo bash
 ```
 
-It asks for one thing — the SSH public key that will log in as the `forge` user — and then installs PostgreSQL 17, Docker, the FastAPI server as a systemd service (`agentfx.service`, user `forge`, bound to `127.0.0.1:8000`), compiles the three cBot `.algo` packages, and enables a daily database backup. Password SSH login is disabled.
+It asks for one thing — the SSH public key that will log in as the `forge` user — and then creates a swap file (2×RAM under 2 GiB, =RAM up to 8 GiB, RAM/2 above), installs PostgreSQL 17, Docker, the FastAPI server as a systemd service (`agentfx.service`, user `forge`, bound to `127.0.0.1:8000`), compiles the three cBot `.algo` packages, and enables a daily database backup. Password SSH login is disabled.
 
 **Before closing your root session**, confirm the key works from another terminal: `ssh forge@YOUR_VPS_IP 'sudo -n true && echo LOGIN_OK'`. Password login (including root) is disabled once the installer finishes.
 

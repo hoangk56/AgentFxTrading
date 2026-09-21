@@ -224,3 +224,88 @@ def test_render_sshd_dropin():
 def test_render_backup_cron():
     out = run_fn("render_backup_cron", {"FORGE_USER": "forge", "FORGE_HOME": "/home/forge"}).stdout
     assert out == "0 3 * * * forge /home/forge/AgentFxTrading/scripts/backup_postgres.sh\n"
+
+
+@pytest.mark.parametrize("ram_mib,swap_mib", [
+    (1024, 2048),    # < 2 GiB → 2×RAM
+    (2047, 4094),
+    (2048, 2048),    # 2–8 GiB → RAM
+    (4096, 4096),
+    (8191, 8191),
+    (8192, 4096),    # ≥ 8 GiB → RAM/2
+    (16384, 8192),
+])
+def test_swap_size_mib_tiers_by_ram(ram_mib, swap_mib):
+    result = run_fn(f"swap_size_mib {ram_mib}")
+    assert result.returncode == 0, result.stderr
+    assert result.stdout == str(swap_mib)
+
+
+def test_configure_swap_skips_when_swap_already_active():
+    # Fake the probe, and turn every mutating command into a loud failure so a
+    # regression that starts creating a second swap file is caught here.
+    result = run_fn(
+        "swap_is_active() { return 0; }; "
+        "fallocate() { echo FALLOCATE_CALLED >&2; return 1; }; "
+        "mkswap() { echo MKSWAP_CALLED >&2; return 1; }; "
+        "swapon() { echo SWAPON_CALLED >&2; return 1; }; "
+        "configure_swap"
+    )
+    assert result.returncode == 0, result.stderr
+    assert "already" in result.stdout
+    assert "_CALLED" not in result.stderr
+
+
+def _swap_env(tmp_path: Path) -> dict:
+    return {"SWAPFILE": str(tmp_path / "swapfile"), "FSTAB": str(tmp_path / "fstab")}
+
+
+# No swap yet, 1 GiB of RAM, and the util-linux tools replaced by recorders that
+# still create the file so chmod/grep on it behave as they would for real.
+FAKE_SWAP_TOOLS = (
+    "swap_is_active() { return 1; }; "
+    "ram_mib() { echo 1024; }; "
+    "fallocate() { echo \"fallocate $*\"; : > \"$3\"; }; "
+    "mkswap() { echo \"mkswap $*\" >&2; }; "   # the script silences mkswap's stdout
+    "swapon() { echo \"swapon $*\"; }; "
+)
+
+
+def test_configure_swap_creates_file_sized_by_ram_and_persists_it(tmp_path):
+    env = _swap_env(tmp_path)
+    Path(env["FSTAB"]).write_text("/dev/sda1 / ext4 defaults 0 1\n")
+    result = run_fn(FAKE_SWAP_TOOLS + "configure_swap", env)
+    assert result.returncode == 0, result.stderr
+    swapfile = env["SWAPFILE"]
+    assert f"fallocate -l 2048M {swapfile}" in result.stdout
+    assert f"mkswap {swapfile}" in result.stderr
+    assert f"swapon {swapfile}" in result.stdout
+    assert oct(Path(swapfile).stat().st_mode & 0o777) == "0o600"
+    assert Path(env["FSTAB"]).read_text() == f"/dev/sda1 / ext4 defaults 0 1\n{swapfile} none swap sw 0 0\n"
+
+
+def test_configure_swap_does_not_duplicate_fstab_line(tmp_path):
+    env = _swap_env(tmp_path)
+    fstab = Path(env["FSTAB"])
+    fstab.write_text(f"{env['SWAPFILE']} none swap sw 0 0\n")
+    result = run_fn(FAKE_SWAP_TOOLS + "configure_swap", env)
+    assert result.returncode == 0, result.stderr
+    assert fstab.read_text() == f"{env['SWAPFILE']} none swap sw 0 0\n"
+
+
+def test_configure_swap_recreates_leftover_inactive_file(tmp_path):
+    env = _swap_env(tmp_path)
+    Path(env["FSTAB"]).write_text("")
+    Path(env["SWAPFILE"]).write_text("half-written")
+    result = run_fn(FAKE_SWAP_TOOLS + "configure_swap", env)
+    assert result.returncode == 0, result.stderr
+    assert "recreating" in result.stdout
+    assert Path(env["SWAPFILE"]).read_text() == ""   # fresh file, not the leftover
+
+
+def test_configure_swap_keeps_fstab_lines_separate_without_trailing_newline(tmp_path):
+    env = _swap_env(tmp_path)
+    Path(env["FSTAB"]).write_text("/dev/sda1 / ext4 defaults 0 1")   # no final newline
+    result = run_fn(FAKE_SWAP_TOOLS + "configure_swap", env)
+    assert result.returncode == 0, result.stderr
+    assert Path(env["FSTAB"]).read_text() == f"/dev/sda1 / ext4 defaults 0 1\n{env['SWAPFILE']} none swap sw 0 0\n"

@@ -25,6 +25,8 @@ CTRADER_HOME="${CTRADER_HOME:-${FORGE_HOME}/ctrader}"
 AGENTFX_REPO="${AGENTFX_REPO:-https://github.com/hoangk56/AgentFxTrading.git}"
 AGENTFX_BRANCH="${AGENTFX_BRANCH:-main}"
 CTRADER_IMAGE="${CTRADER_IMAGE:-ghcr.io/spotware/ctrader-console:latest}"
+SWAPFILE="${SWAPFILE:-/swapfile}"
+FSTAB="${FSTAB:-/etc/fstab}"
 DB_NAME="agentfx"
 DB_USER="agentfx"
 SERVICE_NAME="agentfx"
@@ -104,6 +106,25 @@ sshd_password_auth_disabled() {
 }
 
 generate_password() { openssl rand -hex 24; }
+
+swap_size_mib() {
+  # usage: swap_size_mib "<ram_mib>"  → prints swap size in MiB: 2×RAM under 2 GiB, RAM up to 8 GiB, RAM/2 above
+  local ram="$1"
+  if   (( ram < 2048 )); then printf '%d' $(( ram * 2 ))
+  elif (( ram < 8192 )); then printf '%d' "$ram"
+  else                        printf '%d' $(( ram / 2 ))
+  fi
+}
+
+swap_is_active() {
+  # usage: swap_is_active  → 0 iff the kernel has any swap device or file enabled (/proc/swaps has a header line)
+  [[ -r /proc/swaps ]] && (( $(wc -l < /proc/swaps) > 1 ))
+}
+
+ram_mib() {
+  # usage: ram_mib  → prints MemTotal in MiB
+  awk '/^MemTotal:/{print int($2 / 1024)}' /proc/meminfo
+}
 
 # --- system steps --------------------------------------------------------------
 preflight() {
@@ -213,6 +234,35 @@ install_base_packages() {
   apt-get -o DPkg::Lock::Timeout=600 update -q
   apt_install git curl ca-certificates gnupg lsb-release openssl cron ufw \
     python3 python3-venv python3-dev build-essential libpq-dev
+}
+
+configure_swap() {
+  step "Configuring swap"
+  local ram size_mib
+  if swap_is_active; then
+    log "Swap already active — keeping it"
+    return 0
+  fi
+  if [[ -e "$SWAPFILE" ]]; then
+    log "${SWAPFILE} exists but is not enabled (interrupted run?) — recreating"
+    rm -f "$SWAPFILE"
+  fi
+  ram="$(ram_mib)"
+  [[ -n "$ram" ]] || die "Cannot read MemTotal from /proc/meminfo"
+  size_mib="$(swap_size_mib "$ram")"
+  # fallocate is instant on ext4/xfs; fall back to dd where the filesystem refuses it.
+  if ! fallocate -l "${size_mib}M" "$SWAPFILE" 2>/dev/null; then
+    rm -f "$SWAPFILE"
+    dd if=/dev/zero of="$SWAPFILE" bs=1M count="$size_mib" status=none
+  fi
+  chmod 0600 "$SWAPFILE"
+  mkswap "$SWAPFILE" >/dev/null
+  swapon "$SWAPFILE"
+  if ! grep -qE "^${SWAPFILE}[[:space:]]" "$FSTAB"; then
+    [[ -z "$(tail -c1 "$FSTAB")" ]] || echo >> "$FSTAB"   # never glue onto a last line missing its newline
+    printf '%s none swap sw 0 0\n' "$SWAPFILE" >> "$FSTAB"
+  fi
+  log "Swap enabled: ${SWAPFILE} ${size_mib} MiB (RAM ${ram} MiB), persisted in ${FSTAB}"
 }
 
 create_forge_user() {
@@ -431,8 +481,9 @@ configure_firewall() {
 }
 
 print_summary() {
-  local ip
+  local ip swap
   ip="$(curl -fs4 --max-time 5 https://api.ipify.org 2>/dev/null || hostname -I | awk '{print $1}')"
+  swap="$(awk 'NR>1{printf "%s (%d MiB) ", $1, $3/1024}' /proc/swaps 2>/dev/null || true)"
   cat <<EOF
 
 =============================================================================
@@ -444,6 +495,7 @@ print_summary() {
  Database     : postgresql://${DB_USER}:***@127.0.0.1:5432/${DB_NAME}  (full URL in .env)
  cBots built  : ${REPO_DIR}/cBot/{AiAgentBot,AsianRangeJudasSweepBot,FlowRsiBot}.algo
  cTrader home : ${CTRADER_HOME}  (mounted as /root inside cBot containers)
+ Swap         : ${swap:-none}
 
  Next steps
  1. BEFORE closing this session, prove the key works from ANOTHER terminal:
@@ -468,6 +520,7 @@ main() {
   preflight
   read_ssh_key
   install_base_packages
+  configure_swap
   create_forge_user
   harden_sshd
   install_postgresql
