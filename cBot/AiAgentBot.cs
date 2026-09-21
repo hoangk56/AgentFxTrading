@@ -1472,8 +1472,8 @@ namespace cAlgo.Robots
 
                 if (isIndex)
                 {
-                    double minIndexPips = symUp.Contains("US30") ? 300.0 : 150.0;
-                    activationThreshold = Math.Max(activationThreshold, minIndexPips);
+                    double minIndexPips = symUp.Contains("US30") ? 1000.0 : (symUp.Contains("USTEC") ? 600.0 : (symUp.Contains("DE40") ? 500.0 : 400.0));
+                    activationThreshold = Math.Max(activationThreshold, Math.Max(minIndexPips, 1.5 * atrInPips));
                 }
                 else if (isForex)
                 {
