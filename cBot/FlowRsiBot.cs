@@ -168,10 +168,10 @@ namespace cAlgo.Robots
         [Parameter("Enable Gated Trailing Stop", Group = "Position Protection", DefaultValue = true)]
         public bool EnableTrailingStop { get; set; }
 
-        [Parameter("Trailing Stop Trigger (R:R)", Group = "Position Protection", DefaultValue = 1.0, MinValue = 0.5)]
+        [Parameter("Trailing Stop Trigger (R:R)", Group = "Position Protection", DefaultValue = 1.8, MinValue = 0.5)]
         public double TrailingStopTriggerRr { get; set; }
 
-        [Parameter("Trailing Stop Distance (pips)", Group = "Position Protection", DefaultValue = 15.0, MinValue = 5.0)]
+        [Parameter("Trailing Stop Distance (pips)", Group = "Position Protection", DefaultValue = 25.0, MinValue = 5.0)]
         public double TrailingStopDistancePips { get; set; }
 
         [Parameter("Partial Close at BE Ratio (0-1)", Group = "Position Protection", DefaultValue = 0.25, MinValue = 0.0, MaxValue = 1.0)]
@@ -1289,13 +1289,33 @@ namespace cAlgo.Robots
                     }
                 }
 
-                // ── 2. Gated Trailing Stop (Activates when BE achieved or current R:R >= Trigger) ──
-                if (EnableTrailingStop && (isBeAchieved || currentRr >= TrailingStopTriggerRr))
+                // ── 2. Gated Trailing Stop (Activates ONLY when profit >= TrailingStopTriggerRr, e.g. 1.8R) ──
+                // CRITICAL FIX: Decouple from isBeAchieved!
+                // At 1.0R, Break-Even moves SL to Entry + buffer to secure Zero-Loss.
+                // The position MUST be granted breathing room to run and ride the trend between 1.0R and 1.8R!
+                // Trailing Stop only activates when profit reaches at least TrailingStopTriggerRr (1.8R).
+                if (EnableTrailingStop && currentRr >= TrailingStopTriggerRr)
                 {
+                    string symUp = SymbolName.ToUpperInvariant();
+                    double minTrailDistPips = TrailingStopDistancePips;
+                    if (symUp.Contains("XAU") || symUp.Contains("GOLD"))
+                        minTrailDistPips = Math.Max(minTrailDistPips, 350.0); // min $3.50 for Gold
+                    else if (symUp.Contains("JPY"))
+                        minTrailDistPips = Math.Max(minTrailDistPips, 25.0);  // min 25 pips for JPY
+                    else if (symUp.Contains("US30") || symUp.Contains("USTEC") || symUp.Contains("DE40") || symUp.Contains("UK100"))
+                        minTrailDistPips = Math.Max(minTrailDistPips, 350.0); // min 350 pips for Indices
+                    else
+                        minTrailDistPips = Math.Max(minTrailDistPips, 20.0);  // min 20 pips for Forex
+
+                    // Tiered Trailing: Normal trailing gives breathing room (100% of initial SL distance).
+                    // Tier 2 (currentRr >= 2.5R): Tighten to 60% of initial SL distance to lock in profits.
+                    double trailMultiplier = currentRr >= 2.5 ? 0.6 : 1.0;
+                    double effectiveTrailDistPips = Math.Max(minTrailDistPips, initialSlDist * trailMultiplier);
+
                     double candidateTrailSL;
                     if (pos.TradeType == TradeType.Buy)
                     {
-                        candidateTrailSL = Symbol.Bid - (TrailingStopDistancePips * Symbol.PipSize);
+                        candidateTrailSL = Symbol.Bid - (effectiveTrailDistPips * Symbol.PipSize);
                         candidateTrailSL = GetZeroLossStopLossPrice(pos, candidateTrailSL, extraBufferPips: BreakEvenExtraPips);
                         if ((!pos.StopLoss.HasValue || candidateTrailSL > pos.StopLoss.Value) && candidateTrailSL < Symbol.Bid)
                         {
@@ -1304,7 +1324,7 @@ namespace cAlgo.Robots
                     }
                     else
                     {
-                        candidateTrailSL = Symbol.Ask + (TrailingStopDistancePips * Symbol.PipSize);
+                        candidateTrailSL = Symbol.Ask + (effectiveTrailDistPips * Symbol.PipSize);
                         candidateTrailSL = GetZeroLossStopLossPrice(pos, candidateTrailSL, extraBufferPips: BreakEvenExtraPips);
                         if ((!pos.StopLoss.HasValue || candidateTrailSL < pos.StopLoss.Value) && candidateTrailSL > Symbol.Ask)
                         {
