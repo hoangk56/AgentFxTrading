@@ -7,9 +7,9 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Python 3.9+](https://img.shields.io/badge/python-3.9+-blue.svg)](https://www.python.org/downloads/)
 [![cTrader](https://img.shields.io/badge/cTrader-4.x+-green.svg)](https://ctdn.com/)
-[![Stars](https://img.shields.io/github/stars/hoangk56/AgentFxTrading?style=social)](https://github.com/hoangk56/AgentFxTrading/stargazers)
-[![Forks](https://img.shields.io/github/forks/hoangk56/AgentFxTrading?style=social)](https://github.com/hoangk56/AgentFxTrading/network/members)
-[![Issues](https://img.shields.io/github/issues/hoangk56/AgentFxTrading)](https://github.com/hoangk56/AgentFxTrading/issues)
+[![Stars](https://img.shields.io/github/stars/kienphan/AgentFxTrading?style=social)](https://github.com/kienphan/AgentFxTrading/stargazers)
+[![Forks](https://img.shields.io/github/forks/kienphan/AgentFxTrading?style=social)](https://github.com/kienphan/AgentFxTrading/network/members)
+[![Issues](https://img.shields.io/github/issues/kienphan/AgentFxTrading)](https://github.com/kienphan/AgentFxTrading/issues)
 [![Donate](https://img.shields.io/badge/Donate-Buy%20Me%20A%20Coffee-ffdd00?style=flat&logo=buy-me-a-coffee&logoColor=black)](https://buymeacoffee.com/kaz126)
 
 [🇬🇧 English](README.md) | [🇻🇳 Tiếng Việt](README.vi.md) | [🇨🇳 中文](README.zh.md) | [🇵🇹 Português](README.pt.md) | [🇯🇵 日本語](README.ja.md) | [🇷🇺 Русский](README.ru.md)
@@ -189,7 +189,7 @@ WS   /ws/dashboard             # WebSocket para atualizações em tempo real do 
 
 ```bash
 # Clonar repositório
-git clone https://github.com/hoangk56/AgentFxTrading.git
+git clone https://github.com/kienphan/AgentFxTrading.git
 cd AgentFxTrading
 
 # Instalar dependências
@@ -1671,8 +1671,8 @@ Contribuições são bem-vindas! Aqui está como você pode ajudar:
 
 ### Comunidade
 
-- 💬 [Discussões](https://github.com/hoangk56/AgentFxTrading/discussions)
-- 🐛 [Issues](https://github.com/hoangk56/AgentFxTrading/issues)
+- 💬 [Discussões](https://github.com/kienphan/AgentFxTrading/discussions)
+- 🐛 [Issues](https://github.com/kienphan/AgentFxTrading/issues)
 - 📧 Email: senior1206@gmail.com
 
 ---
