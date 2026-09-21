@@ -2106,10 +2106,17 @@ namespace cAlgo.Robots
 
             // Hard Guardrail 1: Broker minimum contract size vs MaxAllowedLots
             double brokerMinLots = Symbol.VolumeInUnitsMin / Symbol.LotSize;
-            if (MaxAllowedLots > 0 && brokerMinLots > MaxAllowedLots)
+            double effectiveMaxLots = MaxAllowedLots;
+            if (effectiveMaxLots > 0 && effectiveMaxLots < brokerMinLots && Math.Abs(effectiveMaxLots - 0.20) < 0.001)
             {
-                if (ShowLogs) Print($"[Guardrail] Blocked: Broker minimum volume ({brokerMinLots:F2} lots) exceeds MaxAllowedLots ({MaxAllowedLots:F2} lots). Account cannot safely trade this instrument.");
-                _ = ReportGuardrailBlockedAsync("MinLotExceedsCap", $"Broker min volume {brokerMinLots:F2} lots > MaxAllowedLots {MaxAllowedLots:F2} lots");
+                if (ShowLogs) Print($"[Guardrail Calibration] Broker min volume ({brokerMinLots:F2} lots) exceeds default MaxAllowedLots (0.20 lots). Auto-adapting effective MaxAllowedLots to {brokerMinLots:F2} lots (strictly guarded by MaxDollarRiskPerTrade ${MaxDollarRiskPerTrade:F2}).");
+                effectiveMaxLots = brokerMinLots;
+            }
+
+            if (effectiveMaxLots > 0 && brokerMinLots > effectiveMaxLots)
+            {
+                if (ShowLogs) Print($"[Guardrail] Blocked: Broker minimum volume ({brokerMinLots:F2} lots) exceeds MaxAllowedLots ({effectiveMaxLots:F2} lots). Account cannot safely trade this instrument.");
+                _ = ReportGuardrailBlockedAsync("MinLotExceedsCap", $"Broker min volume {brokerMinLots:F2} lots > MaxAllowedLots {effectiveMaxLots:F2} lots");
                 return;
             }
 
@@ -2147,14 +2154,14 @@ namespace cAlgo.Robots
             double volume = Symbol.NormalizeVolumeInUnits(volumeInUnits, RoundingMode.Down);
             if (volume < Symbol.VolumeInUnitsMin) volume = Symbol.VolumeInUnitsMin;
 
-            // Cap volume at MaxAllowedLots if configured
-            if (MaxAllowedLots > 0 && (volume / Symbol.LotSize) > MaxAllowedLots)
+            // Cap volume at effectiveMaxLots if configured
+            if (effectiveMaxLots > 0 && (volume / Symbol.LotSize) > effectiveMaxLots)
             {
-                volume = Symbol.NormalizeVolumeInUnits(MaxAllowedLots * Symbol.LotSize, RoundingMode.Down);
+                volume = Symbol.NormalizeVolumeInUnits(effectiveMaxLots * Symbol.LotSize, RoundingMode.Down);
                 if (volume < Symbol.VolumeInUnitsMin)
                 {
-                    if (ShowLogs) Print($"[Guardrail] Blocked: Capping to MaxAllowedLots ({MaxAllowedLots:F2} lots) falls below broker minimum ({brokerMinLots:F2} lots).");
-                    _ = ReportGuardrailBlockedAsync("BelowMinLotAfterCap", $"Capping at {MaxAllowedLots:F2} lots falls below broker min {brokerMinLots:F2} lots");
+                    if (ShowLogs) Print($"[Guardrail] Blocked: Capping to MaxAllowedLots ({effectiveMaxLots:F2} lots) falls below broker minimum ({brokerMinLots:F2} lots).");
+                    _ = ReportGuardrailBlockedAsync("BelowMinLotAfterCap", $"Capping at {effectiveMaxLots:F2} lots falls below broker min {brokerMinLots:F2} lots");
                     return;
                 }
             }
@@ -2414,6 +2421,7 @@ namespace cAlgo.Robots
                     if (ShowLogs) Print("[TickStream] Connected.");
 
                     long sentStamp = -1;
+                    DateTime lastSendTime = DateTime.UtcNow;
                     while (!token.IsCancellationRequested)
                     {
                         // Poll for a freshly captured frame instead of sleeping a whole interval:
@@ -2431,23 +2439,38 @@ namespace cAlgo.Robots
                             pnl = _tickFramePnl; pips = _tickFramePips;
                             hasPnl = _tickFrameHasPnl; stamp = _tickFrameStamp;
                         }
-                        if (stamp == sentStamp || (bid <= 0 && ask <= 0)) continue;
 
-                        var json = JsonSerializer.Serialize(new TickStreamMessage
+                        bool isNewTick = (stamp != sentStamp && (bid > 0 || ask > 0));
+                        bool isHeartbeatDue = (DateTime.UtcNow - lastSendTime).TotalSeconds >= 15.0;
+                        if (!isNewTick && !isHeartbeatDue) continue;
+
+                        string json;
+                        if (isNewTick)
                         {
-                            type = "tick",
-                            bot_id = BotId,
-                            symbol = SymbolName,
-                            bid = bid,
-                            ask = ask,
-                            pnl = hasPnl ? (double?)pnl : null,
-                            pips = hasPnl ? (double?)pips : null
-                        });
+                            json = JsonSerializer.Serialize(new TickStreamMessage
+                            {
+                                type = "tick",
+                                bot_id = BotId,
+                                symbol = SymbolName,
+                                bid = bid,
+                                ask = ask,
+                                pnl = hasPnl ? (double?)pnl : null,
+                                pips = hasPnl ? (double?)pips : null
+                            });
+                            sentStamp = stamp;
+                        }
+                        else
+                        {
+                            json = JsonSerializer.Serialize(new
+                            {
+                                type = "ping",
+                                bot_id = BotId
+                            });
+                        }
+
                         var payload = Encoding.UTF8.GetBytes(json);
                         await ws.SendAsync(new ArraySegment<byte>(payload), WebSocketMessageType.Text, true, token);
-                        sentStamp = stamp;
-
-                        // Drain the ack: an unread receive buffer fills up over a trading day and
+                        lastSendTime = DateTime.UtcNow;
                         // then stalls the server's sends.
                         while (true)
                         {

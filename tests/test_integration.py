@@ -878,7 +878,7 @@ def test_us_index_premarket_cash_open_buffer():
 def test_gold_min_decisive_breakout_gate():
     from app.server import evaluate_cycle_gate, MarketSnapshot, TmsSignals, OrbData, SessionInfo, BarData
 
-    # Breakout distance 150 pips (< 250.0 threshold for Gold) -> Gated to HOLD
+    # Breakout distance 80 pips (< 150.0 threshold for Gold) -> Gated to HOLD
     snap_small_breakout = MarketSnapshot(
         bot_id="cbot-xauusd",
         symbol="XAUUSD",
@@ -891,7 +891,7 @@ def test_gold_min_decisive_breakout_gate():
         orb=OrbData(
             or_complete=True,
             breakout_direction="up",
-            breakout_distance_pips=150.0,
+            breakout_distance_pips=80.0,
             in_entry_window=True,
             is_decisive=True,
             bars_since_breakout=1
@@ -902,7 +902,7 @@ def test_gold_min_decisive_breakout_gate():
     assert decision.action == "HOLD"
     assert "Gold breakout not decisive" in decision.reason
 
-    # Breakout distance 260 pips (>= 250.0 threshold for Gold) -> Passes gate
+    # Breakout distance 180 pips (>= 150.0 threshold for Gold) -> Passes gate
     snap_decisive = MarketSnapshot(
         bot_id="cbot-xauusd",
         symbol="XAUUSD",
@@ -915,7 +915,7 @@ def test_gold_min_decisive_breakout_gate():
         orb=OrbData(
             or_complete=True,
             breakout_direction="up",
-            breakout_distance_pips=260.0,
+            breakout_distance_pips=180.0,
             in_entry_window=True,
             is_decisive=True,
             bars_since_breakout=1

@@ -8,11 +8,9 @@ TARGETS = [
     'cbot-uk100-judas',
     'cbot-ustec-judas',
     'cbot-hk50',
-    'cbot-jp225',
     'cbot-us500',
     'cbot-uk100',
     'cbot-de40',
-    'cbot-ustec',
     'cbot-us30'
 ]
 
@@ -41,7 +39,6 @@ def main():
                 modified = True
             else:
                 new_cmd.append(arg)
-
         if not modified:
             print(f"[i] {name} does not have 1.0 risk arg. Skipping.")
             continue

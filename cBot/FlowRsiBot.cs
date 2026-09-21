@@ -147,7 +147,7 @@ namespace cAlgo.Robots
         #endregion
 
         #region Position Protection (Anti-Drawdown & True Zero-Loss BE)
-        [Parameter("Enable True Break-Even", Group = "Position Protection", DefaultValue = false)]
+        [Parameter("Enable True Break-Even", Group = "Position Protection", DefaultValue = true)]
         public bool EnableBreakEven { get; set; }
 
         [Parameter("Break-Even Trigger Mode", Group = "Position Protection", DefaultValue = BreakEvenTriggerMode.Risk_Reward_Ratio)]
@@ -165,7 +165,7 @@ namespace cAlgo.Robots
         [Parameter("Enable Gated Trailing Stop", Group = "Position Protection", DefaultValue = true)]
         public bool EnableTrailingStop { get; set; }
 
-        [Parameter("Trailing Stop Trigger (R:R)", Group = "Position Protection", DefaultValue = 1.5, MinValue = 1.0)]
+        [Parameter("Trailing Stop Trigger (R:R)", Group = "Position Protection", DefaultValue = 1.0, MinValue = 0.5)]
         public double TrailingStopTriggerRr { get; set; }
 
         [Parameter("Trailing Stop Distance (pips)", Group = "Position Protection", DefaultValue = 15.0, MinValue = 5.0)]
@@ -1285,15 +1285,15 @@ namespace cAlgo.Robots
                     }
                 }
 
-                // ── 2. Gated Trailing Stop (Strictly only runs AFTER Break-Even has been achieved) ──
-                if (EnableTrailingStop && isBeAchieved && currentRr >= TrailingStopTriggerRr)
+                // ── 2. Gated Trailing Stop (Activates when BE achieved or current R:R >= Trigger) ──
+                if (EnableTrailingStop && (isBeAchieved || currentRr >= TrailingStopTriggerRr))
                 {
                     double candidateTrailSL;
                     if (pos.TradeType == TradeType.Buy)
                     {
                         candidateTrailSL = Symbol.Bid - (TrailingStopDistancePips * Symbol.PipSize);
                         candidateTrailSL = GetZeroLossStopLossPrice(pos, candidateTrailSL, extraBufferPips: BreakEvenExtraPips);
-                        if (candidateTrailSL > pos.StopLoss.Value && candidateTrailSL < Symbol.Bid)
+                        if ((!pos.StopLoss.HasValue || candidateTrailSL > pos.StopLoss.Value) && candidateTrailSL < Symbol.Bid)
                         {
                             SafeModifyPosition(pos, candidateTrailSL, pos.TakeProfit, source: "Trailing Stop");
                         }
@@ -1302,7 +1302,7 @@ namespace cAlgo.Robots
                     {
                         candidateTrailSL = Symbol.Ask + (TrailingStopDistancePips * Symbol.PipSize);
                         candidateTrailSL = GetZeroLossStopLossPrice(pos, candidateTrailSL, extraBufferPips: BreakEvenExtraPips);
-                        if (candidateTrailSL < pos.StopLoss.Value && candidateTrailSL > Symbol.Ask)
+                        if ((!pos.StopLoss.HasValue || candidateTrailSL < pos.StopLoss.Value) && candidateTrailSL > Symbol.Ask)
                         {
                             SafeModifyPosition(pos, candidateTrailSL, pos.TakeProfit, source: "Trailing Stop");
                         }
