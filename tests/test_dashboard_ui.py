@@ -159,3 +159,39 @@ def test_tick_metrics_merge_into_the_cached_position_report():
     pm2.update_position_metrics("bot-c", 2.5, 10.0)
     assert pm2._bot_positions_cache["live-9:bot-c"]["unrealized_pnl"] == 2.5
     assert pm2._bot_positions_cache["live-9:bot-c"]["entry_price"] == 1.1
+
+
+def test_setup_instances_panel_is_in_docker_view():
+    html = client.get("/demo/dashboard").text
+    docker_idx = html.find('id="view-docker"')
+    logs_idx = html.find('id="view-logs"')
+    panel_idx = html.find('id="setup-panel"')
+    button_idx = html.find('id="setup-instances-btn"')
+    assert docker_idx != -1 and panel_idx != -1 and button_idx != -1
+    assert docker_idx < button_idx < panel_idx < logs_idx        # inside the Docker view, next to Add Bot
+    assert "Setup Instances" in html
+    for element_id in ("setup-account", "setup-new-account", "setup-acc-password", "setup-grid",
+                       "setup-save-only", "setup-create-btn", "setup-results"):
+        assert f'id="{element_id}"' in html, element_id
+    assert 'id="setup-acc-password" type="password"' in html
+    for endpoint in ("/api/setup/presets", "/api/setup/instances", "/api/setup/installed", "/api/ctrader-accounts"):
+        assert endpoint in html, endpoint
+
+
+def test_setup_grid_marks_cells_already_installed_for_an_account():
+    html = client.get("/demo/dashboard").text
+    # Each preset cell carries a note slot; the installed list fills it with the account label(s)
+    # without re-rendering the grid (which would drop the user's ticks).
+    assert 'class="setup-cell-note"' in html
+    assert "function refreshSetupInstalled" in html
+    # refreshed when the panel opens and again after "Create instances"
+    assert html.count("await refreshSetupInstalled()") >= 2
+
+
+def test_bot_action_buttons_show_pending_state_and_polls_do_not_overlap():
+    html = client.get("/demo/dashboard").text
+    # A docker stop/restart takes 7-10 s: the clicked row must say so instead of looking dead.
+    for label in ("Starting…", "Stopping…", "Restarting…", "Deleting…"):
+        assert label in html, label
+    # A 10 s poll must never re-render over a pending row, nor stack up while a slow poll runs.
+    assert "if (botsFetchInFlight || botActionInFlight) return;" in html

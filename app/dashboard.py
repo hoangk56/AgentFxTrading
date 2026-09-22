@@ -929,16 +929,27 @@ class BotUpdateConfigRequest(BaseModel):
     run_command: str
     restart: bool = True
 
+# The bot control handlers below are plain `def` on purpose: FastAPI runs them in a threadpool.
+# Docker calls block (stop/restart wait up to 10 s; inspect+logs took seconds under load), and
+# inside `async def` that pinned the event loop, stalling /trade and /ws/cbot for every cBot.
+
 @router.get("/api/bots")
-async def api_get_bots():
+def api_get_bots():
+    from app.cbot_watchdog import cbot_watchdog
     pm = get_portfolio_manager()
     configs = pm.get_cbot_configs()
-    # enrich with status
+    # enrich with status; health comes from the watchdog's last cycle (one docker inspect per
+    # bot here instead of inspect+logs per bot per 10 s poll)
     for cfg in configs:
         status_info = docker_manager.get_container_status(cfg["name"])
-        cfg["status"] = status_info.get("status", "unknown")
+        status = status_info.get("status", "unknown")
+        cfg["status"] = status
         cfg["container_id"] = status_info.get("id", "")
-        health_info = docker_manager.check_cbot_health(cfg["name"])
+        if status != "running":
+            health_info = {"healthy": False, "stuck": False, "reason": f"Container is {status}"}
+        else:
+            health_info = cbot_watchdog.last_health(cfg["name"]) or {
+                "healthy": True, "stuck": False, "reason": "Awaiting first watchdog check"}
         cfg["healthy"] = health_info.get("healthy", True)
         cfg["stuck"] = health_info.get("stuck", False)
         cfg["health_reason"] = health_info.get("reason", "")
@@ -960,7 +971,7 @@ async def api_add_bot(req: BotConfigRequest):
 
 @router.put("/api/bots/{name}")
 @router.post("/api/bots/{name}/update")
-async def api_update_bot(name: str, req: BotUpdateConfigRequest):
+def api_update_bot(name: str, req: BotUpdateConfigRequest):
     pm = get_portfolio_manager()
     success = pm.update_cbot_config(name, req.description or "", req.run_command)
     if not success:
@@ -978,15 +989,25 @@ async def api_update_bot(name: str, req: BotUpdateConfigRequest):
     
     return {"success": True, "message": f"Bot {name} configuration updated."}
 @router.delete("/api/bots/{name}")
-async def api_delete_bot(name: str):
+def api_delete_bot(name: str):
+    """Stop and remove the container, then drop the config row.
+
+    Dropping only the row used to leave the container running and trading, invisible to the
+    dashboard and the watchdog. The row is kept when the container cannot be removed so the bot
+    stays visible and the user can retry.
+    """
     pm = get_portfolio_manager()
-    success = pm.delete_cbot_config(name)
-    if success:
-        return {"success": True, "message": "Bot config deleted"}
-    return {"success": False, "message": "Bot config not found"}
+    if not pm.get_cbot_config(name):
+        return {"success": False, "message": "Bot config not found"}
+    docker_manager.stop_container(name)            # graceful first (cBot OnStop); "not found" is fine
+    removed = docker_manager.remove_container(name)  # force=True; NotFound counts as removed
+    if not removed.get("success"):
+        return {"success": False, "message": f"Container not removed: {removed.get('message', 'docker error')}"}
+    pm.delete_cbot_config(name)
+    return {"success": True, "message": "Bot config and container deleted"}
 
 @router.post("/api/bots/{name}/start")
-async def api_start_bot(name: str):
+def api_start_bot(name: str):
     pm = get_portfolio_manager()
     config = pm.get_cbot_config(name)
     if not config:
@@ -995,19 +1016,125 @@ async def api_start_bot(name: str):
     return result
 
 @router.post("/api/bots/{name}/stop")
-async def api_stop_bot(name: str):
+def api_stop_bot(name: str):
     result = docker_manager.stop_container(name)
     return result
 
 @router.post("/api/bots/{name}/remove")
-async def api_remove_bot(name: str):
+def api_remove_bot(name: str):
     result = docker_manager.remove_container(name)
     return result
 
 @router.post("/api/bots/{name}/restart")
-async def api_restart_bot(name: str):
+def api_restart_bot(name: str):
     result = docker_manager.restart_container(name)
     return result
+
+# --- cTrader accounts & preset-based instance setup (Setup Instances screen) ---
+from fastapi.responses import JSONResponse
+from app import ctrader_accounts as ctrader_accounts_service
+
+
+def _error(status: int, message: str) -> JSONResponse:
+    return JSONResponse(status_code=status, content={"success": False, "message": message})
+
+
+class CtraderAccountRequest(BaseModel):
+    label: str = ""
+    ctid_email: str = ""
+    password: str = ""
+    account_number: str = ""
+    account_type: str = "demo"
+
+
+@router.get("/api/ctrader-accounts")
+async def api_list_ctrader_accounts():
+    return {"accounts": ctrader_accounts_service.list_ctrader_accounts(get_account_registry())}
+
+
+@router.post("/api/ctrader-accounts", status_code=201)
+async def api_create_ctrader_account(req: CtraderAccountRequest):
+    try:
+        account = ctrader_accounts_service.create_ctrader_account(
+            get_account_registry(), label=req.label, ctid_email=req.ctid_email, password=req.password,
+            account_number=req.account_number, account_type=req.account_type,
+        )
+    except ctrader_accounts_service.AccountValidationError as e:
+        return _error(422, str(e))
+    except ctrader_accounts_service.DuplicateSlugError as e:
+        return _error(409, str(e))
+    except OSError as e:
+        return _error(500, f"Could not write password file: {e}")
+    return {"success": True, "account": account}
+
+
+@router.delete("/api/ctrader-accounts/{account_id}")
+async def api_delete_ctrader_account(account_id: int):
+    if not ctrader_accounts_service.delete_ctrader_account(get_account_registry(), account_id):
+        return _error(404, "Account not found")
+    return {"success": True}
+
+
+from app.cbot_presets import PRESETS, build_run_command, container_name, describe_cell, installed_cells, presets_payload
+
+
+class InstanceSelection(BaseModel):
+    symbol: str
+    strategy: str
+
+
+class SetupInstancesRequest(BaseModel):
+    account_id: int
+    selections: List[InstanceSelection]
+    start: bool = True
+
+
+@router.get("/api/setup/presets")
+async def api_setup_presets():
+    return presets_payload()
+
+
+@router.get("/api/setup/installed")
+async def api_setup_installed():
+    """Preset cells that already have a bot config, with the account each was created for (no Docker calls)."""
+    config_names = {cfg["name"] for cfg in get_portfolio_manager().get_cbot_configs()}
+    return {"installed": installed_cells(get_account_registry().list_ctrader_accounts(), config_names)}
+
+
+@router.post("/api/setup/instances")
+# sync on purpose: up to 22 serial docker starts must not block the event loop (/trade, websockets)
+def api_setup_instances(req: SetupInstancesRequest):
+    """Save (and optionally start) one cbot_configs row per selected preset cell. Never aborts the batch."""
+    account = get_account_registry().get_ctrader_account(req.account_id)
+    if not account:
+        return _error(404, "Account not found")
+    pm = get_portfolio_manager()
+    ctrader_home = ctrader_accounts_service.ctrader_home()
+    results = []
+    for sel in req.selections:
+        symbol, strategy = sel.symbol.strip().upper(), sel.strategy.strip()
+        entry = {"symbol": symbol, "strategy": strategy, "name": "", "status": "error", "message": ""}
+        results.append(entry)
+        if (strategy, symbol) not in PRESETS:
+            entry["message"] = f"No preset for {strategy} × {symbol}"
+            continue
+        name = container_name(account["slug"], strategy, symbol)
+        entry["name"] = name
+        cmd = build_run_command(account, strategy, symbol, str(PROJECT_ROOT), ctrader_home)
+        # get_cbot_config first: add_cbot_config only recognises sqlite3.IntegrityError, not psycopg2's
+        if pm.get_cbot_config(name) or not pm.add_cbot_config(name, describe_cell(strategy, symbol, account["label"]), cmd):
+            entry.update(status="exists", message="Bot config already exists")
+            continue
+        if not req.start:
+            entry.update(status="saved", message="Config saved")
+            continue
+        result = docker_manager.start_container(name, cmd)
+        if result.get("success"):
+            entry.update(status="started", message=result.get("message", "Container started"))
+        else:
+            entry["message"] = result.get("message", "Docker error")   # config row kept so the user can retry
+    return {"results": results}
+
 
 @router.get("/api/watchdog/status")
 async def api_watchdog_status():

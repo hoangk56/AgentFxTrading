@@ -175,6 +175,9 @@ class CbotWatchdog:
         self._recent_events: List[Dict[str, Any]] = []
         self._is_running = False
         self._last_check_time: Optional[float] = None
+        # Health verdict from the latest cycle: bot_name -> check_cbot_health() result. /api/bots
+        # serves this instead of re-reading every container's logs on each 10 s dashboard poll.
+        self._last_health: Dict[str, Dict[str, Any]] = {}
 
     def _now_gmt7_str(self) -> str:
         dt = datetime.datetime.now(datetime.timezone.utc) + datetime.timedelta(hours=7)
@@ -234,10 +237,12 @@ class CbotWatchdog:
         pm = get_portfolio_manager()
         configs = pm.get_cbot_configs()
 
+        fresh_health: Dict[str, Dict[str, Any]] = {}
         for config in configs:
             name = config["name"]
             try:
                 health = docker_manager.check_cbot_health(name)
+                fresh_health[name] = health
                 if health.get("status") != "running":
                     continue
 
@@ -253,7 +258,12 @@ class CbotWatchdog:
             except Exception as e:
                 logger.error(f"[CBOT WATCHDOG] Error checking bot '{name}': {e}")
 
+        self._last_health = fresh_health   # whole-dict swap: readers on request threads never see a partial cycle
         return actions
+
+    def last_health(self, name: str) -> Optional[Dict[str, Any]]:
+        """check_cbot_health() result for `name` from the latest cycle, or None before the first one."""
+        return self._last_health.get(name)
 
     def _restart_bot(self, name: str, reason: str, actions: List[Dict[str, Any]]) -> None:
         """Restart `name` unless rate-limited, then record the healing event."""
