@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Net.Http;
 using System.Net.WebSockets;
 using System.Text;
@@ -523,6 +524,15 @@ namespace cAlgo.Robots
 
                 UpdateLossStreak();
                 var session = GetSessionInfo();
+
+                // Cross tracking must run on EVERY closed bar, in session or not:
+                // GetTmsSignals is the only writer of _lastCrossBar/_lastCrossDir. Gating it
+                // behind the Cost Gate made the bot blind to crosses before the open (TDI
+                // cross up at 12:45 for a 13:00 NY session), so the first bars of the session
+                // ran on yesterday's direction and the snapshot reported the wrong bias.
+                // This is pure arithmetic over cached bars - only the HTTP send needs gating.
+                var chartTms = GetTmsSignals(index);
+
                 // Cost Gate: Nếu không có vị thế mở và ngoài phiên (hoặc phiên sắp kết thúc), không cần gửi request
                 if (GetBotPositions().Length == 0 && (!session.is_trading_time || session.phase == "closed" || session.phase == "ending"))
                 {
@@ -530,7 +540,6 @@ namespace cAlgo.Robots
                 }
 
                 var macroTms = GetMacroTmsSignals();
-                var chartTms = GetTmsSignals(index);
                 
                 CheckPostTpGateRelease(macroTms, chartTms);
 
@@ -1358,7 +1367,16 @@ namespace cAlgo.Robots
 
                     if (shouldMove)
                     {
-                        pos.ModifyStopLossPrice(beSl);
+                        // The broker really does reject stops this close to market
+                        // (InvalidStopLossTakeProfit). _breakevenApplied gates re-entry, so
+                        // marking it before confirming would halve the position while leaving
+                        // the original full-risk stop in place, permanently.
+                        var beResult = pos.ModifyStopLossPrice(beSl);
+                        if (beResult == null || !beResult.IsSuccessful)
+                        {
+                            if (ShowLogs) Print($"[BE Failed] Pos#{pos.Id} stop move to {beSl:F5} rejected: {beResult?.Error}. Will retry next tick; position left intact.");
+                            continue;
+                        }
                         _breakevenApplied.Add(pos.Id);
                         // Partial Close at Breakeven
                         if (PartialCloseRatio > 0 && PartialCloseRatio < 1.0)
@@ -1367,8 +1385,28 @@ namespace cAlgo.Robots
                             double remainingVolume = pos.VolumeInUnits - volumeToClose;
                             if (volumeToClose >= Symbol.VolumeInUnitsMin && remainingVolume >= Symbol.VolumeInUnitsMin)
                             {
-                                pos.ModifyVolume(remainingVolume);
-                                if (ShowLogs) Print($"[Partial Close] Pos#{pos.Id} closed {volumeToClose / Symbol.LotSize} lots at TP1 (BE), remaining {remainingVolume / Symbol.LotSize} lots");
+                                double pnlBeforePartial = pos.NetProfit;
+                                var partialRes = pos.ModifyVolume(remainingVolume);
+                                if (partialRes != null && partialRes.IsSuccessful)
+                                {
+                                    // Prefer the booked deal - it carries commission and swap, which is what
+                                    // "realised P&L" has to mean for the DB. History is not always populated the
+                                    // instant the call returns, so fall back to the NetProfit delta, i.e. the
+                                    // unrealised P&L the closed slice was carrying.
+                                    double realizedPnl = pnlBeforePartial - pos.NetProfit;
+                                    try
+                                    {
+                                        var partialHist = History.LastOrDefault(h => h.PositionId == pos.Id);
+                                        if (partialHist != null) realizedPnl = partialHist.NetProfit;
+                                    }
+                                    catch { }
+                                    if (ShowLogs) Print($"[Partial Close] Pos#{pos.Id} closed {volumeToClose / Symbol.LotSize} lots at TP1 (BE), remaining {remainingVolume / Symbol.LotSize} lots");
+                                    _ = ReportPartialClose(pos.Id, volumeToClose / Symbol.LotSize, remainingVolume / Symbol.LotSize, realizedPnl);
+                                }
+                                else if (ShowLogs)
+                                {
+                                    Print($"[Partial Close Failed] Pos#{pos.Id}: {partialRes?.Error}");
+                                }
                             }
                             else if (ShowLogs)
                             {
@@ -1640,7 +1678,18 @@ namespace cAlgo.Robots
             }
 
             
+            // The live spread when this handler runs is not the price the position closed at:
+            // a stop swept by a spike that snaps back would be reported at a price that never
+            // traded, corrupting every pip/RR statistic built on exit_price. Prefer the booked
+            // deal, falling back to the spread when History has not caught up yet.
             double exitPrice = args.Position.TradeType == TradeType.Buy ? Symbol.Bid : Symbol.Ask;
+            try
+            {
+                var closedHist = History.FirstOrDefault(h => h.PositionId == args.Position.Id);
+                if (closedHist != null && closedHist.ClosingPrice > 0)
+                    exitPrice = closedHist.ClosingPrice;
+            }
+            catch { }
 
             // Arm Post-TP Gate only when the exit captured a real move. A scratch exit inside the
             // tick-noise band (GBPUSD 2026-09-11: +0.6p net on a 14p-risk trade) must not lock the
@@ -1817,6 +1866,7 @@ namespace cAlgo.Robots
                 var reportUrl = ApiUrl.Replace("/trade", "/portfolio/report");
                 var report = new
                 {
+                    ctrader_id = position.Id,
                     bot_id = BotId,
                     action = "open",
                     symbol = SymbolName,
@@ -1851,6 +1901,48 @@ namespace cAlgo.Robots
             }
         }
 
+        // Positions.Closed does NOT fire on a partial close. With PartialCloseRatio = 0.5
+        // that silently dropped half the winning leg of every winning trade from the DB.
+        private async Task ReportPartialClose(int positionId, double closedLots, double remainingLots, double realizedPnl)
+        {
+            try
+            {
+                var reportUrl = ApiUrl.Replace("/trade", "/portfolio/report");
+                var report = new
+                {
+                    ctrader_id = positionId,
+                    bot_id = BotId,
+                    action = "partial_close",
+                    symbol = SymbolName,
+                    closed_volume = Math.Round(closedLots, 2),
+                    remaining_volume = Math.Round(remainingLots, 2),
+                    realized_pnl = Math.Round(realizedPnl, 2),
+                    reason = "Partial close at Break-Even",
+                    account_number = Account.Number.ToString(),
+                    account_type = Account.IsLive ? "live" : "demo",
+                    account_label = string.IsNullOrWhiteSpace(AccountLabel) ? null : AccountLabel.Trim(),
+                    account_balance = Account.Balance,
+                    account_equity = Account.Equity
+                };
+
+                var json = JsonSerializer.Serialize(report);
+                var content = new StringContent(json, Encoding.UTF8, "application/json");
+                await _httpClient.PostAsync(reportUrl, content);
+
+                BeginInvokeOnMainThread(() =>
+                {
+                    if (ShowLogs) Print($"[Portfolio] Reported partial close: {SymbolName} {closedLots:F2} lots for {realizedPnl:F2}, {remainingLots:F2} lots remaining");
+                });
+            }
+            catch (Exception ex)
+            {
+                BeginInvokeOnMainThread(() =>
+                {
+                    if (ShowLogs) Print($"[Portfolio] Failed to report partial close: {ex.Message}");
+                });
+            }
+        }
+
         private async Task ReportPositionClosed(Position position, double pnl, double exitPrice)
         {
             try
@@ -1858,6 +1950,7 @@ namespace cAlgo.Robots
                 var reportUrl = ApiUrl.Replace("/trade", "/portfolio/report");
                 var report = new
                 {
+                    ctrader_id = position.Id,
                     bot_id = BotId,
                     action = "close",
                     symbol = SymbolName,
@@ -2007,6 +2100,19 @@ namespace cAlgo.Robots
                         if (Math.Abs(targetSL.Value - pos.EntryPrice) <= (Symbol.PipSize * 30) && currentProfitPips < minBeProfitPips)
                         {
                             if (ShowLogs) Print($"[Anti-Premature BE Guard] Blocked premature Break-Even SL ({targetSL.Value}) for {SymbolName} #{pos.Id}. Profit ({currentProfitPips:F1}p) < threshold ({minBeProfitPips:F0}p). Keeping current SL ({pos.StopLoss}).");
+                            continue;
+                        }
+
+                        // Strict One-Way Risk Ratchet: an ADJUST may pull the stop toward profit,
+                        // never away from it. Without this an LLM "give the trade room to breathe"
+                        // ADJUST widens the stop past the dollar risk the entry was sized for,
+                        // voiding MaxDollarRiskPerTrade and every volume guardrail computed at entry.
+                        // Mirrors FlowRsiBot's ratchet and AsianRangeJudasSweepBot.SafeModifyPosition.
+                        if (pos.StopLoss.HasValue &&
+                            ((pos.TradeType == TradeType.Buy && targetSL.Value < pos.StopLoss.Value) ||
+                             (pos.TradeType == TradeType.Sell && targetSL.Value > pos.StopLoss.Value)))
+                        {
+                            if (ShowLogs) Print($"[ADJUST Ratchet] Rejected widening SL ({targetSL.Value}) for {SymbolName} #{pos.Id}: current SL ({pos.StopLoss.Value}) is tighter. Reason given: {decision.reason}");
                             continue;
                         }
 

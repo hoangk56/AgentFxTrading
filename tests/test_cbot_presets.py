@@ -77,7 +77,7 @@ def test_judas_golden_command():
         '--BotId="cbot-live-ic-gbpusd-KZ-london-ny-judas" --ApiUrl="http://127.0.0.1:8000/trade" --AccountLabel="IC" '
         '--label="cbot-live-ic-gbpusd-KZ-london-ny-judas" --DashboardServerUrl="http://127.0.0.1:8000" '
         "--UseDirectAiApi=false --UseAiGateMode=true --minAsianRangePips=15.0 --maxAsianRangePips=45.0 "
-        "--sweepBufferPips=3.5 --AiSlMinFloorPips=15.0 --breakEvenTrigger=20.0 --stoplossPip=15.0 "
+        "--sweepBufferPips=3.5 --AiSlMinFloorPips=15.0 --stoplossPip=15.0 "
         "--takeprofitPip=35.0 --enableBreakEvenPrice=true"
     )
 
@@ -126,8 +126,8 @@ def test_crypto_tms_orb_scales_from_gold_on_the_new_york_session():
 
 
 def test_judas_forex_cells_reuse_the_major_and_cross_presets():
-    major = "--minAsianRangePips=15.0 --maxAsianRangePips=45.0 --sweepBufferPips=3.5 --AiSlMinFloorPips=15.0 --breakEvenTrigger=20.0 --stoplossPip=15.0 --takeprofitPip=35.0"
-    cross = "--minAsianRangePips=25.0 --maxAsianRangePips=70.0 --sweepBufferPips=5.0 --AiSlMinFloorPips=25.0 --breakEvenTrigger=30.0 --stoplossPip=25.0 --takeprofitPip=50.0"
+    major = "--minAsianRangePips=15.0 --maxAsianRangePips=45.0 --sweepBufferPips=3.5 --AiSlMinFloorPips=15.0 --stoplossPip=15.0 --takeprofitPip=35.0"
+    cross = "--minAsianRangePips=25.0 --maxAsianRangePips=70.0 --sweepBufferPips=5.0 --AiSlMinFloorPips=25.0 --stoplossPip=25.0 --takeprofitPip=50.0"
     for sym in ("USDJPY", "USDCAD", "AUDUSD"):
         cmd = build_run_command(DEMO, "judas", sym, ROOT, HOME)
         assert major in cmd and "--riskFactor" not in cmd, sym
@@ -137,9 +137,9 @@ def test_judas_forex_cells_reuse_the_major_and_cross_presets():
 
 def test_judas_index_cells_scale_from_uk100_with_index_risk():
     expected = {   # UK100 ×5 / ×4 / ×3 (pip 0.1): min/max range, sweep buffer, SL floor, BE, SL, TP
-        "US30":  "--minAsianRangePips=600.0 --maxAsianRangePips=4000.0 --sweepBufferPips=150.0 --AiSlMinFloorPips=750.0 --breakEvenTrigger=1000.0 --stoplossPip=750.0 --takeprofitPip=1750.0",
-        "USTEC": "--minAsianRangePips=500.0 --maxAsianRangePips=3000.0 --sweepBufferPips=120.0 --AiSlMinFloorPips=600.0 --breakEvenTrigger=800.0 --stoplossPip=600.0 --takeprofitPip=1400.0",
-        "DE40":  "--minAsianRangePips=350.0 --maxAsianRangePips=2500.0 --sweepBufferPips=90.0 --AiSlMinFloorPips=450.0 --breakEvenTrigger=600.0 --stoplossPip=450.0 --takeprofitPip=1000.0",
+        "US30":  "--minAsianRangePips=600.0 --maxAsianRangePips=4000.0 --sweepBufferPips=150.0 --AiSlMinFloorPips=750.0 --stoplossPip=750.0 --takeprofitPip=1750.0",
+        "USTEC": "--minAsianRangePips=500.0 --maxAsianRangePips=3000.0 --sweepBufferPips=120.0 --AiSlMinFloorPips=600.0 --stoplossPip=600.0 --takeprofitPip=1400.0",
+        "DE40":  "--minAsianRangePips=350.0 --maxAsianRangePips=2500.0 --sweepBufferPips=90.0 --AiSlMinFloorPips=450.0 --stoplossPip=450.0 --takeprofitPip=1000.0",
     }
     for sym, params in expected.items():
         cmd = build_run_command(LIVE, "judas", sym, ROOT, HOME)

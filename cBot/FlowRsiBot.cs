@@ -184,6 +184,12 @@ namespace cAlgo.Robots
         [Parameter("Enable AI Gate Mode", Group = "AI Agent Integration", DefaultValue = true)]
         public bool UseAiGateMode { get; set; }
 
+        // Fail-closed by default: when the AI hub is unreachable, in cooldown or erroring,
+        // the gate is what it claims to be and no order is placed. Turn this on only to
+        // deliberately run technical-only entries while the hub is down.
+        [Parameter("Allow Technical Fallback On AI Failure", Group = "AI Agent Integration", DefaultValue = false)]
+        public bool AllowTechnicalFallbackOnAiFailure { get; set; }
+
         [Parameter("Agent API URL", Group = "AI Agent Integration", DefaultValue = "http://127.0.0.1:8000/trade")]
         public string ApiUrl { get; set; }
 
@@ -439,12 +445,29 @@ namespace cAlgo.Robots
 
                 Print($"[FlowRSI] Initialized Successfully! FastRSI({FastRsiPeriod}), SlowRSI({SlowRsiPeriod}), SMC Filter: {EnableSmcFilter}");
 
-                // 6. Dispatch initial boot snapshot to AI Server
+                // 6. Recover initial SL distances for positions that survived the restart
+                _ = RestoreInitialSlDistances();
+
+                // 7. Dispatch initial boot snapshot to AI Server
                 if (UseAiGateMode && RunningMode == RunningMode.RealTime)
                 {
                     var activePositions = GetBotPositions();
                     bool hasOpenPos = activePositions.Count > 0;
-                    EvaluateStrategySignals(hasOpenPos);
+
+                    // Only dispatch when a position is already open: that path sends a
+                    // MANAGE_ONLY snapshot and cannot enter. While flat, EvaluateStrategySignals
+                    // would build an ENTRY candidate from the bar still FORMING at start-up
+                    // (index = Count-1 is only the closed bar inside OnBarClosed), so a mid-bar
+                    // cross that reverses by the close could be confirmed into a real trade on
+                    // every restart. Entry evaluation resumes at the next bar close.
+                    if (hasOpenPos)
+                    {
+                        EvaluateStrategySignals(hasOpenPos);
+                    }
+                    else
+                    {
+                        Print("[FlowRSI] Boot snapshot skipped: flat at start-up and the current bar is still forming. Entry evaluation resumes at the next bar close.");
+                    }
                 }
             }
             catch (Exception ex)
@@ -781,7 +804,15 @@ namespace cAlgo.Robots
                         if (ShowLogs) Print($"[AI Agent Safety Guard] Cooldown active until {_aiCooldownUntil:HH:mm:ss} UTC. Direct AI query skipped.");
                         if (allowedDirection == "BUY" || allowedDirection == "SELL")
                         {
-                            ExecuteTechnicalOrder(allowedDirection, technicalSL, technicalTP, signalReason);
+                            if (AllowTechnicalFallbackOnAiFailure)
+                            {
+                                Print($"[AI Gate Fallback] ⚠️ Technical fallback ENABLED - entering {allowedDirection} with NO AI approval (cooldown active).");
+                                ExecuteTechnicalOrder(allowedDirection, technicalSL, technicalTP, signalReason);
+                            }
+                            else
+                            {
+                                Print($"[AI Gate Fail-Closed] {allowedDirection} candidate skipped: AI cooldown active until {_aiCooldownUntil:HH:mm:ss} UTC.");
+                            }
                         }
                     });
                     return;
@@ -965,7 +996,15 @@ namespace cAlgo.Robots
                         HandleAiFailure(httpErr);
                         if (allowedDirection == "BUY" || allowedDirection == "SELL")
                         {
-                            ExecuteTechnicalOrder(allowedDirection, fallbackSL, fallbackTP, reason);
+                            if (AllowTechnicalFallbackOnAiFailure)
+                            {
+                                Print($"[AI Gate Fallback] ⚠️ Technical fallback ENABLED - entering {allowedDirection} with NO AI approval ({httpErr}).");
+                                ExecuteTechnicalOrder(allowedDirection, fallbackSL, fallbackTP, reason);
+                            }
+                            else
+                            {
+                                Print($"[AI Gate Fail-Closed] {allowedDirection} candidate skipped: {httpErr}.");
+                            }
                         }
                     });
                     return;
@@ -1004,7 +1043,15 @@ namespace cAlgo.Robots
                     HandleAiFailure(exErr);
                     if (allowedDirection == "BUY" || allowedDirection == "SELL")
                     {
-                        ExecuteTechnicalOrder(allowedDirection, fallbackSL, fallbackTP, reason);
+                        if (AllowTechnicalFallbackOnAiFailure)
+                        {
+                            Print($"[AI Gate Fallback] ⚠️ Technical fallback ENABLED - entering {allowedDirection} with NO AI approval ({exErr}).");
+                            ExecuteTechnicalOrder(allowedDirection, fallbackSL, fallbackTP, reason);
+                        }
+                        else
+                        {
+                            Print($"[AI Gate Fail-Closed] {allowedDirection} candidate skipped: AI bridge error ({exErr}).");
+                        }
                     }
                 });
             }
@@ -1163,6 +1210,18 @@ namespace cAlgo.Robots
                     return;
                 }
 
+                // The snapshot asked about one specific direction. An answer against it means
+                // the decision was formed on a different setup than the one sent, and the
+                // SL/TP we are holding belong to the opposite side of the market - which then
+                // hits the wrong-side stop path in ExecuteTechnicalOrder. Refuse it.
+                if ((allowedDirection == "BUY" || allowedDirection == "SELL") &&
+                    (action == "BUY" || action == "SELL") &&
+                    action != allowedDirection)
+                {
+                    Print($"[Security Alert] AI returned {action} against a {allowedDirection} candidate on {SymbolName}. Entry refused (SL/TP were computed for {allowedDirection}). Reason: {decision.reason}");
+                    return;
+                }
+
                 // Handle BUY / SELL
                 if (action == "BUY" || action == "SELL")
                 {
@@ -1242,10 +1301,32 @@ namespace cAlgo.Robots
 
             // Pre-flight broker boundary checks
             double minStopBuffer = Math.Max(Symbol.Spread * 3, Symbol.TickSize * 10);
+
+            // A stop on the WRONG SIDE of the market is not a boundary problem: it means the
+            // direction and the stop disagree. slDistancePips is measured with Math.Abs, so
+            // such a stop still produced a LARGE distance and sized the volume accordingly,
+            // and the clamp below then cut the stop to ~3x spread. Refuse the order instead.
+            if ((tradeType == TradeType.Buy && slPrice >= Symbol.Bid) ||
+                (tradeType == TradeType.Sell && slPrice <= Symbol.Ask))
+            {
+                Print($"[Security Alert] Order REJECTED: {tradeType} with stop {slPrice:F5} on the wrong side of market (Bid {Symbol.Bid:F5} / Ask {Symbol.Ask:F5}). Reason: {reason}");
+                return;
+            }
+
             if (tradeType == TradeType.Buy && slPrice >= (Symbol.Bid - minStopBuffer))
                 slPrice = Symbol.Bid - minStopBuffer - (Symbol.PipSize * 2);
             else if (tradeType == TradeType.Sell && slPrice <= (Symbol.Ask + minStopBuffer))
                 slPrice = Symbol.Ask + minStopBuffer + (Symbol.PipSize * 2);
+
+            // The clamp above can pull the stop closer than the distance targetUnits was
+            // sized for, which multiplies the intended dollar risk. Re-size to the final stop.
+            double clampedSlDistancePips = Math.Abs(currentPrice - slPrice) / Symbol.PipSize;
+            if (Math.Abs(clampedSlDistancePips - slDistancePips) > 0.01)
+            {
+                if (ShowLogs) Print($"[Pre-flight Resize] Boundary check moved the stop: {slDistancePips:F1}p -> {clampedSlDistancePips:F1}p. Re-sizing volume to hold risk constant.");
+                slDistancePips = clampedSlDistancePips;
+                targetUnits = CalculateDynamicVolumeInUnits(slDistancePips);
+            }
 
             // ExecuteMarketOrder(..., label, stopLossPips, takeProfitPips, comment) takes DISTANCES IN PIPS,
             // not absolute prices. Convert from the final SL/TP levels relative to the entry side
@@ -1253,6 +1334,12 @@ namespace cAlgo.Robots
             double entryRefPrice = tradeType == TradeType.Buy ? Symbol.Ask : Symbol.Bid;
             double slPips = Math.Abs(entryRefPrice - slPrice) / Symbol.PipSize;
             double tpPips = Math.Abs(tpPrice - entryRefPrice) / Symbol.PipSize;
+
+            if (targetUnits <= 0)
+            {
+                if (ShowLogs) Print($"[Order Skipped] Risk engine refused a volume for {tradeType} {SymbolName} at {slDistancePips:F1}p. Reason: {reason}");
+                return;
+            }
 
             var result = ExecuteMarketOrder(tradeType, SymbolName, targetUnits, BotId, slPips, tpPips, BotId);
 
@@ -1290,6 +1377,16 @@ namespace cAlgo.Robots
             if (normalizedUnits < Symbol.VolumeInUnitsMin) normalizedUnits = Symbol.VolumeInUnitsMin;
             if (normalizedUnits > Symbol.VolumeInUnitsMax) normalizedUnits = Symbol.VolumeInUnitsMax;
 
+            // Clamping up to the broker minimum can blow straight past the configured cap on a
+            // small account trading a large-minimum instrument (US30, BTC, indices) with a wide
+            // technical stop. Refuse rather than place an order that breaks MaxRiskPerTradeMoney.
+            double finalRisk = normalizedUnits * slPips * pipValue;
+            if (finalRisk > MaxRiskPerTradeMoney)
+            {
+                Print($"[Guardrail] Entry REFUSED: broker minimum {normalizedUnits / Symbol.LotSize:F2} lots at {slPips:F1}p risks ${finalRisk:F2}, over MaxRiskPerTradeMoney (${MaxRiskPerTradeMoney:F2}).");
+                return 0;
+            }
+
             return normalizedUnits;
         }
         #endregion
@@ -1300,9 +1397,31 @@ namespace cAlgo.Robots
             foreach (var pos in GetBotPositions())
             {
                 double pnlPips = (pos.TradeType == TradeType.Buy ? (Symbol.Bid - pos.EntryPrice) : (pos.EntryPrice - Symbol.Ask)) / Symbol.PipSize;
-                double initialSlDist = _initialSlDistances.ContainsKey(pos.Id) 
-                    ? _initialSlDistances[pos.Id] / Symbol.PipSize 
-                    : (pos.StopLoss.HasValue ? Math.Abs(pos.EntryPrice - pos.StopLoss.Value) / Symbol.PipSize : 20.0);
+                double initialSlDist;
+                if (_initialSlDistances.ContainsKey(pos.Id))
+                {
+                    initialSlDist = _initialSlDistances[pos.Id] / Symbol.PipSize;
+                }
+                else
+                {
+                    // No recorded distance (restart, and the server lookup found no match). The
+                    // CURRENT stop is not the initial risk: on a position already moved to
+                    // break-even it is ~0.5p, which would inflate currentRr ~50x and fire the
+                    // trailing stop on the first tick. Floor it at the same minimum the entry
+                    // sizing uses so R stays bounded.
+                    double measured = pos.StopLoss.HasValue
+                        ? Math.Abs(pos.EntryPrice - pos.StopLoss.Value) / Symbol.PipSize
+                        : 20.0;
+
+                    double effectiveMinSl = MinSlFloorPips > 0 ? MinSlFloorPips : 15.0;
+                    string symUpperRestore = SymbolName.ToUpperInvariant();
+                    if (symUpperRestore.Contains("XAU") || symUpperRestore.Contains("GOLD"))
+                        effectiveMinSl = Math.Max(effectiveMinSl, 150.0);
+                    else if (symUpperRestore.Contains("JPY"))
+                        effectiveMinSl = Math.Max(effectiveMinSl, 18.0);
+
+                    initialSlDist = Math.Max(measured, effectiveMinSl);
+                }
 
                 if (initialSlDist <= 0) initialSlDist = 20.0;
 
@@ -1343,8 +1462,28 @@ namespace cAlgo.Robots
                                     double volToClose = Symbol.NormalizeVolumeInUnits(pos.VolumeInUnits * PartialCloseRatio);
                                     if (volToClose >= Symbol.VolumeInUnitsMin && (pos.VolumeInUnits - volToClose) >= Symbol.VolumeInUnitsMin)
                                     {
-                                        ClosePosition(pos, volToClose);
-                                        Print($"[Partial Close] #{pos.Id} closed {volToClose / Symbol.LotSize:F2} lots at Break-Even.");
+                                        double pnlBeforePartial = pos.NetProfit;
+                                        var partialRes = ClosePosition(pos, volToClose);
+                                        if (partialRes != null && partialRes.IsSuccessful)
+                                        {
+                                            // Prefer the booked deal - it carries commission and swap, which is
+                                            // what "realised P&L" has to mean for the DB. History is not always
+                                            // populated the instant the call returns, so fall back to the NetProfit
+                                            // delta, i.e. the unrealised P&L the closed slice was carrying.
+                                            double realizedPnl = pnlBeforePartial - pos.NetProfit;
+                                            try
+                                            {
+                                                var partialHist = History.LastOrDefault(h => h.PositionId == pos.Id);
+                                                if (partialHist != null) realizedPnl = partialHist.NetProfit;
+                                            }
+                                            catch { }
+                                            Print($"[Partial Close] #{pos.Id} closed {volToClose / Symbol.LotSize:F2} lots at Break-Even.");
+                                            ReportPartialClose(pos, volToClose / Symbol.LotSize, realizedPnl, "Partial close at Break-Even");
+                                        }
+                                        else if (ShowLogs)
+                                        {
+                                            Print($"[Partial Close Failed] #{pos.Id}: {partialRes?.Error}");
+                                        }
                                     }
                                 }
                                 Print($"[BreakEven Achieved] #{pos.Id} SL -> {zeroLossSL:F5} (EstNet@SL=${CalculateEstimatedNetProfitAtSL(pos, zeroLossSL):F2})");
@@ -1871,8 +2010,29 @@ namespace cAlgo.Robots
             }
         }
 
+        // ForexFactory's XML feed writes US Eastern times with NO offset, so they can only be
+        // converted with an explicit zone. Windows and IANA ids are both tried: .NET on Linux
+        // resolves IANA natively and Windows ids via ICU, and neither is guaranteed present.
+        private static TimeZoneInfo ResolveEasternTimeZone()
+        {
+            foreach (var id in new[] { "America/New_York", "Eastern Standard Time" })
+            {
+                try { return TimeZoneInfo.FindSystemTimeZoneById(id); }
+                catch { }
+            }
+            return null;
+        }
+
+        private static readonly TimeZoneInfo _easternTz = ResolveEasternTimeZone();
+
         private void ParseNewsEventsFromXml(string xml)
         {
+            if (_easternTz == null)
+            {
+                Print("[News Filter WARNING] US Eastern time zone unavailable; ForexFactory XML times cannot be converted to UTC. XML fallback skipped (hub/JSON paths unaffected).");
+                return;
+            }
+
             var xdoc = XDocument.Parse(xml);
             lock (_newsEvents)
             {
@@ -1887,8 +2047,11 @@ namespace cAlgo.Robots
                     {
                         string dateStr = item.Element("date")?.Value ?? "";
                         string timeStr = item.Element("time")?.Value ?? "";
-                        if (DateTime.TryParse($"{dateStr} {timeStr}", CultureInfo.InvariantCulture, DateTimeStyles.AdjustToUniversal, out var parsed))
+                        // Parse as wall-clock Eastern (no offset in the feed), then convert.
+                        if (DateTime.TryParse($"{dateStr} {timeStr}", CultureInfo.InvariantCulture, DateTimeStyles.None, out var parsedEastern))
                         {
+                            var parsed = TimeZoneInfo.ConvertTimeToUtc(
+                                DateTime.SpecifyKind(parsedEastern, DateTimeKind.Unspecified), _easternTz);
                             _newsEvents.Add(new NewsEvent
                             {
                                 UtcTime = parsed,
@@ -2037,11 +2200,22 @@ namespace cAlgo.Robots
                     if (pos.Label != BotId && pos.Comment != BotId) return;
                     if (pos.SymbolName != SymbolName) return;
 
+                    // The live spread when this handler happens to run is not the price the
+                    // position closed at: a stop swept by a spike that snaps back would be
+                    // reported at a price that never traded. Prefer the booked deal.
                     double exitPrice = pos.TradeType == TradeType.Buy ? Symbol.Bid : Symbol.Ask;
                     if (args.Reason == PositionCloseReason.TakeProfit && pos.TakeProfit.HasValue)
                         exitPrice = pos.TakeProfit.Value;
                     else if (args.Reason == PositionCloseReason.StopLoss && pos.StopLoss.HasValue)
                         exitPrice = pos.StopLoss.Value;
+
+                    try
+                    {
+                        var hist = History.FirstOrDefault(h => h.PositionId == pos.Id);
+                        if (hist != null && hist.ClosingPrice > 0)
+                            exitPrice = hist.ClosingPrice;
+                    }
+                    catch { }
 
                     double pnl = pos.NetProfit;
                     string reason = args.Reason.ToString();
@@ -2172,6 +2346,137 @@ namespace cAlgo.Robots
             catch (Exception ex)
             {
                 if (ShowLogs) Print($"[ReportPositionOpen Error] {ex.Message}");
+            }
+        }
+
+        // _initialSlDistances lives in RAM and is lost on restart. The server already holds
+        // the stop distance reported at entry, so recover it rather than re-deriving R from
+        // whatever stop the position carries now - which for a position already at break-even
+        // is near zero and inflates currentRr by an order of magnitude.
+        private async Task RestoreInitialSlDistances()
+        {
+            if (RunningMode != RunningMode.RealTime || _httpClient == null) return;
+            try
+            {
+                var baseUri = !string.IsNullOrWhiteSpace(AiReportUrl)
+                    ? AiReportUrl.Replace("/portfolio/report", "").TrimEnd('/')
+                    : ApiUrl.Replace("/trade", "").TrimEnd('/');
+                string url = $"{baseUri}/portfolio/open-positions?bot_id={Uri.EscapeDataString(BotId)}&account_number={Account.Number}";
+
+                var response = await _httpClient.GetAsync(url);
+                if (!response.IsSuccessStatusCode) return;
+                string body = await response.Content.ReadAsStringAsync();
+
+                BeginInvokeOnMainThread(() =>
+                {
+                    try
+                    {
+                        using (var doc = JsonDocument.Parse(body))
+                        {
+                            if (!doc.RootElement.TryGetProperty("positions", out var rows)) return;
+
+                            int restored = 0;
+                            foreach (var pos in GetBotPositions())
+                            {
+                                foreach (var row in rows.EnumerateArray())
+                                {
+                                    string rowSymbol = row.TryGetProperty("symbol", out var sym) ? sym.GetString() : null;
+                                    string rowSide = row.TryGetProperty("side", out var sd) ? sd.GetString() : null;
+                                    if (!string.Equals(rowSymbol, pos.SymbolName, StringComparison.OrdinalIgnoreCase)) continue;
+                                    if (!string.Equals(rowSide, pos.TradeType.ToString(), StringComparison.OrdinalIgnoreCase)) continue;
+
+                                    // Match on entry price so this stays correct if MaxPositionsAllowed > 1.
+                                    if (!row.TryGetProperty("entry_price", out var ep) || ep.ValueKind != JsonValueKind.Number) continue;
+                                    if (Math.Abs(ep.GetDouble() - pos.EntryPrice) > Symbol.PipSize) continue;
+
+                                    if (!row.TryGetProperty("sl_pips", out var sp) || sp.ValueKind != JsonValueKind.Number) continue;
+                                    double slPipsRestored = sp.GetDouble();
+                                    if (slPipsRestored <= 0) continue;
+
+                                    _initialSlDistances[pos.Id] = slPipsRestored * Symbol.PipSize;
+                                    restored++;
+                                    break;
+                                }
+                            }
+
+                            if (restored > 0) Print($"[FlowRSI] Restored initial SL distance for {restored} open position(s) after restart.");
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        if (ShowLogs) Print($"[RestoreInitialSlDistances Parse Error] {ex.Message}");
+                    }
+                });
+            }
+            catch (Exception ex)
+            {
+                if (ShowLogs) Print($"[RestoreInitialSlDistances Error] {ex.Message}");
+            }
+        }
+
+        // Positions.Closed does NOT fire on a partial close, so nothing else reports it.
+        // Without this the profit taken at break-even never reaches the DB: the row keeps
+        // its original volume and the final close only carries the remainder's P&L.
+        private void ReportPartialClose(Position position, double closedLots, double realizedPnl, string reason = "")
+        {
+            if (RunningMode != RunningMode.RealTime || _httpClient == null || position == null) return;
+            try
+            {
+                int posId = position.Id;
+                string posSymbol = position.SymbolName;
+                string posSide = position.TradeType.ToString();
+                double remainingLots = position.VolumeInUnits / Symbol.LotSize;
+
+                var report = new
+                {
+                    ctrader_id = posId,
+                    bot_id = BotId,
+                    action = "partial_close",
+                    symbol = posSymbol,
+                    side = posSide,
+                    closed_volume = Math.Round(closedLots, 2),
+                    remaining_volume = Math.Round(remainingLots, 2),
+                    realized_pnl = Math.Round(realizedPnl, 2),
+                    reason = string.IsNullOrWhiteSpace(reason) ? "Partial close at Break-Even" : reason,
+                    account_number = Account.Number.ToString(),
+                    account_type = Account.IsLive ? "live" : "demo",
+                    account_label = Account.BrokerName,
+                    account_balance = Account.Balance,
+                    account_equity = Account.Equity
+                };
+
+                var json = JsonSerializer.Serialize(report);
+                var reportUrl = !string.IsNullOrWhiteSpace(AiReportUrl)
+                    ? AiReportUrl.Trim()
+                    : ApiUrl.Replace("/trade", "/portfolio/report");
+
+                Task.Run(async () =>
+                {
+                    try
+                    {
+                        var content = new StringContent(json, Encoding.UTF8, "application/json");
+                        await _httpClient.PostAsync(reportUrl, content);
+                        if (ShowLogs)
+                        {
+                            BeginInvokeOnMainThread(() =>
+                            {
+                                Print($"[Portfolio Hub] Reported partial close: #{posId} {closedLots:F2} lots for {realizedPnl:F2}, {remainingLots:F2} lots remaining");
+                            });
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        if (ShowLogs)
+                        {
+                            string err = ex.Message;
+                            BeginInvokeOnMainThread(() => Print($"[Portfolio Hub Error] Partial close report failed: {err}"));
+                        }
+                    }
+                });
+            }
+            catch (Exception ex)
+            {
+                if (ShowLogs) Print($"[ReportPartialClose Error] {ex.Message}");
             }
         }
 

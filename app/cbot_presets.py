@@ -64,10 +64,19 @@ def _tms(session: dict, breakout: float, or_width: float, buffer: float, bounce,
 
 def _judas(min_range: float, max_range: float, sweep_buffer: float, ai_sl_floor: float,
            be_trigger: float, sl: float, tp: float, risk_factor=None) -> dict:
+    """
+    `be_trigger` is deliberately NOT emitted.
+
+    The bot's `breakEvenMode` defaults to Risk_Reward_Ratio, and ProcessBreakEvenLogic
+    reads `breakEvenTrigger` (pips) only in the Fixed_Pips branch -- so shipping it meant
+    every operator tuning break-even was adjusting a number with no effect. The positional
+    is kept because the call sites below are transcribed from the README blocks, which
+    list it; `breakEvenRrTrigger` is what actually gates the move.
+    """
     params = {
         "UseDirectAiApi": False, "UseAiGateMode": True,
         "minAsianRangePips": min_range, "maxAsianRangePips": max_range, "sweepBufferPips": sweep_buffer,
-        "AiSlMinFloorPips": ai_sl_floor, "breakEvenTrigger": be_trigger,
+        "AiSlMinFloorPips": ai_sl_floor,
         "stoplossPip": sl, "takeprofitPip": tp, "enableBreakEvenPrice": True,
     }
     if risk_factor is not None:
@@ -119,7 +128,11 @@ PRESETS: Dict[Tuple[str, str], Dict] = {
     ("tms_orb", "BTCUSD"): _cell("m15", "New York", _tms(_NEWYORK, 10000.0, 20000.0, 2500.0, 10)),
     ("tms_orb", "ETHUSD"): _cell("m15", "New York", _tms(_NEWYORK, 800.0, 1600.0, 200.0, 10)),
     # Asian Range Judas Sweep (AsianRangeJudasSweepBot) — README blocks
-    ("judas", "XAUUSD"): _cell("m15", _JUDAS_SESSION, _judas(200.0, 8000.0, 30.0, 200.0, 250.0, 200.0, 450.0)),
+    # Gold quotes 1 pip = $0.01, so the sweep buffer is 500p = $5.00 - the value the bot's own
+    # auto-scale intends (AsianRangeJudasSweepBot.cs) but never applies here, because that branch
+    # only fires when maxAsianRangePips <= 500 and this preset passes 8000. It also sets the
+    # structural-invalidation threshold, which at the previous 30p was $0.30.
+    ("judas", "XAUUSD"): _cell("m15", _JUDAS_SESSION, _judas(200.0, 8000.0, 500.0, 200.0, 250.0, 200.0, 450.0)),
     ("judas", "EURUSD"): _cell("m15", _JUDAS_SESSION, _judas(15.0, 45.0, 3.5, 15.0, 20.0, 15.0, 35.0)),
     ("judas", "GBPUSD"): _cell("m15", _JUDAS_SESSION, _judas(15.0, 45.0, 3.5, 15.0, 20.0, 15.0, 35.0)),
     ("judas", "GBPJPY"): _cell("m15", _JUDAS_SESSION, _judas(25.0, 70.0, 5.0, 25.0, 30.0, 25.0, 50.0)),

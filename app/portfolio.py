@@ -87,6 +87,15 @@ class PortfolioManager:
                 logger.debug(f"daily_stats view init: {e}")
 
             # Create indexes for performance
+            # The cBot has always sent ctrader_id, but the original schema had nowhere to put
+            # it, so every close matched on (bot_id, symbol) alone. Harmless while
+            # MaxPositionsAllowed is 1; the moment it is raised, one close report would close
+            # every open position for that pair. Additive, nullable, safe to re-run.
+            try:
+                conn.execute("ALTER TABLE positions ADD COLUMN ctrader_id BIGINT")
+            except Exception:
+                pass  # already present
+
             for idx_sql in [
                 "CREATE INDEX IF NOT EXISTS idx_positions_status ON positions(status)",
                 "CREATE INDEX IF NOT EXISTS idx_positions_symbol ON positions(symbol)",
@@ -95,6 +104,7 @@ class PortfolioManager:
                 "CREATE INDEX IF NOT EXISTS idx_positions_account_status ON positions(account_id, status)",
                 "CREATE INDEX IF NOT EXISTS idx_positions_exit_time ON positions(exit_time)",
                 "CREATE INDEX IF NOT EXISTS idx_positions_entry_time ON positions(entry_time)",
+                "CREATE INDEX IF NOT EXISTS idx_positions_ctrader_id ON positions(ctrader_id)",
             ]:
                 try:
                     conn.execute(idx_sql)
@@ -122,15 +132,16 @@ class PortfolioManager:
 
     def register_position(self, bot_id: str, symbol: str, side: str, 
                          volume: float, entry_price: float, 
-                         sl_pips: float, tp_pips: float, account_id: str) -> bool:
+                         sl_pips: float, tp_pips: float, account_id: str,
+                         ctrader_id: Optional[int] = None) -> bool:
         """Register new position after trade execution."""
         conn = self._get_conn()
         try:
             conn.execute("""
                 INSERT INTO positions (bot_id, symbol, side, volume, entry_price, 
-                                     sl_pips, tp_pips, entry_time, status, account_id)
-                VALUES (?, ?, ?, ?, ?, ?, ?, datetime('now'), 'open', ?)
-            """, (bot_id, symbol, side, volume, entry_price, sl_pips, tp_pips, account_id))
+                                     sl_pips, tp_pips, entry_time, status, account_id, ctrader_id)
+                VALUES (?, ?, ?, ?, ?, ?, ?, datetime('now'), 'open', ?, ?)
+            """, (bot_id, symbol, side, volume, entry_price, sl_pips, tp_pips, account_id, ctrader_id))
             conn.commit()
             logger.info(f"Position registered: {symbol} {side} {volume} lots by {bot_id} for account {account_id}")
             return True
@@ -139,16 +150,104 @@ class PortfolioManager:
             return False
         finally:
             conn.close()
-    def close_position(self, bot_id: str, symbol: str, exit_price: float, pnl: float, account_id: str) -> bool:
+    def get_open_positions(self, bot_id: str, account_id: str) -> List[Dict]:
+        """
+        Open positions with the stop distance recorded at entry.
+
+        A cBot keeps initial SL distances in RAM, so a restart loses them and it would
+        otherwise re-derive R from whatever stop the position carries now - which for a
+        position already moved to break-even is near zero, inflating R enormously.
+        """
+        conn = self._get_conn()
+        try:
+            cur = conn.execute("""
+                SELECT symbol, side, volume, entry_price, sl_pips, tp_pips, entry_time
+                FROM positions
+                WHERE bot_id = ? AND account_id = ? AND status = 'open'
+            """, (bot_id, account_id))
+            return [
+                {
+                    "symbol": r[0],
+                    "side": r[1],
+                    "volume": r[2],
+                    "entry_price": r[3],
+                    "sl_pips": r[4],
+                    "tp_pips": r[5],
+                    "entry_time": r[6],
+                }
+                for r in cur.fetchall()
+            ]
+        except Exception as e:
+            logger.error(f"Failed to read open positions: {e}")
+            return []
+        finally:
+            conn.close()
+
+    def record_partial_close(self, bot_id: str, symbol: str, remaining_volume: float,
+                             realized_pnl: float, account_id: str,
+                             ctrader_id: Optional[int] = None) -> bool:
+        """
+        Bank a partial close against the still-open position.
+
+        cTrader's Positions.Closed event does not fire on a partial close, so without
+        this the profit taken at break-even was never recorded: the row kept its
+        original volume and the final close reported only the remainder's P&L.
+
+        No schema change is needed. `pnl` is unused (NULL) while a position is open and
+        the daily_stats view reads only `status = 'closed'`, so the open row can carry
+        realised partial P&L until close_position adds the remainder to it.
+        """
+        conn = self._get_conn()
+        try:
+            sql = """
+                UPDATE positions
+                SET volume = ?, pnl = COALESCE(pnl, 0) + ?
+                WHERE bot_id = ? AND symbol = ? AND status = 'open' AND account_id = ?
+            """
+            args = [remaining_volume, realized_pnl, bot_id, symbol, account_id]
+            if ctrader_id is not None:
+                sql += " AND ctrader_id = ?"
+                args.append(ctrader_id)
+            cur = conn.execute(sql, tuple(args))
+            matched = cur.rowcount
+            conn.commit()
+            if not matched:
+                logger.warning(
+                    f"Partial close ignored: no open position for {symbol} by {bot_id} "
+                    f"on account {account_id}"
+                )
+                return False
+            logger.info(
+                f"Partial close recorded: {symbol} by {bot_id}, realised {realized_pnl}, "
+                f"remaining {remaining_volume} lots for account {account_id}"
+            )
+            return True
+        except Exception as e:
+            logger.error(f"Failed to record partial close: {e}")
+            return False
+        finally:
+            conn.close()
+
+    def close_position(self, bot_id: str, symbol: str, exit_price: float, pnl: float,
+                       account_id: str, ctrader_id: Optional[int] = None) -> bool:
         """Mark position as closed (single source of truth)."""
         conn = self._get_conn()
         try:
             # Update position (daily_stats view automatically updates)
-            conn.execute("""
+            # pnl is ADDITIVE: a position may already carry P&L banked by record_partial_close,
+            # and `pnl` is NULL for positions that never had one, so COALESCE covers both.
+            # ctrader_id narrows this to the one position when the bot supplies it; without it
+            # the update would hit every open row for this (bot_id, symbol).
+            sql = """
                 UPDATE positions 
-                SET status = 'closed', exit_price = ?, pnl = ?, exit_time = datetime('now')
+                SET status = 'closed', exit_price = ?, pnl = COALESCE(pnl, 0) + ?, exit_time = datetime('now')
                 WHERE bot_id = ? AND symbol = ? AND status = 'open' AND account_id = ?
-            """, (exit_price, pnl, bot_id, symbol, account_id))
+            """
+            args = [exit_price, pnl, bot_id, symbol, account_id]
+            if ctrader_id is not None:
+                sql += " AND ctrader_id = ?"
+                args.append(ctrader_id)
+            conn.execute(sql, tuple(args))
             
             conn.commit()
             logger.info(f"Position closed: {symbol} by {bot_id}, PnL: {pnl} for account {account_id}")

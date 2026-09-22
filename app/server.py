@@ -2154,6 +2154,14 @@ async def report_position(request: dict):
         bot_id = sanitize_bot_id(request.get("bot_id", "default"))
         action = request.get("action")
         symbol = request.get("symbol")
+
+        # The cBot has always sent this; it now narrows the close / partial-close updates
+        # to one position instead of every open row for the (bot_id, symbol) pair.
+        raw_ctrader_id = request.get("ctrader_id")
+        try:
+            ctrader_id = int(raw_ctrader_id) if raw_ctrader_id not in (None, "") else None
+        except (TypeError, ValueError):
+            ctrader_id = None
         
         account_number = str(request.get("account_number", "0"))
         registry = get_account_registry()
@@ -2188,7 +2196,8 @@ async def report_position(request: dict):
                 entry_price=entry_price,
                 sl_pips=sl_pips,
                 tp_pips=tp_pips,
-                account_id=account_id
+                account_id=account_id,
+                ctrader_id=ctrader_id
             )
             
             if success:
@@ -2213,6 +2222,45 @@ async def report_position(request: dict):
                 pass
             return {"status": "success", "message": f"Account {account_id} synced", "account_id": account_id}
         
+        elif action == "partial_close":
+            # cTrader's Positions.Closed does not fire on a partial close, so the bot
+            # reports it explicitly: bank the realised P&L on the still-open row and
+            # shrink its volume to what is actually left running.
+            remaining_volume = float(request.get("remaining_volume", 0) or 0)
+            realized_pnl = float(request.get("realized_pnl", 0) or 0)
+            closed_volume = float(request.get("closed_volume", 0) or 0)
+
+            success = portfolio_manager.record_partial_close(
+                bot_id=bot_id,
+                symbol=symbol,
+                remaining_volume=remaining_volume,
+                realized_pnl=realized_pnl,
+                account_id=account_id,
+                ctrader_id=ctrader_id
+            )
+
+            if success:
+                logger.info(
+                    f"[PORTFOLIO EVENT] PARTIAL CLOSE | {account_id}/{bot_id} | {symbol} | "
+                    f"closed {closed_volume} lots for ${realized_pnl:.2f} | {remaining_volume} lots remaining"
+                )
+                try:
+                    await broadcast_update(account_id=account_id)
+                except Exception:
+                    pass
+                try:
+                    await broadcast_event(
+                        "TRADE_PARTIAL_CLOSE",
+                        f"PARTIAL {symbol} {bot_id} {closed_volume}L PnL: ${realized_pnl:.2f}",
+                        bot_id=bot_id,
+                        account_id=str(account_id),
+                    )
+                except Exception:
+                    pass
+                return {"status": "success", "message": "Partial close recorded"}
+            else:
+                return {"status": "error", "message": "Failed to record partial close"}
+
         elif action == "close":
             exit_price = request.get("exit_price")
             pnl = request.get("pnl", 0)
@@ -2226,7 +2274,8 @@ async def report_position(request: dict):
                 symbol=symbol,
                 exit_price=exit_price,
                 pnl=pnl,
-                account_id=account_id
+                account_id=account_id,
+                ctrader_id=ctrader_id
             )
             
             if success:
@@ -2247,6 +2296,31 @@ async def report_position(request: dict):
     except Exception as e:
         logger.error(f"Portfolio report error: {e}")
         return {"status": "error", "message": str(e)}
+
+
+@app.get("/portfolio/open-positions")
+async def get_open_positions(bot_id: str, account_number: str = "0"):
+    """
+    Open positions with the stop distance recorded at entry.
+
+    A restarting cBot uses this to rebuild its in-RAM initial-SL map: without it, a
+    position already moved to break-even looks like it was opened with a ~0.5 pip
+    stop, and every R-based decision (trailing trigger, partial close) runs on a
+    fabricated R.
+    """
+    try:
+        registry = get_account_registry()
+        account_type = registry.get_account_type(str(account_number)) or "demo"
+        account_id = registry.resolve_account_id(str(account_number), account_type)
+        if not account_id:
+            return {"status": "success", "positions": []}
+        rows = portfolio_manager.get_open_positions(
+            bot_id=sanitize_bot_id(bot_id), account_id=account_id
+        )
+        return {"status": "success", "positions": rows}
+    except Exception as e:
+        logger.error(f"Open positions lookup error: {e}")
+        return {"status": "error", "message": str(e), "positions": []}
 
 
 @app.get("/portfolio/status")

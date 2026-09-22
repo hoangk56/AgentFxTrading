@@ -2,12 +2,14 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Globalization;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Net.WebSockets;
 using System.Text;
 using System.Text.Json;
+using System.Xml.Linq;
 using System.Text.Json.Serialization;
 using System.Text.RegularExpressions;
 using System.Threading;
@@ -558,8 +560,12 @@ namespace cAlgo.Robots
 
                 CheckNewsEvents();
 
-                // Track Asian session range & golden killzones
-                TrackAsianSession(Server.Time);
+                // Track Asian session range & golden killzones.
+                // Pass the OpenTime of the bar being sampled, NOT Server.Time: Server.Time is
+                // the tick that CLOSED the bar, one bar-width later. Using it dropped the
+                // 05:45-06:00 bar from the session and folded the 23:45-00:00 bar of the
+                // previous day in (resetting the range). Matches InitializeAsianSession.
+                TrackAsianSession(Bars.LastBar.OpenTime);
                 bool inKillzone = IsGoldenKillzone(Server.Time, out _activeKillzone);
 
                 // Evaluate Judas Sweep signals (respecting reverseCondition)
@@ -1039,6 +1045,18 @@ namespace cAlgo.Robots
             {
                 Print($"[Asian Range Init Warning] {ex.Message}");
             }
+        }
+
+        // Anti-stop-hunt floor for AI-proposed stops. Shared so every order path applies the
+        // same floor: ExecuteDecision clamps here, and the Anti-FOMO sniper path must too -
+        // it recomputes slPips against the pulled-back price, which is exactly when the stop
+        // ends up closest to market.
+        private double GetEffectiveSlFloorPips()
+        {
+            double currentAtrPips = (atr != null && atr.Result.Count > 0 && Symbol.PipSize > 0)
+                ? Math.Round(atr.Result.LastValue / Symbol.PipSize, 0)
+                : 0;
+            return Math.Max(AiSlMinFloorPips, currentAtrPips > 0 ? Math.Round(currentAtrPips * 0.8, 0) : 200.0);
         }
 
         private void TrackAsianSession(DateTime timeUtc)
@@ -1866,12 +1884,30 @@ namespace cAlgo.Robots
         #endregion
 
         #region News Filter Logic
+        private int _newsFetchInFlight = 0;
+
+        // FetchForexFactoryNews issues synchronous HttpWebRequests (5s dashboard + 10s JSON +
+        // 10s XML). Called from OnBarClosed that froze the cBot thread for up to ~25 seconds,
+        // stalling break-even, trailing stops, CheckStructuralInvalidation and staged-order
+        // execution during the most volatile seconds of the bar. Run it off-thread instead,
+        // mirroring FlowRsiBot. _newsEvents is locked because it is now cross-thread.
+        private void StartNewsFetch()
+        {
+            if (Interlocked.CompareExchange(ref _newsFetchInFlight, 1, 0) != 0) return;
+            Task.Run(() =>
+            {
+                try { FetchForexFactoryNews(); }
+                catch (Exception ex) { Print($"[News Filter Error] Background fetch failed: {ex.Message}"); }
+                finally { Interlocked.Exchange(ref _newsFetchInFlight, 0); }
+            });
+        }
+
         private void InitializeNewsFilter()
         {
             if (!enableNewsFilter) return;
             if (RunningMode != RunningMode.RealTime) return;
 
-            FetchForexFactoryNews();
+            StartNewsFetch();
         }
 
         private void CheckNewsEvents()
@@ -1880,11 +1916,14 @@ namespace cAlgo.Robots
 
             if (DateTime.UtcNow - _lastNewsFetchTime > TimeSpan.FromHours(6) && DateTime.UtcNow - _lastNewsFetchAttempt > TimeSpan.FromMinutes(5))
             {
-                FetchForexFactoryNews();
+                StartNewsFetch();
             }
 
             DateTime now = DateTime.UtcNow;
-            foreach (var item in _newsEvents)
+            // Snapshot under the lock: the background fetch can be rewriting the list.
+            List<NewsEvent> newsSnapshot;
+            lock (_newsEvents) { newsSnapshot = new List<NewsEvent>(_newsEvents); }
+            foreach (var item in newsSnapshot)
             {
                 if (highImpactOnly && item.Impact != "High") continue;
                 if (!IsCurrencyAffected(item.Country)) continue;
@@ -2039,7 +2078,7 @@ namespace cAlgo.Robots
                 using (var doc = JsonDocument.Parse(json))
                 {
                     if (!doc.RootElement.TryGetProperty("clusters", out var clustersElem)) return false;
-                    _newsEvents.Clear();
+                    var parsedServerEvents = new List<NewsEvent>();
                     foreach (var cluster in clustersElem.EnumerateArray())
                     {
                         if (cluster.TryGetProperty("events", out var eventsElem))
@@ -2053,7 +2092,7 @@ namespace cAlgo.Robots
 
                                 if (DateTime.TryParse(dateStr, out DateTime newsDate))
                                 {
-                                    _newsEvents.Add(new NewsEvent
+                                    parsedServerEvents.Add(new NewsEvent
                                     {
                                         Title = title,
                                         Country = country,
@@ -2064,7 +2103,12 @@ namespace cAlgo.Robots
                             }
                         }
                     }
-                    return _newsEvents.Count > 0;
+                    lock (_newsEvents)
+                    {
+                        _newsEvents.Clear();
+                        _newsEvents.AddRange(parsedServerEvents);
+                    }
+                    return parsedServerEvents.Count > 0;
                 }
             }
             catch
@@ -2088,8 +2132,22 @@ namespace cAlgo.Robots
                 using (var reader = new StreamReader(stream))
                 {
                     string xml = reader.ReadToEnd();
-                    _lastNewsFetchTime = DateTime.UtcNow;
-                    Print("[News Filter] XML Fallback news fetched successfully.");
+                    ParseNewsXml(xml);
+
+                    // Only treat this as a real refresh if it produced events. CheckNewsEvents
+                    // refetches at most every 6 hours, so stamping an empty result would leave
+                    // IsNewsPauseActive permanently false for that window - the filter silently off.
+                    int loaded;
+                    lock (_newsEvents) { loaded = _newsEvents.Count; }
+                    if (loaded > 0)
+                    {
+                        _lastNewsFetchTime = DateTime.UtcNow;
+                        Print($"[News Filter] XML fallback loaded {loaded} events.");
+                    }
+                    else
+                    {
+                        Print("[News Filter WARNING] XML fallback produced no usable events; NOT stamping the fetch time so the next cycle retries.");
+                    }
                 }
 #pragma warning restore SYSLIB0014
             }
@@ -2099,29 +2157,91 @@ namespace cAlgo.Robots
             }
         }
 
+        // ForexFactory's XML feed writes US Eastern times with NO offset, so they can only be
+        // converted with an explicit zone. Windows and IANA ids are both tried: .NET on Linux
+        // resolves IANA natively and Windows ids via ICU, and neither is guaranteed present.
+        private static TimeZoneInfo ResolveEasternTimeZone()
+        {
+            foreach (var id in new[] { "America/New_York", "Eastern Standard Time" })
+            {
+                try { return TimeZoneInfo.FindSystemTimeZoneById(id); }
+                catch { }
+            }
+            return null;
+        }
+
+        private static readonly TimeZoneInfo _easternTz = ResolveEasternTimeZone();
+
+        // Mirrors ParseNewsJson, but the XML feed carries US Eastern wall-clock times with no
+        // offset - they must be converted explicitly or every event lands 4-5 hours early.
+        private void ParseNewsXml(string xml)
+        {
+            try
+            {
+                if (_easternTz == null)
+                {
+                    Print("[News Filter WARNING] US Eastern time zone unavailable; XML times cannot be converted to UTC. Parse skipped.");
+                    return;
+                }
+
+                var xdoc = XDocument.Parse(xml);
+                var parsedEvents = new List<NewsEvent>();
+                foreach (var item in xdoc.Descendants("event"))
+                {
+                    string dateStr = item.Element("date")?.Value ?? "";
+                    string timeStr = item.Element("time")?.Value ?? "";
+                    if (!DateTime.TryParse($"{dateStr} {timeStr}", CultureInfo.InvariantCulture, DateTimeStyles.None, out var parsedEastern))
+                        continue;
+
+                    parsedEvents.Add(new NewsEvent
+                    {
+                        Title = item.Element("title")?.Value ?? "",
+                        Country = item.Element("country")?.Value ?? "",
+                        Impact = item.Element("impact")?.Value ?? "",
+                        Date = TimeZoneInfo.ConvertTimeToUtc(
+                            DateTime.SpecifyKind(parsedEastern, DateTimeKind.Unspecified), _easternTz)
+                    });
+                }
+
+                // Swap in only on success, so a malformed feed never empties a good list.
+                lock (_newsEvents)
+                {
+                    _newsEvents.Clear();
+                    _newsEvents.AddRange(parsedEvents);
+                }
+            }
+            catch (Exception ex)
+            {
+                Print($"[News Filter] XML parsing error: {ex.Message}");
+            }
+        }
+
         private void ParseNewsJson(string json)
         {
             try
             {
                 using (var doc = JsonDocument.Parse(json))
                 {
-                    _newsEvents.Clear();
-                    foreach (var element in doc.RootElement.EnumerateArray())
+                    lock (_newsEvents)
                     {
-                        string title = element.GetProperty("title").GetString();
-                        string country = element.GetProperty("country").GetString();
-                        string impact = element.GetProperty("impact").GetString();
-                        string dateStr = element.GetProperty("date").GetString();
-
-                        if (DateTime.TryParse(dateStr, out DateTime newsDate))
+                        _newsEvents.Clear();
+                        foreach (var element in doc.RootElement.EnumerateArray())
                         {
-                            _newsEvents.Add(new NewsEvent
+                            string title = element.GetProperty("title").GetString();
+                            string country = element.GetProperty("country").GetString();
+                            string impact = element.GetProperty("impact").GetString();
+                            string dateStr = element.GetProperty("date").GetString();
+
+                            if (DateTime.TryParse(dateStr, out DateTime newsDate))
                             {
-                                Title = title,
-                                Country = country,
-                                Impact = impact,
-                                Date = newsDate
-                            });
+                                _newsEvents.Add(new NewsEvent
+                                {
+                                    Title = title,
+                                    Country = country,
+                                    Impact = impact,
+                                    Date = newsDate
+                                });
+                            }
                         }
                     }
                 }
@@ -2230,7 +2350,10 @@ namespace cAlgo.Robots
                                $"Protection   : {cbStatus}\n" +
                                $"Active Risk  : {effRisk:F2}% (Base: {riskFactor}%)\n" +
                                $"DCA Mode     : {(dcaEnable ? "ENABLED" : "DISABLED")}\n" +
-                               $"BreakEven    : {(enableBreakEvenPrice ? $"ON ({breakEvenTrigger} pips)" : "OFF")}\n" +
+                               // Report the trigger that is actually in force. breakEvenMode defaults to
+                               // Risk_Reward_Ratio, in which case breakEvenTrigger (pips) is never read -
+                               // showing it made the panel advertise a threshold with no effect.
+                               $"BreakEven    : {(enableBreakEvenPrice ? (breakEvenMode == BreakEvenTriggerMode.Risk_Reward_Ratio ? $"ON ({breakEvenRrTrigger} R)" : $"ON ({breakEvenTrigger} pips)") : "OFF")}\n" +
                                $"Active Orders: {Positions.FindAll(label, SymbolName).Length}/{maxPermittedOrder}";
 
             Color textColor = _isCircuitBreakerActive ? Color.OrangeRed : Color.LimeGreen;
@@ -3856,10 +3979,7 @@ Reply strictly with JSON object.";
                 if (tpPips <= 0) tpPips = takeprofitPip;
 
                 // ── Safety Guard: Dynamic ATR & Minimum SL Floor (Anti-Stop-Hunt) ─────────
-                double currentAtrPips = (atr != null && atr.Result.Count > 0 && Symbol.PipSize > 0) 
-                    ? Math.Round(atr.Result.LastValue / Symbol.PipSize, 0) 
-                    : 0;
-                double effectiveMinFloor = Math.Max(AiSlMinFloorPips, currentAtrPips > 0 ? Math.Round(currentAtrPips * 0.8, 0) : 200.0);
+                double effectiveMinFloor = GetEffectiveSlFloorPips();
                 if (slPips > 0 && slPips < effectiveMinFloor)
                 {
                     Print($"[AI Safety Guard] AI suggested SL={slPips:F0} pips is too tight (< ATR Floor {effectiveMinFloor:F0} pips). Clamped to {effectiveMinFloor:F0} pips to prevent stop hunting.");
@@ -4140,6 +4260,28 @@ Reply strictly with JSON object.";
                 tpPips = tradeType == TradeType.Buy 
                     ? Math.Max(0, Math.Round((decision.new_tp_price - Symbol.Ask) / Symbol.PipSize, 1))
                     : Math.Max(0, Math.Round((Symbol.Bid - decision.new_tp_price) / Symbol.PipSize, 1));
+            }
+
+            // The recompute above measures the stop against the PULLED-BACK price, so it can
+            // land far inside the floor ExecuteDecision clamped to at staging time. Re-apply it.
+            double stagedFloorPips = GetEffectiveSlFloorPips();
+            if (slPips > 0 && slPips < stagedFloorPips)
+            {
+                Print($"[AI Safety Guard] Staged SL recomputed to {slPips:F0} pips at pullback, below ATR floor {stagedFloorPips:F0}. Clamped to {stagedFloorPips:F0} pips.");
+                slPips = stagedFloorPips;
+            }
+
+            // Volume is linear in 1/slPips, so a stop that moved since staging leaves the
+            // position carrying a different dollar risk than the engine sized it for.
+            if (!enableFixedVol && slPips > 0 && _stagedSlPips > 0 && Math.Abs(slPips - _stagedSlPips) > 0.01)
+            {
+                double rescaled = Symbol.NormalizeVolumeInUnits(_stagedVolumeUnits * (_stagedSlPips / slPips));
+                double maxUnitsStaged = maxVol * Symbol.LotSize;
+                if (maxVol > 0 && rescaled > maxUnitsStaged) rescaled = maxUnitsStaged;
+                if (rescaled < Symbol.VolumeInUnitsMin) rescaled = Symbol.VolumeInUnitsMin;
+                if (rescaled > Symbol.VolumeInUnitsMax) rescaled = Symbol.VolumeInUnitsMax;
+                Print($"[Anti-FOMO Resize] Staged SL {_stagedSlPips:F0}p -> {slPips:F0}p at execution. Volume {volume / Symbol.LotSize:F2} -> {rescaled / Symbol.LotSize:F2} lots to hold risk constant.");
+                volume = rescaled;
             }
 
             _lastAgentReason = decision.reason;
