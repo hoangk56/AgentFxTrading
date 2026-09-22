@@ -1247,7 +1247,14 @@ namespace cAlgo.Robots
             else if (tradeType == TradeType.Sell && slPrice <= (Symbol.Ask + minStopBuffer))
                 slPrice = Symbol.Ask + minStopBuffer + (Symbol.PipSize * 2);
 
-            var result = ExecuteMarketOrder(tradeType, SymbolName, targetUnits, BotId, slPrice, tpPrice, BotId);
+            // ExecuteMarketOrder(..., label, stopLossPips, takeProfitPips, comment) takes DISTANCES IN PIPS,
+            // not absolute prices. Convert from the final SL/TP levels relative to the entry side
+            // (Buy fills at Ask, Sell at Bid) so the broker places them exactly where we log them.
+            double entryRefPrice = tradeType == TradeType.Buy ? Symbol.Ask : Symbol.Bid;
+            double slPips = Math.Abs(entryRefPrice - slPrice) / Symbol.PipSize;
+            double tpPips = Math.Abs(tpPrice - entryRefPrice) / Symbol.PipSize;
+
+            var result = ExecuteMarketOrder(tradeType, SymbolName, targetUnits, BotId, slPips, tpPips, BotId);
 
             if (result.IsSuccessful)
             {
