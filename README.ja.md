@@ -169,7 +169,7 @@ GET  /real/dashboard           # リアル/ライブ用Webダッシュボード�
 GET  /                         # 最後に使用したモードへ自動リダイレクト
 GET  /dashboard                # 最後に使用したモードへ自動リダイレクト
 GET  /api/dashboard/positions  # 保有ポジション一覧（?account_id=demo|live|all|<id> 対応）
-GET  /api/dashboard/history    # 決済済み取引履歴（?account_id=demo|live|all|<id> 対応）
+GET  /api/dashboard/history    # 決済済み取引履歴、10件/ページ（?account_id=demo|live|all|<id>&page=N&page_size=N 対応）
 GET  /api/dashboard/pnl-history# 日次P&L履歴（?account_id=demo|live|all|<id> 対応）
 GET  /api/dashboard/logs       # サーバー & エージェントのログ（?mode=demo|live|all 対応）
 GET  /api/bots                 # Dockerボット設定と状態（account_type付き）

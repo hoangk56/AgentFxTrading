@@ -169,7 +169,7 @@ GET  /real/dashboard           # 实盘/真仓仪表板（隔离）
 GET  /                         # 自动跳转到上次使用的模式
 GET  /dashboard                # 自动跳转到上次使用的模式
 GET  /api/dashboard/positions  # 当前持仓（支持 ?account_id=demo|live|all|<id>）
-GET  /api/dashboard/history    # 已平仓交易历史（支持 ?account_id=demo|live|all|<id>）
+GET  /api/dashboard/history    # 已平仓交易历史，每页10条（支持 ?account_id=demo|live|all|<id>&page=N&page_size=N）
 GET  /api/dashboard/pnl-history# 每日盈亏历史（支持 ?account_id=demo|live|all|<id>）
 GET  /api/dashboard/logs       # 系统与代理日志（支持 ?mode=demo|live|all）
 GET  /api/bots                 # Docker 机器人配置与状态（含 account_type）

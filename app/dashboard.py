@@ -20,6 +20,26 @@ import logging
 from app import news_service
 
 
+VN_TZ = timezone(timedelta(hours=7))  # Vietnam has no DST, so a fixed offset is exact
+
+
+def format_vn_time(ts: Optional[str]) -> Optional[str]:
+    """Render a UTC timestamp from the positions table as 'HH:MM:SS DD/MM/YYYY' in Vietnam time.
+
+    The DB writes datetime('now') ('YYYY-MM-DD HH:MM:SS', UTC, no tz marker); anything that does
+    not parse is returned untouched so a stray value never blanks a table cell.
+    """
+    if not ts:
+        return ts
+    try:
+        dt = datetime.fromisoformat(str(ts))
+    except ValueError:
+        return ts
+    if dt.tzinfo is None:
+        dt = dt.replace(tzinfo=timezone.utc)
+    return dt.astimezone(VN_TZ).strftime("%H:%M:%S %d/%m/%Y")
+
+
 def _age_seconds(ts: Optional[float]) -> Optional[float]:
     """Seconds elapsed since `ts` (epoch), for surfacing how stale a bot figure is."""
     if ts is None:
@@ -214,6 +234,8 @@ def get_active_positions(account_id: str = "all") -> List[Dict]:
         positions = [dict(row) for row in cursor.fetchall()]
     finally:
         conn.close()
+    for pos in positions:
+        pos["entry_time"] = format_vn_time(pos.get("entry_time"))
     pm = get_portfolio_manager()
     cache = getattr(pm, "_bot_positions_cache", {}) if hasattr(pm, "_bot_positions_cache") else {}
     for pos in positions:
@@ -224,38 +246,55 @@ def get_active_positions(account_id: str = "all") -> List[Dict]:
     return positions
 
 
-def get_trade_history(limit: int = 50, account_id: str = "all") -> List[Dict]:
-    """Get recent trade history."""
+def get_trade_history(account_id: str = "all", page: int = 1, page_size: int = 10) -> Dict:
+    """Get one page of closed trades, newest exit first, plus paging metadata."""
+    page = max(1, int(page))
+    page_size = max(1, int(page_size))
     conn = get_db()
     conn.row_factory = sqlite3.Row
-    trades = []
+    items = []
+    total = 0
     try:
-        query = """
+        where = " WHERE p.status = 'closed'"
+        params = []
+        if account_id in ("demo", "live"):
+            where += " AND a.account_type = ? AND a.is_configured = 1"
+            params.append(account_id)
+        elif account_id and account_id != "all":
+            where += " AND p.account_id = ?"
+            params.append(account_id)
+
+        cursor = conn.execute(
+            f"SELECT COUNT(*) FROM positions p LEFT JOIN accounts a ON p.account_id = a.account_id{where}",
+            tuple(params),
+        )
+        total = cursor.fetchone()[0] or 0
+
+        cursor = conn.execute(
+            f"""
             SELECT p.bot_id, p.symbol, UPPER(p.side) as side, p.volume, p.entry_price, p.exit_price, p.pnl, p.entry_time, p.exit_time,
                    p.account_id, a.account_type, a.label as account_label
             FROM positions p
-            LEFT JOIN accounts a ON p.account_id = a.account_id
-            WHERE p.status = 'closed'
-        """
-        params = []
-        if account_id in ("demo", "live"):
-            query += " AND a.account_type = ? AND a.is_configured = 1"
-            params.append(account_id)
-        elif account_id and account_id != "all":
-            query += " AND p.account_id = ?"
-            params.append(account_id)
-            
-        query += " ORDER BY p.exit_time DESC LIMIT ?"
-        params.append(limit)
-        
-        cursor = conn.execute(query, tuple(params))
+            LEFT JOIN accounts a ON p.account_id = a.account_id{where}
+            ORDER BY p.exit_time DESC LIMIT ? OFFSET ?
+            """,
+            (*params, page_size, (page - 1) * page_size),
+        )
         for row in cursor.fetchall():
             d = dict(row)
             d["pnl"] = round(d["pnl"], 2) if d["pnl"] is not None else 0
-            trades.append(d)
+            d["entry_time"] = format_vn_time(d["entry_time"])
+            d["exit_time"] = format_vn_time(d["exit_time"])
+            items.append(d)
     finally:
         conn.close()
-    return trades
+    return {
+        "items": items,
+        "total": total,
+        "page": page,
+        "page_size": page_size,
+        "total_pages": max(1, -(-total // page_size)),
+    }
 
 
 def get_daily_pnl_history(days: int = 30, account_id: str = "all") -> List[Dict]:
@@ -494,7 +533,7 @@ async def dashboard_page(request: Request):
         
     summary = get_portfolio_summary(filter_acc)
     positions = get_active_positions(filter_acc)
-    history = get_trade_history(20, filter_acc)
+    history = get_trade_history(filter_acc)
     pnl_history = get_daily_pnl_history(30, filter_acc)
     leaderboard = compute_bot_leaderboard(filter_acc)
     
@@ -536,9 +575,9 @@ async def api_dashboard_positions(account_id: str = "all"):
 
 
 @router.get("/api/dashboard/history")
-async def api_dashboard_history(limit: int = 50, account_id: str = "all"):
-    """API endpoint for trade history."""
-    return get_trade_history(limit, account_id)
+async def api_dashboard_history(account_id: str = "all", page: int = 1, page_size: int = 10):
+    """API endpoint for paginated trade history."""
+    return get_trade_history(account_id, page, page_size)
 
 
 @router.get("/api/dashboard/pnl-history")
@@ -769,7 +808,7 @@ async def websocket_endpoint(websocket: WebSocket):
                     if msg_type in ("ping", "subscribe"):
                         summary = get_portfolio_summary(account_id)
                         positions = get_active_positions(account_id)
-                        history = get_trade_history(50, account_id)
+                        history = get_trade_history(account_id)["items"]
                         pnl_history = get_daily_pnl_history(30, account_id)
                         await websocket.send_json({
                             "type": "update",
@@ -782,7 +821,7 @@ async def websocket_endpoint(websocket: WebSocket):
                 elif data == "ping":
                     summary = get_portfolio_summary("all")
                     positions = get_active_positions("all")
-                    history = get_trade_history(50, "all")
+                    history = get_trade_history("all")["items"]
                     pnl_history = get_daily_pnl_history(30, "all")
                     await websocket.send_json({
                         "type": "update",
@@ -862,7 +901,7 @@ async def broadcast_update(account_id: Optional[str] = None):
     for target in targets:
         summary = get_portfolio_summary(target)
         positions = get_active_positions(target)
-        history = get_trade_history(50, target)
+        history = get_trade_history(target)["items"]
         pnl_history = get_daily_pnl_history(30, target)
         await manager.broadcast({
             "type": "update",

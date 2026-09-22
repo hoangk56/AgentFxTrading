@@ -146,6 +146,10 @@ body.app-shell{font-family:var(--font-ui);background:var(--bg-app);color:var(--t
 .log-tag-warn{color:#fab387;font-weight:600}
 .log-tag-error{color:#f38ba8;font-weight:700}
 .hidden{display:none!important}
+.pager{display:flex;align-items:center;gap:8px;margin-left:auto}
+.pager-label{font-size:0.7rem;color:var(--text-muted);font-variant-numeric:tabular-nums;white-space:nowrap}
+.log-btn:disabled{opacity:.4;cursor:default}
+.log-btn:disabled:hover{background:var(--bg-hover);border-color:var(--border)}
 
 
 

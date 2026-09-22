@@ -167,7 +167,7 @@ GET  /real/dashboard           # Real/Live web dashboard (isolated)
 GET  /                         # Auto-redirects to last active mode
 GET  /dashboard                # Auto-redirects to last active mode
 GET  /api/dashboard/positions  # Active positions (supports ?account_id=demo|live|all|<id>)
-GET  /api/dashboard/history    # Closed trade history (supports ?account_id=demo|live|all|<id>)
+GET  /api/dashboard/history    # Closed trade history, paginated 10/page (?account_id=demo|live|all|<id>&page=N&page_size=N)
 GET  /api/dashboard/pnl-history# Daily P&L history (supports ?account_id=demo|live|all|<id>)
 GET  /api/dashboard/logs       # Server & agent reasoning logs (supports ?mode=demo|live|all)
 GET  /api/bots                 # Docker bot configurations & statuses (with account_type)

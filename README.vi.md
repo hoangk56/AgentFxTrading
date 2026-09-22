@@ -164,7 +164,7 @@ GET  /real/dashboard           # Giao diện web dashboard Real/Live (phân lậ
 GET  /                         # Tự động chuyển hướng về chế độ gần nhất
 GET  /dashboard                # Tự động chuyển hướng về chế độ gần nhất
 GET  /api/dashboard/positions  # Danh sách vị thế đang mở (hỗ trợ ?account_id=demo|live|all|<id>)
-GET  /api/dashboard/history    # Lịch sử lệnh đã đóng (hỗ trợ ?account_id=demo|live|all|<id>)
+GET  /api/dashboard/history    # Lịch sử lệnh đã đóng, phân trang 10/trang (?account_id=demo|live|all|<id>&page=N&page_size=N)
 GET  /api/dashboard/pnl-history# Lịch sử P&L theo ngày (hỗ trợ ?account_id=demo|live|all|<id>)
 GET  /api/dashboard/logs       # Log hệ thống & reasoning (hỗ trợ ?mode=demo|live|all)
 GET  /api/bots                 # Cấu hình bot Docker & trạng thái (kèm account_type)
