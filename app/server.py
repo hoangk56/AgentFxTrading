@@ -2213,6 +2213,44 @@ async def report_position(request: dict):
                 pass
             return {"status": "success", "message": f"Account {account_id} synced", "account_id": account_id}
         
+        elif action == "partial_close":
+            # cTrader's Positions.Closed does not fire on a partial close, so the bot
+            # reports it explicitly: bank the realised P&L on the still-open row and
+            # shrink its volume to what is actually left running.
+            remaining_volume = float(request.get("remaining_volume", 0) or 0)
+            realized_pnl = float(request.get("realized_pnl", 0) or 0)
+            closed_volume = float(request.get("closed_volume", 0) or 0)
+
+            success = portfolio_manager.record_partial_close(
+                bot_id=bot_id,
+                symbol=symbol,
+                remaining_volume=remaining_volume,
+                realized_pnl=realized_pnl,
+                account_id=account_id
+            )
+
+            if success:
+                logger.info(
+                    f"[PORTFOLIO EVENT] PARTIAL CLOSE | {account_id}/{bot_id} | {symbol} | "
+                    f"closed {closed_volume} lots for ${realized_pnl:.2f} | {remaining_volume} lots remaining"
+                )
+                try:
+                    await broadcast_update(account_id=account_id)
+                except Exception:
+                    pass
+                try:
+                    await broadcast_event(
+                        "TRADE_PARTIAL_CLOSE",
+                        f"PARTIAL {symbol} {bot_id} {closed_volume}L PnL: ${realized_pnl:.2f}",
+                        bot_id=bot_id,
+                        account_id=str(account_id),
+                    )
+                except Exception:
+                    pass
+                return {"status": "success", "message": "Partial close recorded"}
+            else:
+                return {"status": "error", "message": "Failed to record partial close"}
+
         elif action == "close":
             exit_price = request.get("exit_price")
             pnl = request.get("pnl", 0)

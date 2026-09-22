@@ -558,8 +558,12 @@ namespace cAlgo.Robots
 
                 CheckNewsEvents();
 
-                // Track Asian session range & golden killzones
-                TrackAsianSession(Server.Time);
+                // Track Asian session range & golden killzones.
+                // Pass the OpenTime of the bar being sampled, NOT Server.Time: Server.Time is
+                // the tick that CLOSED the bar, one bar-width later. Using it dropped the
+                // 05:45-06:00 bar from the session and folded the 23:45-00:00 bar of the
+                // previous day in (resetting the range). Matches InitializeAsianSession.
+                TrackAsianSession(Bars.LastBar.OpenTime);
                 bool inKillzone = IsGoldenKillzone(Server.Time, out _activeKillzone);
 
                 // Evaluate Judas Sweep signals (respecting reverseCondition)
@@ -1039,6 +1043,18 @@ namespace cAlgo.Robots
             {
                 Print($"[Asian Range Init Warning] {ex.Message}");
             }
+        }
+
+        // Anti-stop-hunt floor for AI-proposed stops. Shared so every order path applies the
+        // same floor: ExecuteDecision clamps here, and the Anti-FOMO sniper path must too -
+        // it recomputes slPips against the pulled-back price, which is exactly when the stop
+        // ends up closest to market.
+        private double GetEffectiveSlFloorPips()
+        {
+            double currentAtrPips = (atr != null && atr.Result.Count > 0 && Symbol.PipSize > 0)
+                ? Math.Round(atr.Result.LastValue / Symbol.PipSize, 0)
+                : 0;
+            return Math.Max(AiSlMinFloorPips, currentAtrPips > 0 ? Math.Round(currentAtrPips * 0.8, 0) : 200.0);
         }
 
         private void TrackAsianSession(DateTime timeUtc)
@@ -3856,10 +3872,7 @@ Reply strictly with JSON object.";
                 if (tpPips <= 0) tpPips = takeprofitPip;
 
                 // ── Safety Guard: Dynamic ATR & Minimum SL Floor (Anti-Stop-Hunt) ─────────
-                double currentAtrPips = (atr != null && atr.Result.Count > 0 && Symbol.PipSize > 0) 
-                    ? Math.Round(atr.Result.LastValue / Symbol.PipSize, 0) 
-                    : 0;
-                double effectiveMinFloor = Math.Max(AiSlMinFloorPips, currentAtrPips > 0 ? Math.Round(currentAtrPips * 0.8, 0) : 200.0);
+                double effectiveMinFloor = GetEffectiveSlFloorPips();
                 if (slPips > 0 && slPips < effectiveMinFloor)
                 {
                     Print($"[AI Safety Guard] AI suggested SL={slPips:F0} pips is too tight (< ATR Floor {effectiveMinFloor:F0} pips). Clamped to {effectiveMinFloor:F0} pips to prevent stop hunting.");
@@ -4140,6 +4153,28 @@ Reply strictly with JSON object.";
                 tpPips = tradeType == TradeType.Buy 
                     ? Math.Max(0, Math.Round((decision.new_tp_price - Symbol.Ask) / Symbol.PipSize, 1))
                     : Math.Max(0, Math.Round((Symbol.Bid - decision.new_tp_price) / Symbol.PipSize, 1));
+            }
+
+            // The recompute above measures the stop against the PULLED-BACK price, so it can
+            // land far inside the floor ExecuteDecision clamped to at staging time. Re-apply it.
+            double stagedFloorPips = GetEffectiveSlFloorPips();
+            if (slPips > 0 && slPips < stagedFloorPips)
+            {
+                Print($"[AI Safety Guard] Staged SL recomputed to {slPips:F0} pips at pullback, below ATR floor {stagedFloorPips:F0}. Clamped to {stagedFloorPips:F0} pips.");
+                slPips = stagedFloorPips;
+            }
+
+            // Volume is linear in 1/slPips, so a stop that moved since staging leaves the
+            // position carrying a different dollar risk than the engine sized it for.
+            if (!enableFixedVol && slPips > 0 && _stagedSlPips > 0 && Math.Abs(slPips - _stagedSlPips) > 0.01)
+            {
+                double rescaled = Symbol.NormalizeVolumeInUnits(_stagedVolumeUnits * (_stagedSlPips / slPips));
+                double maxUnitsStaged = maxVol * Symbol.LotSize;
+                if (maxVol > 0 && rescaled > maxUnitsStaged) rescaled = maxUnitsStaged;
+                if (rescaled < Symbol.VolumeInUnitsMin) rescaled = Symbol.VolumeInUnitsMin;
+                if (rescaled > Symbol.VolumeInUnitsMax) rescaled = Symbol.VolumeInUnitsMax;
+                Print($"[Anti-FOMO Resize] Staged SL {_stagedSlPips:F0}p -> {slPips:F0}p at execution. Volume {volume / Symbol.LotSize:F2} -> {rescaled / Symbol.LotSize:F2} lots to hold risk constant.");
+                volume = rescaled;
             }
 
             _lastAgentReason = decision.reason;

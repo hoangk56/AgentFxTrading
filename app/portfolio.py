@@ -139,14 +139,55 @@ class PortfolioManager:
             return False
         finally:
             conn.close()
+    def record_partial_close(self, bot_id: str, symbol: str, remaining_volume: float,
+                             realized_pnl: float, account_id: str) -> bool:
+        """
+        Bank a partial close against the still-open position.
+
+        cTrader's Positions.Closed event does not fire on a partial close, so without
+        this the profit taken at break-even was never recorded: the row kept its
+        original volume and the final close reported only the remainder's P&L.
+
+        No schema change is needed. `pnl` is unused (NULL) while a position is open and
+        the daily_stats view reads only `status = 'closed'`, so the open row can carry
+        realised partial P&L until close_position adds the remainder to it.
+        """
+        conn = self._get_conn()
+        try:
+            cur = conn.execute("""
+                UPDATE positions
+                SET volume = ?, pnl = COALESCE(pnl, 0) + ?
+                WHERE bot_id = ? AND symbol = ? AND status = 'open' AND account_id = ?
+            """, (remaining_volume, realized_pnl, bot_id, symbol, account_id))
+            matched = cur.rowcount
+            conn.commit()
+            if not matched:
+                logger.warning(
+                    f"Partial close ignored: no open position for {symbol} by {bot_id} "
+                    f"on account {account_id}"
+                )
+                return False
+            logger.info(
+                f"Partial close recorded: {symbol} by {bot_id}, realised {realized_pnl}, "
+                f"remaining {remaining_volume} lots for account {account_id}"
+            )
+            return True
+        except Exception as e:
+            logger.error(f"Failed to record partial close: {e}")
+            return False
+        finally:
+            conn.close()
+
     def close_position(self, bot_id: str, symbol: str, exit_price: float, pnl: float, account_id: str) -> bool:
         """Mark position as closed (single source of truth)."""
         conn = self._get_conn()
         try:
             # Update position (daily_stats view automatically updates)
+            # pnl is ADDITIVE: a position may already carry P&L banked by record_partial_close,
+            # and `pnl` is NULL for positions that never had one, so COALESCE covers both.
             conn.execute("""
                 UPDATE positions 
-                SET status = 'closed', exit_price = ?, pnl = ?, exit_time = datetime('now')
+                SET status = 'closed', exit_price = ?, pnl = COALESCE(pnl, 0) + ?, exit_time = datetime('now')
                 WHERE bot_id = ? AND symbol = ? AND status = 'open' AND account_id = ?
             """, (exit_price, pnl, bot_id, symbol, account_id))
             

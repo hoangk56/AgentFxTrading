@@ -450,7 +450,21 @@ namespace cAlgo.Robots
                 {
                     var activePositions = GetBotPositions();
                     bool hasOpenPos = activePositions.Count > 0;
-                    EvaluateStrategySignals(hasOpenPos);
+
+                    // Only dispatch when a position is already open: that path sends a
+                    // MANAGE_ONLY snapshot and cannot enter. While flat, EvaluateStrategySignals
+                    // would build an ENTRY candidate from the bar still FORMING at start-up
+                    // (index = Count-1 is only the closed bar inside OnBarClosed), so a mid-bar
+                    // cross that reverses by the close could be confirmed into a real trade on
+                    // every restart. Entry evaluation resumes at the next bar close.
+                    if (hasOpenPos)
+                    {
+                        EvaluateStrategySignals(hasOpenPos);
+                    }
+                    else
+                    {
+                        Print("[FlowRSI] Boot snapshot skipped: flat at start-up and the current bar is still forming. Entry evaluation resumes at the next bar close.");
+                    }
                 }
             }
             catch (Exception ex)
@@ -1193,6 +1207,18 @@ namespace cAlgo.Robots
                     return;
                 }
 
+                // The snapshot asked about one specific direction. An answer against it means
+                // the decision was formed on a different setup than the one sent, and the
+                // SL/TP we are holding belong to the opposite side of the market - which then
+                // hits the wrong-side stop path in ExecuteTechnicalOrder. Refuse it.
+                if ((allowedDirection == "BUY" || allowedDirection == "SELL") &&
+                    (action == "BUY" || action == "SELL") &&
+                    action != allowedDirection)
+                {
+                    Print($"[Security Alert] AI returned {action} against a {allowedDirection} candidate on {SymbolName}. Entry refused (SL/TP were computed for {allowedDirection}). Reason: {decision.reason}");
+                    return;
+                }
+
                 // Handle BUY / SELL
                 if (action == "BUY" || action == "SELL")
                 {
@@ -1272,10 +1298,32 @@ namespace cAlgo.Robots
 
             // Pre-flight broker boundary checks
             double minStopBuffer = Math.Max(Symbol.Spread * 3, Symbol.TickSize * 10);
+
+            // A stop on the WRONG SIDE of the market is not a boundary problem: it means the
+            // direction and the stop disagree. slDistancePips is measured with Math.Abs, so
+            // such a stop still produced a LARGE distance and sized the volume accordingly,
+            // and the clamp below then cut the stop to ~3x spread. Refuse the order instead.
+            if ((tradeType == TradeType.Buy && slPrice >= Symbol.Bid) ||
+                (tradeType == TradeType.Sell && slPrice <= Symbol.Ask))
+            {
+                Print($"[Security Alert] Order REJECTED: {tradeType} with stop {slPrice:F5} on the wrong side of market (Bid {Symbol.Bid:F5} / Ask {Symbol.Ask:F5}). Reason: {reason}");
+                return;
+            }
+
             if (tradeType == TradeType.Buy && slPrice >= (Symbol.Bid - minStopBuffer))
                 slPrice = Symbol.Bid - minStopBuffer - (Symbol.PipSize * 2);
             else if (tradeType == TradeType.Sell && slPrice <= (Symbol.Ask + minStopBuffer))
                 slPrice = Symbol.Ask + minStopBuffer + (Symbol.PipSize * 2);
+
+            // The clamp above can pull the stop closer than the distance targetUnits was
+            // sized for, which multiplies the intended dollar risk. Re-size to the final stop.
+            double clampedSlDistancePips = Math.Abs(currentPrice - slPrice) / Symbol.PipSize;
+            if (Math.Abs(clampedSlDistancePips - slDistancePips) > 0.01)
+            {
+                if (ShowLogs) Print($"[Pre-flight Resize] Boundary check moved the stop: {slDistancePips:F1}p -> {clampedSlDistancePips:F1}p. Re-sizing volume to hold risk constant.");
+                slDistancePips = clampedSlDistancePips;
+                targetUnits = CalculateDynamicVolumeInUnits(slDistancePips);
+            }
 
             // ExecuteMarketOrder(..., label, stopLossPips, takeProfitPips, comment) takes DISTANCES IN PIPS,
             // not absolute prices. Convert from the final SL/TP levels relative to the entry side
@@ -1373,8 +1421,28 @@ namespace cAlgo.Robots
                                     double volToClose = Symbol.NormalizeVolumeInUnits(pos.VolumeInUnits * PartialCloseRatio);
                                     if (volToClose >= Symbol.VolumeInUnitsMin && (pos.VolumeInUnits - volToClose) >= Symbol.VolumeInUnitsMin)
                                     {
-                                        ClosePosition(pos, volToClose);
-                                        Print($"[Partial Close] #{pos.Id} closed {volToClose / Symbol.LotSize:F2} lots at Break-Even.");
+                                        double pnlBeforePartial = pos.NetProfit;
+                                        var partialRes = ClosePosition(pos, volToClose);
+                                        if (partialRes != null && partialRes.IsSuccessful)
+                                        {
+                                            // Prefer the booked deal - it carries commission and swap, which is
+                                            // what "realised P&L" has to mean for the DB. History is not always
+                                            // populated the instant the call returns, so fall back to the NetProfit
+                                            // delta, i.e. the unrealised P&L the closed slice was carrying.
+                                            double realizedPnl = pnlBeforePartial - pos.NetProfit;
+                                            try
+                                            {
+                                                var partialHist = History.LastOrDefault(h => h.PositionId == pos.Id);
+                                                if (partialHist != null) realizedPnl = partialHist.NetProfit;
+                                            }
+                                            catch { }
+                                            Print($"[Partial Close] #{pos.Id} closed {volToClose / Symbol.LotSize:F2} lots at Break-Even.");
+                                            ReportPartialClose(pos, volToClose / Symbol.LotSize, realizedPnl, "Partial close at Break-Even");
+                                        }
+                                        else if (ShowLogs)
+                                        {
+                                            Print($"[Partial Close Failed] #{pos.Id}: {partialRes?.Error}");
+                                        }
                                     }
                                 }
                                 Print($"[BreakEven Achieved] #{pos.Id} SL -> {zeroLossSL:F5} (EstNet@SL=${CalculateEstimatedNetProfitAtSL(pos, zeroLossSL):F2})");
@@ -2202,6 +2270,72 @@ namespace cAlgo.Robots
             catch (Exception ex)
             {
                 if (ShowLogs) Print($"[ReportPositionOpen Error] {ex.Message}");
+            }
+        }
+
+        // Positions.Closed does NOT fire on a partial close, so nothing else reports it.
+        // Without this the profit taken at break-even never reaches the DB: the row keeps
+        // its original volume and the final close only carries the remainder's P&L.
+        private void ReportPartialClose(Position position, double closedLots, double realizedPnl, string reason = "")
+        {
+            if (RunningMode != RunningMode.RealTime || _httpClient == null || position == null) return;
+            try
+            {
+                int posId = position.Id;
+                string posSymbol = position.SymbolName;
+                string posSide = position.TradeType.ToString();
+                double remainingLots = position.VolumeInUnits / Symbol.LotSize;
+
+                var report = new
+                {
+                    ctrader_id = posId,
+                    bot_id = BotId,
+                    action = "partial_close",
+                    symbol = posSymbol,
+                    side = posSide,
+                    closed_volume = Math.Round(closedLots, 2),
+                    remaining_volume = Math.Round(remainingLots, 2),
+                    realized_pnl = Math.Round(realizedPnl, 2),
+                    reason = string.IsNullOrWhiteSpace(reason) ? "Partial close at Break-Even" : reason,
+                    account_number = Account.Number.ToString(),
+                    account_type = Account.IsLive ? "live" : "demo",
+                    account_label = Account.BrokerName,
+                    account_balance = Account.Balance,
+                    account_equity = Account.Equity
+                };
+
+                var json = JsonSerializer.Serialize(report);
+                var reportUrl = !string.IsNullOrWhiteSpace(AiReportUrl)
+                    ? AiReportUrl.Trim()
+                    : ApiUrl.Replace("/trade", "/portfolio/report");
+
+                Task.Run(async () =>
+                {
+                    try
+                    {
+                        var content = new StringContent(json, Encoding.UTF8, "application/json");
+                        await _httpClient.PostAsync(reportUrl, content);
+                        if (ShowLogs)
+                        {
+                            BeginInvokeOnMainThread(() =>
+                            {
+                                Print($"[Portfolio Hub] Reported partial close: #{posId} {closedLots:F2} lots for {realizedPnl:F2}, {remainingLots:F2} lots remaining");
+                            });
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        if (ShowLogs)
+                        {
+                            string err = ex.Message;
+                            BeginInvokeOnMainThread(() => Print($"[Portfolio Hub Error] Partial close report failed: {err}"));
+                        }
+                    }
+                });
+            }
+            catch (Exception ex)
+            {
+                if (ShowLogs) Print($"[ReportPartialClose Error] {ex.Message}");
             }
         }
 

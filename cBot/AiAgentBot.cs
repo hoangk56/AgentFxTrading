@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Net.Http;
 using System.Net.WebSockets;
 using System.Text;
@@ -523,6 +524,15 @@ namespace cAlgo.Robots
 
                 UpdateLossStreak();
                 var session = GetSessionInfo();
+
+                // Cross tracking must run on EVERY closed bar, in session or not:
+                // GetTmsSignals is the only writer of _lastCrossBar/_lastCrossDir. Gating it
+                // behind the Cost Gate made the bot blind to crosses before the open (TDI
+                // cross up at 12:45 for a 13:00 NY session), so the first bars of the session
+                // ran on yesterday's direction and the snapshot reported the wrong bias.
+                // This is pure arithmetic over cached bars - only the HTTP send needs gating.
+                var chartTms = GetTmsSignals(index);
+
                 // Cost Gate: Nếu không có vị thế mở và ngoài phiên (hoặc phiên sắp kết thúc), không cần gửi request
                 if (GetBotPositions().Length == 0 && (!session.is_trading_time || session.phase == "closed" || session.phase == "ending"))
                 {
@@ -530,7 +540,6 @@ namespace cAlgo.Robots
                 }
 
                 var macroTms = GetMacroTmsSignals();
-                var chartTms = GetTmsSignals(index);
                 
                 CheckPostTpGateRelease(macroTms, chartTms);
 
@@ -1358,7 +1367,16 @@ namespace cAlgo.Robots
 
                     if (shouldMove)
                     {
-                        pos.ModifyStopLossPrice(beSl);
+                        // The broker really does reject stops this close to market
+                        // (InvalidStopLossTakeProfit). _breakevenApplied gates re-entry, so
+                        // marking it before confirming would halve the position while leaving
+                        // the original full-risk stop in place, permanently.
+                        var beResult = pos.ModifyStopLossPrice(beSl);
+                        if (beResult == null || !beResult.IsSuccessful)
+                        {
+                            if (ShowLogs) Print($"[BE Failed] Pos#{pos.Id} stop move to {beSl:F5} rejected: {beResult?.Error}. Will retry next tick; position left intact.");
+                            continue;
+                        }
                         _breakevenApplied.Add(pos.Id);
                         // Partial Close at Breakeven
                         if (PartialCloseRatio > 0 && PartialCloseRatio < 1.0)
@@ -1367,8 +1385,28 @@ namespace cAlgo.Robots
                             double remainingVolume = pos.VolumeInUnits - volumeToClose;
                             if (volumeToClose >= Symbol.VolumeInUnitsMin && remainingVolume >= Symbol.VolumeInUnitsMin)
                             {
-                                pos.ModifyVolume(remainingVolume);
-                                if (ShowLogs) Print($"[Partial Close] Pos#{pos.Id} closed {volumeToClose / Symbol.LotSize} lots at TP1 (BE), remaining {remainingVolume / Symbol.LotSize} lots");
+                                double pnlBeforePartial = pos.NetProfit;
+                                var partialRes = pos.ModifyVolume(remainingVolume);
+                                if (partialRes != null && partialRes.IsSuccessful)
+                                {
+                                    // Prefer the booked deal - it carries commission and swap, which is what
+                                    // "realised P&L" has to mean for the DB. History is not always populated the
+                                    // instant the call returns, so fall back to the NetProfit delta, i.e. the
+                                    // unrealised P&L the closed slice was carrying.
+                                    double realizedPnl = pnlBeforePartial - pos.NetProfit;
+                                    try
+                                    {
+                                        var partialHist = History.LastOrDefault(h => h.PositionId == pos.Id);
+                                        if (partialHist != null) realizedPnl = partialHist.NetProfit;
+                                    }
+                                    catch { }
+                                    if (ShowLogs) Print($"[Partial Close] Pos#{pos.Id} closed {volumeToClose / Symbol.LotSize} lots at TP1 (BE), remaining {remainingVolume / Symbol.LotSize} lots");
+                                    _ = ReportPartialClose(volumeToClose / Symbol.LotSize, remainingVolume / Symbol.LotSize, realizedPnl);
+                                }
+                                else if (ShowLogs)
+                                {
+                                    Print($"[Partial Close Failed] Pos#{pos.Id}: {partialRes?.Error}");
+                                }
                             }
                             else if (ShowLogs)
                             {
@@ -1847,6 +1885,47 @@ namespace cAlgo.Robots
                 BeginInvokeOnMainThread(() =>
                 {
                     if (ShowLogs) Print($"[Portfolio] Failed to report position open: {ex.Message}");
+                });
+            }
+        }
+
+        // Positions.Closed does NOT fire on a partial close. With PartialCloseRatio = 0.5
+        // that silently dropped half the winning leg of every winning trade from the DB.
+        private async Task ReportPartialClose(double closedLots, double remainingLots, double realizedPnl)
+        {
+            try
+            {
+                var reportUrl = ApiUrl.Replace("/trade", "/portfolio/report");
+                var report = new
+                {
+                    bot_id = BotId,
+                    action = "partial_close",
+                    symbol = SymbolName,
+                    closed_volume = Math.Round(closedLots, 2),
+                    remaining_volume = Math.Round(remainingLots, 2),
+                    realized_pnl = Math.Round(realizedPnl, 2),
+                    reason = "Partial close at Break-Even",
+                    account_number = Account.Number.ToString(),
+                    account_type = Account.IsLive ? "live" : "demo",
+                    account_label = string.IsNullOrWhiteSpace(AccountLabel) ? null : AccountLabel.Trim(),
+                    account_balance = Account.Balance,
+                    account_equity = Account.Equity
+                };
+
+                var json = JsonSerializer.Serialize(report);
+                var content = new StringContent(json, Encoding.UTF8, "application/json");
+                await _httpClient.PostAsync(reportUrl, content);
+
+                BeginInvokeOnMainThread(() =>
+                {
+                    if (ShowLogs) Print($"[Portfolio] Reported partial close: {SymbolName} {closedLots:F2} lots for {realizedPnl:F2}, {remainingLots:F2} lots remaining");
+                });
+            }
+            catch (Exception ex)
+            {
+                BeginInvokeOnMainThread(() =>
+                {
+                    if (ShowLogs) Print($"[Portfolio] Failed to report partial close: {ex.Message}");
                 });
             }
         }
