@@ -87,6 +87,15 @@ class PortfolioManager:
                 logger.debug(f"daily_stats view init: {e}")
 
             # Create indexes for performance
+            # The cBot has always sent ctrader_id, but the original schema had nowhere to put
+            # it, so every close matched on (bot_id, symbol) alone. Harmless while
+            # MaxPositionsAllowed is 1; the moment it is raised, one close report would close
+            # every open position for that pair. Additive, nullable, safe to re-run.
+            try:
+                conn.execute("ALTER TABLE positions ADD COLUMN ctrader_id BIGINT")
+            except Exception:
+                pass  # already present
+
             for idx_sql in [
                 "CREATE INDEX IF NOT EXISTS idx_positions_status ON positions(status)",
                 "CREATE INDEX IF NOT EXISTS idx_positions_symbol ON positions(symbol)",
@@ -95,6 +104,7 @@ class PortfolioManager:
                 "CREATE INDEX IF NOT EXISTS idx_positions_account_status ON positions(account_id, status)",
                 "CREATE INDEX IF NOT EXISTS idx_positions_exit_time ON positions(exit_time)",
                 "CREATE INDEX IF NOT EXISTS idx_positions_entry_time ON positions(entry_time)",
+                "CREATE INDEX IF NOT EXISTS idx_positions_ctrader_id ON positions(ctrader_id)",
             ]:
                 try:
                     conn.execute(idx_sql)
@@ -122,15 +132,16 @@ class PortfolioManager:
 
     def register_position(self, bot_id: str, symbol: str, side: str, 
                          volume: float, entry_price: float, 
-                         sl_pips: float, tp_pips: float, account_id: str) -> bool:
+                         sl_pips: float, tp_pips: float, account_id: str,
+                         ctrader_id: Optional[int] = None) -> bool:
         """Register new position after trade execution."""
         conn = self._get_conn()
         try:
             conn.execute("""
                 INSERT INTO positions (bot_id, symbol, side, volume, entry_price, 
-                                     sl_pips, tp_pips, entry_time, status, account_id)
-                VALUES (?, ?, ?, ?, ?, ?, ?, datetime('now'), 'open', ?)
-            """, (bot_id, symbol, side, volume, entry_price, sl_pips, tp_pips, account_id))
+                                     sl_pips, tp_pips, entry_time, status, account_id, ctrader_id)
+                VALUES (?, ?, ?, ?, ?, ?, ?, datetime('now'), 'open', ?, ?)
+            """, (bot_id, symbol, side, volume, entry_price, sl_pips, tp_pips, account_id, ctrader_id))
             conn.commit()
             logger.info(f"Position registered: {symbol} {side} {volume} lots by {bot_id} for account {account_id}")
             return True
@@ -173,7 +184,8 @@ class PortfolioManager:
             conn.close()
 
     def record_partial_close(self, bot_id: str, symbol: str, remaining_volume: float,
-                             realized_pnl: float, account_id: str) -> bool:
+                             realized_pnl: float, account_id: str,
+                             ctrader_id: Optional[int] = None) -> bool:
         """
         Bank a partial close against the still-open position.
 
@@ -187,11 +199,16 @@ class PortfolioManager:
         """
         conn = self._get_conn()
         try:
-            cur = conn.execute("""
+            sql = """
                 UPDATE positions
                 SET volume = ?, pnl = COALESCE(pnl, 0) + ?
                 WHERE bot_id = ? AND symbol = ? AND status = 'open' AND account_id = ?
-            """, (remaining_volume, realized_pnl, bot_id, symbol, account_id))
+            """
+            args = [remaining_volume, realized_pnl, bot_id, symbol, account_id]
+            if ctrader_id is not None:
+                sql += " AND ctrader_id = ?"
+                args.append(ctrader_id)
+            cur = conn.execute(sql, tuple(args))
             matched = cur.rowcount
             conn.commit()
             if not matched:
@@ -211,18 +228,26 @@ class PortfolioManager:
         finally:
             conn.close()
 
-    def close_position(self, bot_id: str, symbol: str, exit_price: float, pnl: float, account_id: str) -> bool:
+    def close_position(self, bot_id: str, symbol: str, exit_price: float, pnl: float,
+                       account_id: str, ctrader_id: Optional[int] = None) -> bool:
         """Mark position as closed (single source of truth)."""
         conn = self._get_conn()
         try:
             # Update position (daily_stats view automatically updates)
             # pnl is ADDITIVE: a position may already carry P&L banked by record_partial_close,
             # and `pnl` is NULL for positions that never had one, so COALESCE covers both.
-            conn.execute("""
+            # ctrader_id narrows this to the one position when the bot supplies it; without it
+            # the update would hit every open row for this (bot_id, symbol).
+            sql = """
                 UPDATE positions 
                 SET status = 'closed', exit_price = ?, pnl = COALESCE(pnl, 0) + ?, exit_time = datetime('now')
                 WHERE bot_id = ? AND symbol = ? AND status = 'open' AND account_id = ?
-            """, (exit_price, pnl, bot_id, symbol, account_id))
+            """
+            args = [exit_price, pnl, bot_id, symbol, account_id]
+            if ctrader_id is not None:
+                sql += " AND ctrader_id = ?"
+                args.append(ctrader_id)
+            conn.execute(sql, tuple(args))
             
             conn.commit()
             logger.info(f"Position closed: {symbol} by {bot_id}, PnL: {pnl} for account {account_id}")

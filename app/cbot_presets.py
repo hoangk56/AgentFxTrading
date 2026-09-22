@@ -119,7 +119,11 @@ PRESETS: Dict[Tuple[str, str], Dict] = {
     ("tms_orb", "BTCUSD"): _cell("m15", "New York", _tms(_NEWYORK, 10000.0, 20000.0, 2500.0, 10)),
     ("tms_orb", "ETHUSD"): _cell("m15", "New York", _tms(_NEWYORK, 800.0, 1600.0, 200.0, 10)),
     # Asian Range Judas Sweep (AsianRangeJudasSweepBot) — README blocks
-    ("judas", "XAUUSD"): _cell("m15", _JUDAS_SESSION, _judas(200.0, 8000.0, 30.0, 200.0, 250.0, 200.0, 450.0)),
+    # Gold quotes 1 pip = $0.01, so the sweep buffer is 500p = $5.00 - the value the bot's own
+    # auto-scale intends (AsianRangeJudasSweepBot.cs) but never applies here, because that branch
+    # only fires when maxAsianRangePips <= 500 and this preset passes 8000. It also sets the
+    # structural-invalidation threshold, which at the previous 30p was $0.30.
+    ("judas", "XAUUSD"): _cell("m15", _JUDAS_SESSION, _judas(200.0, 8000.0, 500.0, 200.0, 250.0, 200.0, 450.0)),
     ("judas", "EURUSD"): _cell("m15", _JUDAS_SESSION, _judas(15.0, 45.0, 3.5, 15.0, 20.0, 15.0, 35.0)),
     ("judas", "GBPUSD"): _cell("m15", _JUDAS_SESSION, _judas(15.0, 45.0, 3.5, 15.0, 20.0, 15.0, 35.0)),
     ("judas", "GBPJPY"): _cell("m15", _JUDAS_SESSION, _judas(25.0, 70.0, 5.0, 25.0, 30.0, 25.0, 50.0)),

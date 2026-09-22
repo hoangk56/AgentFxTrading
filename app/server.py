@@ -2154,6 +2154,14 @@ async def report_position(request: dict):
         bot_id = sanitize_bot_id(request.get("bot_id", "default"))
         action = request.get("action")
         symbol = request.get("symbol")
+
+        # The cBot has always sent this; it now narrows the close / partial-close updates
+        # to one position instead of every open row for the (bot_id, symbol) pair.
+        raw_ctrader_id = request.get("ctrader_id")
+        try:
+            ctrader_id = int(raw_ctrader_id) if raw_ctrader_id not in (None, "") else None
+        except (TypeError, ValueError):
+            ctrader_id = None
         
         account_number = str(request.get("account_number", "0"))
         registry = get_account_registry()
@@ -2188,7 +2196,8 @@ async def report_position(request: dict):
                 entry_price=entry_price,
                 sl_pips=sl_pips,
                 tp_pips=tp_pips,
-                account_id=account_id
+                account_id=account_id,
+                ctrader_id=ctrader_id
             )
             
             if success:
@@ -2226,7 +2235,8 @@ async def report_position(request: dict):
                 symbol=symbol,
                 remaining_volume=remaining_volume,
                 realized_pnl=realized_pnl,
-                account_id=account_id
+                account_id=account_id,
+                ctrader_id=ctrader_id
             )
 
             if success:
@@ -2264,7 +2274,8 @@ async def report_position(request: dict):
                 symbol=symbol,
                 exit_price=exit_price,
                 pnl=pnl,
-                account_id=account_id
+                account_id=account_id,
+                ctrader_id=ctrader_id
             )
             
             if success:

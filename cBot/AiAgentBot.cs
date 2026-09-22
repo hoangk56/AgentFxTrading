@@ -1401,7 +1401,7 @@ namespace cAlgo.Robots
                                     }
                                     catch { }
                                     if (ShowLogs) Print($"[Partial Close] Pos#{pos.Id} closed {volumeToClose / Symbol.LotSize} lots at TP1 (BE), remaining {remainingVolume / Symbol.LotSize} lots");
-                                    _ = ReportPartialClose(volumeToClose / Symbol.LotSize, remainingVolume / Symbol.LotSize, realizedPnl);
+                                    _ = ReportPartialClose(pos.Id, volumeToClose / Symbol.LotSize, remainingVolume / Symbol.LotSize, realizedPnl);
                                 }
                                 else if (ShowLogs)
                                 {
@@ -1866,6 +1866,7 @@ namespace cAlgo.Robots
                 var reportUrl = ApiUrl.Replace("/trade", "/portfolio/report");
                 var report = new
                 {
+                    ctrader_id = position.Id,
                     bot_id = BotId,
                     action = "open",
                     symbol = SymbolName,
@@ -1902,13 +1903,14 @@ namespace cAlgo.Robots
 
         // Positions.Closed does NOT fire on a partial close. With PartialCloseRatio = 0.5
         // that silently dropped half the winning leg of every winning trade from the DB.
-        private async Task ReportPartialClose(double closedLots, double remainingLots, double realizedPnl)
+        private async Task ReportPartialClose(int positionId, double closedLots, double remainingLots, double realizedPnl)
         {
             try
             {
                 var reportUrl = ApiUrl.Replace("/trade", "/portfolio/report");
                 var report = new
                 {
+                    ctrader_id = positionId,
                     bot_id = BotId,
                     action = "partial_close",
                     symbol = SymbolName,
@@ -1948,6 +1950,7 @@ namespace cAlgo.Robots
                 var reportUrl = ApiUrl.Replace("/trade", "/portfolio/report");
                 var report = new
                 {
+                    ctrader_id = position.Id,
                     bot_id = BotId,
                     action = "close",
                     symbol = SymbolName,

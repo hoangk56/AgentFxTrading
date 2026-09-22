@@ -2350,7 +2350,10 @@ namespace cAlgo.Robots
                                $"Protection   : {cbStatus}\n" +
                                $"Active Risk  : {effRisk:F2}% (Base: {riskFactor}%)\n" +
                                $"DCA Mode     : {(dcaEnable ? "ENABLED" : "DISABLED")}\n" +
-                               $"BreakEven    : {(enableBreakEvenPrice ? $"ON ({breakEvenTrigger} pips)" : "OFF")}\n" +
+                               // Report the trigger that is actually in force. breakEvenMode defaults to
+                               // Risk_Reward_Ratio, in which case breakEvenTrigger (pips) is never read -
+                               // showing it made the panel advertise a threshold with no effect.
+                               $"BreakEven    : {(enableBreakEvenPrice ? (breakEvenMode == BreakEvenTriggerMode.Risk_Reward_Ratio ? $"ON ({breakEvenRrTrigger} R)" : $"ON ({breakEvenTrigger} pips)") : "OFF")}\n" +
                                $"Active Orders: {Positions.FindAll(label, SymbolName).Length}/{maxPermittedOrder}";
 
             Color textColor = _isCircuitBreakerActive ? Color.OrangeRed : Color.LimeGreen;
