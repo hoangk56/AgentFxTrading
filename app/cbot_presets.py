@@ -64,10 +64,19 @@ def _tms(session: dict, breakout: float, or_width: float, buffer: float, bounce,
 
 def _judas(min_range: float, max_range: float, sweep_buffer: float, ai_sl_floor: float,
            be_trigger: float, sl: float, tp: float, risk_factor=None) -> dict:
+    """
+    `be_trigger` is deliberately NOT emitted.
+
+    The bot's `breakEvenMode` defaults to Risk_Reward_Ratio, and ProcessBreakEvenLogic
+    reads `breakEvenTrigger` (pips) only in the Fixed_Pips branch -- so shipping it meant
+    every operator tuning break-even was adjusting a number with no effect. The positional
+    is kept because the call sites below are transcribed from the README blocks, which
+    list it; `breakEvenRrTrigger` is what actually gates the move.
+    """
     params = {
         "UseDirectAiApi": False, "UseAiGateMode": True,
         "minAsianRangePips": min_range, "maxAsianRangePips": max_range, "sweepBufferPips": sweep_buffer,
-        "AiSlMinFloorPips": ai_sl_floor, "breakEvenTrigger": be_trigger,
+        "AiSlMinFloorPips": ai_sl_floor,
         "stoplossPip": sl, "takeprofitPip": tp, "enableBreakEvenPrice": True,
     }
     if risk_factor is not None:
