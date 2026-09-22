@@ -81,13 +81,13 @@ def _cell(period: str, session: str, params: dict) -> dict:
 
 _FLOWRSI_BASE = {
     "FastRsiPeriod": 7, "SlowRsiPeriod": 14, "EnableSmcFilter": True, "EnableFvgDetection": True,
-    "EnablePremiumDiscountFilter": True, "RiskPercentage": 0.2, "MaxRiskPerTradeMoney": 50.0,
+    "EnablePremiumDiscountFilter": True, "RiskPercentage": 0.5, "MaxRiskPerTradeMoney": 50.0,
     "TargetRiskReward": 1.5, "UseAiGateMode": True,
 }
 
 
 def _flowrsi(fvg_min=None, max_spread=None, trail=None, be_extra=None) -> dict:
-    """README EURUSD block; forex keeps the cBot's pip defaults (2 / 30 / 15 / 0.5), other classes override them."""
+    """README EURUSD block; forex keeps the cBot's pip defaults (2 / 30 / 25 / 0.5), other classes override them."""
     params = dict(_FLOWRSI_BASE)
     if fvg_min is not None:
         params.update({"FvgMinPips": fvg_min, "MaxSpreadPips": max_spread,

@@ -91,7 +91,7 @@ def test_flowrsi_golden_command():
         "--symbol=EURUSD --period=m15 --full-access "
         '--BotId="cbot-demo-main-eurusd-all-flowrsi" --ApiUrl="http://127.0.0.1:8000/trade" --AccountLabel="Demo Main" '
         "--FastRsiPeriod=7 --SlowRsiPeriod=14 --EnableSmcFilter=true --EnableFvgDetection=true "
-        "--EnablePremiumDiscountFilter=true --RiskPercentage=0.2 --MaxRiskPerTradeMoney=50.0 "
+        "--EnablePremiumDiscountFilter=true --RiskPercentage=0.5 --MaxRiskPerTradeMoney=50.0 "
         "--TargetRiskReward=1.5 --UseAiGateMode=true"
     )
 
