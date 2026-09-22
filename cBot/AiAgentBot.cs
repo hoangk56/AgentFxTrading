@@ -1391,7 +1391,7 @@ namespace cAlgo.Robots
                     // Tier 2 Trailing Stop: Khi lợi nhuận đã đạt mức lớn (>= 2.5x ATR, hoặc >= 1200p US30/600p USTEC/400p DE40, hoặc >= 65% TP),
                     // tự động siết khoảng cách Trailing từ 1.2-1.5 ATR xuống 0.9 ATR (Indices) hoặc 0.6 ATR (Forex/Metals)
                     // để khóa chặt lợi nhuận lớn, không để nhả lại quá nhiều.
-                    double effectiveTrailDistanceAtr = TrailDistanceAtr;
+                    double effectiveTrailDistanceAtr = isIndex ? Math.Max(TrailDistanceAtr, 1.2) : Math.Max(TrailDistanceAtr, 1.0);
                     bool isTier2Trailing = false;
                     if (isIndex)
                     {
@@ -1472,8 +1472,8 @@ namespace cAlgo.Robots
 
                 if (isIndex)
                 {
-                    double minIndexPips = symUp.Contains("US30") ? 300.0 : 150.0;
-                    activationThreshold = Math.Max(activationThreshold, minIndexPips);
+                    double minIndexPips = symUp.Contains("US30") ? 1000.0 : (symUp.Contains("USTEC") ? 600.0 : (symUp.Contains("DE40") ? 500.0 : 400.0));
+                    activationThreshold = Math.Max(activationThreshold, Math.Max(minIndexPips, 1.5 * atrInPips));
                 }
                 else if (isForex)
                 {

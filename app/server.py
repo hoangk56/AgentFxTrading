@@ -1740,8 +1740,16 @@ async def trade_decision(snapshot: MarketSnapshot):
             "Analyze the real-time market snapshot and output strictly valid JSON format with keys:\n"
             '{"action": "BUY"|"SELL"|"HOLD"|"ADJUST"|"CLOSE_ALL", "volume_lots": 0.0, "sl_pips": 0.0, "tp_pips": 0.0, '
             '"new_sl_price": null, "new_tp_price": null, "confidence": 0-100, "reason": "concise rationale"}\n'
-            "Rule: Volume is 100% managed by cBot risk engine; keep volume_lots=0.0. "
-            "If candidate_action is BUY/SELL, confirm or reject (HOLD) based on bar momentum and structure."
+            "Rule: Volume is 100% managed by cBot risk engine; keep volume_lots=0.0.\n"
+            "=== POSITION MANAGEMENT DISCIPLINE ===\n"
+            "1. GIVE POSITIONS BREATHING ROOM (HOLD): Allow open positions breathing room for normal pullbacks and market noise. "
+            "Do NOT panic-close or micro-manage positions that are flat, slightly underwater (e.g. within normal spread/minor pullback), or in early development.\n"
+            "2. CUT LOSS EARLY (CLOSE_ALL): Only execute CLOSE_ALL when an open position suffers MEANINGFUL adverse movement "
+            "(loss >= 0.5R or >= 10 pips FX / >= 100 pips Gold) AND clear market structure decisively breaks against it "
+            "(e.g. sustained opposing RSI crossover with structural swing breakdown). Never exit early on minor noise.\n"
+            "3. PROTECT PROFITS (ADJUST or CLOSE_ALL): When an open position has captured significant profit (>= 1.0 R:R or >= 15 pips FX / >= 150 pips Gold) "
+            "and displays clear momentum exhaustion or structural reversal, lock in gains by adjusting SL or closing. Do not exit prematurely for petty cents.\n"
+            "4. NEW ENTRIES: If candidate_action is BUY/SELL, confirm with confidence >= 75% only when Nested RSI cross and SMC zone align."
         )
         user_prompt = (
             f"Symbol: {snapshot.symbol} ({snapshot.timeframe})\n"
@@ -1749,8 +1757,8 @@ async def trade_decision(snapshot: MarketSnapshot):
             f"Nested RSI: Fast={snapshot.fast_rsi}, Slow={snapshot.slow_rsi}, Signal={snapshot.rsi_cross_signal}\n"
             f"SMC: Zone={zone_str}, InFVG={snapshot.in_fvg_zone} ({snapshot.fvg_type}), LiquiditySwept={snapshot.liquidity_swept} ({snapshot.swept_liquidity_type})\n"
             f"Proposed Technical Setup: Candidate={cand_str}, SL={snapshot.technical_sl_price}, TP={snapshot.technical_tp_price}, RR={snapshot.technical_risk_reward}\n"
-            f"Open Position: {pos_str}\n"
-            f"Decide action (BUY/SELL/HOLD/ADJUST/CLOSE_ALL) with confidence."
+            f"Open Position Status: {pos_str}\n"
+            f"Carefully evaluate Open Position Status: Give trades breathing room; protect gains if >=1.0R; cut loss only on decisive structural breakdown; else HOLD or confirm entry."
         )
     elif is_judas:
         strat = snapshot.strategy

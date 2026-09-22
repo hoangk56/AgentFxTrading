@@ -1643,36 +1643,14 @@ namespace cAlgo.Robots
                     }
                     else
                     {
-                        // Price has already reached or breached this trailing level
-                        if (currentAsk < pos.EntryPrice)
-                        {
-                            Print($"[SafeModify Profit-Lock] SELL #{pos.Id} is in profit ($+{pos.NetProfit:F2}) and trailing level {proposedTrailingSL:F2} is breached by Ask ({currentAsk:F2}). Closing position to lock profit!");
-                            _lastAgentReason = "ProfitLockExit";
-                            ClosePosition(pos);
-                            return null;
-                        }
-                        else
-                        {
-                            finalSL = pos.StopLoss;
-                        }
+                        finalSL = pos.StopLoss;
                     }
                 }
 
                 // B. Validate Stop Loss Boundary for SELL: SL must be strictly > (currentAsk + minStopBuffer)
                 if (finalSL.HasValue && finalSL.Value <= (currentAsk + minStopBuffer))
                 {
-                    if (currentAsk < pos.EntryPrice)
-                    {
-                        Print($"[SafeModify Profit-Lock] SELL #{pos.Id} is in profit ($+{pos.NetProfit:F2}) and SL {finalSL.Value:F2} is within market Ask ({currentAsk:F2}). Closing position immediately!");
-                        _lastAgentReason = "ProfitLockExit";
-                        ClosePosition(pos);
-                        return null;
-                    }
-                    else
-                    {
-                        // In drawdown: retain original safe SL to prevent broker rejection
-                        finalSL = pos.StopLoss;
-                    }
+                    finalSL = pos.StopLoss;
                 }
 
                 // C. Validate Take Profit Boundary for SELL: TP must be strictly < (currentBid - minStopBuffer)
@@ -1710,36 +1688,14 @@ namespace cAlgo.Robots
                     }
                     else
                     {
-                        // Price has already reached or breached this trailing level
-                        if (currentBid > pos.EntryPrice)
-                        {
-                            Print($"[SafeModify Profit-Lock] BUY #{pos.Id} is in profit ($+{pos.NetProfit:F2}) and trailing level {proposedTrailingSL:F2} is breached by Bid ({currentBid:F2}). Closing position to lock profit!");
-                            _lastAgentReason = "ProfitLockExit";
-                            ClosePosition(pos);
-                            return null;
-                        }
-                        else
-                        {
-                            finalSL = pos.StopLoss;
-                        }
+                        finalSL = pos.StopLoss;
                     }
                 }
 
                 // B. Validate Stop Loss Boundary for BUY: SL must be strictly < (currentBid - minStopBuffer)
                 if (finalSL.HasValue && finalSL.Value >= (currentBid - minStopBuffer))
                 {
-                    if (currentBid > pos.EntryPrice)
-                    {
-                        Print($"[SafeModify Profit-Lock] BUY #{pos.Id} is in profit ($+{pos.NetProfit:F2}) and SL {finalSL.Value:F2} is within market Bid ({currentBid:F2}). Closing position immediately!");
-                        _lastAgentReason = "ProfitLockExit";
-                        ClosePosition(pos);
-                        return null;
-                    }
-                    else
-                    {
-                        // In drawdown: retain original safe SL to prevent broker rejection
-                        finalSL = pos.StopLoss;
-                    }
+                    finalSL = pos.StopLoss;
                 }
 
                 // C. Validate Take Profit Boundary for BUY: TP must be strictly > (currentAsk + minStopBuffer)

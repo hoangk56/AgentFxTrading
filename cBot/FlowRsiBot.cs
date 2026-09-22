@@ -103,7 +103,7 @@ namespace cAlgo.Robots
         #endregion
 
         #region Risk Management Engine
-        [Parameter("Risk per Trade (% Equity)", Group = "Risk Management", DefaultValue = 0.2, MinValue = 0.01, MaxValue = 10.0, Step = 0.1)]
+        [Parameter("Risk per Trade (% Equity)", Group = "Risk Management", DefaultValue = 0.5, MinValue = 0.01, MaxValue = 10.0, Step = 0.1)]
         public double RiskPercentage { get; set; }
 
         [Parameter("Max Dollar Risk Per Trade ($)", Group = "Risk Management", DefaultValue = 50.0, MinValue = 5.0)]
@@ -126,6 +126,8 @@ namespace cAlgo.Robots
 
         [Parameter("Target Risk-to-Reward Ratio", Group = "Risk Management", DefaultValue = 1.5, MinValue = 1.0)]
         public double TargetRiskReward { get; set; }
+        [Parameter("Min SL Floor (pips)", Group = "Risk Management", DefaultValue = 15.0, MinValue = 5.0)]
+        public double MinSlFloorPips { get; set; }
 
         [Parameter("Fixed SL Distance (pips)", Group = "Risk Management", DefaultValue = 30.0, MinValue = 5.0)]
         public double FixedSlPips { get; set; }
@@ -153,11 +155,14 @@ namespace cAlgo.Robots
         [Parameter("Break-Even Trigger Mode", Group = "Position Protection", DefaultValue = BreakEvenTriggerMode.Risk_Reward_Ratio)]
         public BreakEvenTriggerMode BeMode { get; set; }
 
-        [Parameter("Break-Even Trigger (R:R)", Group = "Position Protection", DefaultValue = 0.8, MinValue = 0.5)]
+[Parameter("Break-Even Trigger (R:R)", Group = "Position Protection", DefaultValue = 1.0, MinValue = 0.5)]
         public double BreakEvenTriggerRr { get; set; }
 
         [Parameter("Break-Even Trigger (pips)", Group = "Position Protection", DefaultValue = 20.0, MinValue = 5.0)]
         public double BreakEvenTriggerPips { get; set; }
+
+        [Parameter("Min Break-Even Distance (pips)", Group = "Position Protection", DefaultValue = 10.0, MinValue = 1.0)]
+        public double MinBreakEvenPips { get; set; }
 
         [Parameter("Zero-Loss Safety Buffer (pips)", Group = "Position Protection", DefaultValue = 0.5, MinValue = 0.1)]
         public double BreakEvenExtraPips { get; set; }
@@ -165,13 +170,13 @@ namespace cAlgo.Robots
         [Parameter("Enable Gated Trailing Stop", Group = "Position Protection", DefaultValue = true)]
         public bool EnableTrailingStop { get; set; }
 
-        [Parameter("Trailing Stop Trigger (R:R)", Group = "Position Protection", DefaultValue = 1.0, MinValue = 0.5)]
+        [Parameter("Trailing Stop Trigger (R:R)", Group = "Position Protection", DefaultValue = 1.8, MinValue = 0.5)]
         public double TrailingStopTriggerRr { get; set; }
 
-        [Parameter("Trailing Stop Distance (pips)", Group = "Position Protection", DefaultValue = 15.0, MinValue = 5.0)]
+        [Parameter("Trailing Stop Distance (pips)", Group = "Position Protection", DefaultValue = 25.0, MinValue = 5.0)]
         public double TrailingStopDistancePips { get; set; }
 
-        [Parameter("Partial Close at BE Ratio (0-1)", Group = "Position Protection", DefaultValue = 0.5, MinValue = 0.0, MaxValue = 1.0)]
+        [Parameter("Partial Close at BE Ratio (0-1)", Group = "Position Protection", DefaultValue = 0.25, MinValue = 0.0, MaxValue = 1.0)]
         public double PartialCloseRatio { get; set; }
         #endregion
 
@@ -624,6 +629,17 @@ namespace cAlgo.Robots
                 signalReason = $"NestedRSI-SMC ({rsiCrossSignal}, FVG:{(inBullishFvg || inBearishFvg)}, Sweep:{(sweptSsl || sweptBsl)}, Disc:{isDiscount}/Prem:{isPremium})";
 
                 // 6. Calculate Technical SL and TP targets
+                double effectiveMinSl = MinSlFloorPips > 0 ? MinSlFloorPips : 15.0;
+                string symUpper = SymbolName.ToUpperInvariant();
+                if (symUpper.Contains("XAU") || symUpper.Contains("GOLD"))
+                    effectiveMinSl = Math.Max(effectiveMinSl, 150.0);
+                else if (symUpper.Contains("JPY"))
+                    effectiveMinSl = Math.Max(effectiveMinSl, 18.0);
+
+                // Enforce ATR-based breathing room: at least 1.0 * ATR
+                double atrInPips = currentAtr / Symbol.PipSize;
+                effectiveMinSl = Math.Max(effectiveMinSl, atrInPips * 1.0);
+
                 if (buyCandidate)
                 {
                     double structuralSl = (recentSwingLow > 0 && recentSwingLow < Symbol.Bid) 
@@ -637,12 +653,24 @@ namespace cAlgo.Robots
                     else
                         technicalSL = structuralSl;
 
+                    // Enforce calibrated minimum SL breathing room
                     double slDistance = Symbol.Bid - technicalSL;
+                    if ((slDistance / Symbol.PipSize) < effectiveMinSl)
+                    {
+                        technicalSL = Symbol.Bid - (effectiveMinSl * Symbol.PipSize);
+                        slDistance = Symbol.Bid - technicalSL;
+                    }
+
                     double tpDistance = slDistance * TargetRiskReward;
                     technicalTP = Symbol.Ask + tpDistance;
 
+                    // Technical liquidity mode can extend TP further, but NEVER compress it below target RR
                     if (TpMode == TakeProfitType.Technical_Liquidity && recentSwingHigh > Symbol.Ask)
-                        technicalTP = recentSwingHigh;
+                    {
+                        double liquidityTpDistance = recentSwingHigh - Symbol.Ask;
+                        if (liquidityTpDistance >= tpDistance)
+                            technicalTP = recentSwingHigh;
+                    }
                 }
                 else
                 {
@@ -657,14 +685,25 @@ namespace cAlgo.Robots
                     else
                         technicalSL = structuralSl;
 
+                    // Enforce calibrated minimum SL breathing room
                     double slDistance = technicalSL - Symbol.Ask;
+                    if ((slDistance / Symbol.PipSize) < effectiveMinSl)
+                    {
+                        technicalSL = Symbol.Ask + (effectiveMinSl * Symbol.PipSize);
+                        slDistance = technicalSL - Symbol.Ask;
+                    }
+
                     double tpDistance = slDistance * TargetRiskReward;
                     technicalTP = Symbol.Bid - tpDistance;
 
+                    // Technical liquidity mode can extend TP further, but NEVER compress it below target RR
                     if (TpMode == TakeProfitType.Technical_Liquidity && recentSwingLow > 0 && recentSwingLow < Symbol.Bid)
-                        technicalTP = recentSwingLow;
+                    {
+                        double liquidityTpDistance = Symbol.Bid - recentSwingLow;
+                        if (liquidityTpDistance >= tpDistance)
+                            technicalTP = recentSwingLow;
+                    }
                 }
-
                 double riskDistPips = Math.Abs(Symbol.Bid - technicalSL) / Symbol.PipSize;
                 double rewardDistPips = Math.Abs(technicalTP - Symbol.Bid) / Symbol.PipSize;
                 calculatedRr = riskDistPips > 0 ? (rewardDistPips / riskDistPips) : TargetRiskReward;
@@ -1082,12 +1121,6 @@ namespace cAlgo.Robots
                                 targetTP = Math.Round(tpPrice, Symbol.Digits);
                             }
 
-                            // Anti-Drawdown Guard: Strictly block AI from modifying SL while position is in loss!
-                            if (targetSL.HasValue && pos.NetProfit <= 0)
-                            {
-                                if (ShowLogs) Print($"[Anti-Drawdown SL Guard] Blocked AI ADJUST SL for #{pos.Id}. Position in loss (NetProfit: ${pos.NetProfit:F2}). Initial SL retained.");
-                                targetSL = null;
-                            }
 
                             // Strict One-Way Profit Ratchet: Only accept AI proposed SL if it improves/protects profit more than current SL
                             if (targetSL.HasValue && pos.StopLoss.HasValue)
@@ -1181,7 +1214,28 @@ namespace cAlgo.Robots
             double currentPrice = tradeType == TradeType.Buy ? Symbol.Ask : Symbol.Bid;
             double slDistancePips = Math.Abs(currentPrice - slPrice) / Symbol.PipSize;
 
-            if (slDistancePips < 5.0) slDistancePips = 5.0; // minimum floor
+            double effectiveMinSl = MinSlFloorPips > 0 ? MinSlFloorPips : 15.0;
+            string symUpperExec = SymbolName.ToUpperInvariant();
+            if (symUpperExec.Contains("XAU") || symUpperExec.Contains("GOLD"))
+                effectiveMinSl = Math.Max(effectiveMinSl, 150.0);
+            else if (symUpperExec.Contains("JPY"))
+                effectiveMinSl = Math.Max(effectiveMinSl, 18.0);
+
+            if (slDistancePips < effectiveMinSl)
+            {
+                slDistancePips = effectiveMinSl;
+                if (tradeType == TradeType.Buy)
+                    slPrice = Symbol.Bid - (effectiveMinSl * Symbol.PipSize);
+                else
+                    slPrice = Symbol.Ask + (effectiveMinSl * Symbol.PipSize);
+
+                // Re-adjust TP if needed to preserve target RR
+                double minTpDistance = effectiveMinSl * TargetRiskReward * Symbol.PipSize;
+                if (tradeType == TradeType.Buy && (tpPrice - Symbol.Ask) < minTpDistance)
+                    tpPrice = Symbol.Ask + minTpDistance;
+                else if (tradeType == TradeType.Sell && (Symbol.Bid - tpPrice) < minTpDistance)
+                    tpPrice = Symbol.Bid - minTpDistance;
+            }
 
             // Dynamic Volume Calculation (100% computed by cBot Risk Engine)
             double targetUnits = CalculateDynamicVolumeInUnits(slDistancePips);
@@ -1251,9 +1305,16 @@ namespace cAlgo.Robots
                 // ── 1. True Zero-Loss Break-Even Move ──
                 if (EnableBreakEven && !isBeAchieved)
                 {
+                    double minRequiredPips = MinBreakEvenPips > 0 ? MinBreakEvenPips : 10.0;
+                    string symUpper = SymbolName.ToUpperInvariant();
+                    if (symUpper.Contains("XAU") || symUpper.Contains("GOLD"))
+                        minRequiredPips = Math.Max(minRequiredPips, 150.0);
+                    else if (symUpper.Contains("JPY"))
+                        minRequiredPips = Math.Max(minRequiredPips, 15.0);
+
                     bool beTriggered = BeMode == BreakEvenTriggerMode.Risk_Reward_Ratio 
-                        ? (currentRr >= BreakEvenTriggerRr) 
-                        : (pnlPips >= BreakEvenTriggerPips);
+                        ? (currentRr >= BreakEvenTriggerRr && pnlPips >= minRequiredPips) 
+                        : (pnlPips >= Math.Max(BreakEvenTriggerPips, minRequiredPips));
 
                     if (beTriggered)
                     {
@@ -1285,13 +1346,33 @@ namespace cAlgo.Robots
                     }
                 }
 
-                // ── 2. Gated Trailing Stop (Activates when BE achieved or current R:R >= Trigger) ──
-                if (EnableTrailingStop && (isBeAchieved || currentRr >= TrailingStopTriggerRr))
+                // ── 2. Gated Trailing Stop (Activates ONLY when profit >= TrailingStopTriggerRr, e.g. 1.8R) ──
+                // CRITICAL FIX: Decouple from isBeAchieved!
+                // At 1.0R, Break-Even moves SL to Entry + buffer to secure Zero-Loss.
+                // The position MUST be granted breathing room to run and ride the trend between 1.0R and 1.8R!
+                // Trailing Stop only activates when profit reaches at least TrailingStopTriggerRr (1.8R).
+                if (EnableTrailingStop && currentRr >= TrailingStopTriggerRr)
                 {
+                    string symUp = SymbolName.ToUpperInvariant();
+                    double minTrailDistPips = TrailingStopDistancePips;
+                    if (symUp.Contains("XAU") || symUp.Contains("GOLD"))
+                        minTrailDistPips = Math.Max(minTrailDistPips, 350.0); // min $3.50 for Gold
+                    else if (symUp.Contains("JPY"))
+                        minTrailDistPips = Math.Max(minTrailDistPips, 25.0);  // min 25 pips for JPY
+                    else if (symUp.Contains("US30") || symUp.Contains("USTEC") || symUp.Contains("DE40") || symUp.Contains("UK100"))
+                        minTrailDistPips = Math.Max(minTrailDistPips, 350.0); // min 350 pips for Indices
+                    else
+                        minTrailDistPips = Math.Max(minTrailDistPips, 20.0);  // min 20 pips for Forex
+
+                    // Tiered Trailing: Normal trailing gives breathing room (100% of initial SL distance).
+                    // Tier 2 (currentRr >= 2.5R): Tighten to 60% of initial SL distance to lock in profits.
+                    double trailMultiplier = currentRr >= 2.5 ? 0.6 : 1.0;
+                    double effectiveTrailDistPips = Math.Max(minTrailDistPips, initialSlDist * trailMultiplier);
+
                     double candidateTrailSL;
                     if (pos.TradeType == TradeType.Buy)
                     {
-                        candidateTrailSL = Symbol.Bid - (TrailingStopDistancePips * Symbol.PipSize);
+                        candidateTrailSL = Symbol.Bid - (effectiveTrailDistPips * Symbol.PipSize);
                         candidateTrailSL = GetZeroLossStopLossPrice(pos, candidateTrailSL, extraBufferPips: BreakEvenExtraPips);
                         if ((!pos.StopLoss.HasValue || candidateTrailSL > pos.StopLoss.Value) && candidateTrailSL < Symbol.Bid)
                         {
@@ -1300,7 +1381,7 @@ namespace cAlgo.Robots
                     }
                     else
                     {
-                        candidateTrailSL = Symbol.Ask + (TrailingStopDistancePips * Symbol.PipSize);
+                        candidateTrailSL = Symbol.Ask + (effectiveTrailDistPips * Symbol.PipSize);
                         candidateTrailSL = GetZeroLossStopLossPrice(pos, candidateTrailSL, extraBufferPips: BreakEvenExtraPips);
                         if ((!pos.StopLoss.HasValue || candidateTrailSL < pos.StopLoss.Value) && candidateTrailSL > Symbol.Ask)
                         {
@@ -1389,16 +1470,8 @@ namespace cAlgo.Robots
             double minStopBuffer = Math.Max(Symbol.Spread * 3, Symbol.TickSize * 10);
             bool isModifyingSL = targetSL.HasValue && (!pos.StopLoss.HasValue || Math.Abs(targetSL.Value - pos.StopLoss.Value) > 0.00001);
 
-            // ── Scenario 1 (Anti-Drawdown SL Protection - CRITICAL) ──
-            if (isModifyingSL && pos.NetProfit <= 0)
-            {
-                if (ShowLogs) Print($"[SafeModify Blocked] Cannot move SL for #{pos.Id} ({source}): Position in loss (NetProfit: ${pos.NetProfit:F2}). Initial protective SL retained.");
-                targetSL = pos.StopLoss;
-                isModifyingSL = false;
-            }
-
-            // ── Scenario 2 (True Break-Even First-Move & Zero-Loss Ratchet - CRITICAL) ──
-            if (isModifyingSL && targetSL.HasValue)
+            // ── Scenario 2 (True Break-Even First-Move & Zero-Loss Ratchet - strictly for BreakEven Move) ──
+            if (isModifyingSL && targetSL.HasValue && source == "BreakEven Move")
             {
                 bool isBeAchieved = IsBreakEvenAchieved(pos);
                 if (!isBeAchieved)
@@ -1406,30 +1479,18 @@ namespace cAlgo.Robots
                     double zeroLossSL = GetZeroLossStopLossPrice(pos, targetSL.Value, extraBufferPips: BreakEvenExtraPips);
                     if (pos.TradeType == TradeType.Buy && targetSL.Value < zeroLossSL)
                     {
-                        if (ShowLogs) Print($"[SafeModify Zero-Loss Shift] Target SL {targetSL.Value:F5} yields negative NetProfit. Shifted to Zero-Loss BE: {zeroLossSL:F5} (EstNet@SL=${CalculateEstimatedNetProfitAtSL(pos, zeroLossSL):F2})");
+                        if (ShowLogs) Print($"[SafeModify Zero-Loss Shift] Target SL {targetSL.Value:F5} shifted to Zero-Loss BE: {zeroLossSL:F5} (EstNet@SL=${CalculateEstimatedNetProfitAtSL(pos, zeroLossSL):F2})");
                         targetSL = zeroLossSL;
                     }
                     else if (pos.TradeType == TradeType.Sell && targetSL.Value > zeroLossSL)
                     {
-                        if (ShowLogs) Print($"[SafeModify Zero-Loss Shift] Target SL {targetSL.Value:F5} yields negative NetProfit. Shifted to Zero-Loss BE: {zeroLossSL:F5} (EstNet@SL=${CalculateEstimatedNetProfitAtSL(pos, zeroLossSL):F2})");
+                        if (ShowLogs) Print($"[SafeModify Zero-Loss Shift] Target SL {targetSL.Value:F5} shifted to Zero-Loss BE: {zeroLossSL:F5} (EstNet@SL=${CalculateEstimatedNetProfitAtSL(pos, zeroLossSL):F2})");
                         targetSL = zeroLossSL;
-                    }
-
-                    // Broker Pre-flight check: if market hasn't gone far enough, do not place unsafe SL; wait!
-                    if (pos.TradeType == TradeType.Buy && targetSL.Value >= (currentBid - minStopBuffer))
-                    {
-                        if (ShowLogs) Print($"[SafeModify Wait] Cannot move SL for BUY #{pos.Id}: Zero-loss BE SL ({targetSL.Value:F5}) is within minStopBuffer (Bid: {currentBid:F5}). Retaining initial SL.");
-                        targetSL = pos.StopLoss;
-                    }
-                    else if (pos.TradeType == TradeType.Sell && targetSL.Value <= (currentAsk + minStopBuffer))
-                    {
-                        if (ShowLogs) Print($"[SafeModify Wait] Cannot move SL for SELL #{pos.Id}: Zero-loss BE SL ({targetSL.Value:F5}) is within minStopBuffer (Ask: {currentAsk:F5}). Retaining initial SL.");
-                        targetSL = pos.StopLoss;
                     }
                 }
             }
 
-            // Strict One-Way Profit Ratchet: Never loosen Stop Loss
+            // Strict One-Way Profit Ratchet: Never loosen Stop Loss (protects against risk expansion)
             double? finalSL = targetSL ?? pos.StopLoss;
             if (targetSL.HasValue && pos.StopLoss.HasValue)
             {
@@ -1442,18 +1503,13 @@ namespace cAlgo.Robots
             double? finalTP = targetTP ?? pos.TakeProfit;
             bool finalHasTrailingStop = hasTrailingStop ?? pos.HasTrailingStop;
 
-            // Scenario 7 (Hybrid Smart Profit-Lock Exit)
+            // Broker Pre-flight minStopBuffer validation (Never forcibly close winning trades at market!)
             if (pos.TradeType == TradeType.Sell)
             {
                 if (finalSL.HasValue && finalSL.Value <= (currentAsk + minStopBuffer))
                 {
-                    if (currentAsk < pos.EntryPrice)
-                    {
-                        Print($"[SafeModify Profit-Lock] SELL #{pos.Id} locks profit: SL {finalSL.Value:F2} <= Ask {currentAsk:F2}. Closing!");
-                        ClosePosition(pos);
-                        return null;
-                    }
-                    else finalSL = pos.StopLoss;
+                    if (ShowLogs) Print($"[SafeModify Pre-flight] SELL #{pos.Id}: Candidate SL {finalSL.Value:F5} too close to Ask {currentAsk:F5} (buffer {minStopBuffer:F5}). Retaining existing SL.");
+                    finalSL = pos.StopLoss;
                 }
                 if (finalTP.HasValue && finalTP.Value >= (currentBid - minStopBuffer)) finalTP = pos.TakeProfit;
                 if (finalSL.HasValue && finalTP.HasValue && finalSL.Value <= finalTP.Value) finalTP = pos.TakeProfit;
@@ -1462,13 +1518,8 @@ namespace cAlgo.Robots
             {
                 if (finalSL.HasValue && finalSL.Value >= (currentBid - minStopBuffer))
                 {
-                    if (currentBid > pos.EntryPrice)
-                    {
-                        Print($"[SafeModify Profit-Lock] BUY #{pos.Id} locks profit: SL {finalSL.Value:F2} >= Bid {currentBid:F2}. Closing!");
-                        ClosePosition(pos);
-                        return null;
-                    }
-                    else finalSL = pos.StopLoss;
+                    if (ShowLogs) Print($"[SafeModify Pre-flight] BUY #{pos.Id}: Candidate SL {finalSL.Value:F5} too close to Bid {currentBid:F5} (buffer {minStopBuffer:F5}). Retaining existing SL.");
+                    finalSL = pos.StopLoss;
                 }
                 if (finalTP.HasValue && finalTP.Value <= (currentAsk + minStopBuffer)) finalTP = pos.TakeProfit;
                 if (finalSL.HasValue && finalTP.HasValue && finalSL.Value >= finalTP.Value) finalTP = pos.TakeProfit;
