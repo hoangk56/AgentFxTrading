@@ -1,3 +1,4 @@
+import re
 import shlex
 import sys
 from pathlib import Path
@@ -104,7 +105,6 @@ def test_readme_quirks_are_kept_verbatim():
     us30 = build_run_command(DEMO, "tms_orb", "US30", ROOT, HOME)
     assert '--SessionName="newyork_index" --OrbStartHour=14 --OrbStartMinute=30 --SessionEndHour=21' in us30
     uk = build_run_command(DEMO, "tms_orb", "UK100", ROOT, HOME)
-    assert "--BreakevenTriggerAtr=0.8 --BreakevenOffsetAtr=0.1 --TrailTriggerAtr=1.2 --TrailDistanceAtr=0.7" in uk
     assert "--MinSlAtr=1.5 --MaxSlAtr=4.5 --MinTpAtr=2.0 --MaxTpAtr=8.0 --MaxGivebackAtr=0.6" in uk
     assert "--BounceDistanceThreshold=1.5 " in uk
     btc = build_run_command(DEMO, "judas", "BTCUSD", ROOT, HOME)
@@ -112,6 +112,17 @@ def test_readme_quirks_are_kept_verbatim():
     assert "--maxAsianRangePips=400000.0" in btc
     xau_judas = build_run_command(DEMO, "judas", "XAUUSD", ROOT, HOME)
     assert "--riskFactor" not in xau_judas
+
+
+def test_indices_share_one_breakeven_and_trailing_profile():
+    """The four index symbols breakeven and trail together; only UK100's stop/target band stays wider."""
+    index_trail = "--BreakevenTriggerAtr=1.6 --BreakevenOffsetAtr=0.2 --TrailTriggerAtr=2.2 --TrailDistanceAtr=1.3"
+    for symbol in ("US30", "USTEC", "DE40", "UK100"):
+        assert index_trail in build_run_command(DEMO, "tms_orb", symbol, ROOT, HOME), symbol
+    # Forex and crypto keep the looser TMS profile — the index values must not leak into _TMS_ATR.
+    tms_trail = "--BreakevenTriggerAtr=1.2 --BreakevenOffsetAtr=0.1 --TrailTriggerAtr=2.0 --TrailDistanceAtr=1.0"
+    for symbol in ("EURUSD", "USDJPY", "XAUUSD", "BTCUSD"):
+        assert tms_trail in build_run_command(DEMO, "tms_orb", symbol, ROOT, HOME), symbol
 
 
 def test_crypto_tms_orb_scales_from_gold_on_the_new_york_session():
@@ -254,3 +265,53 @@ def test_installed_cells_maps_config_names_back_to_cell_and_account():
 def test_installed_cells_is_empty_without_accounts_or_configs():
     assert installed_cells([], {"cbot-demo-main-xauusd-newyork"}) == []
     assert installed_cells([DEMO, LIVE], set()) == []
+
+
+# --- README ↔ preset drift guard -------------------------------------------------
+# 22 of the 45 cells mirror a `docker run` block in the READMEs. Those blocks are what a user
+# copies by hand, so a preset edit that forgets them (or forgets 5 of the 6 translations) ships
+# docs that silently disagree with what the dashboard generates. Compare the strategy flags only:
+# the READMEs use placeholder credentials and their own BotId/AccountLabel.
+README_FILES = sorted(root.glob("README*.md"))
+_INFRA_FLAGS = {"ctid", "pwd-file", "account", "symbol", "period", "full-access",
+                "BotId", "ApiUrl", "AccountLabel", "label", "DashboardServerUrl"}
+_ALGO_TO_STRATEGY = {spec["algo"]: name for name, spec in STRATEGIES.items()}
+
+
+def _strategy_flags(command: str) -> dict:
+    """The tuned `--Flag=value` pairs of a docker run, with line continuations folded and infra dropped."""
+    flat = re.sub(r"\s+", " ", command.replace("\\\n", " "))
+    return {key: value for key, value in re.findall(r'--([A-Za-z0-9_-]+)=("[^"]*"|\S+)', flat)
+            if key not in _INFRA_FLAGS}
+
+
+def _readme_cells(readme: Path) -> dict:
+    """(strategy, symbol) -> strategy flags, for every cBot `docker run` block in one README."""
+    cells = {}
+    for block in re.findall(r"```bash\n(.*?)```", readme.read_text(), re.S):
+        algo = re.search(r"/workspace/cBot/(\S+\.algo)", block)
+        symbol = re.search(r"--symbol=(\S+)", block)
+        if not (algo and symbol) or algo.group(1) not in _ALGO_TO_STRATEGY:
+            continue
+        key = (_ALGO_TO_STRATEGY[algo.group(1)], symbol.group(1))
+        assert key not in cells, f"{readme.name} documents {key} twice"
+        cells[key] = _strategy_flags(block)
+    return cells
+
+
+def test_readme_files_are_discovered():
+    assert [p.name for p in README_FILES] == [
+        "README.ja.md", "README.md", "README.pt.md", "README.ru.md", "README.vi.md", "README.zh.md"]
+
+
+@pytest.mark.parametrize("readme", README_FILES, ids=lambda p: p.name)
+def test_readme_docker_blocks_match_the_presets(readme):
+    cells = _readme_cells(readme)
+    assert len(cells) == 22, f"{readme.name} documents {len(cells)} cells, expected 22"
+    for (strategy, symbol), documented in cells.items():
+        assert (strategy, symbol) in PRESETS, f"{readme.name} documents an unknown cell"
+        generated = _strategy_flags(build_run_command(DEMO, strategy, symbol, ROOT, HOME))
+        assert documented == generated, (
+            f"{readme.name} disagrees with app/cbot_presets.py for {strategy} {symbol}: "
+            f"{ {k: (generated.get(k), documented.get(k)) for k in set(generated) | set(documented) if generated.get(k) != documented.get(k)} }"
+        )

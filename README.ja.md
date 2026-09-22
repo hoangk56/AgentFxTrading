@@ -604,7 +604,6 @@ cBotは**cTraderデスクトップGUI**または**ヘッドレスDocker CLI**（
        --BotId="xauusd_m15" \
        --ApiUrl="http://127.0.0.1:8000/trade" \
        --AccountLabel="demo" \
-       --SessionName="newyork" \
        --OrbStartHour=13 \
        --SessionEndHour=21 \
        --SessionDstRule="US" \

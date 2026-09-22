@@ -44,10 +44,15 @@ _TMS_ATR = {
     "PartialCloseRatio": 0.5, "MinSlAtr": 0.8, "MaxSlAtr": 3.0, "MinTpAtr": 1.0, "MaxTpAtr": 6.0,
     "MaxGivebackAtr": 1.0,
 }
+# Indices break out wider than forex, so all four let a trade run further before breakeven and trail looser.
+_INDEX_ATR = {
+    **_TMS_ATR,
+    "BreakevenTriggerAtr": 1.6, "BreakevenOffsetAtr": 0.2, "TrailTriggerAtr": 2.2, "TrailDistanceAtr": 1.3,
+}
+# UK100 shares that breakeven/trail profile but keeps the widest stops and the tightest giveback of the four.
 _UK100_ATR = {
-    "BreakevenTriggerAtr": 0.8, "BreakevenOffsetAtr": 0.1, "TrailTriggerAtr": 1.2, "TrailDistanceAtr": 0.7,
-    "PartialCloseRatio": 0.5, "MinSlAtr": 1.5, "MaxSlAtr": 4.5, "MinTpAtr": 2.0, "MaxTpAtr": 8.0,
-    "MaxGivebackAtr": 0.6,
+    **_INDEX_ATR,
+    "MinSlAtr": 1.5, "MaxSlAtr": 4.5, "MinTpAtr": 2.0, "MaxTpAtr": 8.0, "MaxGivebackAtr": 0.6,
 }
 
 
@@ -120,9 +125,9 @@ PRESETS: Dict[Tuple[str, str], Dict] = {
     ("tms_orb", "USDCAD"): _cell("m15", "New York", _tms(_NEWYORK, 4.0, 10.0, 1.5, 4)),
     ("tms_orb", "AUDUSD"): _cell("m15", "Tokyo",    _tms(_TOKYO, 3.0, 8.0, 1.0, 3)),
     ("tms_orb", "AUDJPY"): _cell("m15", "Tokyo",    _tms(_TOKYO, 4.0, 10.0, 1.5, 4)),
-    ("tms_orb", "US30"):   _cell("m15", "New York", _tms(_NEWYORK_INDEX, 30.0, 80.0, 15.0, 30)),
-    ("tms_orb", "USTEC"):  _cell("m5",  "New York", _tms(_NEWYORK_INDEX, 25.0, 70.0, 12.0, 25)),
-    ("tms_orb", "DE40"):   _cell("m15", "London",   _tms(_LONDON_INDEX, 20.0, 60.0, 10.0, 25)),
+    ("tms_orb", "US30"):   _cell("m15", "New York", _tms(_NEWYORK_INDEX, 30.0, 80.0, 15.0, 30, atr=_INDEX_ATR)),
+    ("tms_orb", "USTEC"):  _cell("m5",  "New York", _tms(_NEWYORK_INDEX, 25.0, 70.0, 12.0, 25, atr=_INDEX_ATR)),
+    ("tms_orb", "DE40"):   _cell("m15", "London",   _tms(_LONDON_INDEX, 20.0, 60.0, 10.0, 25, atr=_INDEX_ATR)),
     ("tms_orb", "UK100"):  _cell("m15", "London",   _tms(_LONDON_INDEX, 25.0, 120.0, 15.0, 1.5, atr=_UK100_ATR)),
     # TMS+ORB — derived from XAUUSD ($2 / $4 / $0.5) by dollar volatility: BTC ×50, ETH ×4
     ("tms_orb", "BTCUSD"): _cell("m15", "New York", _tms(_NEWYORK, 10000.0, 20000.0, 2500.0, 10)),
