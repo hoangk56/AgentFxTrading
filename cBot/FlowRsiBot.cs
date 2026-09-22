@@ -103,7 +103,7 @@ namespace cAlgo.Robots
         #endregion
 
         #region Risk Management Engine
-        [Parameter("Risk per Trade (% Equity)", Group = "Risk Management", DefaultValue = 0.2, MinValue = 0.01, MaxValue = 10.0, Step = 0.1)]
+        [Parameter("Risk per Trade (% Equity)", Group = "Risk Management", DefaultValue = 0.5, MinValue = 0.01, MaxValue = 10.0, Step = 0.1)]
         public double RiskPercentage { get; set; }
 
         [Parameter("Max Dollar Risk Per Trade ($)", Group = "Risk Management", DefaultValue = 50.0, MinValue = 5.0)]
@@ -126,6 +126,8 @@ namespace cAlgo.Robots
 
         [Parameter("Target Risk-to-Reward Ratio", Group = "Risk Management", DefaultValue = 1.5, MinValue = 1.0)]
         public double TargetRiskReward { get; set; }
+        [Parameter("Min SL Floor (pips)", Group = "Risk Management", DefaultValue = 15.0, MinValue = 5.0)]
+        public double MinSlFloorPips { get; set; }
 
         [Parameter("Fixed SL Distance (pips)", Group = "Risk Management", DefaultValue = 30.0, MinValue = 5.0)]
         public double FixedSlPips { get; set; }
@@ -627,6 +629,17 @@ namespace cAlgo.Robots
                 signalReason = $"NestedRSI-SMC ({rsiCrossSignal}, FVG:{(inBullishFvg || inBearishFvg)}, Sweep:{(sweptSsl || sweptBsl)}, Disc:{isDiscount}/Prem:{isPremium})";
 
                 // 6. Calculate Technical SL and TP targets
+                double effectiveMinSl = MinSlFloorPips > 0 ? MinSlFloorPips : 15.0;
+                string symUpper = SymbolName.ToUpperInvariant();
+                if (symUpper.Contains("XAU") || symUpper.Contains("GOLD"))
+                    effectiveMinSl = Math.Max(effectiveMinSl, 150.0);
+                else if (symUpper.Contains("JPY"))
+                    effectiveMinSl = Math.Max(effectiveMinSl, 18.0);
+
+                // Enforce ATR-based breathing room: at least 1.0 * ATR
+                double atrInPips = currentAtr / Symbol.PipSize;
+                effectiveMinSl = Math.Max(effectiveMinSl, atrInPips * 1.0);
+
                 if (buyCandidate)
                 {
                     double structuralSl = (recentSwingLow > 0 && recentSwingLow < Symbol.Bid) 
@@ -640,12 +653,24 @@ namespace cAlgo.Robots
                     else
                         technicalSL = structuralSl;
 
+                    // Enforce calibrated minimum SL breathing room
                     double slDistance = Symbol.Bid - technicalSL;
+                    if ((slDistance / Symbol.PipSize) < effectiveMinSl)
+                    {
+                        technicalSL = Symbol.Bid - (effectiveMinSl * Symbol.PipSize);
+                        slDistance = Symbol.Bid - technicalSL;
+                    }
+
                     double tpDistance = slDistance * TargetRiskReward;
                     technicalTP = Symbol.Ask + tpDistance;
 
+                    // Technical liquidity mode can extend TP further, but NEVER compress it below target RR
                     if (TpMode == TakeProfitType.Technical_Liquidity && recentSwingHigh > Symbol.Ask)
-                        technicalTP = recentSwingHigh;
+                    {
+                        double liquidityTpDistance = recentSwingHigh - Symbol.Ask;
+                        if (liquidityTpDistance >= tpDistance)
+                            technicalTP = recentSwingHigh;
+                    }
                 }
                 else
                 {
@@ -660,14 +685,25 @@ namespace cAlgo.Robots
                     else
                         technicalSL = structuralSl;
 
+                    // Enforce calibrated minimum SL breathing room
                     double slDistance = technicalSL - Symbol.Ask;
+                    if ((slDistance / Symbol.PipSize) < effectiveMinSl)
+                    {
+                        technicalSL = Symbol.Ask + (effectiveMinSl * Symbol.PipSize);
+                        slDistance = technicalSL - Symbol.Ask;
+                    }
+
                     double tpDistance = slDistance * TargetRiskReward;
                     technicalTP = Symbol.Bid - tpDistance;
 
+                    // Technical liquidity mode can extend TP further, but NEVER compress it below target RR
                     if (TpMode == TakeProfitType.Technical_Liquidity && recentSwingLow > 0 && recentSwingLow < Symbol.Bid)
-                        technicalTP = recentSwingLow;
+                    {
+                        double liquidityTpDistance = Symbol.Bid - recentSwingLow;
+                        if (liquidityTpDistance >= tpDistance)
+                            technicalTP = recentSwingLow;
+                    }
                 }
-
                 double riskDistPips = Math.Abs(Symbol.Bid - technicalSL) / Symbol.PipSize;
                 double rewardDistPips = Math.Abs(technicalTP - Symbol.Bid) / Symbol.PipSize;
                 calculatedRr = riskDistPips > 0 ? (rewardDistPips / riskDistPips) : TargetRiskReward;
@@ -1178,7 +1214,28 @@ namespace cAlgo.Robots
             double currentPrice = tradeType == TradeType.Buy ? Symbol.Ask : Symbol.Bid;
             double slDistancePips = Math.Abs(currentPrice - slPrice) / Symbol.PipSize;
 
-            if (slDistancePips < 5.0) slDistancePips = 5.0; // minimum floor
+            double effectiveMinSl = MinSlFloorPips > 0 ? MinSlFloorPips : 15.0;
+            string symUpperExec = SymbolName.ToUpperInvariant();
+            if (symUpperExec.Contains("XAU") || symUpperExec.Contains("GOLD"))
+                effectiveMinSl = Math.Max(effectiveMinSl, 150.0);
+            else if (symUpperExec.Contains("JPY"))
+                effectiveMinSl = Math.Max(effectiveMinSl, 18.0);
+
+            if (slDistancePips < effectiveMinSl)
+            {
+                slDistancePips = effectiveMinSl;
+                if (tradeType == TradeType.Buy)
+                    slPrice = Symbol.Bid - (effectiveMinSl * Symbol.PipSize);
+                else
+                    slPrice = Symbol.Ask + (effectiveMinSl * Symbol.PipSize);
+
+                // Re-adjust TP if needed to preserve target RR
+                double minTpDistance = effectiveMinSl * TargetRiskReward * Symbol.PipSize;
+                if (tradeType == TradeType.Buy && (tpPrice - Symbol.Ask) < minTpDistance)
+                    tpPrice = Symbol.Ask + minTpDistance;
+                else if (tradeType == TradeType.Sell && (Symbol.Bid - tpPrice) < minTpDistance)
+                    tpPrice = Symbol.Bid - minTpDistance;
+            }
 
             // Dynamic Volume Calculation (100% computed by cBot Risk Engine)
             double targetUnits = CalculateDynamicVolumeInUnits(slDistancePips);

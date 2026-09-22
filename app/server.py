@@ -1742,15 +1742,13 @@ async def trade_decision(snapshot: MarketSnapshot):
             '"new_sl_price": null, "new_tp_price": null, "confidence": 0-100, "reason": "concise rationale"}\n'
             "Rule: Volume is 100% managed by cBot risk engine; keep volume_lots=0.0.\n"
             "=== POSITION MANAGEMENT DISCIPLINE ===\n"
-            "1. CUT LOSS EARLY (CLOSE_ALL): If an open position is UNDERWATER (negative PnL) and technical structure breaks against it "
-            "(e.g. BUY position sees an active Bearish RSI Cross or price decisively breaks structure; "
-            "or SELL position sees an active Bullish RSI Cross or price sweeps SSL with strong bullish momentum), "
-            "do NOT stubbornly hold! Output 'CLOSE_ALL' to cut loss early and protect capital.\n"
-            "2. PROTECT PROFITS (ADJUST or CLOSE_ALL): If an open position is in substantial profit (>= 1.0 R:R or >= 15 pips) "
-            "and shows momentum exhaustion (RSI divergence or opposing reversal signal), "
-            "ADJUST SL behind the swing structure to lock in profits, or CLOSE_ALL if opposing reversal cross confirms. Never let a big winner turn into a loss!\n"
-            "3. HOLD: Use HOLD only when the position is in normal, healthy pullbacks within the established trend, "
-            "or when flat and waiting for high-probability setups.\n"
+            "1. GIVE POSITIONS BREATHING ROOM (HOLD): Allow open positions breathing room for normal pullbacks and market noise. "
+            "Do NOT panic-close or micro-manage positions that are flat, slightly underwater (e.g. within normal spread/minor pullback), or in early development.\n"
+            "2. CUT LOSS EARLY (CLOSE_ALL): Only execute CLOSE_ALL when an open position suffers MEANINGFUL adverse movement "
+            "(loss >= 0.5R or >= 10 pips FX / >= 100 pips Gold) AND clear market structure decisively breaks against it "
+            "(e.g. sustained opposing RSI crossover with structural swing breakdown). Never exit early on minor noise.\n"
+            "3. PROTECT PROFITS (ADJUST or CLOSE_ALL): When an open position has captured significant profit (>= 1.0 R:R or >= 15 pips FX / >= 150 pips Gold) "
+            "and displays clear momentum exhaustion or structural reversal, lock in gains by adjusting SL or closing. Do not exit prematurely for petty cents.\n"
             "4. NEW ENTRIES: If candidate_action is BUY/SELL, confirm with confidence >= 75% only when Nested RSI cross and SMC zone align."
         )
         user_prompt = (
@@ -1760,7 +1758,7 @@ async def trade_decision(snapshot: MarketSnapshot):
             f"SMC: Zone={zone_str}, InFVG={snapshot.in_fvg_zone} ({snapshot.fvg_type}), LiquiditySwept={snapshot.liquidity_swept} ({snapshot.swept_liquidity_type})\n"
             f"Proposed Technical Setup: Candidate={cand_str}, SL={snapshot.technical_sl_price}, TP={snapshot.technical_tp_price}, RR={snapshot.technical_risk_reward}\n"
             f"Open Position Status: {pos_str}\n"
-            f"Carefully evaluate Open Position Status: If in profit, protect gains (ADJUST/CLOSE_ALL); if underwater with opposing RSI cross/structure, CUT LOSS (CLOSE_ALL); else HOLD or confirm entry."
+            f"Carefully evaluate Open Position Status: Give trades breathing room; protect gains if >=1.0R; cut loss only on decisive structural breakdown; else HOLD or confirm entry."
         )
     elif is_judas:
         strat = snapshot.strategy
