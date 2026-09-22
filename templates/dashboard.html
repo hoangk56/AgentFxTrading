@@ -266,6 +266,11 @@
                 <section class="panel recent-trades-panel">
                     <div class="panel-header">
                         <span class="panel-title">Recent Trades</span>
+                        <div class="pager">
+                            <button id="history-prev" class="log-btn" type="button" {% if history.page <= 1 %}disabled{% endif %}>&lsaquo; Prev</button>
+                            <span id="history-page-label" class="pager-label">Page {{ history.page }} / {{ history.total_pages }}</span>
+                            <button id="history-next" class="log-btn" type="button" {% if history.page >= history.total_pages %}disabled{% endif %}>Next &rsaquo;</button>
+                        </div>
                     </div>
                     <div class="panel-body">
                         <div class="table-wrap">
@@ -284,7 +289,7 @@
                                     </tr>
                                 </thead>
                                 <tbody id="history-table">
-                                    {% for trade in history %}
+                                    {% for trade in history['items'] %}
                                     <tr>
                                         <td class="col-account account-cell">
                                             {% if trade.account_type == 'live' %}
@@ -1245,10 +1250,16 @@
         let selectedAccountId = (currentMode === 'real' || currentMode === 'live') ? 'live' : 'demo';
         const accountSelector = document.getElementById('account-selector');
 
+        const HISTORY_PAGE_SIZE = 10;
+        let historyPage = 1;
+        function historyUrl() {
+            return `/api/dashboard/history?account_id=${selectedAccountId}&page=${historyPage}&page_size=${HISTORY_PAGE_SIZE}`;
+        }
+
         async function fetchTradeHistory() {
             try {
                 const [hR, cR] = await Promise.all([
-                    fetch(`/api/dashboard/history?account_id=${selectedAccountId}`),
+                    fetch(historyUrl()),
                     fetch(`/api/dashboard/pnl-history?account_id=${selectedAccountId}`)
                 ]);
                 updateTradeHistory(await hR.json());
@@ -1261,7 +1272,7 @@
                 const [sR, pR, hR, cR] = await Promise.all([
                     fetch(`/api/dashboard/summary?account_id=${selectedAccountId}`),
                     fetch(`/api/dashboard/positions?account_id=${selectedAccountId}`),
-                    fetch(`/api/dashboard/history?account_id=${selectedAccountId}`),
+                    fetch(historyUrl()),
                     fetch(`/api/dashboard/pnl-history?account_id=${selectedAccountId}`)
                 ]);
                 updateDashboard(await sR.json(), await pR.json());
@@ -1286,6 +1297,7 @@
         // Attach account selector change listener
         accountSelector.addEventListener('change', async (e) => {
             selectedAccountId = e.target.value;
+            historyPage = 1;
             if (ws && ws.readyState === WebSocket.OPEN) {
                 ws.send(JSON.stringify({type: 'subscribe', account_id: selectedAccountId, mode: currentMode}));
             }
@@ -1472,11 +1484,7 @@
                             if (d.summary && d.positions) {
                                 updateDashboard(d.summary, d.positions);
                             }
-                            if (d.history) {
-                                updateTradeHistory(d.history);
-                            } else {
-                                fetchTradeHistory();
-                            }
+                            fetchTradeHistory();
                             if (d.pnl_history) {
                                 updatePnlChart(d.pnl_history);
                             }
@@ -1667,7 +1675,16 @@
             } catch(e) { }
         }
         setInterval(refreshMarketSessions, 60000);
-        function updateTradeHistory(history){
+        function updateTradeHistory(page){
+            const history = page.items || [];
+            const totalPages = page.total_pages || 1;
+            if ((page.page || 1) > totalPages) { historyPage = totalPages; fetchTradeHistory(); return; }
+            historyPage = page.page || 1;
+            const label=document.getElementById('history-page-label');
+            if(label) label.textContent=`Page ${historyPage} / ${totalPages}`;
+            const prev=document.getElementById('history-prev'), next=document.getElementById('history-next');
+            if(prev) prev.disabled = historyPage <= 1;
+            if(next) next.disabled = historyPage >= totalPages;
             const isMultiAcc = (selectedAccountId === 'demo' || selectedAccountId === 'live' || selectedAccountId === 'all');
             const tb=document.getElementById('history-table');if(!tb)return;const ah=isMultiAcc?'':'hidden';
             if(!history.length){
@@ -1686,6 +1703,12 @@
                 </tr>`).join('');
             }
         }
+        document.getElementById('history-prev')?.addEventListener('click', () => {
+            if (historyPage > 1) { historyPage -= 1; fetchTradeHistory(); }
+        });
+        document.getElementById('history-next')?.addEventListener('click', () => {
+            historyPage += 1; fetchTradeHistory();
+        });
 
         // Auto-refresh when tab returns to focus
         document.addEventListener('visibilitychange', () => {

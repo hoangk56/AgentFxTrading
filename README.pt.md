@@ -165,7 +165,7 @@ GET  /real/dashboard           # Painel web real/live (isolado)
 GET  /                         # Redireciona automaticamente para o último modo ativo
 GET  /dashboard                # Redireciona automaticamente para o último modo ativo
 GET  /api/dashboard/positions  # Posições ativas (aceita ?account_id=demo|live|all|<id>)
-GET  /api/dashboard/history    # Histórico de negociações fechadas (aceita ?account_id=demo|live|all|<id>)
+GET  /api/dashboard/history    # Histórico de negociações fechadas, 10 por página (aceita ?account_id=demo|live|all|<id>&page=N&page_size=N)
 GET  /api/dashboard/pnl-history# Histórico diário de P&L (aceita ?account_id=demo|live|all|<id>)
 GET  /api/dashboard/logs       # Logs do servidor e do agente (aceita ?mode=demo|live|all)
 GET  /api/bots                 # Configurações e status dos bots Docker (com account_type)

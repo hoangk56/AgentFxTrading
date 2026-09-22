@@ -169,7 +169,7 @@ GET  /real/dashboard           # Реальная/живая панель (из�
 GET  /                         # Автопереход к последнему активному режиму
 GET  /dashboard                # Автопереход к последнему активному режиму
 GET  /api/dashboard/positions  # Активные позиции (поддерживает ?account_id=demo|live|all|<id>)
-GET  /api/dashboard/history    # История закрытых сделок (поддерживает ?account_id=demo|live|all|<id>)
+GET  /api/dashboard/history    # История закрытых сделок, по 10 на страницу (поддерживает ?account_id=demo|live|all|<id>&page=N&page_size=N)
 GET  /api/dashboard/pnl-history# Дневная история P&L (поддерживает ?account_id=demo|live|all|<id>)
 GET  /api/dashboard/logs       # Логи сервера и агента (поддерживает ?mode=demo|live|all)
 GET  /api/bots                 # Конфигурации и статусы Docker-ботов (с account_type)
