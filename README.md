@@ -612,7 +612,7 @@ You can run the cBot either via **cTrader Desktop GUI** or **Headless Docker CLI
        --EnableSmcFilter=true \
        --EnableFvgDetection=true \
        --EnablePremiumDiscountFilter=true \
-       --RiskPercentage=0.2 \
+       --RiskPercentage=0.5 \
        --MaxRiskPerTradeMoney=50.0 \
        --TargetRiskReward=1.5 \
        --UseAiGateMode=true
