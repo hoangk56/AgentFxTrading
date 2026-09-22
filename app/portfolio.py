@@ -139,6 +139,39 @@ class PortfolioManager:
             return False
         finally:
             conn.close()
+    def get_open_positions(self, bot_id: str, account_id: str) -> List[Dict]:
+        """
+        Open positions with the stop distance recorded at entry.
+
+        A cBot keeps initial SL distances in RAM, so a restart loses them and it would
+        otherwise re-derive R from whatever stop the position carries now - which for a
+        position already moved to break-even is near zero, inflating R enormously.
+        """
+        conn = self._get_conn()
+        try:
+            cur = conn.execute("""
+                SELECT symbol, side, volume, entry_price, sl_pips, tp_pips, entry_time
+                FROM positions
+                WHERE bot_id = ? AND account_id = ? AND status = 'open'
+            """, (bot_id, account_id))
+            return [
+                {
+                    "symbol": r[0],
+                    "side": r[1],
+                    "volume": r[2],
+                    "entry_price": r[3],
+                    "sl_pips": r[4],
+                    "tp_pips": r[5],
+                    "entry_time": r[6],
+                }
+                for r in cur.fetchall()
+            ]
+        except Exception as e:
+            logger.error(f"Failed to read open positions: {e}")
+            return []
+        finally:
+            conn.close()
+
     def record_partial_close(self, bot_id: str, symbol: str, remaining_volume: float,
                              realized_pnl: float, account_id: str) -> bool:
         """

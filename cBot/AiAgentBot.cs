@@ -1678,7 +1678,18 @@ namespace cAlgo.Robots
             }
 
             
+            // The live spread when this handler runs is not the price the position closed at:
+            // a stop swept by a spike that snaps back would be reported at a price that never
+            // traded, corrupting every pip/RR statistic built on exit_price. Prefer the booked
+            // deal, falling back to the spread when History has not caught up yet.
             double exitPrice = args.Position.TradeType == TradeType.Buy ? Symbol.Bid : Symbol.Ask;
+            try
+            {
+                var closedHist = History.FirstOrDefault(h => h.PositionId == args.Position.Id);
+                if (closedHist != null && closedHist.ClosingPrice > 0)
+                    exitPrice = closedHist.ClosingPrice;
+            }
+            catch { }
 
             // Arm Post-TP Gate only when the exit captured a real move. A scratch exit inside the
             // tick-noise band (GBPUSD 2026-09-11: +0.6p net on a 14p-risk trade) must not lock the

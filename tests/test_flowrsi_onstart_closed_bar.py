@@ -25,7 +25,7 @@ CS_PATH = Path(__file__).resolve().parent.parent / "cBot" / "FlowRsiBot.cs"
 def _on_start_boot_block() -> str:
     """The `if (UseAiGateMode && RunningMode == RunningMode.RealTime)` block in OnStart."""
     src = CS_PATH.read_text(encoding="utf-8")
-    anchor = src.index("// 6. Dispatch initial boot snapshot to AI Server")
+    anchor = src.index("Dispatch initial boot snapshot to AI Server")
     open_idx = src.index("{", src.index("if (UseAiGateMode", anchor))
     depth = 0
     for i in range(open_idx, len(src)):

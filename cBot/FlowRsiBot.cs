@@ -445,7 +445,10 @@ namespace cAlgo.Robots
 
                 Print($"[FlowRSI] Initialized Successfully! FastRSI({FastRsiPeriod}), SlowRSI({SlowRsiPeriod}), SMC Filter: {EnableSmcFilter}");
 
-                // 6. Dispatch initial boot snapshot to AI Server
+                // 6. Recover initial SL distances for positions that survived the restart
+                _ = RestoreInitialSlDistances();
+
+                // 7. Dispatch initial boot snapshot to AI Server
                 if (UseAiGateMode && RunningMode == RunningMode.RealTime)
                 {
                     var activePositions = GetBotPositions();
@@ -1332,6 +1335,12 @@ namespace cAlgo.Robots
             double slPips = Math.Abs(entryRefPrice - slPrice) / Symbol.PipSize;
             double tpPips = Math.Abs(tpPrice - entryRefPrice) / Symbol.PipSize;
 
+            if (targetUnits <= 0)
+            {
+                if (ShowLogs) Print($"[Order Skipped] Risk engine refused a volume for {tradeType} {SymbolName} at {slDistancePips:F1}p. Reason: {reason}");
+                return;
+            }
+
             var result = ExecuteMarketOrder(tradeType, SymbolName, targetUnits, BotId, slPips, tpPips, BotId);
 
             if (result.IsSuccessful)
@@ -1368,6 +1377,16 @@ namespace cAlgo.Robots
             if (normalizedUnits < Symbol.VolumeInUnitsMin) normalizedUnits = Symbol.VolumeInUnitsMin;
             if (normalizedUnits > Symbol.VolumeInUnitsMax) normalizedUnits = Symbol.VolumeInUnitsMax;
 
+            // Clamping up to the broker minimum can blow straight past the configured cap on a
+            // small account trading a large-minimum instrument (US30, BTC, indices) with a wide
+            // technical stop. Refuse rather than place an order that breaks MaxRiskPerTradeMoney.
+            double finalRisk = normalizedUnits * slPips * pipValue;
+            if (finalRisk > MaxRiskPerTradeMoney)
+            {
+                Print($"[Guardrail] Entry REFUSED: broker minimum {normalizedUnits / Symbol.LotSize:F2} lots at {slPips:F1}p risks ${finalRisk:F2}, over MaxRiskPerTradeMoney (${MaxRiskPerTradeMoney:F2}).");
+                return 0;
+            }
+
             return normalizedUnits;
         }
         #endregion
@@ -1378,9 +1397,31 @@ namespace cAlgo.Robots
             foreach (var pos in GetBotPositions())
             {
                 double pnlPips = (pos.TradeType == TradeType.Buy ? (Symbol.Bid - pos.EntryPrice) : (pos.EntryPrice - Symbol.Ask)) / Symbol.PipSize;
-                double initialSlDist = _initialSlDistances.ContainsKey(pos.Id) 
-                    ? _initialSlDistances[pos.Id] / Symbol.PipSize 
-                    : (pos.StopLoss.HasValue ? Math.Abs(pos.EntryPrice - pos.StopLoss.Value) / Symbol.PipSize : 20.0);
+                double initialSlDist;
+                if (_initialSlDistances.ContainsKey(pos.Id))
+                {
+                    initialSlDist = _initialSlDistances[pos.Id] / Symbol.PipSize;
+                }
+                else
+                {
+                    // No recorded distance (restart, and the server lookup found no match). The
+                    // CURRENT stop is not the initial risk: on a position already moved to
+                    // break-even it is ~0.5p, which would inflate currentRr ~50x and fire the
+                    // trailing stop on the first tick. Floor it at the same minimum the entry
+                    // sizing uses so R stays bounded.
+                    double measured = pos.StopLoss.HasValue
+                        ? Math.Abs(pos.EntryPrice - pos.StopLoss.Value) / Symbol.PipSize
+                        : 20.0;
+
+                    double effectiveMinSl = MinSlFloorPips > 0 ? MinSlFloorPips : 15.0;
+                    string symUpperRestore = SymbolName.ToUpperInvariant();
+                    if (symUpperRestore.Contains("XAU") || symUpperRestore.Contains("GOLD"))
+                        effectiveMinSl = Math.Max(effectiveMinSl, 150.0);
+                    else if (symUpperRestore.Contains("JPY"))
+                        effectiveMinSl = Math.Max(effectiveMinSl, 18.0);
+
+                    initialSlDist = Math.Max(measured, effectiveMinSl);
+                }
 
                 if (initialSlDist <= 0) initialSlDist = 20.0;
 
@@ -1969,8 +2010,29 @@ namespace cAlgo.Robots
             }
         }
 
+        // ForexFactory's XML feed writes US Eastern times with NO offset, so they can only be
+        // converted with an explicit zone. Windows and IANA ids are both tried: .NET on Linux
+        // resolves IANA natively and Windows ids via ICU, and neither is guaranteed present.
+        private static TimeZoneInfo ResolveEasternTimeZone()
+        {
+            foreach (var id in new[] { "America/New_York", "Eastern Standard Time" })
+            {
+                try { return TimeZoneInfo.FindSystemTimeZoneById(id); }
+                catch { }
+            }
+            return null;
+        }
+
+        private static readonly TimeZoneInfo _easternTz = ResolveEasternTimeZone();
+
         private void ParseNewsEventsFromXml(string xml)
         {
+            if (_easternTz == null)
+            {
+                Print("[News Filter WARNING] US Eastern time zone unavailable; ForexFactory XML times cannot be converted to UTC. XML fallback skipped (hub/JSON paths unaffected).");
+                return;
+            }
+
             var xdoc = XDocument.Parse(xml);
             lock (_newsEvents)
             {
@@ -1985,8 +2047,11 @@ namespace cAlgo.Robots
                     {
                         string dateStr = item.Element("date")?.Value ?? "";
                         string timeStr = item.Element("time")?.Value ?? "";
-                        if (DateTime.TryParse($"{dateStr} {timeStr}", CultureInfo.InvariantCulture, DateTimeStyles.AdjustToUniversal, out var parsed))
+                        // Parse as wall-clock Eastern (no offset in the feed), then convert.
+                        if (DateTime.TryParse($"{dateStr} {timeStr}", CultureInfo.InvariantCulture, DateTimeStyles.None, out var parsedEastern))
                         {
+                            var parsed = TimeZoneInfo.ConvertTimeToUtc(
+                                DateTime.SpecifyKind(parsedEastern, DateTimeKind.Unspecified), _easternTz);
                             _newsEvents.Add(new NewsEvent
                             {
                                 UtcTime = parsed,
@@ -2135,11 +2200,22 @@ namespace cAlgo.Robots
                     if (pos.Label != BotId && pos.Comment != BotId) return;
                     if (pos.SymbolName != SymbolName) return;
 
+                    // The live spread when this handler happens to run is not the price the
+                    // position closed at: a stop swept by a spike that snaps back would be
+                    // reported at a price that never traded. Prefer the booked deal.
                     double exitPrice = pos.TradeType == TradeType.Buy ? Symbol.Bid : Symbol.Ask;
                     if (args.Reason == PositionCloseReason.TakeProfit && pos.TakeProfit.HasValue)
                         exitPrice = pos.TakeProfit.Value;
                     else if (args.Reason == PositionCloseReason.StopLoss && pos.StopLoss.HasValue)
                         exitPrice = pos.StopLoss.Value;
+
+                    try
+                    {
+                        var hist = History.FirstOrDefault(h => h.PositionId == pos.Id);
+                        if (hist != null && hist.ClosingPrice > 0)
+                            exitPrice = hist.ClosingPrice;
+                    }
+                    catch { }
 
                     double pnl = pos.NetProfit;
                     string reason = args.Reason.ToString();
@@ -2270,6 +2346,71 @@ namespace cAlgo.Robots
             catch (Exception ex)
             {
                 if (ShowLogs) Print($"[ReportPositionOpen Error] {ex.Message}");
+            }
+        }
+
+        // _initialSlDistances lives in RAM and is lost on restart. The server already holds
+        // the stop distance reported at entry, so recover it rather than re-deriving R from
+        // whatever stop the position carries now - which for a position already at break-even
+        // is near zero and inflates currentRr by an order of magnitude.
+        private async Task RestoreInitialSlDistances()
+        {
+            if (RunningMode != RunningMode.RealTime || _httpClient == null) return;
+            try
+            {
+                var baseUri = !string.IsNullOrWhiteSpace(AiReportUrl)
+                    ? AiReportUrl.Replace("/portfolio/report", "").TrimEnd('/')
+                    : ApiUrl.Replace("/trade", "").TrimEnd('/');
+                string url = $"{baseUri}/portfolio/open-positions?bot_id={Uri.EscapeDataString(BotId)}&account_number={Account.Number}";
+
+                var response = await _httpClient.GetAsync(url);
+                if (!response.IsSuccessStatusCode) return;
+                string body = await response.Content.ReadAsStringAsync();
+
+                BeginInvokeOnMainThread(() =>
+                {
+                    try
+                    {
+                        using (var doc = JsonDocument.Parse(body))
+                        {
+                            if (!doc.RootElement.TryGetProperty("positions", out var rows)) return;
+
+                            int restored = 0;
+                            foreach (var pos in GetBotPositions())
+                            {
+                                foreach (var row in rows.EnumerateArray())
+                                {
+                                    string rowSymbol = row.TryGetProperty("symbol", out var sym) ? sym.GetString() : null;
+                                    string rowSide = row.TryGetProperty("side", out var sd) ? sd.GetString() : null;
+                                    if (!string.Equals(rowSymbol, pos.SymbolName, StringComparison.OrdinalIgnoreCase)) continue;
+                                    if (!string.Equals(rowSide, pos.TradeType.ToString(), StringComparison.OrdinalIgnoreCase)) continue;
+
+                                    // Match on entry price so this stays correct if MaxPositionsAllowed > 1.
+                                    if (!row.TryGetProperty("entry_price", out var ep) || ep.ValueKind != JsonValueKind.Number) continue;
+                                    if (Math.Abs(ep.GetDouble() - pos.EntryPrice) > Symbol.PipSize) continue;
+
+                                    if (!row.TryGetProperty("sl_pips", out var sp) || sp.ValueKind != JsonValueKind.Number) continue;
+                                    double slPipsRestored = sp.GetDouble();
+                                    if (slPipsRestored <= 0) continue;
+
+                                    _initialSlDistances[pos.Id] = slPipsRestored * Symbol.PipSize;
+                                    restored++;
+                                    break;
+                                }
+                            }
+
+                            if (restored > 0) Print($"[FlowRSI] Restored initial SL distance for {restored} open position(s) after restart.");
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        if (ShowLogs) Print($"[RestoreInitialSlDistances Parse Error] {ex.Message}");
+                    }
+                });
+            }
+            catch (Exception ex)
+            {
+                if (ShowLogs) Print($"[RestoreInitialSlDistances Error] {ex.Message}");
             }
         }
 

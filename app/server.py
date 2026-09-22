@@ -2287,6 +2287,31 @@ async def report_position(request: dict):
         return {"status": "error", "message": str(e)}
 
 
+@app.get("/portfolio/open-positions")
+async def get_open_positions(bot_id: str, account_number: str = "0"):
+    """
+    Open positions with the stop distance recorded at entry.
+
+    A restarting cBot uses this to rebuild its in-RAM initial-SL map: without it, a
+    position already moved to break-even looks like it was opened with a ~0.5 pip
+    stop, and every R-based decision (trailing trigger, partial close) runs on a
+    fabricated R.
+    """
+    try:
+        registry = get_account_registry()
+        account_type = registry.get_account_type(str(account_number)) or "demo"
+        account_id = registry.resolve_account_id(str(account_number), account_type)
+        if not account_id:
+            return {"status": "success", "positions": []}
+        rows = portfolio_manager.get_open_positions(
+            bot_id=sanitize_bot_id(bot_id), account_id=account_id
+        )
+        return {"status": "success", "positions": rows}
+    except Exception as e:
+        logger.error(f"Open positions lookup error: {e}")
+        return {"status": "error", "message": str(e), "positions": []}
+
+
 @app.get("/portfolio/status")
 async def get_portfolio_status(account_id: Optional[str] = None):
     """Get current portfolio status."""
