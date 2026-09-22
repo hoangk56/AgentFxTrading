@@ -184,6 +184,12 @@ namespace cAlgo.Robots
         [Parameter("Enable AI Gate Mode", Group = "AI Agent Integration", DefaultValue = true)]
         public bool UseAiGateMode { get; set; }
 
+        // Fail-closed by default: when the AI hub is unreachable, in cooldown or erroring,
+        // the gate is what it claims to be and no order is placed. Turn this on only to
+        // deliberately run technical-only entries while the hub is down.
+        [Parameter("Allow Technical Fallback On AI Failure", Group = "AI Agent Integration", DefaultValue = false)]
+        public bool AllowTechnicalFallbackOnAiFailure { get; set; }
+
         [Parameter("Agent API URL", Group = "AI Agent Integration", DefaultValue = "http://127.0.0.1:8000/trade")]
         public string ApiUrl { get; set; }
 
@@ -781,7 +787,15 @@ namespace cAlgo.Robots
                         if (ShowLogs) Print($"[AI Agent Safety Guard] Cooldown active until {_aiCooldownUntil:HH:mm:ss} UTC. Direct AI query skipped.");
                         if (allowedDirection == "BUY" || allowedDirection == "SELL")
                         {
-                            ExecuteTechnicalOrder(allowedDirection, technicalSL, technicalTP, signalReason);
+                            if (AllowTechnicalFallbackOnAiFailure)
+                            {
+                                Print($"[AI Gate Fallback] ⚠️ Technical fallback ENABLED - entering {allowedDirection} with NO AI approval (cooldown active).");
+                                ExecuteTechnicalOrder(allowedDirection, technicalSL, technicalTP, signalReason);
+                            }
+                            else
+                            {
+                                Print($"[AI Gate Fail-Closed] {allowedDirection} candidate skipped: AI cooldown active until {_aiCooldownUntil:HH:mm:ss} UTC.");
+                            }
                         }
                     });
                     return;
@@ -965,7 +979,15 @@ namespace cAlgo.Robots
                         HandleAiFailure(httpErr);
                         if (allowedDirection == "BUY" || allowedDirection == "SELL")
                         {
-                            ExecuteTechnicalOrder(allowedDirection, fallbackSL, fallbackTP, reason);
+                            if (AllowTechnicalFallbackOnAiFailure)
+                            {
+                                Print($"[AI Gate Fallback] ⚠️ Technical fallback ENABLED - entering {allowedDirection} with NO AI approval ({httpErr}).");
+                                ExecuteTechnicalOrder(allowedDirection, fallbackSL, fallbackTP, reason);
+                            }
+                            else
+                            {
+                                Print($"[AI Gate Fail-Closed] {allowedDirection} candidate skipped: {httpErr}.");
+                            }
                         }
                     });
                     return;
@@ -1004,7 +1026,15 @@ namespace cAlgo.Robots
                     HandleAiFailure(exErr);
                     if (allowedDirection == "BUY" || allowedDirection == "SELL")
                     {
-                        ExecuteTechnicalOrder(allowedDirection, fallbackSL, fallbackTP, reason);
+                        if (AllowTechnicalFallbackOnAiFailure)
+                        {
+                            Print($"[AI Gate Fallback] ⚠️ Technical fallback ENABLED - entering {allowedDirection} with NO AI approval ({exErr}).");
+                            ExecuteTechnicalOrder(allowedDirection, fallbackSL, fallbackTP, reason);
+                        }
+                        else
+                        {
+                            Print($"[AI Gate Fail-Closed] {allowedDirection} candidate skipped: AI bridge error ({exErr}).");
+                        }
                     }
                 });
             }

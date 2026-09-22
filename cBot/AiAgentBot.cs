@@ -2010,6 +2010,19 @@ namespace cAlgo.Robots
                             continue;
                         }
 
+                        // Strict One-Way Risk Ratchet: an ADJUST may pull the stop toward profit,
+                        // never away from it. Without this an LLM "give the trade room to breathe"
+                        // ADJUST widens the stop past the dollar risk the entry was sized for,
+                        // voiding MaxDollarRiskPerTrade and every volume guardrail computed at entry.
+                        // Mirrors FlowRsiBot's ratchet and AsianRangeJudasSweepBot.SafeModifyPosition.
+                        if (pos.StopLoss.HasValue &&
+                            ((pos.TradeType == TradeType.Buy && targetSL.Value < pos.StopLoss.Value) ||
+                             (pos.TradeType == TradeType.Sell && targetSL.Value > pos.StopLoss.Value)))
+                        {
+                            if (ShowLogs) Print($"[ADJUST Ratchet] Rejected widening SL ({targetSL.Value}) for {SymbolName} #{pos.Id}: current SL ({pos.StopLoss.Value}) is tighter. Reason given: {decision.reason}");
+                            continue;
+                        }
+
                         double minBuffer = Math.Max(Symbol.Spread * 1.2, Symbol.PipSize * 5);
                         bool valid = pos.TradeType == TradeType.Buy 
                             ? targetSL.Value < (Symbol.Bid - minBuffer) 
