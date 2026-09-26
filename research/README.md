@@ -3,8 +3,10 @@
 Offline strategy research on the cTrader backtest tick cache. Nothing here runs in production.
 
 **Where things stand (2026-09-26):** no strategy tested so far has an edge that survives multiple testing
-and out-of-sample years. The full list, with rules, origin and findings per strategy, is
-[STRATEGIES.md](STRATEGIES.md). Read it before proposing a strategy, so nothing gets tested twice.
+and out-of-sample years. The 2026-09-26 refresh rebuilt TMS + ORB and the Asian Range Judas Sweep from their
+canonical definitions and added four literature rules (14 pre-registered variants, `results/lab/v2/verdict.md`):
+none passed; only N2 gotobi USDJPY was positive in every period (+0.035R, t 1.2). The full list, with rules,
+origin and findings per strategy, is [STRATEGIES.md](STRATEGIES.md). Read it before proposing a strategy, so nothing gets tested twice.
 
 ## Layout
 
@@ -12,7 +14,8 @@ and out-of-sample years. The full list, with rules, origin and findings per stra
 |---|---|
 | `STRATEGIES.md` | the catalog, rendered from `lab/catalog.py` + lab results. Edit the catalog, not this file |
 | `lab/` | the strategy lab: every catalogued strategy x 22 symbols, tick level, fixed lots, 2023-01..2026-09 |
-| `lab/strategies/` | lab strategy code: `rules.py` (researched rules), `flowrsi.py`, `judas.py`, `tmsorb.py` (live bots) |
+| `lab/strategies/` | lab strategy code: `rules.py` (researched rules), `flowrsi.py`, `judas.py`, `tmsorb.py` (live bots); `canon.py`, `tms_orb2.py`, `judas2.py`, `literature.py` (2026-09-26 refresh) |
+| `lab/verdict.py` | the refresh's pre-registered pass bar applied to a run -> `RUN_DIR/verdict.md` |
 | `scan/` | round 1-2 strategy search on the M1 cache: 552-config bank, pairs, walk-forward ridge, tick sim, 2023-24 confirmation |
 | `*.py` (top level) | FlowRSI replica (`signals`, `sim`, `specs`, `calibrate`), entry screening (`screen`), tick/bar decoding (`ticks`, `bars`) |
 | `pull_cache.sh`, `pull_years.sh` | copy the tick/M15 cache from the VPS into `data/` |
@@ -31,6 +34,7 @@ Git keeps the reports and summary tables; the bulky outputs stay on the local di
 |---|---|---|
 | `results/lab/main/report.md` | yes | lab baseline: 62 strategies x 22 symbols, 1198 cells, per-year $, stress flags |
 | `results/lab/main/cells.csv`, `matrix.csv` | yes | one row per (strategy, symbol); strategy x symbol net $ |
+| `results/prereg_v2.md`, `results/lab/v2/verdict.md`, `report.md`, `cells.csv` | yes | refresh 2026-09-26: pre-registration, verdict (14 variants, none passed) and tables; `v2check/` = the 2023-24 code-check run |
 | `results/lab/main/meta.json`, `coverage.csv`, `errors.csv` | yes | run arguments + code hashes, tick coverage, errors (none) |
 | `results/lab/main/trades.csv.gz`, `control.csv`, `parts/` | no (880 MB) | every trade, random-entry control, per-job raw files |
 | `results/strategy_search.md`, `strategy_prereg.md` | yes | rounds 1-2 of the open search and the pre-registered 2023-24 confirmation |

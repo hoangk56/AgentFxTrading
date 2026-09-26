@@ -7,11 +7,11 @@ research/lab/strategies/ when it is new code).
 import csv
 import hashlib
 import sys
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 from pathlib import Path
 from typing import Callable, Dict, List, Optional, Tuple
 
-from research.lab.strategies import rules
+from research.lab.strategies import judas2, literature, rules, tms_orb2
 from research.lab.strategies.flowrsi import flowrsi
 from research.lab.strategies.judas import judas
 from research.lab.strategies.tmsorb import tms_orb
@@ -127,6 +127,183 @@ TMSORB = StrategyInfo(
     ("Live on the demo account since 2026-09; the AI decides every entry, so it was never backtested before the lab.",),
     tms_orb, label="port, uncalibrated: the AI approves every gate-passing candidate; loss-streak and dollar-risk "
                    "guards off")
+
+REFRESH_ORIGIN = "strategy refresh 2026-09-26 (docs/superpowers/specs/2026-09-26-strategy-refresh-design.md)"
+REFRESH_PENDING = ("Pre-registered 2026-09-26 (research/results/prereg_v2.md); result pending in lab run v2.",)
+NO_CRYPTO = tuple(s for s in ALL if s not in ("BTCUSD", "ETHUSD"))
+NO_MIRROR = ("real", "shuffle")
+ORB_RULES = ("Opening range = bid high/low of the first 15 minutes of the session (local: Tokyo 09:00, London 08:00, "
+             "Frankfurt 09:00, New York FX 08:00, New York cash 09:30; BTC/ETH on the cash open). For 3 hours after "
+             "it the first tick beyond the range is a breakout; SL at the other side; no target; exit at the session "
+             "end (Tokyo 15:00, London 16:30, Frankfurt 17:30, New York 16:00); one trade per session; skipped when "
+             "the range is under 3 median spreads.")
+TMS_STATE = (" Only breakouts in the direction of the H1 TMS state (last closed H1 bar: bull = TDI green (SMA2 of "
+             "RSI13) > red (SMA7), green > 50, Heiken Ashi bullish; bear mirrored); a skipped side re-arms once bid "
+             "is back inside the range.")
+TMS_RULES = ("TMS (Trading Made Simple): TDI green (SMA2 of RSI13) crosses red (SMA7); enter at the close of candle 1, "
+             "else candle 2, if green is still across, the Heiken Ashi bar has the trade's colour and Stoch(8,3,3) %K "
+             "is on the trade's side of %D; never candle 3+. SL beyond the last 5 bars' low / high (+ spread for "
+             "sells); exit at the bar close where green crosses back; no target.")
+JUDAS_RULES = ("ICT: Asian range = M5 high/low 20:00-00:00 New York. In the London killzone (02:00-05:00 New York) a "
+               "run beyond one side (sweep extreme H*), then an M5 close through the latest fractal swing before H* "
+               "(market structure shift) with a fair value gap between the H* bar and the shift bar; limit at the "
+               "gap's near edge until the killzone ends; SL beyond H* (+ spread for sells); TP the other side of the "
+               "Asian range, placed only if TP >= SL distance; exit 12:00 New York; one filled trade per day; "
+               "BTC/ETH excluded.")
+REFRESH = [
+    StrategyInfo("T1-ORB", "Opening range breakout (Crabel)", "candidate", REFRESH_ORIGIN, "ORB breakout",
+                 "15-min range, ticks", ORB_RULES, REFRESH_PENDING, tms_orb2.orb),
+    StrategyInfo("T2-TMSORB", "TMS + ORB", "candidate", REFRESH_ORIGIN, "ORB breakout + TMS bias",
+                 "15-min range, H1 bias", ORB_RULES + TMS_STATE, REFRESH_PENDING, tms_orb2.orb, dict(tms=True)),
+    StrategyInfo("T3-TMSORB-X", "TMS + ORB, TMS exit", "candidate", REFRESH_ORIGIN, "ORB breakout + TMS bias",
+                 "15-min range, H1 bias",
+                 ORB_RULES + TMS_STATE + " Also exits at the first H1 close with green crossed against the trade.",
+                 REFRESH_PENDING, tms_orb2.orb, dict(tms=True, tms_exit=True)),
+    StrategyInfo("T4-TMS-H4", "TMS system on H4", "candidate", REFRESH_ORIGIN, "TDI cross + Heiken Ashi", "H4",
+                 TMS_RULES, REFRESH_PENDING, tms_orb2.tms_system, dict(tf=240)),
+    StrategyInfo("T5-TMS-H1", "TMS system on H1", "candidate", REFRESH_ORIGIN, "TDI cross + Heiken Ashi", "H1",
+                 TMS_RULES, REFRESH_PENDING, tms_orb2.tms_system, dict(tf=60)),
+    StrategyInfo("J1-ICT", "Judas sweep, ICT model", "candidate", REFRESH_ORIGIN, "liquidity sweep", "M5",
+                 JUDAS_RULES, REFRESH_PENDING, judas2.judas_ict, symbols=NO_CRYPTO),
+    StrategyInfo("J2-ICT-MO", "Judas sweep, ICT + midnight open", "candidate", REFRESH_ORIGIN, "liquidity sweep",
+                 "M5", JUDAS_RULES + " Sells only above the New York midnight open, buys only below it.",
+                 REFRESH_PENDING, judas2.judas_ict, dict(midnight_filter=True), symbols=NO_CRYPTO),
+    StrategyInfo("J3-ICT-2R", "Judas sweep, ICT, TP 2R", "candidate", REFRESH_ORIGIN, "liquidity sweep", "M5",
+                 JUDAS_RULES + " TP = 2 x the stop distance instead of the range side (no TP check).",
+                 REFRESH_PENDING, judas2.judas_ict, dict(tp_mode="2r"), symbols=NO_CRYPTO),
+    StrategyInfo("J4-ICT-2KZ", "Judas sweep, ICT, London + NY AM", "candidate", REFRESH_ORIGIN, "liquidity sweep",
+                 "M5", JUDAS_RULES + " Also the New York AM killzone 07:00-10:00, same range, still one trade a day.",
+                 REFRESH_PENDING, judas2.judas_ict, dict(killzones=("london", "nyam")), symbols=NO_CRYPTO),
+    StrategyInfo("J5-SWEEP", "Judas sweep-and-close (no MSS/FVG)", "candidate", REFRESH_ORIGIN, "liquidity sweep",
+                 "M15",
+                 "Asian range 20:00-00:00 New York. An M15 bar in the London killzone that trades beyond the range and "
+                 "closes back inside is faded at the next tick; SL beyond the killzone's extreme so far (+ spread for "
+                 "sells); TP the other side of the range, skipped when nearer than the stop; exit 12:00 New York; one "
+                 "trade per day. Ablation of J1's structure-shift step.",
+                 REFRESH_PENDING, judas2.judas_sweep_close, symbols=NO_CRYPTO),
+    StrategyInfo("N1-FIX", "FX fixing reversal (London fix)", "candidate",
+                 REFRESH_ORIGIN + "; Krohn, Mueller & Whelan (J. Finance 2024)", "flow", "clock",
+                 "Weekdays: long USD 14:00 -> 16:00 London, short USD 16:00 -> 18:00 London; SL 3 x ATR20(H1).",
+                 REFRESH_PENDING, literature.fix_reversal, symbols=MEF_PAIRS, variants=NO_MIRROR),
+    StrategyInfo("N2-GOTOBI", "Gotobi Tokyo-fix USDJPY", "candidate",
+                 REFRESH_ORIGIN + "; Bessho, Sugimoto & Suzuki (2023)", "flow", "clock",
+                 "On the 5th/10th/15th/20th/25th/last day (weekend -> Friday before): long USDJPY 03:00 -> 09:55 Tokyo, "
+                 "short 09:55 -> 11:55 Tokyo; SL 3 x ATR20(H1).",
+                 REFRESH_PENDING, literature.gotobi, symbols=("USDJPY",), variants=NO_MIRROR),
+    StrategyInfo("N3-IMOM", "Market intraday momentum", "candidate",
+                 REFRESH_ORIGIN + "; Gao, Han, Li & Zhou (JFE 2018)", "intraday momentum", "30 min",
+                 "Sign of the return from the previous session close to open + 30 minutes, traded over the session's "
+                 "last 30 minutes (US30/USTEC New York 9:30-16:00, DE40 Berlin 9:00-17:30, UK100 London 8:00-16:30); "
+                 "SL 2 x ATR20(30-min bars).",
+                 REFRESH_PENDING, literature.intraday_momentum, symbols=INDICES),
+    StrategyInfo("N4-LBO", "London breakout of the Asian range", "candidate", REFRESH_ORIGIN, "breakout",
+                 "ticks",
+                 "Range = bid high/low 00:00-07:00 London; the first breakout 07:00-10:00 London is followed; SL at the "
+                 "range midpoint; no target; exit 16:00 London; one trade per day; skipped under 3 median spreads.",
+                 REFRESH_PENDING, literature.london_breakout, symbols=FX + ("XAUUSD",)),
+]
+REFRESH_IDS = tuple(s.id for s in REFRESH)
+# research/results/lab/v2/verdict.md (research/lab/verdict.py); gross / costs = holdout mean R before costs and the
+# commission + swap per trade in R.
+VERDICT_V2 = {
+    'T1-ORB': (
+        'Lab run v2 (2026-09-26, pre-registered bar): failed. Holdout 2025-01..2026-09: 9,816 trades, mean '
+        'net -0.078R (t -3.8), gross -0.017R, costs 0.061R; 2025 $+4,447, 2026 $-4,914; 2023-24 -0.078R; '
+        'control 100 %; mirror $-704; 32% of 22 symbols positive (best ETHUSD $+4,534). Failed: holdout >= '
+        '100 trades, mean R > 0, t >= 2.5; 2025 > 0 and 2026 > 0; 2023-24 mean R > 0; mirror net > 0; breadth'
+        ' >= 60 %.'),
+    'T2-TMSORB': (
+        'Lab run v2 (2026-09-26, pre-registered bar): failed. Holdout 2025-01..2026-09: 5,685 trades, mean '
+        'net -0.071R (t -2.7), gross -0.010R, costs 0.061R; 2025 $+3,693, 2026 $-1,975; 2023-24 -0.081R; '
+        'control 100 %; mirror $-411; 41% of 22 symbols positive (best ETHUSD $+4,252). Failed: holdout >= '
+        '100 trades, mean R > 0, t >= 2.5; 2025 > 0 and 2026 > 0; 2023-24 mean R > 0; mirror net > 0; breadth'
+        ' >= 60 %.'),
+    'T3-TMSORB-X': (
+        'Lab run v2 (2026-09-26, pre-registered bar): failed. Holdout 2025-01..2026-09: 5,685 trades, mean '
+        'net -0.087R (t -3.6), gross -0.026R, costs 0.061R; 2025 $+2,289, 2026 $-1,663; 2023-24 -0.078R; '
+        'control 100 %; mirror $-1,018; 32% of 22 symbols positive (best ETHUSD $+4,108). Failed: holdout >= '
+        '100 trades, mean R > 0, t >= 2.5; 2025 > 0 and 2026 > 0; 2023-24 mean R > 0; mirror net > 0; breadth'
+        ' >= 60 %.'),
+    'T4-TMS-H4': (
+        'Lab run v2 (2026-09-26, pre-registered bar): failed. Holdout 2025-01..2026-09: 10,194 trades, mean '
+        'net -0.059R (t -5.2), gross -0.030R, costs 0.029R; 2025 $-32,031, 2026 $+3,177; 2023-24 -0.034R; '
+        'control 95 %; mirror $-11,273; 18% of 22 symbols positive (best XAUUSD $+7,327). Failed: holdout >= '
+        '100 trades, mean R > 0, t >= 2.5; 2025 > 0 and 2026 > 0; 2023-24 mean R > 0; mirror net > 0; breadth'
+        ' >= 60 %.'),
+    'T5-TMS-H1': (
+        'Lab run v2 (2026-09-26, pre-registered bar): failed. Holdout 2025-01..2026-09: 40,606 trades, mean '
+        'net -0.125R (t -20.8), gross -0.090R, costs 0.035R; 2025 $-70,038, 2026 $-57,351; 2023-24 -0.115R; '
+        'control 0 %; mirror $-42,830; 9% of 22 symbols positive (best XAUUSD $+1,731). Failed: holdout >= '
+        '100 trades, mean R > 0, t >= 2.5; 2025 > 0 and 2026 > 0; 2023-24 mean R > 0; beats >= 95 % of '
+        'control seeds; mirror net > 0; breadth >= 60 %.'),
+    'J1-ICT': (
+        'Lab run v2 (2026-09-26, pre-registered bar): failed. Holdout 2025-01..2026-09: 2,355 trades, mean '
+        'net -0.131R (t -2.7), gross -0.026R, costs 0.105R; 2025 $-2,074, 2026 $-875; 2023-24 -0.191R; '
+        'control 90 %; mirror $-1,147; 25% of 20 symbols positive (best UK100 $+339). Failed: holdout >= 100 '
+        'trades, mean R > 0, t >= 2.5; 2025 > 0 and 2026 > 0; 2023-24 mean R > 0; beats >= 95 % of control '
+        'seeds; mirror net > 0; breadth >= 60 %.'),
+    'J2-ICT-MO': (
+        'Lab run v2 (2026-09-26, pre-registered bar): failed. Holdout 2025-01..2026-09: 2,117 trades, mean '
+        'net -0.128R (t -2.4), gross -0.020R, costs 0.108R; 2025 $-1,833, 2026 $-637; 2023-24 -0.195R; '
+        'control 100 %; mirror $-936; 20% of 20 symbols positive (best UK100 $+475). Failed: holdout >= 100 '
+        'trades, mean R > 0, t >= 2.5; 2025 > 0 and 2026 > 0; 2023-24 mean R > 0; mirror net > 0; breadth >= '
+        '60 %.'),
+    'J3-ICT-2R': (
+        'Lab run v2 (2026-09-26, pre-registered bar): failed. Holdout 2025-01..2026-09: 2,625 trades, mean '
+        'net -0.114R (t -3.8), gross -0.016R, costs 0.099R; 2025 $-1,790, 2026 $-323; 2023-24 -0.170R; '
+        'control 100 %; mirror $-1,167; 25% of 20 symbols positive (best XAUUSD $+365). Failed: holdout >= '
+        '100 trades, mean R > 0, t >= 2.5; 2025 > 0 and 2026 > 0; 2023-24 mean R > 0; mirror net > 0; breadth'
+        ' >= 60 %.'),
+    'J4-ICT-2KZ': (
+        'Lab run v2 (2026-09-26, pre-registered bar): failed. Holdout 2025-01..2026-09: 4,494 trades, mean '
+        'net -0.156R (t -4.3), gross -0.030R, costs 0.126R; 2025 $-2,733, 2026 $-1,801; 2023-24 -0.213R; '
+        'control 100 %; mirror $-1,830; 10% of 20 symbols positive (best US30 $+455). Failed: holdout >= 100 '
+        'trades, mean R > 0, t >= 2.5; 2025 > 0 and 2026 > 0; 2023-24 mean R > 0; mirror net > 0; breadth >= '
+        '60 %.'),
+    'J5-SWEEP': (
+        'Lab run v2 (2026-09-26, pre-registered bar): failed. Holdout 2025-01..2026-09: 5,502 trades, mean '
+        'net -0.210R (t -6.0), gross -0.062R, costs 0.147R; 2025 $-3,325, 2026 $-1,823; 2023-24 -0.197R; '
+        'control 100 %; mirror $-2,041; 20% of 20 symbols positive (best DE40 $+271). Failed: holdout >= 100 '
+        'trades, mean R > 0, t >= 2.5; 2025 > 0 and 2026 > 0; 2023-24 mean R > 0; mirror net > 0; breadth >= '
+        '60 %.'),
+    'N1-FIX': (
+        'Lab run v2 (2026-09-26, pre-registered bar): failed. Holdout 2025-01..2026-09: 4,490 trades, mean '
+        'net -0.048R (t -7.2), gross -0.029R, costs 0.019R; 2025 $-5,258, 2026 $-2,397; 2023-24 -0.013R; '
+        'control 5 %; 0% of 5 symbols positive (best AUDUSD $-1,215). Failed: holdout >= 100 trades, mean R >'
+        ' 0, t >= 2.5; 2025 > 0 and 2026 > 0; 2023-24 mean R > 0; beats >= 95 % of control seeds; breadth >= '
+        '60 %.'),
+    'N2-GOTOBI': (
+        'Lab run v2 (2026-09-26, pre-registered bar): failed. Holdout 2025-01..2026-09: 248 trades, mean net '
+        '+0.035R (t +1.2), gross +0.044R, costs 0.009R; 2025 $+161, 2026 $+107; 2023-24 +0.041R; control 95 '
+        '%; 100% of 1 symbols positive (best USDJPY $+268). Failed: holdout >= 100 trades, mean R > 0, t >= '
+        '2.5.'),
+    'N3-IMOM': (
+        'Lab run v2 (2026-09-26, pre-registered bar): failed. Holdout 2025-01..2026-09: 1,735 trades, mean '
+        'net -0.017R (t -2.0), gross -0.017R, costs 0.000R; 2025 $-505, 2026 $-757; 2023-24 -0.018R; control '
+        '60 %; mirror $-783; 25% of 4 symbols positive (best USTEC $+44). Failed: holdout >= 100 trades, mean'
+        ' R > 0, t >= 2.5; 2025 > 0 and 2026 > 0; 2023-24 mean R > 0; beats >= 95 % of control seeds; mirror '
+        'net > 0; breadth >= 60 %.'),
+    'N4-LBO': (
+        'Lab run v2 (2026-09-26, pre-registered bar): failed. Holdout 2025-01..2026-09: 5,872 trades, mean '
+        'net -0.070R (t -3.0), gross -0.012R, costs 0.059R; 2025 $-4,253, 2026 $+71; 2023-24 -0.096R; control'
+        ' 100 %; mirror $-1,203; 19% of 16 symbols positive (best XAUUSD $+1,762). Failed: holdout >= 100 '
+        'trades, mean R > 0, t >= 2.5; 2025 > 0 and 2026 > 0; 2023-24 mean R > 0; mirror net > 0; breadth >= '
+        '60 %.'),
+}
+REFRESH = [replace(s, status="candidate" if VERDICT_V2[s.id].split(": ", 1)[1].startswith("passed") else "rejected",
+                   findings=(VERDICT_V2[s.id],)) for s in REFRESH]
+DROPPED = [
+    StrategyInfo("PREFOMC", "Pre-FOMC announcement drift", "rejected",
+                 "literature (Lucca & Moench 2015), refresh 2026-09-26", "calendar", "event",
+                 "Long US equity indices over the 24 hours before scheduled FOMC announcements.",
+                 ("Not run: the drift disappeared after 2015 (Kurov, Wolfe & Gilbert).",)),
+    StrategyInfo("WKGAP", "FX weekend-gap fade", "rejected", "trading lore, refresh 2026-09-26", "gap fade", "weekly",
+                 "Fade the Sunday-open gap of FX pairs towards Friday's close.",
+                 ("Not run: gaps above 20 pips are rare and the Sunday-open spread is wide.",)),
+    StrategyInfo("CARRY", "FX carry", "rejected", "literature (Lustig & Verdelhan), refresh 2026-09-26", "carry",
+                 "weekly", "Long the highest-swap pairs, short the lowest, rebalanced weekly.",
+                 ("Not run: the lab's swaps are the 2026 rates held constant, so 2023-25 carry cannot be measured.",)),
+]
 
 RESEARCH = [
     StrategyInfo("BTC-S1", "Shock-bar momentum", "rejected", "strategy search round 1 (2026-09-25), pre-registered",
@@ -245,7 +422,8 @@ INFO = [
                  "30 min", "Trade index breakouts of the average intraday move envelope.", ("2025 t < 1. Not coded.",)),
 ]
 
-CATALOG: List[StrategyInfo] = [*_flowrsi_entries(), JUDAS, TMSORB, *RESEARCH, *_bank_entries(), *INFO]
+CATALOG: List[StrategyInfo] = [*_flowrsi_entries(), JUDAS, TMSORB, *REFRESH, *RESEARCH, *_bank_entries(), *INFO,
+                               *DROPPED]
 
 
 def by_id() -> Dict[str, StrategyInfo]:
@@ -286,7 +464,8 @@ def _lab_results(run_dirs) -> Dict[str, dict]:
 
 
 def _symbols(s: StrategyInfo) -> str:
-    return "all 22" if s.symbols == ALL else ("FX 15" if s.symbols == FX else ", ".join(s.symbols))
+    named = {ALL: "all 22", FX: "FX 15", NO_CRYPTO: "all 22 but BTC/ETH", FX + ("XAUUSD",): "FX 15 + XAUUSD"}
+    return named.get(s.symbols, ", ".join(s.symbols))
 
 
 def render_markdown(run_dirs=()) -> str:

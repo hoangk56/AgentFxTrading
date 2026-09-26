@@ -83,3 +83,43 @@ def prior_min(x: np.ndarray, n: int) -> np.ndarray:
     if len(x) > n:
         out[n:] = sliding_window_view(x, n).min(axis=1)[:-1]
     return out
+
+
+def heikin_ashi(o: np.ndarray, h: np.ndarray, l: np.ndarray, c: np.ndarray):
+    """(ha_open, ha_close): ha_close = (O+H+L+C)/4, ha_open = mean of the previous HA open and close, seeded with
+    (O0+C0)/2."""
+    hc = (o + h + l + c) / 4.0
+    ho = np.empty(len(o))
+    if len(o):
+        ho[0] = (o[0] + c[0]) / 2.0
+        for i in range(1, len(o)):
+            ho[i] = (ho[i - 1] + hc[i - 1]) / 2.0
+    return ho, hc
+
+
+def tdi(close: np.ndarray, rsi_n: int = 13, green_n: int = 2, red_n: int = 7):
+    """Traders Dynamic Index lines TMS trades on: green = SMA(green_n) of RSI(rsi_n), red = SMA(red_n) of it."""
+    r = rsi(close, rsi_n)
+    return sma(r, green_n), sma(r, red_n)
+
+
+def _rolling_mean(x: np.ndarray, n: int) -> np.ndarray:
+    """Mean of each n-window; a NaN only spoils the windows that contain it (unlike sma's running sum)."""
+    out = np.full(len(x), np.nan)
+    if len(x) >= n:
+        out[n - 1:] = sliding_window_view(x, n).mean(axis=1)
+    return out
+
+
+def stoch(h: np.ndarray, l: np.ndarray, c: np.ndarray, k_n: int = 8, slow_n: int = 3, d_n: int = 3):
+    """(slow %K, %D): raw %K = 100 (C - LL) / (HH - LL) over k_n bars, slow %K = its SMA(slow_n), %D = SMA(d_n) of
+    that. NaN during warm-up and where the k_n-bar range is zero."""
+    raw = np.full(len(c), np.nan)
+    if len(c) >= k_n:
+        hh = sliding_window_view(h, k_n).max(axis=1)
+        ll = sliding_window_view(l, k_n).min(axis=1)
+        rng = hh - ll
+        with np.errstate(divide="ignore", invalid="ignore"):
+            raw[k_n - 1:] = np.where(rng > 0, 100.0 * (c[k_n - 1:] - ll) / rng, np.nan)
+    k = _rolling_mean(raw, slow_n)
+    return k, _rolling_mean(k, d_n)
