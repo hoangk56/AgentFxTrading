@@ -54,3 +54,19 @@ def test_crypto_donchian_respects_the_hold_limit():
     from research.swing.swing_rules import donchian
     tr = S.run_bots(donchian, ["BTCUSD"], S.H4, n=55, exit_n=20, shorts=True)
     assert tr and max(t.t_out - t.t_in for t in tr) <= S.HOLD_MS
+
+
+def test_weekend_closed_mask_follows_new_york_time_across_dst():
+    from research.swing.weekend_test import weekend_closed_mask
+
+    def ms(*a):
+        return int(datetime.datetime(*a, tzinfo=datetime.timezone.utc).timestamp() * 1000)
+
+    ts = np.array([
+        ms(2025, 7, 11, 20, 59), ms(2025, 7, 11, 21, 0),    # Friday, EDT: 16:59 open, 17:00 closed
+        ms(2025, 7, 13, 21, 4), ms(2025, 7, 13, 21, 5),     # Sunday, EDT: 17:04 closed, 17:05 open
+        ms(2025, 1, 10, 21, 59), ms(2025, 1, 10, 22, 0),    # Friday, EST
+        ms(2025, 1, 12, 22, 4), ms(2025, 1, 12, 22, 5),     # Sunday, EST
+        ms(2025, 7, 12, 12, 0), ms(2025, 7, 9, 12, 0),      # Saturday closed, Wednesday open
+    ], dtype=np.int64)
+    assert weekend_closed_mask(ts).tolist() == [False, True, True, False, False, True, True, False, True, False]
