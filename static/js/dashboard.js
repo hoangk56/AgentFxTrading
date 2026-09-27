@@ -1117,8 +1117,9 @@ const DASHBOARD_BOOTSTRAP = window.DASHBOARD_BOOTSTRAP || {};
                 formatted = formatted.replace(/\[PORTFOLIO EVENT\]|\[PORTFOLIO\]/, '<span class="log-tag-event">$&</span>');
             } else if (formatted.includes('[WARNING]') || formatted.includes('[WARN]')) {
                 formatted = formatted.replace(/\[WARNING\]|\[WARN\s*\]/, '<span class="log-tag-warn">$&</span>');
-            } else if (formatted.includes('[ERROR]') || formatted.includes('Error:')) {
-                formatted = formatted.replace(/\[ERROR\s*\]|Error:/, '<span class="log-tag-error">$&</span>');
+            } else if (/\[(?:ERROR\s*|CRITICAL)\]/.test(formatted) || formatted.includes('Error:')) {
+                // the log format pads the level to 7 characters: "[ERROR  ]"
+                formatted = formatted.replace(/\[(?:ERROR\s*|CRITICAL)\]|Error:/, '<span class="log-tag-error">$&</span>');
             }
 
             // Highlight key actions

@@ -4,6 +4,7 @@ import logging
 import re
 import time
 from typing import Dict, List, Optional, Any
+from app import alerts
 from app.docker_manager import docker_manager
 from app.portfolio import get_portfolio_manager
 
@@ -189,7 +190,19 @@ class CbotWatchdog:
                 logger.error(f"[CBOT WATCHDOG] Error checking bot '{name}': {e}")
 
         self._last_health = fresh_health   # whole-dict swap: readers on request threads never see a partial cycle
+        self._alert_restarts(actions)
         return actions
+
+    @staticmethod
+    def _alert_restarts(actions: List[Dict[str, Any]]) -> None:
+        """One Telegram message per cycle, however many bots it restarted (a failed restart is logged as an error,
+        which alerts on its own)."""
+        restarted = [a for a in actions if a["success"]]
+        if len(restarted) == 1:
+            alerts.notify(f"🟠 Watchdog restarted {restarted[0]['name']}: {restarted[0]['reason']}")
+        elif restarted:
+            alerts.notify(f"🟠 Watchdog restarted {len(restarted)} bots:\n"
+                          + "\n".join(f"• {a['name']}: {a['reason']}" for a in restarted))
 
     def last_health(self, name: str) -> Optional[Dict[str, Any]]:
         """check_cbot_health() result for `name` from the latest cycle, or None before the first one."""
@@ -204,6 +217,11 @@ class CbotWatchdog:
                 f"[CBOT WATCHDOG] Bot '{name}' is stalled ({reason}) "
                 f"but restart rate-limited: {limit_reason}"
             )
+            # The cooldown right after a restart is routine (the bot is still logging in); the backoff means
+            # several restarts did not help.
+            if limit_reason.startswith("Backoff"):
+                alerts.notify(f"🔴 Watchdog gave up on {name} ({reason}): {limit_reason}",
+                              key=("watchdog-backoff", name))
             return
 
         logger.warning(

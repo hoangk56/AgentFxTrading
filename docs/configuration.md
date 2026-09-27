@@ -36,6 +36,33 @@ site must keep setting them (`proxy_set_header X-Real-IP $remote_addr;` and
 `proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;` in every proxied `location`). The cookie is signed
 with a random secret the server creates in `webui_data/session_secret`.
 
+### Telegram alerts
+
+| Variable | Meaning |
+| :--- | :--- |
+| `TELEGRAM_BOT_TOKEN` | Token of the Telegram bot that sends the alerts (from @BotFather) |
+| `TELEGRAM_CHAT_ID` | Chat that receives them: your user id, or a group id (`-100…`) |
+
+With both set, `app/alerts.py` sends to the chat:
+
+- every `ERROR` / `CRITICAL` line of the agent log, with the end of its traceback. That includes a request that ends
+  in an unhandled exception or a 5xx answer, which `app/request_errors.py` logs;
+- `🟢 Server started` and `⚪ Server stopping`. A "started" with no "stopping" before it is a crash that systemd
+  restarted on its own;
+- `🟠 Watchdog restarted …`, one message per watchdog cycle, and `🔴 Watchdog gave up on …` when a bot is in
+  backoff (several restarts did not help).
+
+The same alert (lines that differ only in their numbers count as one) is sent at most once every 15 minutes; the next
+one says how many it held back. A failed send is printed to journald (`sudo journalctl -u agentfx`), not to the
+agent log. Tests never send.
+
+To set it up: create a bot with @BotFather, send it any message (or add it to a group), read the chat id from
+`https://api.telegram.org/bot<token>/getUpdates` (`"chat":{"id":…}`), put both values in `.env` and restart the
+service; the `🟢 Server started` message confirms it works.
+
+The server cannot report its own death, or the VPS going down: check it from outside with an uptime monitor (e.g.
+UptimeRobot) on `https://<your domain>/login`, the one page that answers `200` without a login.
+
 ### Dashboard accounts
 
 No environment variable lists the accounts: you create each one on the dashboard (**Docker Bot Management →

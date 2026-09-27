@@ -104,9 +104,9 @@ def test_report_endpoint_round_trips_levels_and_reason():
 def test_zero_levels_mean_none():
     from app.portfolio_api import _level_price
 
-    assert _level_price(0) is None
-    assert _level_price(None) is None
-    assert _level_price("2490.5") == 2490.5
+    assert _level_price({"sl_price": 0}, "sl_price", "bot") is None
+    assert _level_price({"sl_price": None}, "sl_price", "bot") is None
+    assert _level_price({"sl_price": "2490.5"}, "sl_price", "bot") == 2490.5
 
 
 # --- live levels -----------------------------------------------------------------------------
