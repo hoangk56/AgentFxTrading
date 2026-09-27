@@ -8,8 +8,9 @@ import logging
 import os
 import sys
 import threading
+import time
 from pathlib import Path
-from typing import Optional
+from typing import Callable, Dict, Hashable, Optional, Tuple
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 
@@ -136,3 +137,48 @@ class SkipCommandPollAccessLog(logging.Filter):
                 and str(args[2]).startswith("/api/cbot/commands"):
             return False
         return True
+
+
+class Throttle:
+    """Lets each key through once per `interval` seconds and counts the repeats it holds back.
+
+    A line repeated by 45 bots every second would bury the log and the dashboard; with this it shows once per
+    interval, carrying the number of repeats it stood for.
+    """
+
+    def __init__(self, interval: float, clock: Callable[[], float] = time.monotonic, max_keys: int = 1000):
+        self.interval = interval
+        self._clock = clock
+        self._max_keys = max_keys
+        self._keys: Dict[Hashable, Tuple[float, int]] = {}   # key -> (when it last passed, repeats held back since)
+        self._lock = threading.Lock()
+
+    def __len__(self) -> int:
+        return len(self._keys)
+
+    def hit(self, key: Hashable) -> Optional[int]:
+        """None while `key` is held back; else the number of repeats held back since it last passed."""
+        now = self._clock()
+        with self._lock:
+            last = self._keys.get(key)
+            if last is not None and now - last[0] < self.interval:
+                self._keys[key] = (last[0], last[1] + 1)
+                return None
+            if last is None and len(self._keys) >= self._max_keys:
+                self._keys = {k: v for k, v in self._keys.items() if now - v[0] < self.interval}
+            self._keys[key] = (now, 0)
+            return last[1] if last is not None else 0
+
+
+_log_throttle = Throttle(60)
+
+
+def log_throttled(log: logging.Logger, level: int, key: Hashable, msg: str, *, exc_info=None,
+                  throttle: Optional[Throttle] = None) -> None:
+    """log.log(level, msg) at most once a minute per key; the next line says how many repeats were skipped."""
+    held = (throttle if throttle is not None else _log_throttle).hit(key)
+    if held is None:
+        return
+    if held:
+        msg = f"{msg} (+{held} similar since the last one)"
+    log.log(level, msg, exc_info=exc_info)

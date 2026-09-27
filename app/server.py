@@ -40,6 +40,12 @@ _ws_handler.setFormatter(GMT7Formatter(_LOG_FORMAT, datefmt="%H:%M:%S"))
 _ws_handler.setLevel(logging.INFO)
 logging.getLogger().addHandler(_ws_handler)
 
+# Telegram alerts for ERROR / CRITICAL lines and server / watchdog events (app/alerts.py). Off in tests, and until
+# TELEGRAM_BOT_TOKEN and TELEGRAM_CHAT_ID are set.
+from app import alerts
+if not is_running_under_test():
+    alerts.setup_alerts()
+
 from contextlib import asynccontextmanager
 
 @asynccontextmanager
@@ -49,6 +55,8 @@ async def lifespan(app: FastAPI):
         ws_manager.set_event_loop(loop)
     except Exception as e:
         logger.warning(f"Failed to set event loop for ws_manager: {e}")
+
+    alerts.notify(f"🟢 Server started (pid {os.getpid()})")
 
     # Start cBot Watchdog service for automatic relogin and crash recovery
     from app.cbot_watchdog import cbot_watchdog
@@ -63,6 +71,7 @@ async def lifespan(app: FastAPI):
 
     yield
 
+    alerts.notify("⚪ Server stopping")
     # Shutdown watchdog cleanly
     cbot_watchdog.stop()
     watchdog_task.cancel()
@@ -77,12 +86,17 @@ async def lifespan(app: FastAPI):
             await backtest_task
         except asyncio.CancelledError:
             pass
+    await asyncio.to_thread(alerts.flush, 5)   # let the queued alerts out before the process exits
 
 app = FastAPI(title="AgentFx Server", lifespan=lifespan)
 
 # Dashboard login (app/auth.py): every request needs a session, except the cBots' and local scripts' calls to
 # 127.0.0.1:8000 that do not come through nginx.
 from app.auth import LoginMiddleware, login_enabled, router as auth_router
+# Requests that end in an exception or an HTTP error reach the agent log (app/request_errors.py). Added first, so
+# it sits inside LoginMiddleware: visitors the login turns away are not logged.
+from app.request_errors import RequestErrorLogMiddleware
+app.add_middleware(RequestErrorLogMiddleware)
 app.add_middleware(LoginMiddleware)
 app.include_router(auth_router)
 if not login_enabled() and not is_running_under_test():

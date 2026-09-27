@@ -80,6 +80,14 @@ cTrader accounts created on the Setup Instances screen; a cBot tags its trades w
 
 - `logs/agent_YYYY-MM-DD.log`: server log, one file per day (GMT+7 date), 14 files kept.
 - The same log stream is pushed to the dashboard over `WS /ws/dashboard`.
+- uvicorn's own lines (access log, its tracebacks) go to journald only: `sudo journalctl -u agentfx`. A request that
+  ends in an unhandled exception (ERROR, with traceback), a 5xx (ERROR) or a 4xx (WARNING) is also logged to the
+  agent log by `app/request_errors.py`, at most once a minute per method, path and status. Visitors the login turns
+  away are not.
+- A value a bot sends that the server cannot read (`app/portfolio_api.py`) is dropped and logged as a WARNING, once
+  a minute per bot and field.
+- `ERROR` / `CRITICAL` lines also go to Telegram when it is configured (`app/alerts.py`,
+  [configuration](configuration.md#telegram-alerts)).
 - cBot output: `docker logs <container>`.
 
 ## Project structure
@@ -89,6 +97,8 @@ AgentFxTrading/
 ├── app/                         FastAPI server (Python)
 │   ├── server.py                app entry point: logging, lifespan, routers
 │   ├── auth.py                  dashboard login (DASHBOARD_USERNAME / DASHBOARD_PASSWORD), session middleware
+│   ├── request_errors.py        logs requests that end in an exception or an HTTP error
+│   ├── alerts.py                Telegram alerts (TELEGRAM_BOT_TOKEN / TELEGRAM_CHAT_ID)
 │   ├── portfolio_api.py         bot reporting routes (/portfolio/report, /api/tick)
 │   ├── dashboard.py             dashboard pages and APIs (APIRouter)
 │   ├── backtest_*.py            Backtest page: API, container specs, params, worker, reports, job store
