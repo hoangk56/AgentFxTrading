@@ -18,11 +18,11 @@ REPORT = (FIXTURES_DIR / "backtest" / "report_small.json").read_bytes()
 # started_at itself) can cross TIMEOUT_S.
 START = datetime(2026, 1, 1, tzinfo=timezone.utc)
 JOB = {
-    "bot_name": "cbot-demo-demo-eurusd-all-flowrsi", "strategy": "flowrsi", "symbol": "EURUSD", "period": "m15",
-    "algo": "FlowRsiBot.algo", "algo_sha": "abc", "algo_build_time": "2026-09-24T16:34:43Z",
+    "bot_name": "cbot-demo-demo-usdjpy-fix-gotobi", "strategy": "gotobi", "symbol": "EURUSD", "period": "m15",
+    "algo": "GotobiBot.algo", "algo_sha": "abc", "algo_build_time": "2026-09-24T16:34:43Z",
     "ctid_email": "trader@example.com", "account": "10115236", "pwd_file": "/root/ctrader_data/ctid_demo-demo_pwd",
     "start_date": "2026-07-24", "end_date": "2026-09-23", "data_mode": "ticks", "spread_pips": None,
-    "balance": 10000.0, "overrides": {}, "params": {"TargetRiskReward": "1.5"}, "note": None,
+    "balance": 10000.0, "overrides": {}, "params": {"StopAtrMultiplier": "3.0"}, "note": None,
 }
 
 
@@ -96,7 +96,7 @@ class Clock:
 def env(tmp_path):
     project = tmp_path / "project"
     (project / "cBot").mkdir(parents=True)
-    (project / "cBot" / "FlowRsiBot.algo").write_bytes(b"algo")
+    (project / "cBot" / "GotobiBot.algo").write_bytes(b"algo")
     ctrader = tmp_path / "ctrader"
     (ctrader / "ctrader_data").mkdir(parents=True)
     (ctrader / "ctrader_data" / "ctid_demo-demo_pwd").write_text("pw")
@@ -288,7 +288,7 @@ ABORT_LOG = (
     b"02/01/2026 06:15:00.729 | Trade | Executing Market Order to Sell 43000 AUDJPY (SL: 18.4, TP: 27)\n"
     b"02/01/2026 06:15:00.729 | Info | [OnBarClosed Error] Exception of type "
     b"'cTrader.Automate.Host.Dispatcher.Exceptions.AutomateDispatcherUnhandledException' was thrown.\n"
-    b"Error | CBot instance [FlowRsiBot, AUDJPY, m15] aborted by timeout.\n"
+    b"Error | CBot instance [GotobiBot, USDJPY, m15] aborted by timeout.\n"
     b"Message expected\nSystem.InvalidOperationException: Message expected\n"
 )
 

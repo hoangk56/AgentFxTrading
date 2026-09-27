@@ -1,16 +1,15 @@
 """
 Regression guard for daily-check 2026-09-24 #1: lost open reports ran two trades off the books.
 
-    14:15:16 VN  us30-all-flowrsi  #675558107  "Failed to report position open"
+    14:15:16 VN  #675558107  "Failed to report position open"
     15:13:48 VN  "Close position ignored"  (no row with that ctrader_id)        -11.62 $
-    14:45:37 VN  eurjpy-london     #675569508  same story                        -1.91 $
 
-The bots now retry /portfolio/report, so the server must take a replayed open, partial
-close or close without booking the trade twice. A replay changes nothing and returns False,
+The bots now retry /portfolio/report, so the server must take a replayed open or close without
+booking the trade twice. A replay changes nothing and returns False,
 like any report that matched no position, so no second TRADE_* event is broadcast (the bot
 only looks at the HTTP status, which stays 200). A close report whose open never arrived
 carries enough of the position (side, volume, entry) to rebuild the row, so the P&L lands
-in the daily loss, the leaderboard and the dashboard instead of being dropped.
+in the leaderboard and the dashboard instead of being dropped.
 """
 
 from fastapi.testclient import TestClient
@@ -52,32 +51,6 @@ def test_replayed_open_report_does_not_create_a_second_row(tmp_path):
     assert _open(pm)
     assert not _open(pm)
     assert len(_rows(pm, 111)) == 1
-
-
-def test_replayed_partial_close_is_banked_once(tmp_path):
-    pm = _pm(tmp_path)
-    _open(pm, volume=0.2)
-    results = [
-        pm.record_partial_close(bot_id="bot-a", symbol="US30", remaining_volume=0.1,
-                                realized_pnl=5.0, account_id=ACCT, ctrader_id=111)
-        for _ in range(2)
-    ]
-    assert results == [True, False]
-    row = _rows(pm, 111)[0]
-    assert row["volume"] == 0.1
-    assert row["pnl"] == 5.0
-
-
-def test_second_partial_close_still_banks(tmp_path):
-    pm = _pm(tmp_path)
-    _open(pm, volume=0.3)
-    assert pm.record_partial_close(bot_id="bot-a", symbol="US30", remaining_volume=0.2,
-                                   realized_pnl=5.0, account_id=ACCT, ctrader_id=111)
-    assert pm.record_partial_close(bot_id="bot-a", symbol="US30", remaining_volume=0.1,
-                                   realized_pnl=4.0, account_id=ACCT, ctrader_id=111)
-    row = _rows(pm, 111)[0]
-    assert row["volume"] == 0.1
-    assert row["pnl"] == 9.0
 
 
 def test_replayed_close_report_changes_nothing(tmp_path):

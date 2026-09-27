@@ -1,9 +1,9 @@
 """Backtest container specs: an installed bot's run_command as a backtest source, and the safety rules
 of the `docker run … backtest` spec (docs/superpowers/specs/2026-09-24-backtest-page-design.md).
 
-The cBots still call HTTP/WebSocket endpoints while backtesting (Judas' TickStream, AiAgentBot's
-position reports), so these tests pin that a backtest container never shares the host network, never
-sees more than its three mounts, and always runs with the AI, news and Telegram switched off."""
+A cBot that reached the server while backtesting would write fake trades into production, so these tests
+pin that a backtest container never shares the host network, never sees more than its three mounts, and
+always runs with every server URL disabled."""
 import re
 from pathlib import Path
 
@@ -16,7 +16,7 @@ ACCOUNT = {"slug": "demo-demo", "ctid_email": "trader@example.com", "account_num
            "label": "demo", "pwd_file": "/root/ctrader_data/ctid_demo-demo_pwd"}
 
 
-def preset(strategy="flowrsi", symbol="EURUSD"):
+def preset(strategy="gotobi", symbol="USDJPY"):
     return build_run_command(ACCOUNT, strategy, symbol, "/home/forge/AgentFxTrading", "/home/forge/ctrader")
 
 
@@ -24,7 +24,7 @@ def preset(strategy="flowrsi", symbol="EURUSD"):
 def homes(tmp_path):
     project = tmp_path / "project"
     (project / "cBot").mkdir(parents=True)
-    (project / "cBot" / "FlowRsiBot.algo").write_bytes(b"algo")
+    (project / "cBot" / "GotobiBot.algo").write_bytes(b"algo")
     ctrader = tmp_path / "ctrader"
     (ctrader / "ctrader_data").mkdir(parents=True)
     (ctrader / "ctrader_data" / "ctid_demo-demo_pwd").write_text("s3cret-password")
@@ -32,13 +32,12 @@ def homes(tmp_path):
 
 
 def make_job(**over):
-    job = {"id": 7, "strategy": "flowrsi", "algo": "FlowRsiBot.algo", "ctid_email": "trader@example.com",
+    job = {"id": 7, "strategy": "gotobi", "algo": "GotobiBot.algo", "ctid_email": "trader@example.com",
            "account": "10115236", "pwd_file": "/root/ctrader_data/ctid_demo-demo_pwd",
-           "symbol": "EURUSD", "period": "m15", "start_date": "2026-07-24", "end_date": "2026-09-23",
+           "symbol": "USDJPY", "period": "m15", "start_date": "2026-07-24", "end_date": "2026-09-23",
            "data_mode": "ticks", "spread_pips": None, "balance": 10000.0,
-           "params": {"FastRsiPeriod": "7", "TargetRiskReward": "2.0", "UseAiGateMode": "true",
-                      "ApiUrl": "http://127.0.0.1:8000/trade", "BotId": "cbot-demo-demo-eurusd-all-flowrsi",
-                      "TelegramBotToken": "123456:telegram-token"}}
+           "params": {"MaxSpreadPips": "3.0", "StopAtrMultiplier": "2.0", "CommandPollMs": "2000",
+                      "ApiUrl": "http://127.0.0.1:8000/trade", "BotId": "cbot-demo-demo-usdjpy-fix-gotobi"}}
     job.update(over)
     return job
 
@@ -50,33 +49,33 @@ def spec_for(homes, **over):
 
 # --- parsing ------------------------------------------------------------------------------------
 
-def test_parses_a_preset_flowrsi_command():
-    src = bc.parse_run_command("cbot-demo-demo-eurusd-all-flowrsi", preset())
-    assert src.algo == "FlowRsiBot.algo" and src.strategy == "flowrsi"
-    assert (src.ctid, src.account, src.symbol, src.period) == ("trader@example.com", "10115236", "EURUSD", "m15")
+def test_parses_a_preset_gotobi_command():
+    src = bc.parse_run_command("cbot-demo-demo-usdjpy-fix-gotobi", preset())
+    assert src.algo == "GotobiBot.algo" and src.strategy == "gotobi"
+    assert (src.ctid, src.account, src.symbol, src.period) == ("trader@example.com", "10115236", "USDJPY", "m15")
     assert src.pwd_file == "/root/ctrader_data/ctid_demo-demo_pwd"
-    assert src.params["BotId"] == "cbot-demo-demo-eurusd-all-flowrsi"      # quotes stripped
-    assert src.params["TargetRiskReward"] == "1.5"
-    assert src.params["UseAiGateMode"] == "true"
+    assert src.params["BotId"] == "cbot-demo-demo-usdjpy-fix-gotobi"      # quotes stripped
+    assert src.params["RiskPerTradeMoney"] == "50.0"
+    assert src.params["MaxSpreadPips"] == "3.0"
     assert "full-access" not in src.params and "ctid" not in src.params
 
 
 def test_parses_a_multiline_hand_written_command():
     cmd = ("docker run -d --name cbot-x --network host \\\n  -v /home/forge/AgentFxTrading:/workspace \\\n"
-           "  ghcr.io/spotware/ctrader-console:latest run /workspace/cBot/FlowRsiBot.algo \\\n"
+           "  ghcr.io/spotware/ctrader-console:latest run /workspace/cBot/GotobiBot.algo \\\n"
            "  --ctid=trader@example.com --pwd-file=/root/ctrader_data/pw --account=1 \\\n"
-           "  --symbol=XAUUSD --period=m15 --full-access --TargetRiskReward=2.5 -e")
+           "  --symbol=XAUUSD --period=m15 --full-access --StopAtrMultiplier=2.5 -e")
     src = bc.parse_run_command("cbot-x", cmd)
-    assert src.symbol == "XAUUSD" and src.params == {"TargetRiskReward": "2.5"}
+    assert src.symbol == "XAUUSD" and src.params == {"StopAtrMultiplier": "2.5"}
 
 
 @pytest.mark.parametrize("cmd, message", [
     ("docker run -d ghcr.io/spotware/ctrader-console:latest accounts", "run <file>.algo"),
-    ("docker run img run /workspace/cBot/FlowRsiBot.algo --pwd-file=/root/ctrader_data/pw --account=1 "
+    ("docker run img run /workspace/cBot/GotobiBot.algo --pwd-file=/root/ctrader_data/pw --account=1 "
      "--symbol=EURUSD --period=m15", "--ctid"),
-    ("docker run img run /root/elsewhere/FlowRsiBot.algo --ctid=a@b.c --pwd-file=/root/ctrader_data/pw "
+    ("docker run img run /root/elsewhere/GotobiBot.algo --ctid=a@b.c --pwd-file=/root/ctrader_data/pw "
      "--account=1 --symbol=EURUSD --period=m15", "/workspace/cBot"),
-    ('docker run img run /workspace/cBot/FlowRsiBot.algo --ctid="unterminated', "does not parse"),
+    ('docker run img run /workspace/cBot/GotobiBot.algo --ctid="unterminated', "does not parse"),
 ])
 def test_rejects_commands_it_cannot_use(cmd, message):
     with pytest.raises(bc.SourceError, match=re.escape(message)):
@@ -110,13 +109,6 @@ def test_password_file_symlink_out_of_ctrader_data_is_refused(homes, tmp_path):
 
 
 # --- describe_source ----------------------------------------------------------------------------
-
-def test_describe_flowrsi_source_is_supported(homes):
-    project, ctrader = homes
-    row = bc.describe_source("cbot-demo-demo-eurusd-all-flowrsi", preset(), project, ctrader)
-    assert row == {"name": "cbot-demo-demo-eurusd-all-flowrsi", "strategy": "flowrsi", "symbol": "EURUSD",
-                   "period": "m15", "account_label": "demo", "supported": True, "reason": ""}
-
 
 def test_describe_gotobi_source_is_supported(homes):
     project, ctrader = homes
@@ -161,11 +153,11 @@ def test_donchian_backtest_is_supported_and_never_reaches_the_server(homes):
     assert "--RiskPerTradeMoney=100.0" in command
 
 
-@pytest.mark.parametrize("strategy", ["judas", "tms_orb"])
-def test_describe_ai_only_bots_as_unsupported(homes, strategy):
-    row = bc.describe_source("x", preset(strategy), *homes)
+def test_describe_other_bots_as_unsupported(homes):
+    cmd = preset().replace("/workspace/cBot/GotobiBot.algo", "/workspace/cBot/SomeOtherBot.algo")
+    row = bc.describe_source("x", cmd, *homes)
     assert row["supported"] is False and row["reason"] == bc.UNSUPPORTED_REASON
-    assert row["strategy"] == strategy
+    assert row["strategy"] is None
 
 
 def test_describe_reports_missing_password_file_and_unbuilt_algo(homes):
@@ -173,8 +165,8 @@ def test_describe_reports_missing_password_file_and_unbuilt_algo(homes):
     (ctrader / "ctrader_data" / "ctid_demo-demo_pwd").unlink()
     assert bc.describe_source("x", preset(), project, ctrader)["reason"] == "password file not found"
     (ctrader / "ctrader_data" / "ctid_demo-demo_pwd").write_text("pw")
-    (project / "cBot" / "FlowRsiBot.algo").unlink()
-    assert bc.describe_source("x", preset(), project, ctrader)["reason"] == "FlowRsiBot.algo is not built"
+    (project / "cBot" / "GotobiBot.algo").unlink()
+    assert bc.describe_source("x", preset(), project, ctrader)["reason"] == "GotobiBot.algo is not built"
 
 
 def test_describe_unparsable_command():
@@ -194,7 +186,7 @@ def test_invariant_1_bridge_network_only(homes):
 def test_invariant_2_only_three_mounts(homes):
     project, ctrader = homes
     assert spec_for(homes)["volumes"] == {
-        str(project / "cBot" / "FlowRsiBot.algo"): {"bind": "/algo/FlowRsiBot.algo", "mode": "ro"},
+        str(project / "cBot" / "GotobiBot.algo"): {"bind": "/algo/GotobiBot.algo", "mode": "ro"},
         str((ctrader / "ctrader_data" / "ctid_demo-demo_pwd").resolve()): {"bind": "/secrets/pwd", "mode": "ro"},
         "agentfx-bt-cache": {"bind": "/bt-cache", "mode": "rw"},
     }
@@ -202,13 +194,13 @@ def test_invariant_2_only_three_mounts(homes):
 
 def test_invariant_3_locked_params_come_last_and_win(homes):
     command = spec_for(homes)["command"]
-    locked = bc.locked_params("flowrsi", 7)
+    locked = bc.locked_params("gotobi", 7)
     assert command[-len(locked):] == [f"--{k}={v}" for k, v in locked.items()]
-    assert "--UseAiGateMode=true" not in command
+    assert "--CommandPollMs=2000" not in command
     assert "--ApiUrl=http://127.0.0.1:8000/trade" not in command
-    assert "--BotId=cbot-demo-demo-eurusd-all-flowrsi" not in command
+    assert "--BotId=cbot-demo-demo-usdjpy-fix-gotobi" not in command
     assert "--BotId=bt-7" in command and "--AccountLabel=backtest" in command
-    assert "--TargetRiskReward=2.0" in command and "--FastRsiPeriod=7" in command
+    assert "--StopAtrMultiplier=2.0" in command and "--MaxSpreadPips=3.0" in command
 
 
 def test_invariant_4_name_and_label(homes):
@@ -225,17 +217,17 @@ def test_invariant_5_resource_limits(homes):
 def test_invariant_6_list_command_without_secrets(homes):
     command = spec_for(homes)["command"]
     assert isinstance(command, list) and all(isinstance(a, str) for a in command)
-    assert command[:2] == ["backtest", "/algo/FlowRsiBot.algo"]
+    assert command[:2] == ["backtest", "/algo/GotobiBot.algo"]
     assert "--pwd-file=/secrets/pwd" in command
     joined = " ".join(command)
-    assert "s3cret-password" not in joined and "telegram-token" not in joined
+    assert "s3cret-password" not in joined
 
 
 def test_dates_balance_and_report_flags(homes):
     command = spec_for(homes)["command"]
     for flag in ("--start=24/07/2026", "--end=23/09/2026", "--data-mode=ticks", "--data-dir=/bt-cache",
                  "--balance=10000", "--commission-auto", "--report-json=/tmp/report.json", "--full-access",
-                 "--exit-on-stop", "--symbol=EURUSD", "--period=m15", "--account=10115236"):
+                 "--exit-on-stop", "--symbol=USDJPY", "--period=m15", "--account=10115236"):
         assert flag in command, flag
     assert not any(a.startswith("--spread=") for a in command)
 
@@ -245,7 +237,7 @@ def test_m1_adds_the_spread(homes):
     assert "--data-mode=m1" in command and "--spread=1.2" in command
 
 
-@pytest.mark.parametrize("over", [{"strategy": "judas"}, {"data_mode": "tick-csv"}, {"algo": "../evil.algo"}])
+@pytest.mark.parametrize("over", [{"strategy": "other"}, {"data_mode": "tick-csv"}, {"algo": "../evil.algo"}])
 def test_refuses_jobs_it_must_not_run(homes, over):
     with pytest.raises(bc.SourceError):
         spec_for(homes, **over)

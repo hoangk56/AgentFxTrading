@@ -1,34 +1,19 @@
 """
 Portfolio Manager with SQLite backend.
-Tracks positions across multiple bots and enforces portfolio-level risk limits.
+Tracks the positions the bots report, the cBot configs and the dashboard pause flags.
 """
 
 import logging
 import re
 import threading
 from datetime import datetime, date, timezone
-from typing import Dict, List, Set, Tuple, Optional
+from typing import Dict, List, Set, Optional
 from pathlib import Path
 from app.accounts import get_account_registry
 from app.db import get_db_connection, INTEGRITY_ERRORS
-from app import backtest_store, bot_controls, risk_limits
+from app import backtest_store, bot_controls
 
 logger = logging.getLogger(__name__)
-
-
-class PortfolioConfig:
-    """Portfolio risk limits. Daily loss limits live in the risk_limits table (app/risk_limits.py)."""
-    MAX_MARGIN_USAGE_PCT = 50.0  # % of account
-    
-US_INDEX_SYMBOLS = {"US30", "DJ30", "USTEC", "NAS100", "US500", "SPX500"}
-
-
-def is_us_index(symbol: Optional[str]) -> bool:
-    """Check if a symbol is a US Equity Index."""
-    if not symbol:
-        return False
-    sym_up = symbol.upper()
-    return any(tok in sym_up for tok in US_INDEX_SYMBOLS)
 
 
 _ISO_UTC = re.compile(r"^(\d{4}-\d{2}-\d{2})[T ](\d{2}:\d{2}:\d{2})")
@@ -42,11 +27,10 @@ def _utc_text(value) -> Optional[str]:
 
 
 class PortfolioManager:
-    """Manages portfolio-level risk across multiple trading bots."""
+    """Tracks positions across multiple trading bots."""
     
     def __init__(self, db_path: Optional[str] = None):
         self.db_path = Path(db_path) if db_path else None
-        self.config = PortfolioConfig()
         # Bots paused from the dashboard; a copy of the bot_controls table for the 2 s command
         # poll, which must never touch the DB. Written only by set_bot_paused (single worker).
         self._paused_lock = threading.Lock()
@@ -119,8 +103,8 @@ class PortfolioManager:
                 "ALTER TABLE positions ADD COLUMN sl_price DOUBLE PRECISION",
                 "ALTER TABLE positions ADD COLUMN tp_price DOUBLE PRECISION",
                 "ALTER TABLE positions ADD COLUMN close_reason TEXT",
-                # The volume the position opened with. record_partial_close shrinks `volume` to
-                # what is still open, which the margin check needs, but a closed row carries the
+                # The volume the position opened with. Partial closes (reported by bots since
+                # removed) shrank `volume` to what was still open, but a closed row carries the
                 # P&L of every slice, so on close `volume` is restored from this.
                 "ALTER TABLE positions ADD COLUMN initial_volume DOUBLE PRECISION",
             ]:
@@ -180,9 +164,11 @@ class PortfolioManager:
                     created_at TEXT DEFAULT CURRENT_TIMESTAMP
                 )
             """)
-            risk_limits.init_schema(conn)
             bot_controls.init_schema(conn)
             backtest_store.init_schema(conn)
+            # Tables of the removed AI layer (/trade, news shield, daily loss limits).
+            for table in ("news_assessments", "risk_limits"):
+                conn.execute(f"DROP TABLE IF EXISTS {table}")
             conn.commit()
             self._paused_bots = bot_controls.load_paused(conn)
             logger.info(f"Portfolio database initialized (target: {self.db_path or 'PostgreSQL'})")
@@ -229,137 +215,6 @@ class PortfolioManager:
             return False
         finally:
             conn.close()
-    def get_open_positions(self, bot_id: str, account_id: str) -> List[Dict]:
-        """
-        Open positions with the stop distance recorded at entry.
-
-        A cBot keeps initial SL distances in RAM, so a restart loses them and it would
-        otherwise re-derive R from whatever stop the position carries now - which for a
-        position already moved to break-even is near zero, inflating R enormously.
-        """
-        conn = self._get_conn()
-        try:
-            cur = conn.execute("""
-                SELECT symbol, side, volume, entry_price, sl_pips, tp_pips, entry_time
-                FROM positions
-                WHERE bot_id = ? AND account_id = ? AND status = 'open'
-            """, (bot_id, account_id))
-            return [
-                {
-                    "symbol": r[0],
-                    "side": r[1],
-                    "volume": r[2],
-                    "entry_price": r[3],
-                    "sl_pips": r[4],
-                    "tp_pips": r[5],
-                    "entry_time": r[6],
-                }
-                for r in cur.fetchall()
-            ]
-        except Exception as e:
-            logger.error(f"Failed to read open positions: {e}")
-            return []
-        finally:
-            conn.close()
-
-    def record_partial_close(self, bot_id: str, symbol: str, remaining_volume: float,
-                             realized_pnl: float, account_id: str,
-                             ctrader_id: Optional[int] = None) -> bool:
-        """
-        Bank a partial close against the still-open position.
-
-        cTrader's Positions.Closed event does not fire on a partial close, so without
-        this the profit taken at break-even was never recorded: the row kept its
-        original volume and the final close reported only the remainder's P&L.
-
-        No schema change is needed. `pnl` is unused (NULL) while a position is open and
-        the daily_stats view reads only `status = 'closed'`, so the open row can carry
-        realised partial P&L until close_position adds the remainder to it.
-        """
-        conn = self._get_conn()
-        try:
-            matched = 0
-            if ctrader_id is not None:
-                # 1. Primary match: exact ctrader_id. A row already down to remaining_volume
-                # has banked this slice: the report is a retry whose answer the bot lost.
-                sql = """
-                    UPDATE positions
-                    SET initial_volume = COALESCE(initial_volume, volume),
-                        volume = ?, pnl = COALESCE(pnl, 0) + ?
-                    WHERE bot_id = ? AND symbol = ? AND status = 'open' AND account_id = ? AND ctrader_id = ?
-                      AND ABS(volume - ?) > 0.0001
-                """
-                cur = conn.execute(sql, (remaining_volume, realized_pnl, bot_id, symbol, account_id, ctrader_id,
-                                         remaining_volume))
-                matched = cur.rowcount
-
-                if not matched:
-                    cur = conn.execute("""
-                        SELECT id FROM positions
-                        WHERE bot_id = ? AND symbol = ? AND status = 'open' AND account_id = ? AND ctrader_id = ?
-                          AND ABS(volume - ?) <= 0.0001
-                        LIMIT 1
-                    """, (bot_id, symbol, account_id, ctrader_id, remaining_volume))
-                    if cur.fetchone():
-                        logger.info(
-                            f"Duplicate partial close report ignored: ctrader_id={ctrader_id} by {bot_id} "
-                            f"on account {account_id}"
-                        )
-                        return False
-
-                if not matched:
-                    # 2. Fallback: position registered without ctrader_id (e.g. older bot/payload),
-                    # match open position where ctrader_id IS NULL and link ctrader_id
-                    fallback_sql = """
-                        UPDATE positions
-                        SET initial_volume = COALESCE(initial_volume, volume),
-                            volume = ?, pnl = COALESCE(pnl, 0) + ?, ctrader_id = ?
-                        WHERE id = (
-                            SELECT id FROM positions
-                            WHERE bot_id = ? AND symbol = ? AND status = 'open' AND account_id = ?
-                              AND ctrader_id IS NULL
-                            ORDER BY entry_time ASC
-                            LIMIT 1
-                        )
-                    """
-                    cur = conn.execute(fallback_sql, (remaining_volume, realized_pnl, ctrader_id, bot_id, symbol, account_id))
-                    matched = cur.rowcount
-                # No further fallback: a row that carries a different ctrader_id is a different
-                # position, and banking this slice on it would shrink the wrong trade.
-            else:
-                # No ctrader_id supplied: update the oldest open position
-                sql = """
-                    UPDATE positions
-                    SET initial_volume = COALESCE(initial_volume, volume),
-                        volume = ?, pnl = COALESCE(pnl, 0) + ?
-                    WHERE id = (
-                        SELECT id FROM positions
-                        WHERE bot_id = ? AND symbol = ? AND status = 'open' AND account_id = ?
-                        ORDER BY entry_time ASC
-                        LIMIT 1
-                    )
-                """
-                cur = conn.execute(sql, (remaining_volume, realized_pnl, bot_id, symbol, account_id))
-                matched = cur.rowcount
-
-            conn.commit()
-            if not matched:
-                logger.warning(
-                    f"Partial close ignored: no open position for {symbol} by {bot_id} "
-                    f"(ctrader_id={ctrader_id}) on account {account_id}"
-                )
-                return False
-            logger.info(
-                f"Partial close recorded: {symbol} by {bot_id}, realised {realized_pnl}, "
-                f"remaining {remaining_volume} lots for account {account_id}"
-            )
-            return True
-        except Exception as e:
-            logger.error(f"Failed to record partial close: {e}")
-            return False
-        finally:
-            conn.close()
-
     def close_position(self, bot_id: str, symbol: str, exit_price: float, pnl: float,
                        account_id: str, ctrader_id: Optional[int] = None,
                        close_reason: Optional[str] = None,
@@ -475,87 +330,6 @@ class PortfolioManager:
             return False
         finally:
             conn.close()
-    def check_risk(self, symbol: str, side: Optional[str], volume: float,
-                   account_balance: float = 10000.0, account_id: str = "default",
-                   used_margin: Optional[float] = None,
-                   bot_id: Optional[str] = None) -> Tuple[bool, str]:
-        """
-        Check if new trade is safe at portfolio level.
-        Returns (allowed: bool, reason: str)
-
-        used_margin is the broker's own figure (cTrader Account.Margin) when the cBot sends it.
-        side is None when the direction is not known yet (the capacity check before the LLM
-        picks one): the US-index alignment check is skipped then and runs on the final decision.
-        bot_id selects the strategy and container daily loss limits; without it only the
-        account's applies.
-        """
-        conn = self._get_conn()
-        try:
-            # 0. Paused from the dashboard (Bots tab): no new entries until Resume.
-            if bot_id and bot_controls.is_paused(conn, bot_id):
-                return False, bot_controls.PAUSED_REASON
-
-            # 1. US Index Correlation / Directional Alignment Check
-            # All US Equity Indices (US30, USTEC, US500) must align with macro trend direction.
-            # Blocking opposing positions across US indices prevents portfolio self-hedging and divergence losses.
-            if side and is_us_index(symbol) and side.upper() in ("BUY", "SELL"):
-                cursor = conn.execute(
-                    "SELECT symbol, side FROM positions WHERE status = 'open' AND account_id = ?",
-                    (account_id,)
-                )
-                open_positions = cursor.fetchall()
-                for row in open_positions:
-                    pos_sym = row[0]
-                    pos_side = str(row[1]).upper()
-                    if is_us_index(pos_sym):
-                        if pos_side != side.upper():
-                            return False, f"US Index alignment conflict: cannot open {side.upper()} {symbol} while {pos_sym} has open {pos_side} position"
-
-            # 4. Daily loss limits: container, strategy, account
-            reason = risk_limits.breached(
-                risk_limits.load(conn), self._daily_loss_usage(conn, account_id), bot_id)
-            if reason:
-                return False, reason
-            # 5. Margin usage. Prefer the margin the broker reports. The fallback prices every
-            # lot at $1000 whatever the instrument, so 0.4 lots of ETHUSD and 0.3 of DE40 counted
-            # like forex lots and blocked US30/USTEC/XAUUSD entries on 2026-09-23 at a "64.4%"
-            # the account never used.
-            if used_margin is not None and used_margin >= 0:
-                margin_pct = (used_margin / account_balance) * 100 if account_balance > 0 else 0.0
-            else:
-                cursor = conn.execute("""
-                    SELECT SUM(volume) FROM positions WHERE status = 'open' AND account_id = ?
-                """, (account_id,))
-                total_volume = cursor.fetchone()[0] or 0
-                estimated_margin = (total_volume + volume) * 1000  # rough estimate
-                margin_pct = (estimated_margin / account_balance) * 100
-            if margin_pct > self.config.MAX_MARGIN_USAGE_PCT:
-                return False, f"Margin usage too high ({margin_pct:.1f}%)"
-            
-            return True, "OK"
-        except Exception as e:
-            logger.error(f"Risk check failed: {e}")
-            return False, f"Risk check error: {e}"
-        finally:
-            conn.close()
-    def get_risk_limits(self) -> List[Dict]:
-        """The daily loss limits, as edited on the dashboard."""
-        conn = self._get_conn()
-        try:
-            return risk_limits.load(conn)
-        finally:
-            conn.close()
-
-    def update_risk_limits(self, updates: List[Dict]) -> List[Dict]:
-        """Save limit edits (all or nothing; ValueError if any is invalid) and return the limits."""
-        conn = self._get_conn()
-        try:
-            risk_limits.save(conn, updates)
-            conn.commit()
-            return risk_limits.load(conn)
-        finally:
-            conn.close()
-
     # --- Dashboard pause (app/bot_controls.py) ---
 
     def set_bot_paused(self, bot_id: str, paused: bool) -> None:
@@ -607,50 +381,6 @@ class PortfolioManager:
         finally:
             conn.close()
 
-    def daily_loss_usage(self, account_id: str) -> Dict:
-        """Today's loss of the account, of each strategy on it and of each of its bots."""
-        conn = self._get_conn()
-        try:
-            return self._daily_loss_usage(conn, account_id)
-        finally:
-            conn.close()
-
-    def _daily_loss_usage(self, conn, account_id: str) -> Dict:
-        today = datetime.now(timezone.utc).date().isoformat()
-        closed = conn.execute(
-            "SELECT bot_id, pnl FROM positions WHERE account_id = ? AND status = 'closed' "
-            "AND DATE(COALESCE(exit_time, entry_time)) = ?",
-            (account_id, today),
-        ).fetchall()
-        open_bots = conn.execute(
-            "SELECT DISTINCT bot_id FROM positions WHERE account_id = ? AND status = 'open'",
-            (account_id,),
-        ).fetchall()
-        open_risk = {row[0]: self._open_risk(row[0], account_id) for row in open_bots}
-        return risk_limits.usage_by_scope([(row[0], row[1]) for row in closed], open_risk)
-
-    def _open_risk(self, bot_id: str, account_id: str) -> float:
-        """What the bot's open position would add to the day at its stop.
-
-        The bot's own estimate (sl_pnl) when it has sent one; until then the current P&L,
-        counted only when it is a loss, since an open profit is not yet locked in.
-        """
-        cache = getattr(self, "_bot_positions_cache", {})
-        report = cache.get(f"{account_id}:{bot_id}") or cache.get(bot_id) or {}
-        if report.get("sl_pnl") is not None:
-            return float(report["sl_pnl"])
-        if report.get("unrealized_pnl") is not None:
-            return min(float(report["unrealized_pnl"]), 0.0)
-        return 0.0
-
-    def _get_open_symbols(self, conn, account_id: str) -> List[Tuple[str, str]]:
-        """Get list of (symbol, side) for open positions."""
-        cursor = conn.execute("""
-            SELECT symbol, side FROM positions WHERE status = 'open' AND account_id = ?
-        """, (account_id,))
-        return cursor.fetchall()
-    
-        
     def get_portfolio_status(self, account_id: Optional[str] = None) -> Dict:
         """Get current portfolio status."""
         conn = self._get_conn()
@@ -747,51 +477,6 @@ class PortfolioManager:
         finally:
             conn.close()
     
-    def get_position_count(self, symbol: Optional[str] = None, account_id: Optional[str] = None) -> int:
-        """Get count of open positions, optionally filtered by symbol."""
-        conn = self._get_conn()
-        try:
-            query = "SELECT COUNT(*) FROM positions WHERE status = 'open'"
-            params = []
-            if symbol:
-                query += " AND symbol = ?"
-                params.append(symbol)
-            if account_id and account_id != "all":
-                query += " AND account_id = ?"
-                params.append(account_id)
-                
-            cursor = conn.execute(query, tuple(params))
-            count = cursor.fetchone()[0]
-            return count
-        except Exception as e:
-            logger.error(f"Failed to get position count: {e}")
-            return 0
-        finally:
-            conn.close()
-
-    def count_positions_opened_on(self, bot_id: str, symbol: str, side: str, account_id: str,
-                                  day: Optional[date] = None) -> int:
-        """Count positions (open or closed) opened on a given UTC date for one bot/symbol/side.
-
-        Used by the Judas sweep dedupe gate: allow at most one sweep trade per
-        Asian boundary per session (one BUY at the Asian Low, one SELL at the Asian High).
-        """
-        conn = self._get_conn()
-        try:
-            day = day or datetime.now(timezone.utc).date()
-            cursor = conn.execute(
-                "SELECT COUNT(*) FROM positions "
-                "WHERE bot_id = ? AND account_id = ? AND symbol = ? AND UPPER(side) = ? AND DATE(entry_time) = ?",
-                (bot_id, account_id, symbol, side.upper(), day.isoformat()),
-            )
-            row = cursor.fetchone()
-            return int(row[0]) if row and row[0] is not None else 0
-        except Exception as e:
-            logger.error(f"count_positions_opened_on failed: {e}")
-            return 0
-        finally:
-            conn.close()
-
     # --- Cbot Config Management ---
     
     def get_cbot_configs(self) -> List[Dict]:
@@ -869,13 +554,15 @@ class PortfolioManager:
         finally:
             conn.close()
 
-    def update_market_price(self, symbol: str, bid: float, ask: float, bot_id: Optional[str] = None, position_data: Optional[Dict] = None, account_id: Optional[str] = None):
-        """Track latest market prices and position metrics."""
+    def update_market_price(self, symbol: str, bid: float, ask: float, bot_id: Optional[str] = None,
+                            account_id: Optional[str] = None):
+        """Track the latest market price. A tick from `bot_id` also drops that bot's cached position
+        report; the P&L sample the tick carries (update_position_metrics) writes it back."""
         if not hasattr(self, "_latest_prices"):
             self._latest_prices = {}
         if not hasattr(self, "_bot_positions_cache"):
             self._bot_positions_cache = {}
-        
+
         self._latest_prices[symbol] = {
             "bid": bid,
             "ask": ask,
@@ -883,26 +570,12 @@ class PortfolioManager:
             "ts": datetime.now(timezone.utc).timestamp()
         }
         if bot_id:
-            if position_data:
-                # Stamp the report: price and P&L only arrive with a bot snapshot, so consumers
-                # need the age to avoid presenting a stale figure as a live one.
-                reported = dict(position_data, _reported_at=datetime.now(timezone.utc).timestamp())
-                # The P&L-at-SL/TP estimate rides on ticks, not snapshots. Carry it over while the
-                # level it was computed for has not moved, so each bar close does not blank it.
-                prev = self._bot_positions_cache.get(f"{account_id}:{bot_id}" if account_id else bot_id) or {}
-                for price_key, pnl_key in (("sl_price", "sl_pnl"), ("tp_price", "tp_pnl")):
-                    if pnl_key not in reported and prev.get(price_key) == reported.get(price_key):
-                        reported[pnl_key] = prev.get(pnl_key)
-                self._bot_positions_cache[bot_id] = reported
-                if account_id:
-                    self._bot_positions_cache[f"{account_id}:{bot_id}"] = reported
-            else:
-                self._bot_positions_cache.pop(bot_id, None)
-                if account_id:
-                    self._bot_positions_cache.pop(f"{account_id}:{bot_id}", None)
-                for key in list(self._bot_positions_cache.keys()):
-                    if key.endswith(f":{bot_id}"):
-                        self._bot_positions_cache.pop(key, None)
+            self._bot_positions_cache.pop(bot_id, None)
+            if account_id:
+                self._bot_positions_cache.pop(f"{account_id}:{bot_id}", None)
+            for key in list(self._bot_positions_cache.keys()):
+                if key.endswith(f":{bot_id}"):
+                    self._bot_positions_cache.pop(key, None)
 
     def update_position_metrics(self, bot_id: str, unrealized_pnl: float, unrealized_pnl_pips: float,
                                 account_id: Optional[str] = None,
@@ -910,20 +583,16 @@ class PortfolioManager:
         """Merge a live P&L sample from a bot tick into the cached position report.
 
         The bot owns these numbers (net profit in the account currency, pips from cTrader's own
-        pip size), so a tick refreshes them between bar snapshots without the server recomputing
-        anything. Creates the entry when a tick arrives before the next snapshot, e.g. right
-        after a restart while the position row already exists.
+        pip size), so the server never recomputes them.
         """
         if not hasattr(self, "_bot_positions_cache"):
             self._bot_positions_cache = {}
 
         reported_at = datetime.now(timezone.utc).timestamp()
 
-        # Refresh every key that belongs to this bot. A /trade snapshot writes
-        # "<account_id>:<bot_id>" and the dashboard resolves that key before the bare bot_id
-        # one, so a tick that only touched the bare key would stay hidden behind the older
-        # snapshot value. The tick itself carries no account id (the bot cannot derive it), so
-        # the keys are taken from whatever the snapshots already registered.
+        # Refresh every key that belongs to this bot: the dashboard resolves
+        # "<account_id>:<bot_id>" before the bare bot_id one, so a tick that only touched the bare
+        # key could stay hidden behind an older value.
         keys = {bot_id}
         if account_id:
             keys.add(f"{account_id}:{bot_id}")
@@ -935,8 +604,7 @@ class PortfolioManager:
             entry["unrealized_pnl_pips"] = unrealized_pnl_pips
             # SL/TP prices and the bot's P&L estimate at each (sl_price, tp_price, sl_pnl,
             # tp_pnl). None means "no stop / no target", so it replaces the old value; a tick
-            # from a bot that does not send levels at all passes levels=None and keeps whatever
-            # its last snapshot reported.
+            # from a bot that does not send levels at all passes levels=None and keeps the old ones.
             if levels is not None:
                 entry.update(levels)
             entry["_reported_at"] = reported_at

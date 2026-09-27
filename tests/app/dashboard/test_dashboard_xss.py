@@ -1,10 +1,9 @@
 """Externally sourced strings are HTML-escaped by the dashboard's JS renderers.
 
-bot_id, symbol, side, the account label, prices, times and the AI decision fields all come from a
-cBot's own POST payload and are stored as sent (`sanitize_bot_id` only strips quotes, and SQLite
-keeps a string in a REAL column). News titles and figures come from the ForexFactory feed, the
-assessment fields from the LLM, and the Docker panel's names and commands from bot configs. The
-JS renderers draw all of these with innerHTML, so each value has to pass through `escapeHtml`:
+bot_id, symbol, side, the account label, prices and times all come from a cBot's own POST payload
+and are stored as sent (`sanitize_bot_id` only strips quotes, and SQLite keeps a string in a REAL
+column), and the Docker panel's names and commands from bot configs. The JS renderers draw all of
+these with innerHTML, so each value has to pass through `escapeHtml`:
 a bot_id like `evil<img src=x onerror=alert(1)>` otherwise runs script in every dashboard
 session. The Jinja-rendered first paint is autoescaped and is not covered here.
 """
@@ -16,7 +15,6 @@ import subprocess
 
 import pytest
 
-from app import news_service
 from tests._paths import DASHBOARD_JS
 NODE = shutil.which("node")
 
@@ -49,11 +47,11 @@ def test_bot_badge_escapes_the_bot_id():
 RENDERERS = [
     "escapeHtml", "formatMoney", "pnlClass", "accountBadge", "sideChip", "pnlCellHtml",
     "sltpLineHtml", "sltpCellHtml", "tradeTimesHtml", "closeReasonHtml", "botBadge", "closeButtonHtml",
-    "updateDashboard", "updateTradeHistory", "renderAiDecisionsFeed",
+    "updateDashboard", "updateTradeHistory",
     "lbHas", "lbVnToday", "lbAddDays", "lbIsoDay", "lbRangeFor", "lbShortDay", "lbRangeText", "lbPeriodLabel",
     "applyLbControls", "lbRankCell", "lbBotCells", "lbWinRateCell", "lbProfitFactorCell", "lbTradesCell",
     "lbScoreCell", "lbReturnDdCell", "lbEmptyRow", "renderLeaderboard",
-    "renderBots", "updateNewsShieldStatus", "renderNewsClusters",
+    "renderBots",
 ]
 
 # A minimal DOM: every id resolves to a plain object whose innerHTML the test reads back.
@@ -72,13 +70,6 @@ function fetchTradeHistory() {}
 const closingPositions = new Set();
 const LB_WEIGHT_HINTS = {usd: '', lot: ''}, LB_ROLLING = {all: 'All time'}, LB_CALENDAR = {};
 let lbTab = 'usd', lbPeriod = 'all', lbDateFrom = '', lbDateTo = '', lbData = null;
-let rawAiDecisions = [];
-const aiFeedList = document.getElementById('ai-feed-list');
-const aiFeedCount = document.getElementById('ai-feed-count');
-const aiSymbolFilter = {value: 'ALL'};
-let currentNewsView = 'table', currentNewsCurrency = 'ALL', currentNewsRange = 'thisweek', _cachedClusters = [];
-let shieldStatus = null;
-const fetch = async () => ({json: async () => shieldStatus});
 %(functions)s
 const H = %(hostile)s;
 const out = {};
@@ -93,16 +84,6 @@ updateTradeHistory({page: 1, total_pages: 1, items: [
     {bot_id: H, symbol: H, side: H, account_type: 'demo', account_label: H, volume: H, entry_price: H,
      exit_price: H, sl_price: H, tp_price: H, pnl: 1, close_reason: H, entry_time: H, exit_time: H, duration: H}]});
 out.history = els['history-table'].innerHTML;
-
-rawAiDecisions = [{action: H, symbol: H, timeframe: H, bot_id: H, reason: H, confidence: 70,
-                   volume_lots: H, sl_pips: H, tp_pips: H, new_sl_price: H}];
-renderAiDecisionsFeed();
-out.ai_feed = aiFeedList.innerHTML;
-
-rawAiDecisions = [];
-aiSymbolFilter.value = H;
-renderAiDecisionsFeed();
-out.ai_feed_empty = aiFeedList.innerHTML;
 
 const lbBot = {rank: 4, bot_id: H, bot_name: H, symbol_display: H, tier_badge: 'TIER_C',
     tier_label: 'Tier C', tier_color: '#fff', win_rate: 50, total_wins: 1, total_losses: 1, total_trades: 2,
@@ -119,23 +100,6 @@ renderBots([
     {name: H, account_type: 'demo', status: H, stuck: true, paused: true, health_reason: H, description: H, run_command: H},
 ], true);
 out.bots = els['bots-tbody'].innerHTML;
-
-shieldStatus = {success: true, is_blackout: true, event_title: H, remaining_minutes: 12};
-await updateNewsShieldStatus();
-out.news_shield = els['news-shield-status-chip'].innerHTML;
-
-const cluster = {id: 'd41d8cd98f00b204e9800998ecf8427e', is_past: false, diff_minutes: 90, currencies: [H],
-    date_formatted_vn: H, time_formatted_vn: H, is_assessed: true,
-    latest_assessment: {volatility_level: H, expected_pips_range: H},
-    events: [{title: H, forecast: H, previous: H}]};
-for (const view of ['table', 'grid']) {
-    currentNewsView = view;
-    renderNewsClusters([cluster]);
-    out['news_' + view] = els['news-clusters-container'].innerHTML;
-}
-currentNewsCurrency = H;
-renderNewsClusters([]);
-out.news_empty = els['news-clusters-container'].innerHTML;
 
 console.log(JSON.stringify(out));
 })().catch(e => { console.error(e); process.exit(1); });
@@ -158,8 +122,7 @@ def rendered(tmp_path_factory):
 
 @pytest.mark.skipif(NODE is None, reason="node is not installed")
 @pytest.mark.parametrize("table", [
-    "positions", "history", "ai_feed", "ai_feed_empty", "leaderboard", "leaderboard_lot",
-    "bots", "news_shield", "news_table", "news_grid", "news_empty",
+    "positions", "history", "leaderboard", "leaderboard_lot", "bots",
 ])
 def test_js_renderers_escape_external_strings(rendered, table):
     out = rendered[table].lower()
@@ -178,14 +141,3 @@ def test_buttons_hand_their_handlers_the_original_values(rendered, table, kinds)
     attrs = re.findall(r'data-(%s)="([^"]*)"' % "|".join(kinds), rendered[table])
     assert {kind for kind, _ in attrs} == kinds
     assert all(html.unescape(value) == HOSTILE for _, value in attrs)
-
-
-def test_news_cluster_ids_are_hex_whatever_the_feed_says():
-    # renderNewsClusters leaves c.id raw inside inline onclick handlers and element ids, which
-    # is only safe because the id is an MD5 hexdigest rather than anything taken from the feed.
-    clusters = news_service.cluster_red_news([
-        {"title": HOSTILE, "country": HOSTILE, "date": "2026-09-08T12:30:00Z", "impact": "High",
-         "forecast": HOSTILE, "previous": HOSTILE},
-    ])
-    assert len(clusters) == 1
-    assert re.fullmatch(r"[0-9a-f]{32}", clusters[0]["id"])

@@ -10,7 +10,7 @@ own is still starting or loading. Once that one is backtesting, its data is in t
 queued job reads it from there. Other queued jobs go ahead meanwhile.
 
 The asyncio loop only schedules. tick() does the work in a thread, so Docker and DB calls never block
-the event loop that serves /trade and /ws/cbot. Containers outlive the app process, so every tick
+the event loop that serves the dashboard and the bots' reports. Containers outlive the app process, so every tick
 starts from the containers labelled agentfx.backtest: after a restart it picks a running job back up,
 collects one that finished meanwhile, and marks one whose container vanished as lost.
 """

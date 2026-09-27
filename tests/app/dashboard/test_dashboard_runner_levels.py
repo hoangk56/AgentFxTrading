@@ -1,11 +1,9 @@
-"""Active Positions for a runner whose take-profit the bot has removed.
+"""Active Positions for a position with no take-profit at the broker.
 
-FlowRSI closes part of a winning position at break-even and, once it starts trailing the rest,
-takes the TP off at the broker (RemoveTpOnTrailing). AUDJPY #675464477 on 2026-09-24: entry
-111.021, entry TP 111.432, TP removed at 06:14 UTC, stop trailed to 111.322 with price at 111.58.
-The page showed the entry-time TP from the DB row on first paint, a target price had already
-passed without closing anything, and a bare "—" after the next tick. Neither said that the
-position now exits only at its stop.
+Gotobi and Crypto Donchian open without a TP: they exit on their own rule (the fix time, the
+channel, the max hold) or at the stop. A TP price left over in the DB row, or a bare "—", would not
+say that the position exits only at its stop. (First seen on AUDJPY #675464477, 2026-09-24, with a
+bot since removed that took its TP off while trailing.)
 """
 import json
 import shutil
@@ -22,7 +20,7 @@ NODE = shutil.which("node")
 
 
 def _runner_report(**overrides):
-    # A FlowRSI bar snapshot sends `tp = p.TakeProfit ?? 0.0`, stored as tp_price 0.0
+    # An older report shape sent `tp = p.TakeProfit ?? 0.0`, stored as tp_price 0.0
     report = {"sl_price": 111.322, "tp_price": 0.0, "sl_pnl": 3.71, "tp_pnl": None,
               "unrealized_pnl": 6.89, "unrealized_pnl_pips": 55.3, "_reported_at": time.time()}
     report.update(overrides)
@@ -69,7 +67,7 @@ def test_tick_levels_flag_a_position_without_a_target():
 
     assert tick_levels({"sl_price": 111.322, "tp_price": None, "sl_pnl": 3.71, "tp_pnl": None})["no_tp"] is True
     assert tick_levels({"sl": 2490.0, "tp": 2520.0})["no_tp"] is False
-    # AiAgentBot / Judas send sl and tp as null together when they have no P&L sample
+    # sl and tp both null: a report without levels says nothing about the TP
     assert tick_levels({"sl": None, "tp": None})["no_tp"] is False
 
 

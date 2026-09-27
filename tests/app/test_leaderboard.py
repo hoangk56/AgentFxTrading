@@ -114,32 +114,32 @@ def test_compute_bot_leaderboard_with_data(temp_db):
     conn.execute("INSERT INTO accounts VALUES ('acc_demo_1', 'demo', 'Demo 1', 1)")
     conn.execute("INSERT INTO accounts VALUES ('acc_live_1', 'live', 'Live 1', 1)")
 
-    # Bot 1: Asian Range Judas Sweep (High Win Rate on XAUUSD)
+    # Bot 1: Gotobi (High Win Rate on USDJPY)
     for i in range(4):
         conn.execute("""
             INSERT INTO positions (bot_id, symbol, side, volume, entry_price, pnl, status, exit_time, entry_time, account_id)
-            VALUES ('AsianRangeJudasSweepBot', 'XAUUSD', 'BUY', 0.05, 2500.0, 50.0, 'closed', '2026-09-01 10:00:00', '2026-09-01 08:00:00', 'acc_demo_1')
+            VALUES ('cbot-demo-usdjpy-fix-gotobi', 'USDJPY', 'BUY', 0.05, 148.50, 50.0, 'closed', '2026-09-01 10:00:00', '2026-09-01 08:00:00', 'acc_demo_1')
         """)
     # 1 Loss for Bot 1
     conn.execute("""
         INSERT INTO positions (bot_id, symbol, side, volume, entry_price, pnl, status, exit_time, entry_time, account_id)
-        VALUES ('AsianRangeJudasSweepBot', 'XAUUSD', 'SELL', 0.05, 2510.0, -25.0, 'closed', '2026-09-02 10:00:00', '2026-09-02 08:00:00', 'acc_demo_1')
+        VALUES ('cbot-demo-usdjpy-fix-gotobi', 'USDJPY', 'SELL', 0.05, 148.60, -25.0, 'closed', '2026-09-02 10:00:00', '2026-09-02 08:00:00', 'acc_demo_1')
     """)
 
-    # Bot 2: AiAgentBot TMS (Mixed results on EURUSD)
+    # Bot 2: Crypto Donchian (Mixed results on BTCUSD)
     conn.execute("""
         INSERT INTO positions (bot_id, symbol, side, volume, entry_price, pnl, status, exit_time, entry_time, account_id)
-        VALUES ('AiAgentBot_TMS', 'EURUSD', 'BUY', 0.1, 1.0850, 20.0, 'closed', '2026-09-01 12:00:00', '2026-09-01 09:00:00', 'acc_demo_1')
+        VALUES ('cbot-demo-btcusd-h4-donchian', 'BTCUSD', 'BUY', 0.1, 86500.0, 20.0, 'closed', '2026-09-01 12:00:00', '2026-09-01 09:00:00', 'acc_demo_1')
     """)
     conn.execute("""
         INSERT INTO positions (bot_id, symbol, side, volume, entry_price, pnl, status, exit_time, entry_time, account_id)
-        VALUES ('AiAgentBot_TMS', 'EURUSD', 'SELL', 0.1, 1.0820, -40.0, 'closed', '2026-09-02 12:00:00', '2026-09-02 09:00:00', 'acc_demo_1')
+        VALUES ('cbot-demo-btcusd-h4-donchian', 'BTCUSD', 'SELL', 0.1, 86200.0, -40.0, 'closed', '2026-09-02 12:00:00', '2026-09-02 09:00:00', 'acc_demo_1')
     """)
 
     # 1 Active open position for Bot 1
     conn.execute("""
         INSERT INTO positions (bot_id, symbol, side, volume, entry_price, pnl, status, entry_time, account_id)
-        VALUES ('AsianRangeJudasSweepBot', 'XAUUSD', 'BUY', 0.05, 2520.0, 10.0, 'open', '2026-09-05 08:00:00', 'acc_demo_1')
+        VALUES ('cbot-demo-usdjpy-fix-gotobi', 'USDJPY', 'BUY', 0.05, 148.70, 10.0, 'open', '2026-09-05 08:00:00', 'acc_demo_1')
     """)
 
     conn.commit()
@@ -149,7 +149,7 @@ def test_compute_bot_leaderboard_with_data(temp_db):
     assert res["total_bots"] == 2
     assert res["fleet_total_trades"] == 7  # 5 closed + 2 closed
     assert res["top_performer"] is not None
-    assert res["top_performer"]["bot_id"] == "AsianRangeJudasSweepBot"
+    assert res["top_performer"]["bot_id"] == "cbot-demo-usdjpy-fix-gotobi"
     assert res["top_performer"]["rank"] == 1
     assert res["top_performer"]["win_rate"] == 80.0  # 4 wins out of 5 closed trades
     assert res["top_performer"]["profit_factor"] == 8.0  # $200 / $25
@@ -159,7 +159,7 @@ def test_compute_bot_leaderboard_with_data(temp_db):
     assert res["top_performer"]["tier_badge"] == "TIER_S"
 
     # Bot 2 checks
-    bot2 = [r for r in res["rankings"] if r["bot_id"] == "AiAgentBot_TMS"][0]
+    bot2 = [r for r in res["rankings"] if r["bot_id"] == "cbot-demo-btcusd-h4-donchian"][0]
     assert bot2["rank"] == 2
     assert bot2["total_trades"] == 2
     assert bot2["win_rate"] == 50.0

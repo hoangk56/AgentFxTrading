@@ -40,12 +40,6 @@ const DASHBOARD_BOOTSTRAP = window.DASHBOARD_BOOTSTRAP || {};
                     fetchBots();
                 } else if (targetId === 'view-leaderboard') {
                     fetchLeaderboard();
-                } else if (targetId === 'view-decisions') {
-                    fetchAiDecisions();
-                } else if (targetId === 'view-news') {
-                    fetchNewsCalendar();
-                } else if (targetId === 'view-risk') {
-                    fetchRiskLimits();
                 } else if (targetId === 'view-backtest') {
                     btOnShow();
                 }
@@ -453,155 +447,6 @@ const DASHBOARD_BOOTSTRAP = window.DASHBOARD_BOOTSTRAP || {};
             setupEl("setup-account-delete").addEventListener("click", deleteCtraderAccount);
             setupEl("setup-create-btn").addEventListener("click", createSetupInstances);
         });
-        // --- Daily loss limits (account / strategy / container) ---
-        const RISK_LAYER = {account: "Account", strategy: "Strategy", container: "Container"};
-        const RISK_SCOPE = {account: "All bots on the account", flowrsi: "FlowRSI bots", tms: "TMS / ORB session bots",
-                            judas: "Judas bots", container: "Each container, alone"};
-        let riskData = null;
-        let riskEditing = false;   // a poll must not overwrite a limit being typed
-
-        async function fetchRiskLimits() {
-            try {
-                const res = await fetch("/api/risk-limits");
-                if (!res.ok) throw new Error(res.statusText);
-                riskData = await res.json();
-                renderRiskLimits();
-            } catch (e) {
-                document.getElementById("risk-msg").textContent = `Could not load limits: ${e.message}`;
-            }
-        }
-
-        function riskAccount() {
-            if (!riskData || !riskData.accounts.length) return null;
-            const id = document.getElementById("risk-account").value;
-            return riskData.accounts.find(a => a.account_id === id) || riskData.accounts[0];
-        }
-
-        // What a limit is measured against: the account, one strategy, or the container that lost most.
-        function riskUsed(limit, acct) {
-            if (!acct) return null;
-            if (limit.scope === "account") return acct.account;
-            if (limit.scope === "strategy") return acct.strategy[limit.target] || null;
-            return acct.containers.length ? acct.containers[0] : null;
-        }
-
-        function riskMoneyHtml(v) {
-            const n = Number(v) || 0;
-            return `<span style="color:var(${n < 0 ? "--loss" : "--profit"});">${formatMoney(n)}</span>`;
-        }
-
-        function riskStatusHtml(limit, used) {
-            if (!limit || !limit.enabled) return '<span class="td-dim">Off</span>';
-            const total = used ? Number(used.total) : 0;
-            if (total <= -limit.max_daily_loss) return '<span class="pnl-chip pnl-chip--loss">Blocked</span>';
-            if (total <= -0.8 * limit.max_daily_loss) return '<span class="pnl-chip text-amber">Near limit</span>';
-            return '<span class="pnl-chip pnl-chip--profit">OK</span>';
-        }
-
-        function renderRiskLimits() {
-            if (!riskData) return;
-            document.getElementById("risk-date").textContent = `Day (UTC): ${riskData.date}`;
-            const sel = document.getElementById("risk-account");
-            const chosen = sel.value;
-            sel.innerHTML = riskData.accounts.map(a =>
-                `<option value="${escapeHtml(a.account_id)}">${escapeHtml(a.account_id)}</option>`).join("");
-            if (riskData.accounts.some(a => a.account_id === chosen)) sel.value = chosen;
-            sel.style.display = riskData.accounts.length > 1 ? "" : "none";
-            const acct = riskAccount();
-
-            if (!riskEditing) {
-                document.getElementById("risk-tbody").innerHTML = riskData.limits.map((l, i) => `
-                    <tr>
-                        <td>${RISK_LAYER[l.scope] || escapeHtml(l.scope)}</td>
-                        <td>${RISK_SCOPE[l.scope === "strategy" ? l.target : l.scope] || escapeHtml(l.target)}</td>
-                        <td id="risk-used-${i}"></td>
-                        <td><input type="number" min="0" step="any" class="log-input risk-amount" data-i="${i}"
-                                   value="${Number(l.max_daily_loss)}" style="width:110px;"></td>
-                        <td><input type="checkbox" class="risk-enabled" data-i="${i}" ${l.enabled ? "checked" : ""}></td>
-                        <td id="risk-status-${i}"></td>
-                    </tr>`).join("");
-            }
-            riskData.limits.forEach((l, i) => {
-                const used = riskUsed(l, acct);
-                const usedCell = document.getElementById(`risk-used-${i}`);
-                if (usedCell) {
-                    usedCell.innerHTML = used
-                        ? `${riskMoneyHtml(used.total)}<div class="td-dim" style="font-size:0.7rem;">closed ${formatMoney(used.closed)} · open risk ${formatMoney(used.open_risk)}${
-                              l.scope === "container" ? ` · ${escapeHtml(used.bot_id)}` : ""}</div>`
-                        : '<span class="td-dim">$0.00</span>';
-                }
-                const statusCell = document.getElementById(`risk-status-${i}`);
-                if (statusCell) statusCell.innerHTML = riskStatusHtml(l, used);
-            });
-
-            const containerLimit = riskData.limits.find(l => l.scope === "container");
-            document.getElementById("risk-containers-tbody").innerHTML = acct && acct.containers.length
-                ? acct.containers.map(c => `
-                    <tr>
-                        <td>${escapeHtml(c.bot_id)}</td>
-                        <td>${riskMoneyHtml(c.closed)}</td>
-                        <td>${riskMoneyHtml(c.open_risk)}</td>
-                        <td>${riskMoneyHtml(c.total)}</td>
-                        <td>${riskStatusHtml(containerLimit, c)}</td>
-                    </tr>`).join("")
-                : '<tr><td colspan="5" class="td-dim">No closed or open positions today</td></tr>';
-        }
-
-        async function saveRiskLimits() {
-            const msg = document.getElementById("risk-msg");
-            if (!riskData) return;
-            const limits = riskData.limits.map((l, i) => ({
-                scope: l.scope,
-                target: l.target,
-                max_daily_loss: Number(document.querySelector(`.risk-amount[data-i="${i}"]`).value),
-                enabled: document.querySelector(`.risk-enabled[data-i="${i}"]`).checked,
-            }));
-            const bad = limits.find(l => !(l.max_daily_loss > 0));
-            if (bad) {
-                msg.style.color = "var(--loss)";
-                msg.textContent = `The ${bad.scope} ${bad.target === "*" ? "" : bad.target + " "}limit must be greater than 0. To switch a layer off, untick Enabled.`;
-                return;
-            }
-            try {
-                const res = await fetch("/api/risk-limits", {
-                    method: "PUT",
-                    headers: {"Content-Type": "application/json"},
-                    body: JSON.stringify({limits}),
-                });
-                const data = await res.json();
-                if (!res.ok) throw new Error(typeof data.detail === "string" ? data.detail : JSON.stringify(data.detail));
-                riskEditing = false;
-                msg.style.color = "var(--profit)";
-                msg.textContent = "Saved. The new limits apply from the next entry check.";
-                await fetchRiskLimits();
-            } catch (e) {
-                msg.style.color = "var(--loss)";
-                msg.textContent = `Save failed: ${e.message}`;
-            }
-        }
-
-        document.addEventListener("DOMContentLoaded", () => {
-            const tbody = document.getElementById("risk-tbody");
-            const markEditing = () => {
-                riskEditing = true;
-                const msg = document.getElementById("risk-msg");
-                msg.style.color = "var(--text-muted)";
-                msg.textContent = "Unsaved changes.";
-            };
-            tbody.addEventListener("input", markEditing);
-            tbody.addEventListener("change", markEditing);
-            document.getElementById("risk-save-btn").addEventListener("click", saveRiskLimits);
-            document.getElementById("risk-cancel-btn").addEventListener("click", () => {
-                riskEditing = false;
-                document.getElementById("risk-msg").textContent = "";
-                renderRiskLimits();
-            });
-            document.getElementById("risk-account").addEventListener("change", renderRiskLimits);
-            setInterval(() => {
-                if (document.getElementById("view-risk").classList.contains("active")) fetchRiskLimits();
-            }, 10000);
-        });
-
         function formatMoney(v) {
             if (v === null || v === undefined) return "$0.00";
             const n = Number(v) || 0;
@@ -639,7 +484,7 @@ const DASHBOARD_BOOTSTRAP = window.DASHBOARD_BOOTSTRAP || {};
                     }
                 }
             } else if(noTp){
-                body='<span class="sltp-none" title="No take-profit at the broker. FlowRSI removes it when it starts trailing the runner left after the partial close; the position then closes at the SL (or on an AI or manual close).">none · exits at SL</span>';
+                body='<span class="sltp-none" title="No take-profit at the broker: the bot exits on its own rule (fix time, channel, max hold) or at the SL.">none · exits at SL</span>';
             } else if(pips){
                 body=`<span class="td-dim">${escapeHtml(pips)}p</span>`;
             } else {
@@ -671,13 +516,14 @@ const DASHBOARD_BOOTSTRAP = window.DASHBOARD_BOOTSTRAP || {};
             const safe=escapeHtml(reason);
             return `<span class="reason-chip ${cls}" title="${safe}">${safe}</span>`;
         }
+        // Mirrors the bot_badge macro.
         function botBadge(b){
             if(!b)return '<span class="bot-badge bot-badge--default"><span class="bot-dot"></span>N/A</span>';
             const bl=String(b).toLowerCase();
-            const isF=bl.includes('flowrsi')||bl.includes('flow_rsi')||bl.includes('nestedrsi');
-            const isJ=bl.includes('judas')||bl.includes('asian')||bl.includes('smc');
-            const badgeCls = isF ? 'bot-badge--flowrsi' : (isJ ? 'bot-badge--judas' : 'bot-badge--tms');
-            const badgeText = isF ? 'FlowRSI' : (isJ ? 'Judas SMC' : 'TMS+ORB');
+            const isG=bl.includes('gotobi');
+            const isD=bl.includes('donchian');
+            const badgeCls = isG ? 'bot-badge--gotobi' : (isD ? 'bot-badge--donchian' : 'bot-badge--default');
+            const badgeText = isG ? 'Gotobi' : (isD ? 'Donchian' : 'cBot');
             const safe=escapeHtml(b);
             return `<div class="bot-cell">
                 <span class="bot-badge ${badgeCls}"><span class="bot-dot"></span>${badgeText}</span>
@@ -942,8 +788,6 @@ const DASHBOARD_BOOTSTRAP = window.DASHBOARD_BOOTSTRAP || {};
                         handleLiveTick(d);
                     } else if(d.type==='event') {
                         handleLiveEvent(d);
-                    } else if(d.type==='ai_decision') {
-                        handleLiveDecision(d.decision);
                     }
                 } catch(err) {
                     console.error('Error handling WS message:', err);
@@ -954,12 +798,6 @@ const DASHBOARD_BOOTSTRAP = window.DASHBOARD_BOOTSTRAP || {};
         }
         // Start WebSocket connection on page load
         connectWebSocket();
-
-        function handleLiveDecision(dec) {
-            if (!dec) return;
-            // Prepend directly to Mini-Feed in memory & DOM
-            addDecisionToFeed(dec);
-        }
 
         function handleLiveTick(tick) {
             if (!tick || !tick.symbol) return;
@@ -984,7 +822,7 @@ const DASHBOARD_BOOTSTRAP = window.DASHBOARD_BOOTSTRAP || {};
                         }
                     }
                     // P&L and SL/TP belong to one bot's position; two bots can trade the same
-                    // symbol (cbot-xauusd and cbot-xauusd-judas), so match the bot as well.
+                    // symbol (the same cell on two accounts), so match the bot as well.
                     const rowBot = tr.dataset.bot;
                     if (tick.bot_id && rowBot && rowBot !== tick.bot_id) return;
                     // The bot sends its own broker P&L sample with the tick when a position is
@@ -1152,7 +990,7 @@ const DASHBOARD_BOOTSTRAP = window.DASHBOARD_BOOTSTRAP || {};
             if (btn && !btn.disabled) closePosition(btn);
         });
 
-        // Periodic Session & Killzone Status Refresher
+        // Periodic Session Status Refresher
         async function refreshMarketSessions() {
             try {
                 const res = await fetch('/api/dashboard/sessions');
@@ -1167,14 +1005,6 @@ const DASHBOARD_BOOTSTRAP = window.DASHBOARD_BOOTSTRAP || {};
                 setPill('sess-london', s.sessions.london.active);
                 setPill('sess-ny', s.sessions.new_york.active);
 
-                const kzBanner = document.getElementById('kz-banner');
-                const kzTitle = document.getElementById('kz-title');
-                const kzCount = document.getElementById('kz-countdown');
-                if (kzBanner && kzTitle && kzCount) {
-                    kzBanner.className = `kz-banner ${s.killzone.active ? 'kz-banner--active' : ''}`;
-                    kzTitle.textContent = `Judas Killzone: ${s.killzone.name}`;
-                    kzCount.textContent = `(${s.killzone.next_in})`;
-                }
                 const fxBadge = document.getElementById('market-forex-badge');
                 if (fxBadge) {
                     fxBadge.className = `badge ${s.is_forex_weekend ? 'badge--warn' : 'badge--live'}`;
@@ -1256,13 +1086,7 @@ const DASHBOARD_BOOTSTRAP = window.DASHBOARD_BOOTSTRAP || {};
             // Highlight timestamps (YYYY-MM-DD HH:mm:ss or HH:mm:ss)
             formatted = formatted.replace(/^(\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}|\d{2}:\d{2}:\d{2})/, '<span class="log-time">$1</span>');
             // Highlight tags
-            if (formatted.includes('[LLM DECISION]')) {
-                formatted = formatted.replace(/\[LLM DECISION\]/, '<span class="log-tag-llm">[LLM DECISION]</span>');
-            } else if (formatted.includes('[CYCLE GATE]')) {
-                formatted = formatted.replace(/\[CYCLE GATE\]/, '<span class="log-tag-gate">[CYCLE GATE]</span>');
-            } else if (formatted.includes('[SNAPSHOT]')) {
-                formatted = formatted.replace(/\[SNAPSHOT\]/, '<span class="log-tag-snapshot">[SNAPSHOT]</span>');
-            } else if (formatted.includes('[PORTFOLIO EVENT]') || formatted.includes('[PORTFOLIO]')) {
+            if (formatted.includes('[PORTFOLIO EVENT]') || formatted.includes('[PORTFOLIO]')) {
                 formatted = formatted.replace(/\[PORTFOLIO EVENT\]|\[PORTFOLIO\]/, '<span class="log-tag-event">$&</span>');
             } else if (formatted.includes('[WARNING]') || formatted.includes('[WARN]')) {
                 formatted = formatted.replace(/\[WARNING\]|\[WARN\s*\]/, '<span class="log-tag-warn">$&</span>');
@@ -1843,535 +1667,4 @@ const DASHBOARD_BOOTSTRAP = window.DASHBOARD_BOOTSTRAP || {};
             }
         }, 8000);
 
-        // --- AI Decisions Mini-Feed Implementation ---
-        let rawAiDecisions = [];
-        const aiFeedList = document.getElementById('ai-feed-list');
-        const aiFeedCount = document.getElementById('ai-feed-count');
-        const aiSymbolFilter = document.getElementById('ai-symbol-filter');
-        const aiFeedRefreshBtn = document.getElementById('ai-feed-refresh-btn');
-        const aiFeedClearBtn = document.getElementById('ai-feed-clear-btn');
-
-        async function fetchAiDecisions() {
-            try {
-                const sym = aiSymbolFilter ? aiSymbolFilter.value : 'ALL';
-                const url = sym && sym !== 'ALL' ? `/api/dashboard/latest-decisions?limit=50&symbol=${sym}` : `/api/dashboard/latest-decisions?limit=50`;
-                const res = await fetch(url);
-                const data = await res.json();
-                rawAiDecisions = data || [];
-                updateAiSymbolOptions(rawAiDecisions);
-                renderAiDecisionsFeed();
-            } catch (err) {
-                console.error('Error fetching AI decisions:', err);
-            }
-        }
-
-        function updateAiSymbolOptions(decisions) {
-            if (!aiSymbolFilter) return;
-            const currentVal = aiSymbolFilter.value;
-            const symbols = new Set(['ALL']);
-            decisions.forEach(d => {
-                if (d.symbol) symbols.add(d.symbol.toUpperCase());
-            });
-            // Keep existing options plus any new ones
-            const existing = Array.from(aiSymbolFilter.options).map(o => o.value);
-            symbols.forEach(sym => {
-                if (!existing.includes(sym)) {
-                    const opt = document.createElement('option');
-                    opt.value = sym;
-                    opt.textContent = sym === 'ALL' ? 'All Symbols' : sym;
-                    aiSymbolFilter.appendChild(opt);
-                }
-            });
-            aiSymbolFilter.value = currentVal;
-        }
-
-        function addDecisionToFeed(dec) {
-            if (!dec) return;
-            rawAiDecisions.unshift(dec);
-            if (rawAiDecisions.length > 50) rawAiDecisions.pop();
-            updateAiSymbolOptions(rawAiDecisions);
-            renderAiDecisionsFeed();
-        }
-
-        function renderAiDecisionsFeed() {
-            if (!aiFeedList) return;
-            const selectedSym = aiSymbolFilter ? aiSymbolFilter.value : 'ALL';
-            const filtered = (selectedSym === 'ALL')
-                ? rawAiDecisions
-                : rawAiDecisions.filter(d => (d.symbol || '').toUpperCase() === selectedSym);
-
-            if (aiFeedCount) {
-                aiFeedCount.textContent = `${filtered.length} Decision${filtered.length === 1 ? '' : 's'}`;
-            }
-
-            if (filtered.length === 0) {
-                aiFeedList.innerHTML = `
-                    <div class="ai-feed-empty" id="ai-feed-empty-state">
-                        <i data-lucide="brain-circuit" style="width: 36px; height: 36px; margin-bottom: 8px; opacity: 0.5;"></i>
-                        <div>No AI decisions recorded ${selectedSym !== 'ALL' ? 'for ' + escapeHtml(selectedSym) : 'yet'}.</div>
-                    </div>
-                `;
-                if (window.lucide) lucide.createIcons();
-                return;
-            }
-
-            let html = '';
-            filtered.forEach(item => {
-                const action = (item.action || 'HOLD').toUpperCase();
-                const conf = parseFloat(item.confidence) || 80;
-                const sym = item.symbol || 'GLOBAL';
-                const tf = item.timeframe || 'M15';
-                const bot = item.bot_id || 'AiAgent';
-                const reason = item.reason || 'Decision processed by AI model.';
-                const actionIcon = action === 'BUY' ? '▲' : (action === 'SELL' ? '▼' : '⏸');
-                const timeStr = item.timestamp ? new Date(item.timestamp).toLocaleTimeString() : new Date().toLocaleTimeString();
-
-                html += `
-                    <div class="ai-feed-item feed-action--${escapeHtml(action)}">
-                        <div class="ai-feed-header">
-                            <div class="ai-feed-header-left">
-                                <span class="ai-action-badge ai-action--${escapeHtml(action)}" style="font-size: 0.85rem; padding: 3px 10px;">
-                                    ${actionIcon} ${escapeHtml(action)}
-                                </span>
-                                <span class="ai-feed-symbol">${escapeHtml(sym)}</span>
-                                <span class="ai-pill-tag">${escapeHtml(tf)}</span>
-                            </div>
-                            <div class="ai-feed-meta">
-                                <span><strong style="color:var(--text-primary);">${conf.toFixed(1)}%</strong> Conf</span>
-                                <span>•</span>
-                                <span>${escapeHtml(bot)}</span>
-                                <span>•</span>
-                                <span>${timeStr} (GMT+7)</span>
-                            </div>
-                        </div>
-                        <div class="ai-feed-reason">
-                            ${escapeHtml(reason)}
-                        </div>
-                        <div class="ai-feed-params">
-                            ${item.volume_lots ? `<span class="ai-param-chip">Vol: <strong>${escapeHtml(item.volume_lots)}L</strong></span>` : ''}
-                            ${item.sl_pips ? `<span class="ai-param-chip">SL: <strong>${escapeHtml(item.sl_pips)}p</strong></span>` : ''}
-                            ${item.tp_pips ? `<span class="ai-param-chip">TP: <strong>${escapeHtml(item.tp_pips)}p</strong></span>` : ''}
-                            ${item.new_sl_price ? `<span class="ai-param-chip">New SL: <strong>${escapeHtml(item.new_sl_price)}</strong></span>` : ''}
-                            ${item.partial_ratio ? `<span class="ai-param-chip">Close: <strong>${(item.partial_ratio * 100).toFixed(0)}%</strong></span>` : ''}
-                        </div>
-                    </div>
-                `;
-            });
-            aiFeedList.innerHTML = html;
-            if (window.lucide) lucide.createIcons();
-        }
-
-        if (aiSymbolFilter) {
-            aiSymbolFilter.addEventListener('change', renderAiDecisionsFeed);
-        }
-        if (aiFeedRefreshBtn) {
-            aiFeedRefreshBtn.addEventListener('click', fetchAiDecisions);
-        }
-        if (aiFeedClearBtn) {
-            aiFeedClearBtn.addEventListener('click', () => {
-                rawAiDecisions = [];
-                renderAiDecisionsFeed();
-            });
-        }
-
-        // Fetch initial AI decisions on load
-        fetchAiDecisions();
-
-        // Periodically refresh AI decisions if on decisions view
-        setInterval(() => {
-            const decView = document.getElementById('view-decisions');
-            if (decView && decView.classList.contains('active') && !document.hidden) {
-                fetchAiDecisions();
-            }
-        }, 8000);
-
-        // ── News Assessment System Frontend ─────────────────────────────────
-        let currentNewsRange = 'thisweek';
-        let currentNewsView = (function(){ try { return localStorage.getItem('news_view_mode') || 'grid'; } catch(e){ return 'grid'; } })();
-        let currentNewsCurrency = 'ALL';
-        let activeAssessmentData = null;
-        let currentModalLang = 'vi';
-        let _cachedClusters = [];
-
-        function switchNewsRange(range) {
-            currentNewsRange = range;
-            const btnToday = document.getElementById('news-filter-today');
-            const btnTomorrow = document.getElementById('news-filter-tomorrow');
-            const btnThisweek = document.getElementById('news-filter-thisweek');
-            if (btnToday) btnToday.classList.toggle('active', range === 'today');
-            if (btnTomorrow) btnTomorrow.classList.toggle('active', range === 'tomorrow');
-            if (btnThisweek) btnThisweek.classList.toggle('active', range === 'thisweek');
-            fetchNewsCalendar();
-        }
-
-        function switchNewsView(view) {
-            currentNewsView = view;
-            try { localStorage.setItem('news_view_mode', view); } catch(e){}
-            const gridBtn = document.getElementById('news-view-grid');
-            const tableBtn = document.getElementById('news-view-table');
-            if (gridBtn) gridBtn.classList.toggle('active', view === 'grid');
-            if (tableBtn) tableBtn.classList.toggle('active', view === 'table');
-            renderNewsClusters(_cachedClusters);
-        }
-
-        function filterNewsCurrency(curr) {
-            currentNewsCurrency = curr;
-            document.querySelectorAll('.news-toolbar [data-curr]').forEach(btn => {
-                btn.classList.toggle('active', btn.dataset.curr === curr);
-            });
-            renderNewsClusters(_cachedClusters);
-        }
-
-        async function updateNewsShieldStatus() {
-            try {
-                const res = await fetch('/api/news/shield-status?symbol=XAUUSD');
-                const data = await res.json();
-                const chip = document.getElementById('news-shield-status-chip');
-                if (chip && data.success) {
-                    if (data.is_blackout) {
-                        chip.className = 'status-pill status-pill--offline';
-                        chip.innerHTML = `<span class="status-dot"></span> 🚨 Shield Active: ${escapeHtml(data.event_title)} (${data.remaining_minutes}m left)`;
-                    } else {
-                        chip.className = 'status-pill status-pill--online';
-                        chip.innerHTML = `<span class="status-dot"></span> Shield: Clear`;
-                    }
-                }
-            } catch(e) { }
-        }
-
-        async function fetchNewsCalendar(refresh = false) {
-            const container = document.getElementById('news-clusters-container');
-            if (!container) return;
-            if (refresh) {
-                container.innerHTML = `<div style="text-align:center; padding:30px; color:var(--text-muted);"><p>Refreshing ForexFactory events...</p></div>`;
-            }
-            updateNewsShieldStatus();
-            try {
-                const res = await fetch(`/api/news/calendar?range=${currentNewsRange}&refresh=${refresh}`);
-                const data = await res.json();
-                if (!data.success || !data.clusters || data.clusters.length === 0) {
-                    const rangeText = currentNewsRange === 'today' ? 'today' : (currentNewsRange === 'tomorrow' ? 'tomorrow' : 'this week');
-                    container.innerHTML = `<div style="text-align:center; padding:30px; color:var(--text-muted);"><p>No High-Impact (Red) news events found for ${rangeText}.</p></div>`;
-                    return;
-                }
-                renderNewsClusters(data.clusters);
-            } catch(e) {
-                console.error("Error fetching news calendar:", e);
-                container.innerHTML = `<div style="text-align:center; padding:30px; color:var(--loss);"><p>Failed to load economic news calendar.</p></div>`;
-            }
-        }
-
-        function renderNewsClusters(clusters) {
-            _cachedClusters = clusters || [];
-            const container = document.getElementById('news-clusters-container');
-            if (!container) return;
-
-            // Sync view toggle buttons state
-            const gridBtn = document.getElementById('news-view-grid');
-            const tableBtn = document.getElementById('news-view-table');
-            if (gridBtn) gridBtn.classList.toggle('active', currentNewsView === 'grid');
-            if (tableBtn) tableBtn.classList.toggle('active', currentNewsView === 'table');
-
-            let filtered = _cachedClusters;
-            if (currentNewsCurrency !== 'ALL') {
-                filtered = _cachedClusters.filter(c => (c.currencies || []).includes(currentNewsCurrency));
-            }
-
-            if (!filtered || filtered.length === 0) {
-                const rangeText = currentNewsRange === 'today' ? 'today' : (currentNewsRange === 'tomorrow' ? 'tomorrow' : 'this week');
-                const filterDesc = currentNewsCurrency !== 'ALL' ? `matching currency "${escapeHtml(currentNewsCurrency)}"` : '';
-                container.innerHTML = `<div style="text-align:center; padding:30px; color:var(--text-muted);"><p>No High-Impact (Red) news events found for ${rangeText} ${filterDesc}.</p></div>`;
-                return;
-            }
-
-            // Titles, figures and currencies come from the ForexFactory feed and the assessment
-            // fields from the LLM, so all of them are escaped. c.id is left raw inside the inline
-            // onclick handlers: it is always an MD5 hexdigest (news_service.generate_cluster_hash).
-            if (currentNewsView === 'table') {
-                // Dense Table View
-                let rowsHtml = '';
-                filtered.forEach(c => {
-                    let countdownText = '';
-                    let countdownClass = 'news-countdown-badge';
-                    if (c.is_past) {
-                        countdownText = 'Past';
-                        countdownClass += ' news-countdown-badge--past';
-                    } else if (c.diff_minutes <= 0) {
-                        countdownText = '🔴 Live';
-                        countdownClass += ' news-countdown-badge--pulse';
-                    } else if (c.diff_minutes < 60) {
-                        countdownText = `⏳ ${c.diff_minutes}m`;
-                        countdownClass += ' news-countdown-badge--pulse';
-                    } else {
-                        const h = Math.floor(c.diff_minutes / 60);
-                        countdownText = `In ${h}h`;
-                    }
-
-                    const currPills = (c.currencies || []).map(curr => {
-                        const cls = 'currency-pill--' + escapeHtml(curr.toLowerCase());
-                        return `<span class="currency-pill ${cls}">${escapeHtml(curr)}</span>`;
-                    }).join(' ');
-
-                    const eventsHtml = (c.events || []).map(ev => `
-                        <div class="news-table-event-item">
-                            <span class="news-table-event-title">🔴 ${escapeHtml(ev.title)}</span>
-                            <span class="news-event-values">
-                                <span class="val-tag">F: <b>${escapeHtml(ev.forecast || '--')}</b></span>
-                                <span class="val-tag">P: <b>${escapeHtml(ev.previous || '--')}</b></span>
-                            </span>
-                        </div>
-                    `).join('');
-
-                    const assessmentHtml = c.is_assessed && c.latest_assessment ? `
-                        <span class="assessed-chip" onclick='viewSavedAssessment("${c.id}")' title="Click to view AI report">
-                            ✓ ${escapeHtml(c.latest_assessment.volatility_level)} (${escapeHtml(c.latest_assessment.expected_pips_range)})
-                        </span>
-                    ` : `<span style="color:var(--text-dim); font-size:0.7rem;">Not assessed</span>`;
-
-                    const dateShort = c.date_formatted_vn ? (c.date_formatted_vn.split(',')[1] || c.date_formatted_vn).trim() : '';
-                    const timeVn = c.time_formatted_vn ? c.time_formatted_vn.replace(' (GMT+7)', '') : '';
-
-                    rowsHtml += `
-                        <tr class="${c.is_past ? 'news-table-row--past' : ''}">
-                            <td style="white-space:nowrap;">
-                                <strong style="color:var(--text-primary); font-family:var(--font-mono);">${escapeHtml(timeVn)}</strong>
-                                <small style="display:block; color:var(--text-muted); font-size:0.68rem;">${escapeHtml(dateShort)}</small>
-                            </td>
-                            <td><span class="${countdownClass}">${countdownText}</span></td>
-                            <td>${currPills}</td>
-                            <td>
-                                <div class="news-table-events-cell">${eventsHtml}</div>
-                            </td>
-                            <td>${assessmentHtml}</td>
-                            <td style="text-align:right; white-space:nowrap;">
-                                <div style="display:inline-flex; align-items:center; gap:4px;">
-                                    <select class="news-symbol-select" id="symbol-tbl-${c.id}">
-                                        <option value="XAUUSD" selected>XAUUSD</option>
-                                        <option value="EURUSD">EURUSD</option>
-                                        <option value="GBPUSD">GBPUSD</option>
-                                        <option value="BTCUSD">BTCUSD</option>
-                                        <option value="US30">US30</option>
-                                    </select>
-                                    ${c.is_assessed ? `<button class="news-view-btn" onclick='viewSavedAssessment("${c.id}")' title="View Report">📖</button>` : ''}
-                                    <button class="news-assess-btn" id="btn-assess-tbl-${c.id}" onclick="triggerAiAssessment('${c.id}', 'tbl-')">
-                                        <i data-lucide="zap" style="width:12px; height:12px;"></i> Assess
-                                    </button>
-                                </div>
-                            </td>
-                        </tr>
-                    `;
-                });
-
-                container.className = 'news-table-wrap';
-                container.innerHTML = `
-                    <table class="news-table">
-                        <thead>
-                            <tr>
-                                <th style="width:110px;">Time (VN)</th>
-                                <th style="width:85px;">Countdown</th>
-                                <th style="width:55px;">Currency</th>
-                                <th>Events &amp; Expected Figures</th>
-                                <th style="width:170px;">AI Assessment</th>
-                                <th style="width:170px; text-align:right;">Target &amp; Action</th>
-                            </tr>
-                        </thead>
-                        <tbody>${rowsHtml}</tbody>
-                    </table>
-                `;
-            } else {
-                // Compact Cards View
-                let cardsHtml = '';
-                filtered.forEach(c => {
-                    let countdownText = '';
-                    let countdownClass = 'news-countdown-badge';
-                    if (c.is_past) {
-                        countdownText = 'Past';
-                        countdownClass += ' news-countdown-badge--past';
-                    } else if (c.diff_minutes <= 0) {
-                        countdownText = '🔴 Live';
-                        countdownClass += ' news-countdown-badge--pulse';
-                    } else if (c.diff_minutes < 60) {
-                        countdownText = `⏳ ${c.diff_minutes}m`;
-                        countdownClass += ' news-countdown-badge--pulse';
-                    } else {
-                        const h = Math.floor(c.diff_minutes / 60);
-                        const m = c.diff_minutes % 60;
-                        countdownText = `In ${h}h ${m > 0 ? m + 'm' : ''}`;
-                    }
-
-                    const currPills = (c.currencies || []).map(curr => {
-                        const cls = 'currency-pill--' + escapeHtml(curr.toLowerCase());
-                        return `<span class="currency-pill ${cls}">${escapeHtml(curr)}</span>`;
-                    }).join('');
-
-                    const eventsList = (c.events || []).map(ev => `
-                        <div class="news-event-item">
-                            <span class="news-event-name" title="${escapeHtml(ev.title)}">🔴 ${escapeHtml(ev.title)}</span>
-                            <span class="news-event-values">
-                                <span class="val-tag" title="Forecast">F: <b>${escapeHtml(ev.forecast || '--')}</b></span>
-                                <span class="val-tag" title="Previous">P: <b>${escapeHtml(ev.previous || '--')}</b></span>
-                            </span>
-                        </div>
-                    `).join('');
-
-                    const assessmentBadge = c.is_assessed && c.latest_assessment ? `
-                        <div class="news-card-assessed-tag" onclick='viewSavedAssessment("${c.id}")' style="cursor:pointer;" title="Click to view AI report">
-                            ✓ Assessed: <b>${escapeHtml(c.latest_assessment.volatility_level)}</b> (${escapeHtml(c.latest_assessment.expected_pips_range)})
-                        </div>
-                    ` : '';
-
-                    const timeShort = c.time_formatted_vn ? c.time_formatted_vn.replace(' (GMT+7)', '') : '';
-                    const dateShort = c.date_formatted_vn ? (c.date_formatted_vn.split(',')[1] || c.date_formatted_vn).trim() : '';
-
-                    cardsHtml += `
-                        <div class="news-cluster-card ${c.is_past ? 'news-cluster-card--past' : 'news-cluster-card--upcoming'}" id="card-${c.id}">
-                            <div class="news-cluster-header">
-                                <div class="news-header-meta">
-                                    <span class="news-time-gmt">${escapeHtml(timeShort)}</span>
-                                    <span class="news-time-utc">${escapeHtml(dateShort)}</span>
-                                    ${currPills}
-                                </div>
-                                <span class="${countdownClass}">${countdownText}</span>
-                            </div>
-                            <div class="news-cluster-body">
-                                <div class="news-events-list">${eventsList}</div>
-                                ${assessmentBadge}
-                            </div>
-                            <div class="news-cluster-footer">
-                                <select class="news-symbol-select" id="symbol-${c.id}">
-                                    <option value="XAUUSD" selected>XAUUSD</option>
-                                    <option value="EURUSD">EURUSD</option>
-                                    <option value="GBPUSD">GBPUSD</option>
-                                    <option value="BTCUSD">BTCUSD</option>
-                                    <option value="US30">US30</option>
-                                </select>
-                                <div style="display:flex; align-items:center; gap:4px;">
-                                    ${c.is_assessed ? `<button class="news-view-btn" onclick='viewSavedAssessment("${c.id}")' title="View Report">📖</button>` : ''}
-                                    <button class="news-assess-btn" id="btn-assess-${c.id}" onclick="triggerAiAssessment('${c.id}')">
-                                        <i data-lucide="zap" style="width:12px; height:12px;"></i> Assess
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                    `;
-                });
-
-                container.className = 'news-clusters-grid';
-                container.innerHTML = cardsHtml;
-            }
-
-            if (window.lucide) { lucide.createIcons(); }
-        }
-
-        async function triggerAiAssessment(clusterId, prefix = '') {
-            const symSelect = document.getElementById(`symbol-${prefix}${clusterId}`) || document.getElementById(`symbol-${clusterId}`);
-            const symbol = symSelect ? symSelect.value : 'XAUUSD';
-            const clusterObj = _cachedClusters.find(c => c.id === clusterId) || null;
-            const btn = document.getElementById(`btn-assess-${prefix}${clusterId}`) || document.getElementById(`btn-assess-${clusterId}`);
-            if (btn) {
-                btn.disabled = true;
-                btn.innerHTML = `<i data-lucide="loader" style="animation:spin 1s linear infinite; width:12px; height:12px;"></i> ...`;
-                if (window.lucide) { lucide.createIcons(); }
-            }
-            try {
-                const res = await fetch('/api/news/assess', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        cluster_id: clusterId,
-                        symbol: symbol,
-                        range: currentNewsRange,
-                        cluster_data: clusterObj
-                    })
-                });
-                const data = await res.json();
-                if (data.success && data.assessment) {
-                    openNewsModal(data.assessment);
-                    fetchNewsCalendar();
-                } else {
-                    alert('AI Assessment failed: ' + (data.error || 'Unknown error'));
-                }
-            } catch(e) {
-                alert('Network error during assessment: ' + e.message);
-            } finally {
-                if (btn) {
-                    btn.disabled = false;
-                    btn.innerHTML = `<i data-lucide="zap" style="width:12px; height:12px;"></i> Assess`;
-                    if (window.lucide) { lucide.createIcons(); }
-                }
-            }
-        }
-
-        async function viewSavedAssessment(clusterId) {
-            try {
-                const res = await fetch('/api/news/assessments?limit=50');
-                const data = await res.json();
-                if (data.success && data.assessments) {
-                    const found = data.assessments.find(a => a.cluster_id === clusterId);
-                    if (found) {
-                        openNewsModal(found);
-                        return;
-                    }
-                }
-                alert("Could not load saved assessment report.");
-            } catch(e) {
-                alert("Error loading assessment: " + e.message);
-            }
-        }
-
-        function openNewsModal(assessment) {
-            activeAssessmentData = assessment;
-            const modal = document.getElementById('news-assessment-modal');
-            if (!modal) return;
-
-            document.getElementById('modal-assessment-title').innerText = `AI Macro Assessment: ${assessment.symbol} (${assessment.expected_pips_range})`;
-            document.getElementById('modal-symbol').innerText = assessment.symbol;
-            document.getElementById('modal-pips').innerText = assessment.expected_pips_range || '--';
-            document.getElementById('modal-pattern').innerText = assessment.trend_type || '2_WAY_WHIPSAW';
-
-            const volEl = document.getElementById('modal-volatility');
-            const vol = (assessment.volatility_level || 'HIGH').toUpperCase();
-            volEl.innerText = vol;
-            volEl.className = 'volatility-pill ' + (
-                vol === 'EXTREME' ? 'volatility-pill--extreme' :
-                vol === 'HIGH' ? 'volatility-pill--high' :
-                vol === 'MEDIUM' ? 'volatility-pill--medium' : 'volatility-pill--low'
-            );
-
-            const buyP = assessment.prob_buy || 50;
-            const sellP = assessment.prob_sell || 50;
-            document.getElementById('modal-prob-buy').innerText = `BUY ${buyP}%`;
-            document.getElementById('modal-prob-sell').innerText = `SELL ${sellP}%`;
-            document.getElementById('modal-prob-bar-inner').style.width = `${buyP}%`;
-
-            switchModalLanguage(currentModalLang);
-            modal.classList.add('active');
-            if (window.lucide) { lucide.createIcons(); }
-        }
-
-        function switchModalLanguage(lang) {
-            currentModalLang = lang;
-            document.getElementById('modal-lang-vi').classList.toggle('active', lang === 'vi');
-            document.getElementById('modal-lang-en').classList.toggle('active', lang === 'en');
-
-            if (!activeAssessmentData) return;
-            const isVi = lang === 'vi';
-            document.getElementById('modal-scenario-better').innerText = isVi ? (activeAssessmentData.scenario_better_vi || activeAssessmentData.scenario_better) : (activeAssessmentData.scenario_better_en || activeAssessmentData.scenario_better);
-            document.getElementById('modal-scenario-worse').innerText = isVi ? (activeAssessmentData.scenario_worse_vi || activeAssessmentData.scenario_worse) : (activeAssessmentData.scenario_worse_en || activeAssessmentData.scenario_worse);
-            document.getElementById('modal-guidance').innerText = isVi ? (activeAssessmentData.bot_guidance_vi || activeAssessmentData.bot_guidance) : (activeAssessmentData.bot_guidance_en || activeAssessmentData.bot_guidance);
-            document.getElementById('modal-markdown').innerText = isVi ? (activeAssessmentData.analysis_markdown_vi || activeAssessmentData.analysis_markdown) : (activeAssessmentData.analysis_markdown_en || activeAssessmentData.analysis_markdown);
-        }
-
-        function closeNewsModal() {
-            const modal = document.getElementById('news-assessment-modal');
-            if (modal) modal.classList.remove('active');
-        }
-
-        // Close modal on backdrop click
-        window.addEventListener('click', (e) => {
-            const modal = document.getElementById('news-assessment-modal');
-            if (modal && e.target === modal) {
-                closeNewsModal();
-            }
-        });
         if (window.lucide) { lucide.createIcons(); }

@@ -1,11 +1,9 @@
-"""Bot telemetry and portfolio reporting routes: /api/tick, /api/cbot_event, /portfolio/*, account list, cross-locks.
+"""Bot telemetry and portfolio reporting routes: /api/tick, /portfolio/*, account list.
 
-Split out of app/server.py (which includes this router right after /trade, keeping the route order, and
-re-exports every name here). The portfolio manager is read through app.portfolio.get_portfolio_manager()
-at call time (one shared place: app.portfolio.portfolio_manager), so a test replaces it there.
+The portfolio manager is read through app.portfolio.get_portfolio_manager() at call time (one shared
+place: app.portfolio.portfolio_manager), so a test replaces it there.
 """
 import logging
-import time
 from typing import Optional
 
 from fastapi import APIRouter
@@ -15,7 +13,6 @@ from app.bot_controls import sanitize_bot_id
 from app.cbot_watchdog import record_bot_tick
 from app.dashboard import broadcast_event, broadcast_tick, broadcast_update, tick_levels
 from app.portfolio import get_portfolio_manager
-from app.trade_gates import _TMS_CROSS_LOCK_REGISTRY
 
 logger = logging.getLogger("AgentFxTrading")
 
@@ -26,7 +23,7 @@ router = APIRouter()
 @router.post("/api/telemetry_tick")
 async def handle_telemetry_tick(request: dict):
     """
-    Direct tick telemetry endpoint from cBots (TMS or Judas Sweep).
+    Direct tick telemetry endpoint from cBots (Gotobi or Crypto Donchian).
     Updates account equity/balance and live market prices in portfolio manager.
     """
     try:
@@ -64,7 +61,7 @@ async def handle_telemetry_tick(request: dict):
             pips = float(request["pips"]) if request.get("pips") is not None else None
         except (TypeError, ValueError):
             pnl = pips = None
-        # FlowRsiBot posts a `positions` list instead of flat fields; its first entry is the
+        # The bots post a `positions` list instead of flat fields; its first entry is the
         # position the dashboard row shows (one per bot).
         levels = tick_levels(request)
         positions = request.get("positions")
@@ -89,25 +86,6 @@ async def handle_telemetry_tick(request: dict):
         return {"status": "ok", "account_id": account_id}
     except Exception as e:
         logger.error(f"Telemetry tick error: {e}")
-        return {"status": "error", "message": str(e)}
-@router.post("/api/cbot_event")
-async def handle_cbot_event(request: dict):
-    """
-    Direct event telemetry endpoint from cBots (guardrail blocks, custom warnings, execution failures).
-    """
-    try:
-        bot_id = sanitize_bot_id(request.get("bot_id", "default"))
-        event_type = request.get("event_type", "GUARDRAIL")
-        message = request.get("message", "")
-        account_number = str(request.get("account_number", "0"))
-        logger.info(f"[CBOT EVENT] {account_number}/{bot_id} | Type: {event_type} | Message: {message}")
-        try:
-            await broadcast_event(event_type=event_type, message=message, bot_id=bot_id, account_id=account_number)
-        except Exception:
-            pass
-        return {"status": "ok"}
-    except Exception as e:
-        logger.error(f"Error handling cbot event: {e}")
         return {"status": "error", "message": str(e)}
 
 
@@ -205,45 +183,6 @@ async def report_position(request: dict):
                 pass
             return {"status": "success", "message": f"Account {account_id} synced", "account_id": account_id}
         
-        elif action == "partial_close":
-            # cTrader's Positions.Closed does not fire on a partial close, so the bot
-            # reports it explicitly: bank the realised P&L on the still-open row and
-            # shrink its volume to what is actually left running.
-            remaining_volume = float(request.get("remaining_volume", 0) or 0)
-            realized_pnl = float(request.get("realized_pnl", 0) or 0)
-            closed_volume = float(request.get("closed_volume", 0) or 0)
-
-            success = get_portfolio_manager().record_partial_close(
-                bot_id=bot_id,
-                symbol=symbol,
-                remaining_volume=remaining_volume,
-                realized_pnl=realized_pnl,
-                account_id=account_id,
-                ctrader_id=ctrader_id
-            )
-
-            if success:
-                logger.info(
-                    f"[PORTFOLIO EVENT] PARTIAL CLOSE | {account_id}/{bot_id} | {symbol} | "
-                    f"closed {closed_volume} lots for ${realized_pnl:.2f} | {remaining_volume} lots remaining"
-                )
-                try:
-                    await broadcast_update(account_id=account_id)
-                except Exception:
-                    pass
-                try:
-                    await broadcast_event(
-                        "TRADE_PARTIAL_CLOSE",
-                        f"PARTIAL {symbol} {bot_id} {closed_volume}L PnL: ${realized_pnl:.2f}",
-                        bot_id=bot_id,
-                        account_id=str(account_id),
-                    )
-                except Exception:
-                    pass
-                return {"status": "success", "message": "Partial close recorded"}
-            else:
-                return {"status": "error", "message": "Failed to record partial close"}
-
         elif action == "close":
             exit_price = request.get("exit_price")
             pnl = request.get("pnl", 0)
@@ -252,8 +191,8 @@ async def report_position(request: dict):
                 if latest:
                     exit_price = latest.get("bid") or latest.get("ask")
             
-            # FlowRsiBot sends `reason`; the other bots send `close_reason`. Both are free text
-            # composed by the bot (cTrader's close reason plus the bot's own exit rule).
+            # The bots send `reason` (older reports used `close_reason`): free text composed by the
+            # bot (cTrader's close reason plus the bot's own exit rule).
             close_reason = (request.get("close_reason") or request.get("reason") or "").strip() or None
             success = get_portfolio_manager().close_position(
                 bot_id=bot_id,
@@ -293,31 +232,6 @@ async def report_position(request: dict):
         return {"status": "error", "message": str(e)}
 
 
-@router.get("/portfolio/open-positions")
-async def get_open_positions(bot_id: str, account_number: str = "0"):
-    """
-    Open positions with the stop distance recorded at entry.
-
-    A restarting cBot uses this to rebuild its in-RAM initial-SL map: without it, a
-    position already moved to break-even looks like it was opened with a ~0.5 pip
-    stop, and every R-based decision (trailing trigger, partial close) runs on a
-    fabricated R.
-    """
-    try:
-        registry = get_account_registry()
-        account_type = registry.get_account_type(str(account_number)) or "demo"
-        account_id = registry.resolve_account_id(str(account_number), account_type)
-        if not account_id:
-            return {"status": "success", "positions": []}
-        rows = get_portfolio_manager().get_open_positions(
-            bot_id=sanitize_bot_id(bot_id), account_id=account_id
-        )
-        return {"status": "success", "positions": rows}
-    except Exception as e:
-        logger.error(f"Open positions lookup error: {e}")
-        return {"status": "error", "message": str(e), "positions": []}
-
-
 @router.get("/portfolio/status")
 async def get_portfolio_status(account_id: Optional[str] = None):
     """Get current portfolio status."""
@@ -337,12 +251,3 @@ async def api_dashboard_accounts():
     except Exception as e:
         logger.error(f"Dashboard accounts error: {e}")
         return {"error": str(e)}
-
-@router.get("/api/tms/cross-locks")
-async def api_tms_cross_locks():
-    """Return live TMS cross-lock directional bias cache across all symbols."""
-    return {
-        "status": "ok",
-        "cross_locks": _TMS_CROSS_LOCK_REGISTRY,
-        "timestamp": time.time(),
-    }

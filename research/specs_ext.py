@@ -3,17 +3,16 @@ research) that research/specs.py does not calibrate from a live cTrader report.
 
 research/specs.SPECS's 15 entries come from measured cTrader reports; that calibration does not exist for
 these 11, so their `comm_per_unit` follows the broker's disclosed schedule instead (2 x $30 per $1M notional
-per side for FX and metals, none for indices and energies -- research/lab/universe.COMMISSION_PER_SIDE and
-docs/superpowers/specs/2026-09-26-h1-history-data-design.md), and `usd_per_quote` is a single constant (the
-2025-09..2026-09 median of the conversion pair), not the day-by-day conversion research/lab/costs.py uses for
-the main lab. Swaps are not modelled (SWAPS omits these symbols; research.specs.swap_usd returns 0 for a
+per side for FX and metals, none for indices and energies, as the removed strategy lab and its H1-history
+design used), and `usd_per_quote` is a single constant (the 2025-09..2026-09 median of the conversion pair), not
+a day-by-day conversion. Swaps are not modelled (SWAPS omits these symbols; research.specs.swap_usd returns 0 for a
 symbol it does not know) -- a real but second-order gap given the <=5-day hold this lab enforces (at most a
 handful of rollovers per trade). None of this is Symbol.Commission truth; it is a research-only approximation
 so the 2016-2026 swing lab can include these symbols at all.
 """
 from research.specs import SymbolSpec
 
-_SIDE = 30e-6  # USD per USD notional, one side (research/lab/universe.COMMISSION_PER_SIDE)
+_SIDE = 30e-6  # USD per USD notional, one side (the broker's disclosed schedule)
 
 EXT_SPECS = {s.symbol: s for s in [
     # FX

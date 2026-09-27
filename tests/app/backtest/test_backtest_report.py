@@ -100,7 +100,7 @@ def test_equity_points_and_parameters():
     payload = ui_payload(REPORT)
     assert payload["equity"][0] == {"t": 1784851200000, "balance": 10000.0, "equity": 10000.0}
     assert payload["equity"][3] == {"t": 1785290400000, "balance": 10011.02, "equity": 9990.4}
-    assert payload["parameters"] == {"BotId": "bt-7", "TargetRiskReward": "1.5", "SlMode": "Technical_Swing"}
+    assert payload["parameters"] == {"BotId": "bt-7", "RiskPerTradeMoney": "50.0", "StopAtrMultiplier": "3.0"}
 
 
 def test_downsample_keeps_first_and_last_and_the_limit():

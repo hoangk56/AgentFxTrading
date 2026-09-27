@@ -249,9 +249,19 @@ def session_fx(b, symbol=None, eu=True, us=True, slk=4.0, eu_hours=(7, 12), us_h
     return Signals(le, se, slk * _atr(b), None, lx, sx)
 
 
+def ny_offset_ms(ts: np.ndarray) -> np.ndarray:
+    """New York's UTC offset in ms (negative) at each timestamp, resolved per UTC hour."""
+    from zoneinfo import ZoneInfo
+    ny, hour_ms = ZoneInfo("America/New_York"), 3_600_000
+    h = np.asarray(ts, np.int64) // hour_ms
+    h0 = int(h.min())
+    offs = np.array([datetime.datetime.fromtimestamp(x * 3600, ny).utcoffset().total_seconds() * 1000
+                     for x in range(h0, int(h.max()) + 1)], np.int64)
+    return offs[h - h0]
+
+
 def _ny_minutes(t_ms: np.ndarray) -> np.ndarray:
     """Minutes after New York midnight for each UTC ms timestamp (DST-aware)."""
-    from research.lab.engine import ny_offset_ms
     loc = np.asarray(t_ms, np.int64) + ny_offset_ms(np.asarray(t_ms, np.int64))
     return ((loc // 60_000) % 1440).astype(int), (loc // 86_400_000).astype(int)
 
@@ -287,10 +297,18 @@ def day_long(b, symbol=None, entry_ny=18 * 60 + 15, exit_ny=15 * 60 + 45, ma=200
 
 
 def gotobi_days(first, last):
-    """research/lab/strategies/literature.gotobi_days: the 5th/10th/15th/20th/25th and the month's last day,
-    a weekend day moved to the Friday before (Japanese holidays not modelled)."""
-    from research.lab.strategies.literature import gotobi_days as g
-    return g(first, last)
+    """The 5th/10th/15th/20th/25th and the month's last day in [first, last], a weekend day moved to the Friday
+    before (Japanese holidays not modelled)."""
+    out, y, m = set(), first.year, first.month
+    while (y, m) <= (last.year, last.month):
+        nxt = datetime.date(y + (m == 12), m % 12 + 1, 1)
+        for d in [datetime.date(y, m, k) for k in (5, 10, 15, 20, 25)] + [nxt - datetime.timedelta(days=1)]:
+            while d.weekday() >= 5:
+                d -= datetime.timedelta(days=1)
+            if first <= d <= last:
+                out.add(d)
+        y, m = nxt.year, nxt.month
+    return sorted(out)
 
 
 def _h1_atr_on(b, symbol, n=20):
@@ -322,7 +340,7 @@ def gotobi_nominal(first, last):
 
 def gotobi(b, symbol=None, long_leg=True, short_leg=True, slk=3.0, entry_utc=18 * 60, fix_utc=55, end_utc=2 * 60 + 55,
            day_sizes=None, **_):
-    """N2 gotobi (USDJPY), research/lab/strategies/literature.gotobi on UTC M5 bars: on a gotobi day d, long from
+    """N2 gotobi (USDJPY), the removed lab's literature.gotobi on UTC M5 bars: on a gotobi day d, long from
     03:00 Tokyo (18:00 UTC on d-1; the first bar after the weekend open when that is closed) to the 09:55 Tokyo fix
     (00:55 UTC on d), then short from the fix to 11:55 Tokyo (02:55 UTC); stop 3 x ATR20(H1)."""
     import datetime as _dt

@@ -57,64 +57,64 @@ def test_presets_endpoint_shape():
     res = client.get("/api/setup/presets")
     assert res.status_code == 200
     data = res.json()
-    assert set(data["strategies"]) == {"tms_orb", "judas", "flowrsi", "gotobi", "donchian"}
-    assert data["strategies"]["judas"]["label"] == "Judas Sweep"
-    assert len(data["symbols"]) == 15
-    assert len(data["cells"]) == 50       # 15 x 3 AI-gated + gotobi on 3 JPY pairs + donchian on BTC/ETH
+    assert set(data["strategies"]) == {"gotobi", "donchian"}
+    assert data["strategies"]["gotobi"]["label"] == "Gotobi Fix"
+    assert data["symbols"] == ["USDJPY", "EURJPY", "GBPJPY", "BTCUSD", "ETHUSD"]
+    assert len(data["cells"]) == 5        # gotobi on 3 JPY pairs + donchian on BTC/ETH
     assert {c["symbol"] for c in data["cells"] if c["strategy"] == "gotobi"} == {"USDJPY", "EURJPY", "GBPJPY"}
     assert {c["symbol"] for c in data["cells"] if c["strategy"] == "donchian"} == {"BTCUSD", "ETHUSD"}
     assert all(set(c) == {"symbol", "strategy", "period", "session"} for c in data["cells"])
 
 
 def test_start_saves_config_and_starts_each_new_selection(account, fake_docker, tmp_path):
-    res = _post(account["id"], [{"symbol": "XAUUSD", "strategy": "tms_orb"}, {"symbol": "GBPUSD", "strategy": "judas"}])
+    res = _post(account["id"], [{"symbol": "USDJPY", "strategy": "gotobi"}, {"symbol": "BTCUSD", "strategy": "donchian"}])
     assert res.status_code == 200, res.text
     results = res.json()["results"]
     assert [r["status"] for r in results] == ["started", "started"]
-    assert [r["name"] for r in results] == ["cbot-demo-setup-xauusd-newyork", "cbot-demo-setup-gbpusd-KZ-london-ny-judas"]
+    assert [r["name"] for r in results] == ["cbot-demo-setup-usdjpy-fix-gotobi", "cbot-demo-setup-btcusd-h4-donchian"]
     assert results[0]["message"] == "ok"
 
     row = get_account_registry().get_ctrader_account(account["id"])
-    expected = build_run_command(row, "tms_orb", "XAUUSD", str(dashboard_module.PROJECT_ROOT), str(tmp_path))
-    assert fake_docker.calls[0] == ("cbot-demo-setup-xauusd-newyork", expected)
+    expected = build_run_command(row, "gotobi", "USDJPY", str(dashboard_module.PROJECT_ROOT), str(tmp_path))
+    assert fake_docker.calls[0] == ("cbot-demo-setup-usdjpy-fix-gotobi", expected)
     assert len(fake_docker.calls) == 2
 
     pm = get_portfolio_manager()
-    cfg = pm.get_cbot_config("cbot-demo-setup-xauusd-newyork")
+    cfg = pm.get_cbot_config("cbot-demo-setup-usdjpy-fix-gotobi")
     assert cfg["run_command"] == expected
-    assert cfg["description"] == "TMS+ORB XAUUSD m15 — Setup"
+    assert cfg["description"] == "Gotobi Fix USDJPY m15 — Setup"
     assert f"-v {tmp_path}:/root" in expected                       # CTRADER_HOME from env
     assert "--pwd-file=/root/ctrader_data/ctid_demo-setup_pwd" in expected
-    assert pm.get_cbot_config("cbot-demo-setup-gbpusd-KZ-london-ny-judas")["description"] == "Judas Sweep GBPUSD m15 — Setup"
+    assert pm.get_cbot_config("cbot-demo-setup-btcusd-h4-donchian")["description"] == "Crypto Donchian BTCUSD h1 — Setup"
 
 
 def test_save_only_never_calls_docker(account, fake_docker):
-    res = _post(account["id"], [{"symbol": "EURUSD", "strategy": "flowrsi"}], start=False)
+    res = _post(account["id"], [{"symbol": "EURJPY", "strategy": "gotobi"}], start=False)
     results = res.json()["results"]
-    assert results == [{"symbol": "EURUSD", "strategy": "flowrsi", "name": "cbot-demo-setup-eurusd-all-flowrsi",
+    assert results == [{"symbol": "EURJPY", "strategy": "gotobi", "name": "cbot-demo-setup-eurjpy-fix-gotobi",
                         "status": "saved", "message": "Config saved"}]
     assert fake_docker.calls == []
-    assert get_portfolio_manager().get_cbot_config("cbot-demo-setup-eurusd-all-flowrsi") is not None
+    assert get_portfolio_manager().get_cbot_config("cbot-demo-setup-eurjpy-fix-gotobi") is not None
 
 
 def test_existing_name_is_reported_and_not_started(account, fake_docker):
-    first = _post(account["id"], [{"symbol": "US30", "strategy": "tms_orb"}]).json()["results"]
+    first = _post(account["id"], [{"symbol": "GBPJPY", "strategy": "gotobi"}]).json()["results"]
     assert first[0]["status"] == "started"
-    second = _post(account["id"], [{"symbol": "US30", "strategy": "tms_orb"}]).json()["results"]
+    second = _post(account["id"], [{"symbol": "GBPJPY", "strategy": "gotobi"}]).json()["results"]
     assert second[0]["status"] == "exists"
-    assert second[0]["name"] == "cbot-demo-setup-us30-newyork"
+    assert second[0]["name"] == "cbot-demo-setup-gbpjpy-fix-gotobi"
     assert len(fake_docker.calls) == 1
 
 
 def test_unknown_pair_is_error_and_batch_continues(account, fake_docker):
     res = _post(account["id"], [
-        {"symbol": "NZDUSD", "strategy": "tms_orb"},       # symbol not in the matrix
-        {"symbol": "eurusd", "strategy": "flowrsi"},        # symbol case-normalised
-        {"symbol": "XAUUSD", "strategy": "nope"},
+        {"symbol": "EURUSD", "strategy": "gotobi"},        # symbol not in the matrix
+        {"symbol": "ethusd", "strategy": "donchian"},       # symbol case-normalised
+        {"symbol": "USDJPY", "strategy": "nope"},
     ])
     results = res.json()["results"]
     assert results[0]["status"] == "error" and "preset" in results[0]["message"] and results[0]["name"] == ""
-    assert results[1]["status"] == "started" and results[1]["symbol"] == "EURUSD"
+    assert results[1]["status"] == "started" and results[1]["symbol"] == "ETHUSD"
     assert results[2]["status"] == "error"
     assert len(fake_docker.calls) == 1
 
@@ -122,14 +122,14 @@ def test_unknown_pair_is_error_and_batch_continues(account, fake_docker):
 def test_docker_failure_keeps_config_for_retry(account, monkeypatch):
     fake = FakeDocker(success=False)
     monkeypatch.setattr(dashboard_module, "docker_manager", fake)
-    res = _post(account["id"], [{"symbol": "DE40", "strategy": "tms_orb"}])
+    res = _post(account["id"], [{"symbol": "BTCUSD", "strategy": "donchian"}])
     result = res.json()["results"][0]
     assert result["status"] == "error" and result["message"] == "boom"
-    assert get_portfolio_manager().get_cbot_config("cbot-demo-setup-de40-london") is not None
+    assert get_portfolio_manager().get_cbot_config("cbot-demo-setup-btcusd-h4-donchian") is not None
 
 
 def test_unknown_account_is_404(fake_docker):
-    res = _post(999999, [{"symbol": "XAUUSD", "strategy": "tms_orb"}])
+    res = _post(999999, [{"symbol": "USDJPY", "strategy": "gotobi"}])
     assert res.status_code == 404
     assert res.json()["success"] is False
     assert fake_docker.calls == []
@@ -142,13 +142,14 @@ def test_empty_selection_is_ok(account, fake_docker):
 
 def test_installed_lists_each_saved_cell_with_its_account(account, fake_docker):
     assert client.get("/api/setup/installed").json() == {"installed": []}
-    _post(account["id"], [{"symbol": "XAUUSD", "strategy": "tms_orb"}, {"symbol": "EURUSD", "strategy": "flowrsi"}], start=False)
+    _post(account["id"], [{"symbol": "USDJPY", "strategy": "gotobi"}, {"symbol": "ETHUSD", "strategy": "donchian"}],
+          start=False)
     res = client.get("/api/setup/installed")
     assert res.status_code == 200
     assert res.json()["installed"] == [
-        {"symbol": "XAUUSD", "strategy": "tms_orb", "name": "cbot-demo-setup-xauusd-newyork",
+        {"symbol": "USDJPY", "strategy": "gotobi", "name": "cbot-demo-setup-usdjpy-fix-gotobi",
          "account_id": account["id"], "account_label": "Setup", "account_type": "demo"},
-        {"symbol": "EURUSD", "strategy": "flowrsi", "name": "cbot-demo-setup-eurusd-all-flowrsi",
+        {"symbol": "ETHUSD", "strategy": "donchian", "name": "cbot-demo-setup-ethusd-h4-donchian",
          "account_id": account["id"], "account_label": "Setup", "account_type": "demo"},
     ]
     assert fake_docker.calls == []   # a listing never touches Docker

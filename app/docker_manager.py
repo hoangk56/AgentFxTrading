@@ -172,7 +172,7 @@ class DockerManager:
             l_low = l.lower()
             if "all login retry attempts failed" in l_low or "connection failed, moving to reconnection state" in l_low:
                 all_retry_idx = idx
-            if "logged in" in l_low or "cbot instance [" in l_low or "aiagentbot started" in l_low or "asianrangejudassweepbot started" in l_low:
+            if "logged in" in l_low or "cbot instance [" in l_low:
                 logged_in_idx = idx
 
         if all_retry_idx != -1 and logged_in_idx < all_retry_idx:

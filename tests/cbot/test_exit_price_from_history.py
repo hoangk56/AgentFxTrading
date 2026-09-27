@@ -15,9 +15,6 @@ break-even that returned the PARTIAL, not the exit. On 2026-09-23:
     ETHUSD #674939909  TP hit at 2737.29      -> exit_price 2744.36
     BTCUSD #674942777  TP hit at 85832.38     -> exit_price 86149.11
 
-The Judas bot also fell back to ``History.FindLast(label, SymbolName)``, which before
-this position's deal is booked returns the previous position's exit.
-
 Every bot now asks ``FinalClosingPrice``: the newest deal for the position that closed
 the remaining volume within the last minute.
 """
@@ -43,9 +40,6 @@ def _body(cs_name: str, signature: str) -> str:
 
 
 HANDLERS = [
-    ("FlowRsiBot.cs", "private void OnPositionClosed(PositionClosedEventArgs args)"),
-    ("AiAgentBot.cs", "private void OnPositionClosed(PositionClosedEventArgs args)"),
-    ("AsianRangeJudasSweepBot.cs", "private void OnPositionsClosed(PositionClosedEventArgs args)"),
     ("GotobiBot.cs", "private void OnPositionClosed(PositionClosedEventArgs args)"),
     ("CryptoDonchianBot.cs", "private void OnPositionClosed(PositionClosedEventArgs args)"),
 ]

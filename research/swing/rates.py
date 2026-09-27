@@ -1,6 +1,6 @@
 """Historical short rates (FRED) and a time-varying swap model for research/swing/swing.py.
 
-Swap per rollover as a fraction of price (docs/superpowers/specs/2026-09-26-h1-history-data-design.md):
+Swap per rollover as a fraction of price:
   FX BASEQUOTE : long = (r_base - r_quote)/360 - m_long,   short = (r_quote - r_base)/360 - m_short
   index, metal : long = -r_ccy/360 - m_long,               short = r_ccy/360 - m_short
   energy, crypto: IC's 2026 fraction held constant (their financing follows futures curves / exchange funding)

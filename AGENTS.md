@@ -7,10 +7,10 @@ only point here; if they ever disagree with this file, this file wins.
 - **Backend**: FastAPI server running under systemd as `agentfx.service`
   (`/home/forge/AgentFxTrading/.venv/bin/uvicorn app.server:app --host 127.0.0.1 --port 8000`).
 - **Bots**: Spotware cTrader CLI containers running in Docker with `--network host`, one container per
-  strategy × symbol × account. Strategies: TMS+ORB (`cBot/AiAgentBot.cs`), Judas Sweep
-  (`cBot/AsianRangeJudasSweepBot.cs`), FlowRSI (`cBot/FlowRsiBot.cs`), Gotobi Fix (`cBot/GotobiBot.cs`),
-  Crypto Donchian (`cBot/CryptoDonchianBot.cs`).
-  - Containers are named `cbot-<account slug>-<symbol>-<session>[-<strategy>]`; the name doubles as `--BotId`.
+  strategy × symbol × account. Two strategies, both rule-based: Gotobi Fix (`cBot/GotobiBot.cs`) and Crypto
+  Donchian (`cBot/CryptoDonchianBot.cs`). The server makes no trading decision: the bots report positions and
+  telemetry (`/portfolio/report`, `/api/tick`) and poll dashboard commands (`/api/cbot/commands`).
+  - Containers are named `cbot-<account slug>-<symbol>-<session>-<strategy>`; the name doubles as `--BotId`.
     List what actually runs with `docker ps`.
   - Source of truth for presets and strategy flags: `app/cbot_presets.py`. The long form (every `docker run`
     command) is `docs/docker-instances.md`; `tests/app/test_cbot_presets.py` keeps the two in sync. Do not copy
@@ -19,9 +19,9 @@ only point here; if they ever disagree with this file, this file wins.
   restarts stuck containers.
 - **Database**: PostgreSQL 17 in production via `DATABASE_URL`, with a daily backup cron job
   (`scripts/backup_postgres.sh`); SQLite WAL (`portfolio.db`) is the fallback for local runs and tests.
-- **Research**: `research/` is an offline strategy lab with its own venv (`research/.venv`,
-  `research/requirements.txt`) and tests. Conclusions go in `research/JOURNAL.md` (one dated entry per result).
-  `research/STRATEGIES.md` is generated from `research/lab/catalog.py` — never edit it by hand.
+- **Research**: `research/` is offline strategy research (the swing lab behind both bots) with its own venv
+  (`research/.venv`, `research/requirements.txt`) and tests. Conclusions go in `research/JOURNAL.md` (one dated
+  entry per result).
 
 ## Where new code goes
 - New HTTP endpoints: an `APIRouter` module (see `app/dashboard.py`, `app/backtest_api.py`) included from

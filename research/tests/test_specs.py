@@ -1,61 +1,13 @@
-import re
-from pathlib import Path
-
 import pytest
 
 np = pytest.importorskip("numpy")
 
-from research.specs import CBOT_DEFAULTS, SPECS, flowrsi_params, normalize_units, size_units  # noqa: E402
-
-ROOT = Path(__file__).resolve().parents[2]
-
-
-def _cbot_defaults():
-    src = (ROOT / "cBot" / "FlowRsiBot.cs").read_text()
-    pairs = re.findall(r"\[Parameter\([^\n]*?DefaultValue = ([^,)\n]+)[^\n]*\n\s*public \w+ (\w+)", src)
-    return {name: value.strip() for value, name in pairs}
-
-
-def test_cbot_defaults_match_the_cs_source():
-    parsed = _cbot_defaults()
-    for key, value in CBOT_DEFAULTS.items():
-        assert key in parsed, key
-        if isinstance(value, bool):
-            assert parsed[key] == ("true" if value else "false"), key
-        else:
-            assert float(parsed[key]) == float(value), key
+from research.specs import SPECS  # noqa: E402
 
 
 def test_all_fifteen_pairs_have_specs():
     assert len(SPECS) == 15
     assert SPECS["USDJPY"].pip_value == pytest.approx(0.01 * 0.0062963)
-
-
-def test_flowrsi_params_layer_defaults_preset_and_overrides():
-    p = flowrsi_params("XAUUSD")
-    assert p["MinSlFloorPips"] == 1500.0 and p["TrailingStopDistancePips"] == 800.0
-    assert p["PartialCloseRatio"] == 0.5
-    assert flowrsi_params("XAUUSD", MinSlFloorPips=500.0)["MinSlFloorPips"] == 500.0
-    assert flowrsi_params("EURUSD")["MinSlFloorPips"] == 15.0
-
-
-def test_normalize_rounds_to_the_nearest_step():
-    eur = SPECS["EURUSD"]
-    assert normalize_units(6666.7, eur) == 7000
-    assert normalize_units(6400, eur) == 6000
-    assert normalize_units(0.123, SPECS["BTCUSD"]) == pytest.approx(0.12)
-
-
-def test_size_units_matches_the_cbot_risk_engine():
-    p = flowrsi_params("EURUSD")
-    assert size_units(2000.0, 15.0, SPECS["EURUSD"], p) == 7000      # $10 / 15 pips -> 6667 -> 7000
-
-
-def test_xau_min_lot_guardrail_at_2000():
-    p, xau = flowrsi_params("XAUUSD"), SPECS["XAUUSD"]
-    assert size_units(2000.0, 1500.0, xau, p) == 1                  # $15 == 1.5 x $10: allowed
-    assert size_units(2000.0, 1600.0, xau, p) == 0.0                # $16 > $15: refused
-    assert size_units(1990.0, 1500.0, xau, p) == 0.0                # 1.5 x $9.95 < $15: refused
 
 
 from research.specs import SWAPS, rollovers, swap_usd  # noqa: E402

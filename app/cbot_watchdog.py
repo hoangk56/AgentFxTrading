@@ -1,5 +1,4 @@
 import asyncio
-import calendar
 import datetime
 import logging
 import re
@@ -10,52 +9,28 @@ from app.portfolio import get_portfolio_manager
 
 logger = logging.getLogger("AgentFxTrading.Watchdog")
 
-# ---------------------------------------------------------------------------
-# Bar-feed freshness
-#
-# A TMS/ORB bot pushes one snapshot per closed bar for as long as its own session
-# window is open. On 2026-09-14 a broker reconnect re-published the bar series, every
-# cBot's OnBarClosed returned early, and 8 bots stopped reporting for 3.5 hours while
-# their containers stayed up, logged in, and looked healthy to the login-based checks
-# below. record_bot_snapshot() is called by the API server on every snapshot; the loop
-# then restarts a bot whose session is open, whose feed was alive, and which has since
-# gone quiet for longer than a full bar cycle.
-# ---------------------------------------------------------------------------
-
-DEFAULT_STALE_FEED_SECONDS = 2400  # 40 min: > one M15 bar + LLM latency, < two bars
-
-_snapshot_seen_at: Dict[str, float] = {}
+DEFAULT_STALE_FEED_SECONDS = 2400  # 40 min for an M15 bot: > one bar, < two bars
+M15_SECONDS = 900
+_PERIOD_UNIT_SECONDS = {"m": 60, "h": 3600, "d": 86400, "w": 604800}
 
 
-def record_bot_snapshot(bot_key: str) -> None:
-    """Stamp a snapshot received from `bot_key` ("<account_id>/<bot_id>")."""
-    _snapshot_seen_at[bot_key] = time.time()
-
-
-def reset_snapshot_telemetry() -> None:
-    """Forget every recorded snapshot and tick (used by tests)."""
-    _snapshot_seen_at.clear()
+def reset_tick_telemetry() -> None:
+    """Forget every recorded tick (used by tests)."""
     _tick_seen_at.clear()
     _tick_run_since.clear()
     _bar_seen.clear()
     _bar_advanced_at.clear()
 
 
-def last_snapshot_for(bot_id: str) -> Optional[float]:
-    """Newest snapshot timestamp for `bot_id`, whichever account reported it."""
-    hits = [t for key, t in _snapshot_seen_at.items() if key.endswith(f"/{bot_id}")]
-    return max(hits) if hits else None
-
-
 # ---------------------------------------------------------------------------
-# Bar heartbeat for all-day bots (FlowRSI, Judas)
+# Bar heartbeat
 #
-# They have no session window and call /trade only when a setup or a filter allows it: a Judas
-# bot sat silent 5-7 h on 2026-09-23, and FlowRSI skips the call on news, a wide spread or a
-# tripped circuit breaker. Their tick frames carry `last_bar` instead - the last bar the bot
-# handled - so a bot whose ticks keep flowing while that stops advancing has a stalled bar
-# pipeline. Ticks stop when the market does, so a closed market never looks stalled.
-# Keyed by bot_id alone: the /ws/cbot frames carry no account.
+# On 2026-09-14 a broker reconnect re-published the bar series, every cBot's OnBarClosed returned
+# early, and 8 bots stopped handling bars for 3.5 hours while their containers stayed up, logged
+# in, and looked healthy to the login-based checks below. The bots' tick frames carry `last_bar` -
+# the last bar the bot handled - so a bot whose ticks keep flowing while that stops advancing has a
+# stalled bar pipeline. Ticks stop when the market does, so a closed market never looks stalled.
+# Keyed by bot_id alone.
 # ---------------------------------------------------------------------------
 
 TICK_GAP_SECONDS = 300  # a longer gap ends the tick run: market closed, or the bot was down
@@ -84,106 +59,18 @@ def parse_bot_id(run_command: Optional[str]) -> str:
     return m.group(2) if m else ""
 
 
-def parse_session_params(run_command: Optional[str]) -> Optional[Dict[str, Any]]:
-    """Extract the per-bar session window from a bot's docker run command.
-
-    Returns None for bots that run no bar cycle (the Judas sweep bots carry no
-    --OrbStartHour/--SessionEndHour) or when the command cannot be parsed.
-    """
-    if not run_command or "--OrbStartHour" not in run_command or "--SessionEndHour" not in run_command:
-        return None
-
-    def number(key: str) -> Optional[int]:
-        m = re.search(rf'--{key}=("?)(-?\d+)\1', run_command)
-        return int(m.group(2)) if m else None
-
-    def text(key: str) -> str:
-        m = re.search(rf'--{key}=("?)([^"\s\\]+)\1', run_command)
-        return m.group(2) if m else ""
-
-    start_hour, end_hour = number("OrbStartHour"), number("SessionEndHour")
-    if start_hour is None or end_hour is None:
-        return None
-
-    return {
-        "bot_id": parse_bot_id(run_command),
-        "session_name": text("SessionName") or "unknown",
-        "start_hour": start_hour,
-        "start_minute": number("OrbStartMinute") or 0,
-        "end_hour": end_hour,
-        "end_minute": number("SessionEndMinute") or 0,
-        "dst_rule": text("SessionDstRule") or "None",
-    }
+def _period_label(seconds: int) -> str:
+    for unit, size in (("D", 86400), ("H", 3600)):
+        if seconds % size == 0:
+            return f"{unit}{seconds // size}"
+    return f"M{seconds // 60}"
 
 
-def _nth_sunday(year: int, month: int, n: int) -> datetime.date:
-    first = datetime.date(year, month, 1)
-    return first + datetime.timedelta(days=(6 - first.weekday()) % 7 + (n - 1) * 7)
+def parse_bar_seconds(run_command: Optional[str]) -> int:
+    """Length of the chart bar the bot runs on, from its --period flag (m15, h1, ...); M15 when absent or unknown."""
+    m = re.search(r'--period=("?)([mhdw])(\d+)\1', (run_command or "").lower())
+    return int(m.group(3)) * _PERIOD_UNIT_SECONDS[m.group(2)] if m else M15_SECONDS
 
-
-def _last_sunday(year: int, month: int) -> datetime.date:
-    last = datetime.date(year, month, calendar.monthrange(year, month)[1])
-    return last - datetime.timedelta(days=(last.weekday() + 1) % 7)
-
-
-def _adjusted_hour(now_utc: datetime.datetime, base_hour: int, dst_rule: str) -> int:
-    """Port of AiAgentBot.GetAdjustedHour: keep the local open hour, express it in UTC."""
-    if dst_rule not in ("US", "Europe") or base_hour == 0:
-        return base_hour
-
-    year = now_utc.year
-    if dst_rule == "US":
-        # 2nd Sunday of March -> 1st Sunday of November
-        start = datetime.datetime.combine(_nth_sunday(year, 3, 2), datetime.time(7), tzinfo=datetime.timezone.utc)
-        end = datetime.datetime.combine(_nth_sunday(year, 11, 1), datetime.time(6), tzinfo=datetime.timezone.utc)
-    else:
-        # Last Sunday of March -> last Sunday of October
-        start = datetime.datetime.combine(_last_sunday(year, 3), datetime.time(1), tzinfo=datetime.timezone.utc)
-        end = datetime.datetime.combine(_last_sunday(year, 10), datetime.time(1), tzinfo=datetime.timezone.utc)
-
-    is_dst = start <= now_utc < end
-    return (base_hour - 1) % 24 if is_dst else base_hour
-
-
-def is_forex_weekend(now_utc: datetime.datetime) -> bool:
-    """FX closes Friday 21:00 UTC and reopens Sunday 21:00 UTC (mirrors get_market_sessions_info)."""
-    weekday = now_utc.weekday()
-    hour = now_utc.hour + now_utc.minute / 60.0
-    return (weekday == 4 and hour >= 21.0) or weekday == 5 or (weekday == 6 and hour < 21.0)
-
-
-def active_session_start(params: Dict[str, Any], now_utc: datetime.datetime) -> Optional[datetime.datetime]:
-    """UTC start of the session instance open at `now_utc`, or None when outside the window.
-
-    Mirrors AiAgentBot.GetSessionInfo, including the 9h fallback when SessionEndHour is 0.
-    """
-    start_hour = _adjusted_hour(now_utc, params["start_hour"], params["dst_rule"])
-    end_hour = _adjusted_hour(now_utc, params["end_hour"], params["dst_rule"])
-
-    start_minute = params.get("start_minute", 0)
-    start_minutes = start_hour * 60 + start_minute
-    end_minutes = end_hour * 60 + params["end_minute"]
-    if params["end_hour"] == 0:
-        end_minutes = start_minutes + 540
-    overnight = start_minutes > end_minutes
-    now_minutes = now_utc.hour * 60 + now_utc.minute
-    if overnight:
-        is_active = now_minutes >= start_minutes or now_minutes < end_minutes
-    else:
-        is_active = start_minutes <= now_minutes < end_minutes
-    if not is_active:
-        return None
-
-    day = now_utc.date()
-    if overnight and now_minutes < end_minutes:
-        day -= datetime.timedelta(days=1)
-    return datetime.datetime.combine(day, datetime.time(start_hour, start_minute), tzinfo=datetime.timezone.utc)
-import time
-from typing import Dict, List, Optional, Any
-from app.docker_manager import docker_manager
-from app.portfolio import get_portfolio_manager
-
-logger = logging.getLogger("AgentFxTrading.Watchdog")
 
 class CbotWatchdog:
     """
@@ -210,9 +97,10 @@ class CbotWatchdog:
 
         # Per-bot restart timestamps: bot_name -> list of float timestamps
         self._restart_history: Dict[str, List[float]] = {}
-        # Stall episode already healed: bot_name -> session start (session bots) or the bar the
-        # bot was stuck on (all-day bots)
+        # Stall episode already healed: bot_name -> the bar the bot was stuck on
         self._stale_healed: Dict[str, Any] = {}
+        # Stall allowance last applied to each bot_id, shown by get_status()
+        self._bar_allowance: Dict[str, int] = {}
         # Recent healing events (max 50)
         self._recent_events: List[Dict[str, Any]] = []
         self._is_running = False
@@ -293,7 +181,7 @@ class CbotWatchdog:
                     self._restart_bot(name, health.get("reason", "Container stuck"), actions)
                     continue
 
-                feed_reason = self._stale_feed_reason(name, config.get("run_command"))
+                feed_reason = self._bar_stall_reason(name, config.get("run_command"))
                 if feed_reason:
                     self._restart_bot(name, feed_reason, actions)
 
@@ -344,56 +232,16 @@ class CbotWatchdog:
             "message": msg
         })
 
-    def _stale_feed_reason(
-        self,
-        name: str,
-        run_command: Optional[str],
-        now_utc: Optional[datetime.datetime] = None
-    ) -> Optional[str]:
-        """Reason when a running bot stopped pushing bar snapshots mid-session, else None.
-
-        A cBot pushes a snapshot per closed bar only while its own session window is
-        open, so silence only means something inside that window and outside the FX
-        weekend. A per-session latch keeps a broker holiday (everyone legitimately
-        silent) from turning into a restart loop. Bots without a session window are
-        judged by their bar heartbeat instead (_bar_stall_reason).
-        """
-        if now_utc is None:
-            now_utc = datetime.datetime.now(datetime.timezone.utc)
-
-        params = parse_session_params(run_command)
-        if params is None:
-            return self._bar_stall_reason(name, run_command, now_utc)
-        if not params["bot_id"]:
-            return None
-
-        if is_forex_weekend(now_utc):
-            return None
-
-        session_start = active_session_start(params, now_utc)
-        if session_start is None:
-            return None
-
-        last_seen = last_snapshot_for(params["bot_id"])
-        if last_seen is None:
-            return None
-
-        silence = now_utc.timestamp() - last_seen
-        if silence <= self.stale_feed_seconds:
-            return None
-
-        if self._stale_healed.get(name) == session_start:
-            return None
-        self._stale_healed[name] = session_start
-
-        return (
-            f"No bar snapshot for {silence / 60:.0f} min during the "
-            f"'{params['session_name']}' session (bar cycle is M15)"
-        )
+    def bar_allowance_seconds(self, run_command: Optional[str]) -> int:
+        """How long a bot may stream ticks without handling a bar. stale_feed_seconds is sized for an M15 chart;
+        a slower chart gets one of its own bars plus the same slack (Crypto Donchian on H1: 60 + 25 min), so a
+        bot is never called stalled while it simply waits for its next bar."""
+        bar = parse_bar_seconds(run_command)
+        return max(self.stale_feed_seconds, bar + self.stale_feed_seconds - M15_SECONDS)
 
     def _bar_stall_reason(self, name: str, run_command: Optional[str],
-                          now_utc: datetime.datetime) -> Optional[str]:
-        """Reason when an all-day bot keeps streaming ticks but handles no bar, else None.
+                          now_utc: Optional[datetime.datetime] = None) -> Optional[str]:
+        """Reason when a bot keeps streaming ticks but handles no bar, else None.
 
         The clock starts at the later of the last bar advance and the start of the current
         tick run, so the first bar after a market reopen gets its full allowance. Latched on
@@ -403,12 +251,14 @@ class CbotWatchdog:
         if not bot_id or bot_id not in _bar_seen:
             return None
 
-        now = now_utc.timestamp()
+        now = (now_utc or datetime.datetime.now(datetime.timezone.utc)).timestamp()
         if now - _tick_seen_at[bot_id] > TICK_GAP_SECONDS:
             return None
 
+        allowance = self.bar_allowance_seconds(run_command)
+        self._bar_allowance[bot_id] = allowance
         silence = now - max(_bar_advanced_at[bot_id], _tick_run_since[bot_id])
-        if silence <= self.stale_feed_seconds:
+        if silence <= allowance:
             return None
 
         stuck_on = _bar_seen[bot_id]
@@ -418,7 +268,7 @@ class CbotWatchdog:
 
         return (
             f"Ticks streaming for {silence / 60:.0f} min but no bar handled since {stuck_on} "
-            f"(bar cycle is M15)"
+            f"(bar cycle is {_period_label(parse_bar_seconds(run_command))})"
         )
 
     async def run_loop(self):
@@ -454,16 +304,13 @@ class CbotWatchdog:
             "is_running": self._is_running,
             "check_interval_seconds": self.check_interval_seconds,
             "stale_feed_seconds": self.stale_feed_seconds,
-            # Age of the last snapshot per bot, so the detector is observable from the dashboard.
-            "feed_telemetry": {
-                key: round(time.time() - seen_at, 1) for key, seen_at in _snapshot_seen_at.items()
-            },
-            # All-day bots: the last bar each one handled, how long ago it advanced, last tick age.
+            # The last bar each bot handled, how long ago it advanced, last tick age.
             "bar_telemetry": {
                 bot_id: {
                     "last_bar": last_bar,
                     "bar_age": round(time.time() - _bar_advanced_at[bot_id], 1),
                     "tick_age": round(time.time() - _tick_seen_at[bot_id], 1),
+                    "allowance": self._bar_allowance.get(bot_id, self.stale_feed_seconds),
                 }
                 for bot_id, last_bar in _bar_seen.items()
             },

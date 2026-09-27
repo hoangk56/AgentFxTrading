@@ -13,7 +13,7 @@ def test_ui_endpoints():
     data_sess = resp_sess.json()
     assert "sessions" in data_sess
     assert "sydney" in data_sess["sessions"]
-    assert "killzone" in data_sess
+    assert "killzone" not in data_sess
     assert "forex_status" in data_sess
 
     # Test Exposure API
@@ -29,15 +29,6 @@ def test_ui_endpoints():
     data_cum = resp_cum.json()
     assert isinstance(data_cum, list)
 
-    # Test Latest Decisions API with filtering
-    resp_dec = client.get("/api/dashboard/latest-decisions?limit=3")
-    assert resp_dec.status_code == 200
-    data_dec = resp_dec.json()
-    assert isinstance(data_dec, list)
-
-    resp_dec_filtered = client.get("/api/dashboard/latest-decisions?limit=3&symbol=EURUSD")
-    assert resp_dec_filtered.status_code == 200
-    assert isinstance(resp_dec_filtered.json(), list)
     # Test Summary API
     resp_summary = client.get("/api/dashboard/summary")
     assert resp_summary.status_code == 200
@@ -59,24 +50,19 @@ def test_ui_endpoints():
     assert resp_real.status_code == 200
     html_real = resp_real.text
     assert "market-session-bar" in html_real
-    assert "view-decisions" in html_real
-    assert "view-decisions" in html_demo
-    assert "ai-feed-list" in html_real
     assert 'id="profit-factor"' in html_real
-    assert "view-news" in html_demo
-    # Ensure view-news is inside <main class="main-content"> before </main>
-    main_close_idx = html_demo.find("</main>")
-    news_view_idx = html_demo.find('id="view-news"')
-    assert news_view_idx != -1 and news_view_idx < main_close_idx
+    # The AI views went with the TMS / Judas / FlowRSI bots
+    for gone in ("view-decisions", "view-news", "view-risk", "kz-banner", "news-assessment-modal"):
+        assert gone not in html_demo, gone
 
 
-def test_flowrsi_badge_renders_on_dashboard():
-    """FlowRSI bots must render with their dedicated emerald 'FlowRSI' badge rather than falling back to TMS+ORB."""
-    assert client.get("/demo/dashboard").status_code == 200
+def test_bot_badges_name_the_two_strategies():
     page = dashboard_page(client)
-    # When a FlowRSI position exists or is rendered in HTML, it must carry bot-badge--flowrsi
-    assert "bot-badge--flowrsi" in page
-    assert "FlowRSI" in page
+    for badge in ("bot-badge--gotobi", "bot-badge--donchian", "'Gotobi'", "'Donchian'"):
+        assert badge in page, badge
+    for gone in ("bot-badge--flowrsi", "bot-badge--judas", "bot-badge--tms", "TMS+ORB", "FlowRSI"):
+        assert gone not in page, gone
+
 
 def _position():
     return {
@@ -137,18 +123,18 @@ def test_tick_metrics_merge_into_the_cached_position_report():
     assert entry["unrealized_pnl"] == 1.24
     assert entry["unrealized_pnl_pips"] == 68.0
     assert entry["_reported_at"] > 1.0
-    # The snapshot's other fields survive: the dashboard still needs entry/SL/TP
+    # The report's other fields survive: the dashboard still needs entry/SL/TP
     assert entry["entry_price"] == 10727.6
     assert entry["side"] == "BUY"
     # The bare bot_id key is written too, which is how a position row without an account resolves
     assert pm._bot_positions_cache["bot-a"]["unrealized_pnl"] == 1.24
 
-    # A tick can arrive before the first snapshot (e.g. right after a restart)
+    # A tick can create the entry (e.g. right after a restart)
     pm.update_position_metrics("bot-b", -0.5, -25.0, account_id="live-1")
     assert pm._bot_positions_cache["live-1:bot-b"]["unrealized_pnl_pips"] == -25.0
 
-    # Keys registered by earlier snapshots are refreshed even without an account_id on the tick,
-    # so the key the dashboard resolves first cannot stay behind a stale snapshot value
+    # Keys registered earlier are refreshed even without an account_id on the tick,
+    # so the key the dashboard resolves first cannot stay behind a stale value
     pm2 = PortfolioManager.__new__(PortfolioManager)
     pm2._bot_positions_cache = {"live-9:bot-c": {"entry_price": 1.1, "unrealized_pnl": 0.0}}
     pm2.update_position_metrics("bot-c", 2.5, 10.0)
@@ -190,37 +176,6 @@ def test_bot_action_buttons_show_pending_state_and_polls_do_not_overlap():
         assert label in html, label
     # A 10 s poll must never re-render over a pending row, nor stack up while a slow poll runs.
     assert "if (botsFetchInFlight || botActionInFlight) return;" in html
-
-
-def test_position_pips_are_read_from_every_alias_a_cbot_sends():
-    """The pip figure must survive whichever field name the reporting cBot uses.
-
-    Only the bot can produce it (see the note in `_attach_live_metrics`), and the three cBots
-    do not agree on a name: AiAgentBot sends `unrealized_pnl_pips`, while FlowRsiBot and
-    AsianRangeJudasSweepBot use the same short names as their money field (`pnl` / `pnl_pips`).
-    A missing alias used to fall through to the 0.0 default, so the dashboard printed the
-    broker's dollars next to a flat "(0.0p)" for those two bots.
-    """
-    from app.server import PositionInfo
-
-    ai_agent = PositionInfo(side="BUY", entry_price=1.1, unrealized_pnl=-4.68,
-                            unrealized_pnl_pips=-9.0)
-    assert ai_agent.resolved_pnl == -4.68
-    assert ai_agent.resolved_pnl_pips == -9.0
-
-    # FlowRsiBot / AsianRangeJudasSweepBot snapshot shape
-    short = PositionInfo(type="Buy", entry_price=1.1, pnl=-4.68, pnl_pips=-9.0)
-    assert short.resolved_pnl == -4.68
-    assert short.resolved_pnl_pips == -9.0
-
-    # `pips` is what the same bots already call it on the tick route
-    assert PositionInfo(pnl=9.94, pips=51.0).resolved_pnl_pips == 51.0
-
-    # A bot that reports no pips at all still reads as 0.0 rather than raising
-    assert PositionInfo(pnl=9.94).resolved_pnl_pips == 0.0
-
-    # A genuine zero is not mistaken for "absent" and replaced by a later alias
-    assert PositionInfo(unrealized_pnl_pips=0.0, pnl_pips=-9.0).resolved_pnl_pips == 0.0
 
 
 def test_active_positions_rows_have_a_close_button():

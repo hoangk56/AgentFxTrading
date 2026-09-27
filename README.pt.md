@@ -1,8 +1,8 @@
-# 🤖 AgentFxTrading - Sistema de Trading Automatizado com IA
+# 🤖 AgentFxTrading - Sistema de Trading Automatizado com cBots
 
 <div align="center">
 
-**cBots do cTrader + servidor de decisão FastAPI + painel web multi-conta**
+**cBots do cTrader + servidor de relatórios FastAPI + painel web multi-conta**
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Stars](https://img.shields.io/github/stars/kienphan/AgentFxTrading?style=social)](https://github.com/kienphan/AgentFxTrading/stargazers)
@@ -18,7 +18,7 @@
 
 <img src="docs/screenshots/overview.png" alt="AgentFxTrading Web Dashboard Overview" width="95%" style="border-radius: 8px; box-shadow: 0 4px 20px rgba(0,0,0,0.4);" />
 
-*Monitor multi-conta: killzones das sessões, KPIs da conta, posições abertas e telemetria de operações.*
+*Monitor multi-conta: sessões de mercado, KPIs da conta, posições abertas e telemetria de operações.*
 
 </div>
 
@@ -42,21 +42,17 @@
 
 ## 🎯 Visão Geral
 
-O AgentFxTrading executa estratégias de trading como **cBots do cTrader** (C#), um contêiner Docker por combinação de
-estratégia × símbolo × conta. Os bots com filtro de IA enviam um retrato do mercado a um **servidor FastAPI**
-(Python), que aplica filtros determinísticos e verificações de risco da carteira e, quando o setup se qualifica, pede
-a decisão a um **LLM**. Todos os bots reportam posições e telemetria ao servidor, que as guarda no **PostgreSQL**
-(SQLite como alternativa local) e serve um **painel web** para monitoramento, gestão de bots e backtests.
+O AgentFxTrading executa estratégias de trading como **cBots do cTrader** (C#), um contêiner Docker por estratégia ×
+símbolo × conta. Os bots operam pelas próprias regras e reportam posições e telemetria a um **servidor FastAPI**
+(Python), que as guarda no **PostgreSQL** (SQLite como alternativa local) e serve um **painel web** para
+monitoramento, gestão de bots e backtests.
 
-Hoje há cinco cBots:
+Hoje há dois cBots:
 
-| cBot | Estratégia | Decisão |
-| :--- | :--- | :--- |
-| `cBot/AiAgentBot.cs` | TMS (Trend Momentum Signal) + rompimento da faixa de abertura (ORB) | Filtro de IA |
-| `cBot/AsianRangeJudasSweepBot.cs` | Asian Range Judas Sweep (varredura de liquidez estilo ICT) | Filtro de IA |
-| `cBot/FlowRsiBot.cs` | FlowRSI: RSI rápido/lento aninhados + filtros SMC | Filtro de IA |
-| `cBot/GotobiBot.cs` | Operação Gotobi em torno do fixing de Tóquio em USDJPY / EURJPY / GBPJPY | Por regras |
-| `cBot/CryptoDonchianBot.cs` | Rompimento de Donchian H4 em BTCUSD / ETHUSD (forward test) | Por regras |
+| cBot | Estratégia |
+| :--- | :--- |
+| `cBot/GotobiBot.cs` | Operação Gotobi no fixing de Tóquio em USDJPY / EURJPY / GBPJPY |
+| `cBot/CryptoDonchianBot.cs` | Rompimento de Donchian H4 em BTCUSD / ETHUSD (forward test) |
 
 Veja [docs/strategies.md](docs/strategies.md) para o que cada bot faz.
 
@@ -64,28 +60,21 @@ Veja [docs/strategies.md](docs/strategies.md) para o que cada bot faz.
 
 ## 🚀 Principais Recursos
 
-- **Vários LLMs**: Qwen (DashScope), OpenAI, Anthropic Claude, Google Gemini, DeepSeek ou qualquer endpoint compatível com OpenAI.
-- **Filtros de custo**: o servidor responde `HOLD` sem chamar o LLM quando nenhum setup se qualifica.
-- **Risco da carteira**: verificações de entrada no nível da carteira mais limites de perda diária por conta, estratégia e contêiner, editáveis no painel.
-- **Bots headless**: contêineres Docker `ctrader-console`, criados pela tela **Setup Instances** do painel.
-- **Watchdog**: reinicia contêineres travados no login ou que pararam de enviar dados.
+- **Bots headless**: contêineres Docker `ctrader-console`, criados na tela **Setup Instances** do painel.
+- **Comandos pelo painel**: fechar uma posição, pausar / retomar um bot, ou fechar as posições dele e pará-lo, na aba Bots.
+- **Watchdog**: reinicia contêineres travados no login ou que deixaram de processar barras.
+- **Ranking**: classifica os bots por P&L em USD ou neutro em lotes, em qualquer período.
 - **Página de backtest**: roda backtests do cTrader de um bot instalado em contêineres e mostra o relatório em gráficos.
-- **Escudo de notícias**: calendário de alto impacto da ForexFactory com avaliação por IA.
 - **Isolamento Demo / Real**: painéis e dados separados para contas demo e reais.
 
 ---
 
 ## 📊 Painel
 
-| 📈 Visão Geral ao Vivo & Sessões | 🧠 Estratégia de IA & Feed de Decisões |
+| 📈 Visão Geral ao Vivo & Sessões | 🏆 Ranking de Desempenho |
 | :---: | :---: |
-| [![Overview Dashboard](docs/screenshots/overview.png)](docs/screenshots/overview.png) | [![AI Strategy Feed](docs/screenshots/ai-thinking.png)](docs/screenshots/ai-thinking.png) |
-| *KPIs, posições abertas, operações recentes e killzones* | *Raciocínio multi-timeframe, confiança do LLM e orientação de SL/TP* |
-
-| 🏆 Ranking de Desempenho | 📰 Notícias Vermelhas da ForexFactory & Avaliação por IA |
-| :---: | :---: |
-| [![Quant Leaderboard](docs/screenshots/leaderboard.png)](docs/screenshots/leaderboard.png) | [![News Assessment](docs/screenshots/news-assessment.png)](docs/screenshots/news-assessment.png) |
-| *Ranking composto, taxas de acerto e selos Tier S/A/B/C* | *Calendário de alto impacto, impacto por moeda e avaliação macro* |
+| [![Overview Dashboard](docs/screenshots/overview.png)](docs/screenshots/overview.png) | [![Quant Leaderboard](docs/screenshots/leaderboard.png)](docs/screenshots/leaderboard.png) |
+| *KPIs, posições abertas e operações recentes* | *Ranking composto, taxas de acerto e selos Tier S/A/B/C* |
 
 Abra `http://127.0.0.1:8000/demo/dashboard` para contas demo, `http://127.0.0.1:8000/real/dashboard` para contas
 reais, ou `http://127.0.0.1:8000/` para voltar ao último modo usado.
@@ -103,12 +92,12 @@ curl -fsSL https://raw.githubusercontent.com/kienphan/AgentFxTrading/main/script
 ```
 
 O script pede a chave pública SSH do usuário `forge` e depois instala o PostgreSQL 17, o Docker, o servidor como o
-serviço systemd `agentfx` (escutando em `127.0.0.1:8000`), compila os cinco pacotes `.algo` dos cBots e ativa um
+serviço systemd `agentfx` (escutando em `127.0.0.1:8000`), compila os dois pacotes `.algo` dos cBots e ativa um
 backup diário do banco de dados. **O login SSH por senha é desativado**, então confirme que a chave funciona a partir
 de outro terminal antes de fechar a sessão root. Detalhes, opções e atualizações: [docs/deployment.md](docs/deployment.md).
 
-Depois abra o painel por um túnel (`ssh -N -L 8000:127.0.0.1:8000 forge@YOUR_VPS_IP`), coloque a sua chave de LLM em
-`/home/forge/AgentFxTrading/.env` e execute `sudo systemctl restart agentfx`.
+Depois abra o painel por um túnel (`ssh -N -L 8000:127.0.0.1:8000 forge@YOUR_VPS_IP`) e adicione a sua conta cTrader
+em **Docker Bot Management → Setup Instances**.
 
 ### Opção 2: local / manual
 
@@ -118,7 +107,7 @@ cd AgentFxTrading
 python3 -m venv .venv && source .venv/bin/activate
 pip install -r requirements.txt
 
-cp .env.example .env        # depois defina LLM_PROVIDER e a chave de API correspondente
+cp .env.example .env        # opcional: DATABASE_URL, DASHBOARD_ACCOUNTS
 python app/server.py        # serve em http://127.0.0.1:8000
 ```
 
@@ -134,51 +123,28 @@ Se `DATABASE_URL` não apontar para um PostgreSQL acessível, o servidor usa o a
 2. **Crie instâncias** — no painel, **Docker Bot Management → Setup Instances**: escolha ou adicione uma conta cTrader,
    marque as células símbolo × estratégia e clique em **Create instances**.
 3. **Ou execute manualmente** — cada preset está escrito como um comando `docker run` em
-   **[docs/docker-instances.md](docs/docker-instances.md)** (50 células). Um exemplo, XAUUSD TMS+ORB na sessão de
-   Nova York:
+   **[docs/docker-instances.md](docs/docker-instances.md)** (5 células). Um exemplo, Gotobi em USDJPY:
 
 ```bash
 docker run -d \
-  --name cbot-demo-xauusd-newyork \
+  --name cbot-demo-usdjpy-fix-gotobi \
   --restart unless-stopped \
   --network host \
   -v $(pwd):/workspace \
   -v /root:/root \
   ghcr.io/spotware/ctrader-console:latest \
-  run /workspace/cBot/AiAgentBot.algo \
+  run /workspace/cBot/GotobiBot.algo \
   --ctid=your_email@example.com \
   --pwd-file=/root/ctrader_data/ctid_pwd \
   --account=YOUR_ACCOUNT_ID \
-  --symbol=XAUUSD \
+  --symbol=USDJPY \
   --period=m15 \
   --full-access \
-  --BotId="cbot-demo-xauusd-newyork" \
+  --BotId="cbot-demo-usdjpy-fix-gotobi" \
   --ApiUrl="http://127.0.0.1:8000/trade" \
   --AccountLabel="demo" \
-  --OrbStartHour=13 \
-  --SessionEndHour=21 \
-  --SessionDstRule="US" \
-  --MinDecisiveBreakoutPips=200.0 \
-  --MinOrWidthPips=400.0 \
-  --OrbBufferPips=50.0 \
-  --BreakevenTriggerAtr=1.2 \
-  --BreakevenOffsetAtr=0.1 \
-  --TrailTriggerAtr=2.0 \
-  --TrailDistanceAtr=1.0 \
-  --PartialCloseRatio=0.5 \
-  --MinSlAtr=0.8 \
-  --MaxSlAtr=3.0 \
-  --MinTpAtr=1.0 \
-  --MaxTpAtr=6.0 \
-  --MaxGivebackAtr=1.0 \
-  --GivebackArmMinPips=150.0 \
-  --MinAdjustBeProfitPips=300.0 \
-  --EnablePostTpGate=true \
-  --PostTpPullbackAtr=0.5 \
-  --BounceTradeEnabled=true \
-  --BounceDistanceThreshold=10 \
-  --RiskPerTradePercent=0.2 \
-  --TrendTpDisabled=true
+  --RiskPerTradeMoney=50.0 \
+  --MaxSpreadPips=3.0
 ```
 
 Os presets em si ficam em [`app/cbot_presets.py`](app/cbot_presets.py), a única fonte da verdade; o README não os
@@ -188,10 +154,9 @@ repete. Numa VPS configurada pelo instalador, troque `-v /root:/root` por `-v /h
 
 ## ⚙️ Configuração
 
-Todas as configurações do servidor vêm do `.env` — comece por [`.env.example`](.env.example). O mínimo é
-`LLM_PROVIDER` e a chave de API desse provedor. Todas as variáveis, o formato de `DASHBOARD_ACCOUNTS`, a escolha do
-banco de dados, os limites de risco e os parâmetros dos cBots que não fazem parte dos presets estão descritos em
-[docs/configuration.md](docs/configuration.md).
+Todas as configurações do servidor vêm do `.env` — comece por [`.env.example`](.env.example); uma execução local não
+precisa de nenhuma. Todas as variáveis, o formato de `DASHBOARD_ACCOUNTS`, a escolha do banco de dados e os parâmetros
+dos cBots que não fazem parte dos presets estão descritos em [docs/configuration.md](docs/configuration.md).
 
 ---
 
@@ -201,9 +166,9 @@ banco de dados, os limites de risco e os parâmetros dos cBots que não fazem pa
 | :--- | :--- |
 | [docs/architecture.md](docs/architecture.md) | Componentes, fluxo das requisições, grupos de API, estrutura do projeto |
 | [docs/strategies.md](docs/strategies.md) | O que cada cBot faz e onde ficam as suas regras |
-| [docs/configuration.md](docs/configuration.md) | Variáveis do `.env`, limites de risco, parâmetros dos cBots |
+| [docs/configuration.md](docs/configuration.md) | Variáveis do `.env`, parâmetros dos cBots |
 | [docs/deployment.md](docs/deployment.md) | Instalador de VPS, instalação manual, compilação dos cBots, serviço, backups, testes |
-| [docs/docker-instances.md](docs/docker-instances.md) | Os 50 comandos `docker run` dos presets |
+| [docs/docker-instances.md](docs/docker-instances.md) | Todos os 5 comandos `docker run` dos presets |
 | `http://127.0.0.1:8000/docs` | Referência interativa da API gerada pelo FastAPI (também `/redoc`) |
 | [research/README.md](research/README.md) | Pesquisa offline de estratégias e as suas conclusões |
 
@@ -212,11 +177,9 @@ banco de dados, os limites de risco e os parâmetros dos cBots que não fazem pa
 ## 🔬 Situação da Pesquisa
 
 Este README não publica números de desempenho. A pesquisa offline em [`research/`](research/README.md) concluiu que,
-em 2026-09-27, nenhuma das estratégias testadas — incluindo os bots TMS+ORB, Judas Sweep e FlowRSI em produção —
-mostra uma vantagem que sobreviva à correção para testes múltiplos e aos anos fora da amostra. A única exceção até
-agora é a operação Gotobi nos pares de JPY (`GotobiBot`), que passou no seu holdout pré-registrado; o
-`CryptoDonchianBot` falhou no holdout e roda apenas como forward test. Trate todos os bots como experimentais e rode-os
-primeiro numa conta demo.
+em 2026-09-27, a operação Gotobi nos pares de JPY (`GotobiBot`) é a única estratégia testada que passou no seu holdout
+pré-registrado; o `CryptoDonchianBot` foi reprovado no holdout e roda apenas como forward test. Trate os dois bots
+como experimentais e rode-os primeiro numa conta demo.
 
 > ⚠️ **Aviso**: operar produtos alavancados envolve alto risco de perda. Este software é fornecido para pesquisa e
 > educação, sem garantia de resultados.

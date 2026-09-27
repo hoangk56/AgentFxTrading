@@ -15,7 +15,7 @@ section that would be empty. Keep the prose short; the evidence goes in the tabl
 | Cửa sổ | <DAY> 00:00–24:00 GMT+7 = <UTC start> → <UTC end> UTC |
 | Code | VPS `<sha>` · local `<sha>` · origin/main `<sha>`; commit/deploy trong ngày: … |
 | Lệnh | <n> đóng, <n> mở mới, <n> còn mở cuối ngày (+<n> lệnh ngoài sổ nếu có) |
-| P&L | DB: <x> $ (lệnh đóng trong cửa sổ). Nếu biết balance đầu ngày: Δ balance <x> $ (nguồn), phần chênh do partial trên lệnh còn mở / lệnh ngoài sổ |
+| P&L | DB: <x> $ (lệnh đóng trong cửa sổ). Nếu biết balance đầu ngày: Δ balance <x> $ (nguồn), phần chênh do lệnh ngoài sổ |
 | Tài khoản | balance <x>, equity <x>; **ledger (balance − Σpnl) = <x>** (dòng này để lần chạy sau so sánh) |
 | Test local | pytest: <passed/failed> |
 

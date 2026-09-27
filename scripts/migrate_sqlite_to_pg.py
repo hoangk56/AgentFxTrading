@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 Migration script from SQLite portfolio.db to PostgreSQL agentfx.
-Preserves all historical accounts, positions, cbot_configs, and news_assessments.
+Preserves all historical accounts, positions and cbot_configs.
 """
 
 import os
@@ -82,29 +82,6 @@ def migrate():
             created_at TEXT DEFAULT CURRENT_TIMESTAMP
         );
 
-        CREATE TABLE IF NOT EXISTS news_assessments (
-            id SERIAL PRIMARY KEY,
-            cluster_id VARCHAR(64) NOT NULL,
-            timestamp_utc TEXT NOT NULL,
-            symbol VARCHAR(32) NOT NULL,
-            volatility_level VARCHAR(32),
-            expected_pips_range VARCHAR(32),
-            trend_type VARCHAR(32),
-            prob_buy DOUBLE PRECISION,
-            prob_sell DOUBLE PRECISION,
-            scenario_better_vi TEXT,
-            scenario_better_en TEXT,
-            scenario_worse_vi TEXT,
-            scenario_worse_en TEXT,
-            bot_guidance_vi TEXT,
-            bot_guidance_en TEXT,
-            analysis_markdown_vi TEXT,
-            analysis_markdown_en TEXT,
-            events_json TEXT,
-            created_at TEXT NOT NULL
-        );
-        CREATE INDEX IF NOT EXISTS idx_news_cluster ON news_assessments (cluster_id, symbol);
-
         CREATE OR REPLACE VIEW daily_stats AS
         SELECT 
             account_id,
@@ -180,28 +157,6 @@ def migrate():
         pg_cur.execute("SELECT setval('positions_id_seq', (SELECT COALESCE(MAX(id), 1) FROM positions));")
     pg_conn.commit()
     print(f"  Migrated {len(pos_rows)} positions.")
-
-    # 5. Migrate news_assessments if any
-    try:
-        s_cur.execute("SELECT * FROM news_assessments ORDER BY id ASC")
-        news_rows = s_cur.fetchall()
-        for row in news_rows:
-            pg_cur.execute("""
-                INSERT INTO news_assessments (id, cluster_id, timestamp_utc, symbol, volatility_level, expected_pips_range, trend_type, prob_buy, prob_sell, scenario_better_vi, scenario_better_en, scenario_worse_vi, scenario_worse_en, bot_guidance_vi, bot_guidance_en, analysis_markdown_vi, analysis_markdown_en, events_json, created_at)
-                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
-                ON CONFLICT (id) DO NOTHING;
-            """, (row["id"], row["cluster_id"], row["timestamp_utc"], row["symbol"],
-                  row["volatility_level"], row["expected_pips_range"], row["trend_type"],
-                  row["prob_buy"], row["prob_sell"], row["scenario_better_vi"],
-                  row["scenario_better_en"], row["scenario_worse_vi"], row["scenario_worse_en"],
-                  row["bot_guidance_vi"], row["bot_guidance_en"], row["analysis_markdown_vi"],
-                  row["analysis_markdown_en"], row["events_json"], row["created_at"]))
-        if news_rows:
-            pg_cur.execute("SELECT setval('news_assessments_id_seq', (SELECT COALESCE(MAX(id), 1) FROM news_assessments));")
-        pg_conn.commit()
-        print(f"  Migrated {len(news_rows)} news_assessments.")
-    except Exception as e:
-        print(f"  No news_assessments to migrate or error: {e}")
 
     # Verify counts
     pg_cur.execute("SELECT count(*) FROM accounts")

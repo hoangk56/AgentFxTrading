@@ -12,9 +12,6 @@ CBOT = CBOT_DIR
 
 # bot file -> how its command executor finds its own positions (never another bot's)
 OWN_POSITIONS = {
-    "AiAgentBot.cs": "var own = GetBotPositions();",
-    "AsianRangeJudasSweepBot.cs": "var own = Positions.FindAll(label, SymbolName);",
-    "FlowRsiBot.cs": "var own = GetBotPositions();",
     "GotobiBot.cs": "var own = GetBotPositions();",
     "CryptoDonchianBot.cs": "var own = GetBotPositions();",
 }
@@ -99,23 +96,3 @@ def test_every_entry_order_is_behind_the_pause_guard(name):
         assert guard > previous, f"{name}: ExecuteMarketOrder at offset {pos} has no pause guard of its own"
         assert pos - guard < 1500, f"{name}: pause guard too far from the order at offset {pos}"
         previous = pos
-
-
-def test_judas_command_base_url_prefers_the_dashboard_server():
-    body = _method(_src("AsianRangeJudasSweepBot.cs"), "private string BuildCommandBaseUrl()")
-    assert body.index("DashboardServerUrl") < body.index("ApiUrl")
-
-
-def test_judas_drops_a_staged_order_while_paused():
-    body = _method(_src("AsianRangeJudasSweepBot.cs"), "private void ExecuteStagedMarketOrder(TradeType tradeType)")
-    assert re.search(r"if \(DashboardPauseBlocks\([^)]*\)\)\s*\{\s*ResetStagedOrder\(\);\s*return;", body)
-
-
-def test_judas_guards_all_six_entry_orders():
-    assert len(list(_entry_orders(_src("AsianRangeJudasSweepBot.cs")))) == 6
-
-
-def test_flowrsi_reports_the_manual_close_reason():
-    body = _method(_src("FlowRsiBot.cs"), "private void OnPositionClosed(PositionClosedEventArgs args)")
-    assert "_closeReasons.TryGetValue(pos.Id, out botReason)" in body
-    assert "reason = hasBotReason ? botReason :" in body

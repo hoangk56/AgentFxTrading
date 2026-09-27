@@ -137,7 +137,7 @@ def bot_config():
     pm = get_portfolio_manager()
     pm.delete_cbot_config(NAME)
     assert pm.add_cbot_config(NAME, "manual close test",
-                              f'docker run -d --name {NAME} img run /workspace/cBot/AiAgentBot.algo --BotId="{NAME}"')
+                              f'docker run -d --name {NAME} img run /workspace/cBot/GotobiBot.algo --BotId="{NAME}"')
     yield NAME
     pm.delete_cbot_config(NAME)
     pm.set_bot_paused(NAME, False)
@@ -221,9 +221,7 @@ def test_pause_and_resume_a_container(fake_docker, bot_config):
     r = client.post(f"/api/bots/{NAME}/pause").json()
     assert r["success"] is True and r["paused"] is True and r["bot_id"] == NAME
     assert _poll(NAME)["paused"] is True
-    assert get_portfolio_manager().check_risk("XAUUSD", None, 0.01, account_balance=5000.0,
-                                              account_id=ACCOUNT, used_margin=0.0,
-                                              bot_id=NAME) == (False, "Paused from dashboard")
+    assert get_portfolio_manager().is_bot_paused(NAME) is True
     assert client.post(f"/api/bots/{NAME}/resume").json()["paused"] is False
     assert _poll(NAME)["paused"] is False
 

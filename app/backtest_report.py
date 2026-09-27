@@ -4,8 +4,8 @@ cTrader backtest report (`--report-json`) -> the Backtest page's summary and cha
 The report's per-hour/weekday sections only count winning and losing trades, so P&L by hour and by
 weekday is computed here from history.items, bucketed by UTC entry time.
 
-cTrader's trade statistics count closing DEALS: a partial close (FlowRSI takes half at 1R) is a history
-item of its own, so one position can be two "trades". The position stats group history.items back into
+cTrader's trade statistics count closing DEALS: a partial close is a history item of
+its own, so one position can be two "trades". The position stats group history.items back into
 positions, whose deals share entryTime, direction and entryPrice.
 """
 from datetime import datetime, timezone

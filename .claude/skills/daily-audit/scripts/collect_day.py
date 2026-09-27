@@ -84,6 +84,20 @@ def norm(text):
     return re.sub(r"\d+(\.\d+)?", "N", text)
 
 
+def strategy_of(bot_id):
+    """The strategy a container name carries (app/cbot_presets.py suffixes), or None."""
+    b = (bot_id or "").lower()
+    return "gotobi" if "gotobi" in b else "donchian" if "donchian" in b else None
+
+
+# Longest a position of each strategy may stay open: GotobiBot's MaxHoldHours default, and the 5-day hold of
+# CryptoDonchianBot (a deadline inside the weekend break closes at the reopen, hence the slack).
+MAX_HOLD_H = {"gotobi": 12, "donchian": 5 * 24 + 60}
+# A container's default $ risk per trade may grow by this much: Crypto Donchian scales it up to 2x by breakout
+# strength; both bots take a minimum lot of at most MaxMinLotRiskMultiple (1.5) x the risk.
+RISK_SCALE = {"gotobi": 1.5, "donchian": 2 * 1.5}
+
+
 def section(title):
     print(f"\n===== {title} =====")
 
@@ -111,7 +125,6 @@ def rows(conn, sql, params=None):
 
 
 def trades(conn, start, end, now):
-    from app.risk_limits import strategy_of
     cut = (start - timedelta(days=2)).strftime("%Y-%m-%d")
     all_rows = rows(conn, "SELECT * FROM positions WHERE status = 'open' OR entry_time >= ? "
                           "OR exit_time >= ? ORDER BY entry_time", (cut, cut))
@@ -219,22 +232,22 @@ def trades(conn, start, end, now):
         tag = f"id {r['id']} {short(r['bot_id'])} {r['symbol']}"
         if r["sl_price"] is None:
             flag("NO_SL", f"{tag}: open without a stop-loss price")
-        limit_h = {"tms": 12, "judas": 24}.get(r["_strat"])
+        limit_h = MAX_HOLD_H.get(r["_strat"])
         if limit_h and age_h > limit_h:
-            flag("LONG_HOLD", f"{tag}: {r['_strat']} position open {age_h:.1f}h; check its session end / EOD flatten")
+            flag("LONG_HOLD", f"{tag}: {r['_strat']} position open {age_h:.1f}h; check the bot's max-hold exit")
         if r["status"] == "open":
             age = p.get("pnl_age_seconds")
             if age is None or age > 600:
                 flag("NO_TELEMETRY", f"{tag}: DB says open but the bot sends no P&L for it (age {age}); "
                                      f"closed at the broker with a lost close report, or the bot is down")
             sl_pnl, bal = p.get("sl_pnl"), balances.get(r["account_id"])
-            if sl_pnl is not None and sl_pnl < 0 and bal:
-                risk = -sl_pnl / bal * 100
-                m = re.search(r"--(?:RiskPerTradePercent|RiskPercentage|RiskPercent)=([\d.]+)", configs.get(r["bot_id"], ""))
-                allowed = float(m.group(1)) if m else None
-                if risk > (allowed * 1.5 if allowed else 1.0):
-                    flag("RISK_OVER", f"{tag}: loss at SL {sl_pnl} = {risk:.2f}% of balance {bal} "
-                                      f"(configured {allowed if allowed else 'n/a (default)'}%)")
+            m = re.search(r"--RiskPerTradeMoney=([\d.]+)", configs.get(r["bot_id"], ""))
+            if sl_pnl is not None and sl_pnl < 0 and m:
+                allowed = float(m.group(1)) * RISK_SCALE.get(r["_strat"], 1.5)
+                if -sl_pnl > allowed:
+                    flag("RISK_OVER", f"{tag}: loss at SL {sl_pnl} is above {allowed:.2f} "
+                                      f"(RiskPerTradeMoney {m.group(1)} x {RISK_SCALE.get(r['_strat'], 1.5)}); "
+                                      f"balance {bal}")
     print(f"open now (DB): {len(open_now)}")
 
     section("ACCOUNTS AND LEDGER (balance now vs every recorded pnl, so it spans all days up to now)")
@@ -249,44 +262,7 @@ def trades(conn, start, end, now):
         drifts[a["account_id"]] = round(implied - round(implied, -2), 2)
         if abs(implied - round(implied, -2)) > 1.0:
             flag("LEDGER_DRIFT", f"{a['account_id']}: balance - recorded pnl = {implied:.2f}, not a round deposit; "
-                                 f"a close/partial report is missing or a pnl is wrong (compare with the last report)")
-
-    section("DAILY LOSS LIMITS (UTC days, closed P&L only)")
-    limits = {(l["scope"], l["target"]): l for l in rows(conn, "SELECT * FROM risk_limits")}
-    for l in limits.values():
-        changed = ts(l["updated_at"])
-        print(f"limit {l['scope']}/{l['target']}: {l['max_daily_loss']} enabled={l['enabled']} updated {vn(changed)}"
-              + ("  <- changed inside the window" if changed and start <= changed < end else ""))
-    changed = [ts(l["updated_at"]) for l in limits.values() if l["updated_at"]]
-    if changed and max(changed) > start:
-        print(f"NOTE: limits were changed at {vn(max(changed))} VN, after the window started; the crossings "
-              f"below use today's values. The values in force earlier are in the 'Risk limits updated' log lines.")
-    for utc_day in sorted({start.date(), (end - timedelta(microseconds=1)).date()}):
-        day_closed = sorted((r for r in all_rows if r["status"] == "closed" and r["_out"] and r["_out"].date() == utc_day),
-                            key=lambda r: r["_out"])
-        scopes = defaultdict(list)
-        for r in day_closed:
-            scopes[("account", "*", r["account_id"])].append(r)
-            scopes[("strategy", r["_strat"], r["account_id"])].append(r)
-            scopes[("container", "*", r["bot_id"])].append(r)
-        for (scope, target, who), rs in sorted(scopes.items()):
-            lim = limits.get((scope, target))
-            total, crossed = 0.0, None
-            for r in rs:
-                total += r["pnl"] or 0
-                if lim and lim["enabled"] and crossed is None and total <= -lim["max_daily_loss"]:
-                    crossed = r["_out"]
-            if scope != "container" or crossed:
-                print(f"{utc_day} {scope}/{target} {short(who)}: closed pnl {total:.2f}"
-                      + (f" / limit -{lim['max_daily_loss']}" if lim else "")
-                      + (f", crossed at {vn(crossed)} VN" if crossed else ""))
-            if crossed:
-                later = [r for r in all_rows if r["_in"] and crossed < r["_in"] and r["_in"].date() == utc_day
-                         and (r["account_id"] if scope != "container" else r["bot_id"]) == who
-                         and (scope != "strategy" or r["_strat"] == target)]
-                for r in later:
-                    flag("LIMIT_BYPASS", f"{scope}/{target} limit crossed {vn(crossed)} but id {r['id']} "
-                                         f"{short(r['bot_id'])} {r['symbol']} opened {vn(r['_in'])}")
+                                 f"a close report is missing or a pnl is wrong (compare with the last report)")
 
     section("BOT CONTROLS (paused)")
     for r in rows(conn, "SELECT * FROM bot_controls"):
@@ -303,13 +279,11 @@ def agent_log(day):
         print(f"MISSING {path} (the handler keeps only 14 files)")
         return
     line_re = re.compile(r"^(\d{4}-\d\d-\d\d \d\d:\d\d:\d\d) \[(\w+)\s*\] ([\w.]+): (.*)$")
-    levels, warn, events, llm, tb = Counter(), {}, Counter(), Counter(), []
+    levels, warn, events, tb = Counter(), {}, Counter(), []
     must = defaultdict(list)
-    must_re = re.compile(r"Close position ignored|Partial close ignored|Failed to|falling back to SQLite|"
-                         r"\[MANUAL\]|\[CBOT WATCHDOG\]|Portfolio database initialized|Risk limits updated")
-    event_re = re.compile(r"Position registered|Position closed|Partial close recorded|Portfolio risk check failed|"
-                          r"\[LLM DECISION\]|\[CBOT EVENT\]|\[PORTFOLIO EVENT\]")
-    from app.risk_limits import strategy_of
+    must_re = re.compile(r"Close position ignored|Failed to|falling back to SQLite|"
+                         r"\[MANUAL\]|\[CBOT WATCHDOG\]|Portfolio database initialized")
+    event_re = re.compile(r"Position registered|Position closed|\[PORTFOLIO EVENT\]")
     lines = open(path, encoding="utf-8", errors="replace").read().splitlines()
     for i, line in enumerate(lines):
         m = line_re.match(line)
@@ -330,15 +304,8 @@ def agent_log(day):
         me = event_re.search(msg)
         if me:
             events[me.group(0)] += 1
-        ml = re.search(r"\[LLM DECISION\] \S+?/(\S+) -> Action: (\w+).*?Conf: ([\d.]+)", msg)
-        if ml:
-            conf = float(ml.group(3))
-            llm[(strategy_of(ml.group(1)), ml.group(2), "conf>=75" if conf >= 75 else "conf<75")] += 1
     print("levels:", dict(levels))
     print("events:", dict(events))
-    print("LLM decisions (strategy, action, confidence):")
-    for k, n in sorted(llm.items()):
-        print(f"  {k}: {n}")
     print("WARNING+ grouped (count | first | last | pattern):")
     for key, (n, first, last) in sorted(warn.items(), key=lambda kv: -kv[1][0])[:40]:
         print(f"  {n} | {first[11:]} | {last[11:]} | {key}")
@@ -462,8 +429,7 @@ def containers(start, end, all_rows, restarts, drifts):
     line_re = re.compile(r"^(\d\d/\d\d/\d{4} \d\d:\d\d:\d\d)\.\d+ \| (\w+) \| (.*)$")
     problem_re = re.compile(r"error|exception|fail|refused|timeout|timed out|invalid|not found|denied|crash|"
                             r"not enough|insufficient", re.I)
-    decision_re = re.compile(r"^(Agent: |\[AI Decision\]|\[AI Agent HOLD\]|\[Judas Sweep Filter\]|\[Order Executed\]|"
-                             r"\[Portfolio( Hub)?\] Reported|\[Partial Close\])")
+    decision_re = re.compile(r"^(\[Gotobi\]|\[Donchian\]|\[Portfolio Hub\] Reported)")
     groups, bot_flags, missing_pnl = {}, {}, []
     db_by_bot = defaultdict(list)
     for r in all_rows:
@@ -475,7 +441,7 @@ def containers(start, end, all_rows, restarts, drifts):
         if bad:
             corrupt.append(f"{short(name)} ({bad})")
         ev = defaultdict(list)
-        opened_at, close_pnl, generic_closes = {}, {}, []
+        close_pnl = {}
         for line in lines:
             m = line_re.match(line)
             if not m:
@@ -484,17 +450,10 @@ def containers(start, end, all_rows, restarts, drifts):
             msg = m.group(3)
             # cTrader's own Trade log names the position id for every bot type; SL/TP hits are
             # broker-side and leave no line, so closes are only visible via the bots' reports.
-            mo = re.search(r"to (?:Buy|Sell) [\d.]+ (\w+) .*SUCCEEDED, Position PID(\d+)", msg)
-            if mo:
-                opened_at[int(mo.group(2))] = (t, mo.group(1))
             mc = re.search(r"Reported position closed: #(\d+) \w+ PnL: (-?[\d.]+)", msg)
             if mc:
                 close_pnl[int(mc.group(1))] = float(mc.group(2))
-            mg = re.search(r"\[Portfolio\] Reported position closed: \w+ (\w+), PnL: (-?[\d.]+)", msg)
-            if mg:
-                generic_closes.append((t, mg.group(1), float(mg.group(2))))
             for key, rx in (("open", r"SUCCEEDED, Position PID(\d+)"),
-                            ("open", r"\[Order Executed\] (?:Buy|Sell) [\d.]+ lots #(\d+)"),
                             ("open", r"Reported position open: #(\d+)"),
                             ("closing", r"Closing position PID(\d+) .*SUCCEEDED"),
                             ("rep_close", r"Reported position closed: #(\d+)")):
@@ -502,7 +461,7 @@ def containers(start, end, all_rows, restarts, drifts):
                 if mm:
                     ev[key].append(int(mm.group(1)))
             for code, rx in (("REPORT_FAILED", r"Failed to report"), ("TRADE_OP_FAILED", r"FAILED with error"),
-                             ("BOT_EXCEPTION", r"\[Error in On\w+\]|Unhandled exception|crashed")):
+                             ("BOT_EXCEPTION", r"\[\w+ Evaluate Error\]|\[\w+ Error\]|Unhandled exception|crashed")):
                 if re.search(rx, msg):
                     f = bot_flags.setdefault((code, name, norm(msg)[:120]), {"n": 0, "first": t, "last": t, "msg": msg})
                     f["n"] += 1
@@ -521,10 +480,6 @@ def containers(start, end, all_rows, restarts, drifts):
         for pid in sorted(set(ev["open"] + ev["closing"] + ev["rep_close"])):
             if pid not in by_id:
                 pnl, how = close_pnl.get(pid), "close report"
-                if pnl is None and pid in opened_at:
-                    t0, sym = opened_at[pid]
-                    nxt = next((c for c in generic_closes if c[0] >= t0 and c[1] == sym), None)
-                    pnl, how = (nxt[2], "first close report for the symbol after the open") if nxt else (None, "")
                 if pnl is not None:
                     missing_pnl.append(pnl)
                 flag("OPEN_NOT_IN_DB", f"{name}: position #{pid} traded in the window (container log) but has no "
@@ -596,8 +551,9 @@ def health():
             print(f"  {b['name']}: {', '.join(bad)} | {b.get('health_reason')} | open {b.get('open_positions')}")
     print(f"{len(bots)} bots listed")
     w = api("/api/watchdog/status") or {}
-    stale = {k: v for k, v in (w.get("feed_telemetry") or {}).items() if v and v > w.get("stale_feed_seconds", 2400)}
-    print(f"watchdog running={w.get('is_running')} stale feeds={stale}")
+    stale = {k: v["bar_age"] for k, v in (w.get("bar_telemetry") or {}).items()
+             if v.get("bar_age") and v["bar_age"] > v.get("allowance", w.get("stale_feed_seconds", 2400))}
+    print(f"watchdog running={w.get('is_running')} bars not advanced for longer than their allowance={stale}")
     if w and not w.get("is_running"):
         flag("WATCHDOG_STOPPED", "the cBot watchdog loop is not running")
 

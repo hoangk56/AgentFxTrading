@@ -28,7 +28,7 @@ def _run(project_root: Path, bin_dir: Path) -> subprocess.CompletedProcess:
 def test_backup_uses_database_url_from_env_file(tmp_path):
     project = tmp_path / "proj"
     project.mkdir()
-    (project / ".env").write_text(f"LLM_PROVIDER=qwen\nDATABASE_URL={DB_URL}\n")
+    (project / ".env").write_text(f"SERVER_PORT=8000\nDATABASE_URL={DB_URL}\n")
     args_file = tmp_path / "pg_dump_args.txt"
     _make_fake_pg_dump(tmp_path / "bin", args_file)
 
@@ -48,7 +48,7 @@ def test_backup_uses_database_url_from_env_file(tmp_path):
 def test_backup_fails_without_database_url(tmp_path):
     project = tmp_path / "proj"
     project.mkdir()
-    (project / ".env").write_text("LLM_PROVIDER=qwen\n")
+    (project / ".env").write_text("SERVER_PORT=8000\n")
     _make_fake_pg_dump(tmp_path / "bin", tmp_path / "args.txt")
 
     result = _run(project, tmp_path / "bin")

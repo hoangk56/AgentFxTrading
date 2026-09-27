@@ -1,0 +1,220 @@
+{
+  "Name": "GotobiBot",
+  "Type": "cBot",
+  "AccessRights": "FullAccess",
+  "BuildTime": "2026-09-27T09:12:05.1234567Z",
+  "Parameters": [
+    {
+      "PropertyName": "BotId",
+      "FriendlyName": "Bot ID",
+      "GroupName": "General",
+      "Type": "String",
+      "DefaultValue": "Gotobi"
+    },
+    {
+      "PropertyName": "AccountLabel",
+      "FriendlyName": "Account Identifier",
+      "GroupName": "General",
+      "Type": "String",
+      "DefaultValue": "demo"
+    },
+    {
+      "PropertyName": "ShowLogs",
+      "FriendlyName": "Show Detailed Logs",
+      "GroupName": "General",
+      "Type": "Boolean",
+      "DefaultValue": true
+    },
+    {
+      "PropertyName": "TradeLong",
+      "FriendlyName": "Trade the Long Leg (into the fix)",
+      "GroupName": "Schedule (UTC)",
+      "Type": "Boolean",
+      "DefaultValue": true
+    },
+    {
+      "PropertyName": "TradeShort",
+      "FriendlyName": "Trade the Short Leg (after the fix)",
+      "GroupName": "Schedule (UTC)",
+      "Type": "Boolean",
+      "DefaultValue": true
+    },
+    {
+      "PropertyName": "LongEntryHourUtc",
+      "FriendlyName": "Long Entry Hour (UTC, day before)",
+      "GroupName": "Schedule (UTC)",
+      "Type": "Integer",
+      "DefaultValue": 18,
+      "MinValue": 0,
+      "MaxValue": 23
+    },
+    {
+      "PropertyName": "LongEntryMinuteUtc",
+      "FriendlyName": "Long Entry Minute (UTC)",
+      "GroupName": "Schedule (UTC)",
+      "Type": "Integer",
+      "DefaultValue": 0,
+      "MinValue": 0,
+      "MaxValue": 59
+    },
+    {
+      "PropertyName": "LongEntryLatestHourUtc",
+      "FriendlyName": "Long Entry Latest Hour (UTC, day before)",
+      "GroupName": "Schedule (UTC)",
+      "Type": "Integer",
+      "DefaultValue": 23,
+      "MinValue": 0,
+      "MaxValue": 23
+    },
+    {
+      "PropertyName": "LongEntryLatestMinuteUtc",
+      "FriendlyName": "Long Entry Latest Minute (UTC)",
+      "GroupName": "Schedule (UTC)",
+      "Type": "Integer",
+      "DefaultValue": 0,
+      "MinValue": 0,
+      "MaxValue": 59
+    },
+    {
+      "PropertyName": "FixHourUtc",
+      "FriendlyName": "Fix Hour (UTC)",
+      "GroupName": "Schedule (UTC)",
+      "Type": "Integer",
+      "DefaultValue": 0,
+      "MinValue": 0,
+      "MaxValue": 23
+    },
+    {
+      "PropertyName": "FixMinuteUtc",
+      "FriendlyName": "Fix Minute (UTC)",
+      "GroupName": "Schedule (UTC)",
+      "Type": "Integer",
+      "DefaultValue": 55,
+      "MinValue": 0,
+      "MaxValue": 59
+    },
+    {
+      "PropertyName": "ShortEntryGraceMinutes",
+      "FriendlyName": "Short Entry Grace (minutes after the fix)",
+      "GroupName": "Schedule (UTC)",
+      "Type": "Integer",
+      "DefaultValue": 3,
+      "MinValue": 0,
+      "MaxValue": 5
+    },
+    {
+      "PropertyName": "ShortExitHourUtc",
+      "FriendlyName": "Short Exit Hour (UTC)",
+      "GroupName": "Schedule (UTC)",
+      "Type": "Integer",
+      "DefaultValue": 2,
+      "MinValue": 0,
+      "MaxValue": 23
+    },
+    {
+      "PropertyName": "ShortExitMinuteUtc",
+      "FriendlyName": "Short Exit Minute (UTC)",
+      "GroupName": "Schedule (UTC)",
+      "Type": "Integer",
+      "DefaultValue": 55,
+      "MinValue": 0,
+      "MaxValue": 59
+    },
+    {
+      "PropertyName": "SkipDates",
+      "FriendlyName": "Skip Dates (yyyy-MM-dd, comma separated)",
+      "GroupName": "Schedule (UTC)",
+      "Type": "String",
+      "DefaultValue": "2026-12-25"
+    },
+    {
+      "PropertyName": "RiskPerTradeMoney",
+      "FriendlyName": "Default Risk per Trade ($)",
+      "GroupName": "Risk",
+      "Type": "Double",
+      "DefaultValue": 50.0,
+      "MinValue": 1.0
+    },
+    {
+      "PropertyName": "StopAtrMultiplier",
+      "FriendlyName": "Stop (x ATR of H1)",
+      "GroupName": "Risk",
+      "Type": "Double",
+      "DefaultValue": 3.0,
+      "MinValue": 0.5,
+      "MaxValue": 10.0
+    },
+    {
+      "PropertyName": "AtrPeriod",
+      "FriendlyName": "ATR Period (H1, simple)",
+      "GroupName": "Risk",
+      "Type": "Integer",
+      "DefaultValue": 20,
+      "MinValue": 2,
+      "MaxValue": 200
+    },
+    {
+      "PropertyName": "MaxMinLotRiskMultiple",
+      "FriendlyName": "Max Min-Lot Risk (x default)",
+      "GroupName": "Risk",
+      "Type": "Double",
+      "DefaultValue": 1.5,
+      "MinValue": 1.0,
+      "MaxValue": 5.0
+    },
+    {
+      "PropertyName": "MaxLotsPerTrade",
+      "FriendlyName": "Max Lots per Trade",
+      "GroupName": "Risk",
+      "Type": "Double",
+      "DefaultValue": 5.0,
+      "MinValue": 0.01
+    },
+    {
+      "PropertyName": "MaxSpreadPips",
+      "FriendlyName": "Max Spread (pips)",
+      "GroupName": "Risk",
+      "Type": "Double",
+      "DefaultValue": 3.0,
+      "MinValue": 0.1
+    },
+    {
+      "PropertyName": "MaxHoldHours",
+      "FriendlyName": "Max Hold (hours)",
+      "GroupName": "Risk",
+      "Type": "Integer",
+      "DefaultValue": 12,
+      "MinValue": 1,
+      "MaxValue": 120
+    },
+    {
+      "PropertyName": "ApiUrl",
+      "FriendlyName": "Agent API URL",
+      "GroupName": "Server",
+      "Type": "String",
+      "DefaultValue": "http://127.0.0.1:8000/trade"
+    },
+    {
+      "PropertyName": "TelemetryUrl",
+      "FriendlyName": "Telemetry Endpoint (empty = from API URL)",
+      "GroupName": "Server",
+      "Type": "String",
+      "DefaultValue": ""
+    },
+    {
+      "PropertyName": "ReportUrl",
+      "FriendlyName": "Portfolio Report Endpoint (empty = from API URL)",
+      "GroupName": "Server",
+      "Type": "String",
+      "DefaultValue": ""
+    },
+    {
+      "PropertyName": "CommandPollMs",
+      "FriendlyName": "Command Poll (ms, 0=off)",
+      "GroupName": "Server",
+      "Type": "Integer",
+      "DefaultValue": 2000,
+      "MinValue": 0
+    }
+  ]
+}

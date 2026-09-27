@@ -16,13 +16,13 @@ from app.portfolio import get_portfolio_manager
 from tests._paths import FIXTURES_DIR
 
 FIXTURES = FIXTURES_DIR / "backtest"
-META = json.loads((FIXTURES / "flowrsi_metadata.json").read_text())
+META = json.loads((FIXTURES / "gotobi_metadata.json").read_text())
 REPORT = (FIXTURES / "report_small.json").read_bytes()
 client = TestClient(server.app)
 ACCOUNT = {"slug": "bttest", "ctid_email": "trader@example.com", "account_number": "10115236",
            "label": "demo", "pwd_file": "/root/ctrader_data/ctid_bttest_pwd"}
-FLOW = container_name("bttest", "flowrsi", "EURUSD")
-JUDAS = container_name("bttest", "judas", "EURUSD")
+GOTOBI = container_name("bttest", "gotobi", "USDJPY")
+OTHER = "cbot-bttest-other"      # an installed bot that is not Gotobi or Crypto Donchian
 
 
 class FakeCache:
@@ -39,7 +39,7 @@ class FakeCache:
 def env(tmp_path, monkeypatch):
     project = tmp_path / "project"
     (project / "cBot").mkdir(parents=True)
-    (project / "cBot" / "FlowRsiBot.algo").write_bytes(b"algo")
+    (project / "cBot" / "GotobiBot.algo").write_bytes(b"algo")
     ctrader = tmp_path / "ctrader"
     (ctrader / "ctrader_data").mkdir(parents=True)
     (ctrader / "ctrader_data" / "ctid_bttest_pwd").write_text("pw")
@@ -51,14 +51,15 @@ def env(tmp_path, monkeypatch):
     monkeypatch.setattr(api, "today_utc", lambda: date(2026, 9, 25))
     monkeypatch.setattr(store, "REPORT_DIR", tmp_path / "reports")
     pm = get_portfolio_manager()
-    for strategy, name in (("flowrsi", FLOW), ("judas", JUDAS)):
+    gotobi_cmd = build_run_command(ACCOUNT, "gotobi", "USDJPY", "/w", "/r")
+    for name, cmd in ((GOTOBI, gotobi_cmd), (OTHER, gotobi_cmd.replace("GotobiBot.algo", "OtherBot.algo"))):
         pm.delete_cbot_config(name)
-        assert pm.add_cbot_config(name, "", build_run_command(ACCOUNT, strategy, "EURUSD", "/w", "/r"))
+        assert pm.add_cbot_config(name, "", cmd)
     with store.connect() as conn:
         conn.execute("DELETE FROM backtest_jobs")
         conn.execute("DELETE FROM backtest_settings")
     yield cache
-    for name in (FLOW, JUDAS):
+    for name in (GOTOBI, OTHER):
         pm.delete_cbot_config(name)
     with store.connect() as conn:
         conn.execute("DELETE FROM backtest_jobs")
@@ -66,8 +67,8 @@ def env(tmp_path, monkeypatch):
 
 
 def body(**over):
-    data = {"bot_name": FLOW, "start": "2026-07-24", "end": "2026-09-23", "data_mode": "ticks",
-            "balance": 10000, "note": "rr 2", "overrides": {"TargetRiskReward": 2.0}}
+    data = {"bot_name": GOTOBI, "start": "2026-07-24", "end": "2026-09-23", "data_mode": "ticks",
+            "balance": 10000, "note": "stop 2", "overrides": {"StopAtrMultiplier": 2.0}}
     data.update(over)
     return data
 
@@ -78,31 +79,31 @@ def create(**over):
     return resp.json()
 
 
-def test_sources_list_flowrsi_as_supported_and_judas_as_not(env):
+def test_sources_list_gotobi_as_supported_and_other_bots_as_not(env):
     resp = client.get("/api/backtests/sources")
     assert resp.status_code == 200
     rows = {r["name"]: r for r in resp.json()["sources"]}
-    assert rows[FLOW]["supported"] is True and rows[FLOW]["symbol"] == "EURUSD"
-    assert rows[JUDAS]["supported"] is False and "AI" in rows[JUDAS]["reason"]
+    assert rows[GOTOBI]["supported"] is True and rows[GOTOBI]["symbol"] == "USDJPY"
+    assert rows[OTHER]["supported"] is False and "GotobiBot" in rows[OTHER]["reason"]
 
 
 def test_params_view(env):
-    resp = client.get(f"/api/backtests/sources/{FLOW}/params")
+    resp = client.get(f"/api/backtests/sources/{GOTOBI}/params")
     assert resp.status_code == 200
     view = resp.json()
-    assert view["locked"]["UseAiGateMode"] == "false"
+    assert view["locked"]["CommandPollMs"] == "0"
     params = {p["key"]: p for g in view["groups"] for p in g["params"]}
-    assert params["TargetRiskReward"]["bot_value"] == "1.5" and "UseAiGateMode" not in params
+    assert params["StopAtrMultiplier"]["bot_value"] == "3.0" and "ApiUrl" not in params
 
 
 def test_params_error_codes(env, monkeypatch):
     assert client.get("/api/backtests/sources/cbot-nope/params").status_code == 404
-    assert client.get(f"/api/backtests/sources/{JUDAS}/params").status_code == 422
+    assert client.get(f"/api/backtests/sources/{OTHER}/params").status_code == 422
     env.error = MetadataError("metadata printed no JSON")
-    assert client.get(f"/api/backtests/sources/{FLOW}/params").status_code == 502
+    assert client.get(f"/api/backtests/sources/{GOTOBI}/params").status_code == 502
     env.error = None
     monkeypatch.setattr(api, "docker_available", lambda: False)
-    assert client.get(f"/api/backtests/sources/{FLOW}/params").status_code == 503
+    assert client.get(f"/api/backtests/sources/{GOTOBI}/params").status_code == 503
 
 
 def test_create_stores_a_queued_job(env):
@@ -110,17 +111,17 @@ def test_create_stores_a_queued_job(env):
     assert (res["status"], res["queue_position"]) == ("queued", 1)
     with store.connect() as conn:
         job = store.get_job(conn, res["id"])
-    assert job["overrides"] == {"TargetRiskReward": {"from": "1.5", "to": "2.0"}}
-    assert job["params"]["TargetRiskReward"] == "2.0" and "UseAiGateMode" not in job["params"]
+    assert job["overrides"] == {"StopAtrMultiplier": {"from": "3.0", "to": "2.0"}}
+    assert job["params"]["StopAtrMultiplier"] == "2.0" and "ApiUrl" not in job["params"]
     assert (job["algo"], job["algo_sha"], job["algo_build_time"]) == (
-        "FlowRsiBot.algo", "f" * 64, "2026-09-24T16:34:43.3439105Z")
-    assert (job["start_date"], job["end_date"], job["note"]) == ("2026-07-24", "2026-09-23", "rr 2")
+        "GotobiBot.algo", "f" * 64, "2026-09-27T09:12:05.1234567Z")
+    assert (job["start_date"], job["end_date"], job["note"]) == ("2026-07-24", "2026-09-23", "stop 2")
     assert (job["ctid_email"], job["pwd_file"]) == ("trader@example.com", "/root/ctrader_data/ctid_bttest_pwd")
     listed = client.get("/api/backtests").json()["jobs"]
     assert listed[0]["id"] == res["id"]
     assert "ctid_email" not in listed[0] and "pwd_file" not in listed[0] and "params" not in listed[0]
     detail = client.get(f"/api/backtests/{res['id']}").json()
-    assert detail["params"]["TargetRiskReward"] == "2.0"
+    assert detail["params"]["StopAtrMultiplier"] == "2.0"
 
 
 def test_list_is_paged_newest_first(env):
@@ -164,9 +165,9 @@ def test_the_parallel_limit_is_set_from_the_page(env):
     {"balance": 50},
     {"note": "two\nlines"},
     {"note": "x" * 201},
-    {"overrides": {"UseAiGateMode": True}},
+    {"overrides": {"ApiUrl": "http://evil"}},
     {"overrides": {"NoSuchParam": 1}},
-    {"overrides": {"FastRsiPeriod": 1}},
+    {"overrides": {"AtrPeriod": 1}},
 ])
 def test_create_rejects_bad_input(env, over):
     assert client.post("/api/backtests", json=body(**over)).status_code == 422
@@ -190,7 +191,7 @@ def test_create_accepts_m1_with_spread_and_a_full_year(env):
 
 def test_create_refuses_unknown_and_unsupported_bots(env):
     assert client.post("/api/backtests", json=body(bot_name="cbot-nope")).status_code == 404
-    assert client.post("/api/backtests", json=body(bot_name=JUDAS, overrides={})).status_code == 422
+    assert client.post("/api/backtests", json=body(bot_name=OTHER, overrides={})).status_code == 422
 
 
 def test_detail_of_a_done_job_includes_the_report(env):
@@ -201,7 +202,7 @@ def test_detail_of_a_done_job_includes_the_report(env):
     detail = client.get(f"/api/backtests/{job_id}").json()
     assert detail["summary"] == {"net_profit": -0.98}
     assert len(detail["report"]["trades"]) == 4 and len(detail["report"]["pnl_by_hour"]) == 24
-    assert detail["report"]["parameters"]["TargetRiskReward"] == "1.5"
+    assert detail["report"]["parameters"]["StopAtrMultiplier"] == "3.0"
     raw = client.get(f"/api/backtests/{job_id}/report.json")
     assert raw.status_code == 200 and raw.json()["main"]["symbol"] == "EURUSD"
 

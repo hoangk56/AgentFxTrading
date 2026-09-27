@@ -206,7 +206,7 @@ write_env() {
     fi
   else
     render_env "${REPO_DIR}/.env.example" "$db_url" "$CTRADER_HOME" > "$env_file"
-    log "Created .env with DATABASE_URL and CTRADER_HOME (LLM keys left as placeholders)"
+    log "Created .env with DATABASE_URL and CTRADER_HOME"
   fi
   chown "${FORGE_USER}:${FORGE_GROUP}" "$env_file"
   chmod 0600 "$env_file"
@@ -434,7 +434,7 @@ build_algos() {
   step "Building cBot .algo packages (this pulls ${CTRADER_IMAGE})"
   docker pull -q "$CTRADER_IMAGE"
   local name
-  for name in AiAgentBot AsianRangeJudasSweepBot FlowRsiBot GotobiBot CryptoDonchianBot; do
+  for name in GotobiBot CryptoDonchianBot; do
     build_algo "$name"
   done
   # The console container runs as root, so hand everything back to forge.
@@ -493,7 +493,7 @@ print_summary() {
  Project      : ${REPO_DIR}
  Service      : systemctl status ${SERVICE_NAME}
  Database     : postgresql://${DB_USER}:***@127.0.0.1:5432/${DB_NAME}  (full URL in .env)
- cBots built  : ${REPO_DIR}/cBot/{AiAgentBot,AsianRangeJudasSweepBot,FlowRsiBot,GotobiBot,CryptoDonchianBot}.algo
+ cBots built  : ${REPO_DIR}/cBot/{GotobiBot,CryptoDonchianBot}.algo
  cTrader home : ${CTRADER_HOME}  (mounted as /root inside cBot containers)
  Swap         : ${swap:-none}
 
@@ -505,9 +505,7 @@ print_summary() {
  2. Open the dashboard through an SSH tunnel from your machine:
       ssh -N -L 8000:127.0.0.1:8000 ${FORGE_USER}@${ip}
     then browse http://127.0.0.1:8000
- 3. Put your LLM API key in ${REPO_DIR}/.env
-    (LLM_PROVIDER, DASHSCOPE_API_KEY, ...), then:  sudo systemctl restart ${SERVICE_NAME}
- 4. Add your cTrader account and start bots from
+ 3. Add your cTrader account and start bots from
     Dashboard → Docker Bot Management → Setup Instances.
  Re-running this installer is safe; it updates the checkout and rebuilds bots.
 =============================================================================

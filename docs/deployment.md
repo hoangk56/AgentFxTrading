@@ -22,7 +22,7 @@ user, then:
 6. clones the repo into `/home/forge/AgentFxTrading`, creates `.venv` and installs `requirements.txt`;
 7. writes `.env` from `.env.example` with `DATABASE_URL` and `CTRADER_HOME=/home/forge/ctrader` (an existing
    `.env` is kept, missing keys appended) and checks that the database accepts the URL;
-8. builds the five cBot `.algo` packages (see [Building the cBots](#building-the-cbots));
+8. builds the two cBot `.algo` packages (see [Building the cBots](#building-the-cbots));
 9. installs the `agentfx` systemd service and a daily 03:00 backup cron job (`/etc/cron.d/agentfx-backup`);
 10. enables ufw with only the SSH port open.
 
@@ -38,8 +38,7 @@ Then open the dashboard through an SSH tunnel and browse `http://127.0.0.1:8000`
 ssh -N -L 8000:127.0.0.1:8000 forge@YOUR_VPS_IP
 ```
 
-Put your LLM key in `/home/forge/AgentFxTrading/.env` (`LLM_PROVIDER`, `DASHSCOPE_API_KEY`, ...) and run
-`sudo systemctl restart agentfx`. Add your cTrader account and start bots from **Docker Bot Management → Setup
+Add your cTrader account and start bots from **Docker Bot Management → Setup
 Instances**.
 
 **Overrides.** `FORGE_SSH_KEY` skips the prompt; `AGENTFX_REPO` and `AGENTFX_BRANCH` pick another repository or
@@ -63,7 +62,7 @@ git clone https://github.com/kienphan/AgentFxTrading.git
 cd AgentFxTrading
 python3 -m venv .venv && source .venv/bin/activate
 pip install -r requirements.txt
-cp .env.example .env          # set LLM_PROVIDER and its API key; optionally DATABASE_URL
+cp .env.example .env          # optionally set DATABASE_URL
 ```
 
 Start the server either way:
@@ -83,14 +82,13 @@ exposing the port.
 
 ## Building the cBots
 
-Headless bots run the compiled `cBot/<Name>.algo`, which git does not track. The installer builds all five; to do
-it by hand, run once per bot with `<Name>` = `AiAgentBot`, `AsianRangeJudasSweepBot`, `FlowRsiBot`, `GotobiBot`,
-`CryptoDonchianBot` (from the repo root, with `CTRADER_HOME` = the host directory mounted as `/root`, e.g. `/root`
+Headless bots run the compiled `cBot/<Name>.algo`, which git does not track. The installer builds both; to do
+it by hand, run once per bot with `<Name>` = `GotobiBot`, `CryptoDonchianBot` (from the repo root, with `CTRADER_HOME` = the host directory mounted as `/root`, e.g. `/root`
 or `/home/forge/ctrader`):
 
 ```bash
 IMAGE=ghcr.io/spotware/ctrader-console:latest
-NAME=AiAgentBot
+NAME=GotobiBot
 CTRADER_HOME=/root
 ROBOTS=$CTRADER_HOME/cAlgo/Sources/Robots
 
@@ -144,11 +142,8 @@ gunzip -c backups/agentfx_<timestamp>.sql.gz | psql "$DATABASE_URL"
 
 ## Other scripts
 
-- `scripts/migrate_sqlite_to_pg.py`: one-off copy of a SQLite `portfolio.db` into PostgreSQL. Its target DSN is
-  hard-coded at the top of the file; edit it before running.
-- `scripts/deploy_feature.sh`, `scripts/recalibrate_live_risk.py`: older maintenance helpers with hard-coded
-  container names. `deploy_feature.sh` stages everything and pushes to `main`, which conflicts with the repo's
-  current rules in [AGENTS.md](../AGENTS.md); read them before use.
+- `scripts/migrate_sqlite_to_pg.py`: one-off copy of a SQLite `portfolio.db` into PostgreSQL, the one named by
+  `DATABASE_URL`.
 
 ## Tests
 

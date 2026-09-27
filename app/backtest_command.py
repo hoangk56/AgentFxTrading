@@ -5,10 +5,9 @@ Container specs for the dashboard's Backtest page
 Pure functions: parse an installed bot's `docker run … run <algo>` command into a BotSource, and build
 the `docker run … backtest` spec for a job. Nothing here talks to Docker or the DB.
 
-The cBots still make HTTP/WebSocket calls while backtesting (Judas' TickStream, AiAgentBot's position
-reports). On `--network host` those reach 127.0.0.1:8000 and write fake trades and ticks into
-production, so a backtest container only ever gets bridge networking, three mounts, and the locked
-parameters below written after everything else. tests/test_backtest_command.py pins each rule.
+A cBot that made HTTP calls while backtesting would, on `--network host`, reach 127.0.0.1:8000 and
+write fake trades and ticks into production, so a backtest container only ever gets bridge networking,
+three mounts, and the locked parameters below written after everything else. tests/test_backtest_command.py pins each rule.
 """
 import re
 import shlex
@@ -31,14 +30,11 @@ CPU_SHARES = 256
 DISABLED_URL = "http://127.0.0.1:9/disabled"
 
 STRATEGY_BY_ALGO = {
-    "FlowRsiBot.algo": "flowrsi",
-    "AsianRangeJudasSweepBot.algo": "judas",
-    "AiAgentBot.algo": "tms_orb",
     "GotobiBot.algo": "gotobi",
     "CryptoDonchianBot.algo": "donchian",
 }
-SUPPORTED_STRATEGIES = {"flowrsi", "gotobi", "donchian"}
-UNSUPPORTED_REASON = "Judas/TMS+ORB enter only through the AI; backtest mode not implemented yet"
+SUPPORTED_STRATEGIES = set(STRATEGY_BY_ALGO.values())
+UNSUPPORTED_REASON = "Only GotobiBot and CryptoDonchianBot can be backtested"
 DATA_MODES = ("ticks", "m1")
 
 # cTrader CLI options that sit next to the cBot parameters in a `run` command.
@@ -46,17 +42,6 @@ CLI_OPTIONS = {"ctid", "pwd-file", "password", "account", "broker", "symbol", "p
 
 # Written after the bot's values and the user's overrides, so they always win.
 LOCKED_PARAMS: Dict[str, Dict[str, str]] = {
-    "flowrsi": {
-        "UseAiGateMode": "false",
-        "ApiUrl": DISABLED_URL,
-        "AiTelemetryUrl": DISABLED_URL,
-        "AiReportUrl": DISABLED_URL,
-        "CommandPollMs": "0",
-        "EnableNewsFilter": "false",          # there is no historical news calendar
-        "EnableTelegramAlerts": "false",
-        "SendChartScreenshot": "false",
-        "SendAiAdjustAlerts": "false",
-    },
     # GotobiBot only talks to the server in RealTime; locked anyway so a backtest can never reach production.
     "gotobi": {
         "ApiUrl": DISABLED_URL,
@@ -73,9 +58,9 @@ LOCKED_PARAMS: Dict[str, Dict[str, str]] = {
     },
 }
 # Never passed to a backtest container, whatever the bot's command says.
-DROPPED_PARAMS = {"TelegramBotToken", "TelegramChatId"}
+DROPPED_PARAMS: set = set()
 # Metadata groups the form does not show; their unlocked parameters keep the bot's value.
-HIDDEN_GROUPS = {"AI Agent Integration", "News Filter", "Telegram Integration", "Server"}
+HIDDEN_GROUPS = {"Server"}
 
 
 class SourceError(ValueError):
@@ -85,8 +70,8 @@ class SourceError(ValueError):
 @dataclass
 class BotSource:
     name: str
-    algo: str                    # "FlowRsiBot.algo"
-    strategy: Optional[str]      # "flowrsi" | "judas" | "tms_orb" | None
+    algo: str                    # "GotobiBot.algo"
+    strategy: Optional[str]      # "gotobi" | "donchian" | None
     ctid: str
     account: str
     symbol: str

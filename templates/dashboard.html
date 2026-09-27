@@ -4,10 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AgentFxTrading Dashboard</title>
-    <link rel="stylesheet" href="/static/css/dashboard.css?v=20260927_btpage">
+    <link rel="stylesheet" href="/static/css/dashboard.css?v=20260927_2bots">
     <script src="https://unpkg.com/lucide@latest"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="/static/js/backtest.js?v=20260927_btpage" defer></script>
+    <script src="/static/js/backtest.js?v=20260927_2bots" defer></script>
     <link rel="icon" type="image/png" href="/static/favicon.png">
 </head>
 <body class="app-shell">
@@ -22,7 +22,7 @@
             </button>
             <div class="brand-text">
                 <div class="brand-title">AgentFxTrading</div>
-                <div class="brand-subtitle">Multi-account AI trading monitor</div>
+                <div class="brand-subtitle">Multi-account cBot trading monitor</div>
             </div>
         </div>
         <div class="topbar-controls">
@@ -86,18 +86,6 @@
                 <span class="nav-icon"><i data-lucide="flask-conical"></i></span>
                 <span class="nav-label">Backtest</span>
             </a>
-            <a href="#" class="nav-item" data-target="view-risk" title="Daily Loss Limits">
-                <span class="nav-icon"><i data-lucide="shield-alert"></i></span>
-                <span class="nav-label">Risk Limits</span>
-            </a>
-            <a href="#" class="nav-item" data-target="view-decisions" title="AI Thinking Feed">
-                <span class="nav-icon"><i data-lucide="sparkles"></i></span>
-                <span class="nav-label">AI Thinking</span>
-            </a>
-            <a href="#" class="nav-item" data-target="view-news" title="News Assessment">
-                <span class="nav-icon"><i data-lucide="newspaper"></i></span>
-                <span class="nav-label">News</span>
-            </a>
             <a href="#" class="nav-item" data-target="view-logs" title="Agent Logs">
                 <span class="nav-icon"><i data-lucide="terminal"></i></span>
                 <span class="nav-label">Agent Logs</span>
@@ -105,7 +93,7 @@
         </nav>
         <main class="main-content">
             <div id="view-dashboard" class="view-section active">
-                <!-- Market Sessions & Judas Killzone Bar (Task 1) -->
+                <!-- Market Sessions Bar -->
                 <div class="market-session-bar" id="market-session-bar">
                     <div class="session-group">
                         <span class="td-dim font-bold" style="font-size:0.75rem;"><i data-lucide="clock" class="kpi-icon text-cyan"></i> Sessions:</span>
@@ -123,13 +111,6 @@
                         </span>
                         <span class="badge {% if market_sessions.is_forex_weekend %}badge--warn{% else %}badge--live{% endif %}" id="market-forex-badge" style="font-size:0.7rem;">
                             Forex: {{ market_sessions.forex_status }}
-                        </span>
-                    </div>
-                    <div class="session-group">
-                        <span class="kz-banner {% if market_sessions.killzone.active %}kz-banner--active{% endif %}" id="kz-banner">
-                            <i data-lucide="flame" class="kpi-icon"></i>
-                            <span id="kz-title">Judas Killzone: {{ market_sessions.killzone.name }}</span>
-                            <span class="td-dim font-mono" id="kz-countdown" style="font-size:0.7rem; margin-left:4px;">({{ market_sessions.killzone.next_in }})</span>
                         </span>
                     </div>
                 </div>
@@ -186,9 +167,23 @@
                 {% macro sltp_line(tag, price, pnl, pips, no_tp=false) %}
                 <div class="sltp-line"><span class="sltp-tag">{{ tag }}</span>
                     {% if price %}<span class="td-mono">{{ price }}</span>{% if pnl is not none %} <span class="{% if pnl >= 0 %}pnl-positive{% else %}pnl-negative{% endif %}">{% if pnl > 0 %}+{% elif pnl < 0 %}-{% endif %}${{ '%.2f' | format(pnl | abs) }}</span>{% if tag == 'SL' and pnl > 0 %}{% if no_tp %}<span class="sltp-chip" title="Trailing stop: the bot moves it up behind price. The position closes when price comes back to it, keeping this profit.">trailing</span>{% else %}<span class="sltp-chip" title="Stop is past break-even: if price comes back to it the position still closes at this profit.">locked</span>{% endif %}{% endif %}{% endif %}
-                    {% elif no_tp %}<span class="sltp-none" title="No take-profit at the broker. FlowRSI removes it when it starts trailing the runner left after the partial close; the position then closes at the SL (or on an AI or manual close).">none · exits at SL</span>
+                    {% elif no_tp %}<span class="sltp-none" title="No take-profit at the broker: the bot exits on its own rule (fix time, channel, max hold) or at the SL.">none · exits at SL</span>
                     {% elif pips %}<span class="td-dim">{{ pips }}p</span>
                     {% else %}<span class="td-dim">—</span>{% endif %}
+                </div>
+                {% endmacro %}
+                {# Mirrors botBadge() in static/js/dashboard.js. #}
+                {% macro bot_badge(bot_id) %}
+                {% set b_lower = (bot_id or '') | lower %}
+                <div class="bot-cell">
+                    {% if 'gotobi' in b_lower %}
+                    <span class="bot-badge bot-badge--gotobi"><span class="bot-dot"></span>Gotobi</span>
+                    {% elif 'donchian' in b_lower %}
+                    <span class="bot-badge bot-badge--donchian"><span class="bot-dot"></span>Donchian</span>
+                    {% else %}
+                    <span class="bot-badge bot-badge--default"><span class="bot-dot"></span>cBot</span>
+                    {% endif %}
+                    <span class="bot-id-text" title="{{ bot_id }}">{{ bot_id }}</span>
                 </div>
                 {% endmacro %}
                 {% macro close_reason_chip(reason) %}
@@ -234,27 +229,7 @@
                                             {% endif %}
                                             <span class="account-name">{{ pos.account_label }}</span>
                                         </td>
-                                        <td>
-                                            {% set b_lower = (pos.bot_id or '') | lower %}
-                                            {% set is_flowrsi = 'flowrsi' in b_lower or 'flow_rsi' in b_lower or 'nestedrsi' in b_lower %}
-                                            {% set is_judas = 'judas' in b_lower or 'asian' in b_lower or 'smc' in b_lower %}
-                                            <div class="bot-cell">
-                                                {% if is_flowrsi %}
-                                                <span class="bot-badge bot-badge--flowrsi">
-                                                    <span class="bot-dot"></span>FlowRSI
-                                                </span>
-                                                {% elif is_judas %}
-                                                <span class="bot-badge bot-badge--judas">
-                                                    <span class="bot-dot"></span>Judas SMC
-                                                </span>
-                                                {% else %}
-                                                <span class="bot-badge bot-badge--tms">
-                                                    <span class="bot-dot"></span>TMS+ORB
-                                                </span>
-                                                {% endif %}
-                                                <span class="bot-id-text" title="{{ pos.bot_id }}">{{ pos.bot_id }}</span>
-                                            </div>
-                                        </td>
+                                        <td>{{ bot_badge(pos.bot_id) }}</td>
                                         <td class="td-mono font-bold">{{ pos.symbol }}</td>
                                         <td>
                                             {% if pos.side == 'BUY' %}
@@ -331,27 +306,7 @@
                                             {% endif %}
                                             <span class="account-name">{{ trade.account_label }}</span>
                                         </td>
-                                        <td>
-                                            {% set b_lower = (trade.bot_id or '') | lower %}
-                                            {% set is_flowrsi = 'flowrsi' in b_lower or 'flow_rsi' in b_lower or 'nestedrsi' in b_lower %}
-                                            {% set is_judas = 'judas' in b_lower or 'asian' in b_lower or 'smc' in b_lower %}
-                                            <div class="bot-cell">
-                                                {% if is_flowrsi %}
-                                                <span class="bot-badge bot-badge--flowrsi">
-                                                    <span class="bot-dot"></span>FlowRSI
-                                                </span>
-                                                {% elif is_judas %}
-                                                <span class="bot-badge bot-badge--judas">
-                                                    <span class="bot-dot"></span>Judas SMC
-                                                </span>
-                                                {% else %}
-                                                <span class="bot-badge bot-badge--tms">
-                                                    <span class="bot-dot"></span>TMS+ORB
-                                                </span>
-                                                {% endif %}
-                                                <span class="bot-id-text" title="{{ trade.bot_id }}">{{ trade.bot_id }}</span>
-                                            </div>
-                                        </td>
+                                        <td>{{ bot_badge(trade.bot_id) }}</td>
                                         <td class="td-mono font-bold">{{ trade.symbol }}</td>
                                         <td>
                                             {% if trade.side == 'BUY' %}
@@ -456,9 +411,9 @@
                             <span id="lb-weight-hint" class="td-dim" style="font-size: 0.72rem; margin-left: 10px;">Weight: 30% WinRate + 30% ProfitFactor + 20% NetPnL + 20% Consistency</span>
                         </div>
                         <div class="lb-toolbar">
-                            <div class="news-btn-group" id="lb-tab-group" role="group" aria-label="Ranking basis">
-                                <button type="button" class="news-filter-btn active" data-lb-tab="usd" aria-pressed="true" title="Scores Net P&amp;L in account currency: bigger lots score higher for the same edge">USD P&amp;L</button>
-                                <button type="button" class="news-filter-btn" data-lb-tab="lot" aria-pressed="false" title="Scores every closed trade over the risk it took (lots × stop distance): position size drops out">Lot-Neutral</button>
+                            <div class="seg-group" id="lb-tab-group" role="group" aria-label="Ranking basis">
+                                <button type="button" class="seg-btn active" data-lb-tab="usd" aria-pressed="true" title="Scores Net P&amp;L in account currency: bigger lots score higher for the same edge">USD P&amp;L</button>
+                                <button type="button" class="seg-btn" data-lb-tab="lot" aria-pressed="false" title="Scores every closed trade over the risk it took (lots × stop distance): position size drops out">Lot-Neutral</button>
                             </div>
                             <div class="lb-period">
                                 <button type="button" id="lb-period-btn" class="lb-period-btn" aria-haspopup="dialog" aria-expanded="false" aria-controls="lb-period-pop">
@@ -581,7 +536,6 @@
                         </div>
                         <div id="bt-params" class="bt-params"></div>
                         <div id="bt-locked" class="bt-locked"></div>
-                        <div class="bt-warning">⚠ Technical logic only: backtests run with the AI gate off, while the live bot lets the AI filter its entries.</div>
                         <div class="bt-form-actions">
                             <span id="bt-form-msg" class="bt-form-msg"></span>
                             <button id="bt-run-btn" class="log-btn bt-run-btn"><i data-lucide="play" class="btn-icon"></i> Run backtest</button>
@@ -726,55 +680,6 @@
                 </section>
             </div>
             
-            <!-- Daily Loss Limits View -->
-            <div id="view-risk" class="view-section">
-                <section class="panel">
-                    <div class="panel-header">
-                        <span class="panel-title"><i data-lucide="shield-alert" class="panel-icon text-amber"></i> Daily Loss Limits</span>
-                        <select id="risk-account" class="log-select" style="margin-left:auto; display:none;"></select>
-                        <span id="risk-date" class="td-dim" style="margin-left:auto;"></span>
-                        <button id="risk-cancel-btn" class="log-btn">Discard</button>
-                        <button id="risk-save-btn" class="log-btn" style="background:var(--profit-soft); color:var(--profit); border-color:var(--profit);"><i data-lucide="save" class="btn-icon"></i> Save</button>
-                    </div>
-                    <div class="panel-body">
-                        <p class="td-dim" style="margin:0 0 12px; font-size:0.78rem; line-height:1.5;">
-                            A scope stops taking <b>new</b> entries once its loss today reaches its limit; positions already open keep running to their SL/TP.
-                            Today's loss = P&amp;L closed today (UTC) + what the open positions would add at their stop (a stop past break-even counts as locked profit).
-                            Checked narrowest first: container, then strategy, then account.
-                        </p>
-                        <div class="table-wrap">
-                            <table class="data-table" id="risk-table">
-                                <thead>
-                                    <tr>
-                                        <th>Layer</th>
-                                        <th>Scope</th>
-                                        <th>Today (closed + open risk)</th>
-                                        <th style="width:130px;">Limit ($)</th>
-                                        <th style="width:70px;">Enabled</th>
-                                        <th style="width:110px;">Status</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="risk-tbody">
-                                    <tr><td colspan="6" class="td-dim">Loading limits...</td></tr>
-                                </tbody>
-                            </table>
-                        </div>
-                        <div id="risk-msg" style="margin-top:10px; font-size:0.78rem;"></div>
-                        <h4 style="margin:18px 0 8px; color:var(--accent-bright); font-size:0.85rem;">Containers with the largest loss today</h4>
-                        <div class="table-wrap">
-                            <table class="data-table">
-                                <thead>
-                                    <tr><th>Container</th><th>Closed</th><th>Open risk</th><th>Today</th><th style="width:110px;">Status</th></tr>
-                                </thead>
-                                <tbody id="risk-containers-tbody">
-                                    <tr><td colspan="5" class="td-dim">Loading...</td></tr>
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                </section>
-            </div>
-
             <!-- Agent Logs View -->
             <div id="view-logs" class="view-section">
                 <section class="panel log-section">
@@ -787,7 +692,7 @@
                             <div class="log-toolbar-group">
                                 <label for="log-date-select" class="td-dim">Date:</label>
                                 <select id="log-date-select" class="log-select"></select>
-                                <input type="text" id="log-filter-input" class="log-input" placeholder="Filter logs (e.g. LLM, CYCLE, OPEN)..." style="min-width: 240px;">
+                                <input type="text" id="log-filter-input" class="log-input" placeholder="Filter logs (e.g. OPEN, CLOSE, WATCHDOG)..." style="min-width: 240px;">
                             </div>
                             <div class="log-toolbar-group">
                                 <label style="display:flex;align-items:center;gap:4px;cursor:pointer;font-size:0.75rem;">
@@ -804,154 +709,6 @@
                 </section>
             </div>
 
-            <!-- AI Thinking & Decisions Mini-Feed View -->
-            <div id="view-decisions" class="view-section">
-                <section class="panel">
-                    <div class="panel-header ai-feed-panel-header">
-                        <div class="panel-header-left">
-                            <span class="panel-title text-nowrap"><i data-lucide="sparkles" class="panel-icon text-blue"></i> AI Strategy Feed</span>
-                            <span class="panel-badge" id="ai-feed-count">0 Decisions</span>
-                        </div>
-                    </div>
-                    <div class="ai-feed-toolbar">
-                        <div class="ai-feed-filter-group">
-                            <label for="ai-symbol-filter" class="td-dim font-bold">Pair:</label>
-                            <select id="ai-symbol-filter" class="log-select ai-feed-select">
-                                <option value="ALL">All Symbols</option>
-                            </select>
-                        </div>
-                        <div class="ai-feed-actions">
-                            <button id="ai-feed-refresh-btn" class="log-btn"><i data-lucide="refresh-cw" class="btn-icon"></i> Refresh</button>
-                            <button id="ai-feed-clear-btn" class="log-btn"><i data-lucide="trash-2" class="btn-icon"></i> Clear</button>
-                        </div>
-                    </div>
-                    <div id="ai-feed-list" class="ai-feed-container">
-                        <div class="ai-feed-empty" id="ai-feed-empty-state">
-                            <i data-lucide="brain-circuit" style="width: 36px; height: 36px; margin-bottom: 8px; opacity: 0.5;"></i>
-                            <div>Waiting for incoming AI decisions from trading bots...</div>
-                        </div>
-                    </div>
-                </section>
-            </div>
-
-            <!-- News Assessment View -->
-            <div id="view-news" class="view-section">
-                <div class="news-toolbar">
-                    <div class="news-toolbar-left">
-                        <span class="panel-title" style="font-size:0.88rem;"><i data-lucide="newspaper" class="text-red"></i> Red News &amp; Macro AI</span>
-                        <div class="news-btn-group">
-                            <button class="news-filter-btn" id="news-filter-today" onclick="switchNewsRange('today')">Today</button>
-                            <button class="news-filter-btn" id="news-filter-tomorrow" onclick="switchNewsRange('tomorrow')">Tomorrow</button>
-                            <button class="news-filter-btn active" id="news-filter-thisweek" onclick="switchNewsRange('thisweek')">This Week</button>
-                        </div>
-                        <div class="news-btn-group">
-                            <button class="news-filter-btn active" data-curr="ALL" onclick="filterNewsCurrency('ALL')">All</button>
-                            <button class="news-filter-btn" data-curr="USD" onclick="filterNewsCurrency('USD')">USD</button>
-                            <button class="news-filter-btn" data-curr="EUR" onclick="filterNewsCurrency('EUR')">EUR</button>
-                            <button class="news-filter-btn" data-curr="GBP" onclick="filterNewsCurrency('GBP')">GBP</button>
-                            <button class="news-filter-btn" data-curr="JPY" onclick="filterNewsCurrency('JPY')">JPY</button>
-                        </div>
-                    </div>
-                    <div class="news-toolbar-right">
-                        <div class="news-btn-group">
-                            <button class="news-filter-btn active" id="news-view-grid" onclick="switchNewsView('grid')" title="Compact Cards View">
-                                <i data-lucide="layout-grid" style="width:13px; height:13px;"></i> Cards
-                            </button>
-                            <button class="news-filter-btn" id="news-view-table" onclick="switchNewsView('table')" title="Dense Table View">
-                                <i data-lucide="table" style="width:13px; height:13px;"></i> Table
-                            </button>
-                        </div>
-                        <span id="news-shield-status-chip" class="status-pill status-pill--online">
-                            <span class="status-dot"></span> Shield: Clear
-                        </span>
-                        <button class="news-filter-btn" style="border:1px solid var(--border); padding:4px 8px;" onclick="fetchNewsCalendar(true)" title="Refresh ForexFactory Calendar">
-                            <i data-lucide="refresh-cw" style="width:13px; height:13px; vertical-align:middle;"></i>
-                        </button>
-                    </div>
-                </div>
-
-                <!-- Clusters Container (Cards or Table) -->
-                <div id="news-clusters-container">
-                    <div style="text-align:center; padding:30px; color:var(--text-muted);">
-                        <p>Loading economic calendar...</p>
-                    </div>
-                </div>
-            </div>
-
-    <!-- News Assessment Modal -->
-    <div id="news-assessment-modal" class="news-modal-backdrop">
-        <div class="news-modal">
-            <div class="news-modal-header">
-                <div class="news-modal-title">
-                    <i data-lucide="brain" class="text-red"></i>
-                    <span id="modal-assessment-title">AI Macro Assessment</span>
-                </div>
-                <button class="news-modal-close" onclick="closeNewsModal()">&times;</button>
-            </div>
-            <div class="news-modal-body">
-                <!-- Metrics Strip -->
-                <div class="news-metrics-strip">
-                    <div class="news-metric-card">
-                        <span class="news-metric-label">Volatility Level</span>
-                        <span id="modal-volatility" class="volatility-pill volatility-pill--high">HIGH</span>
-                    </div>
-                    <div class="news-metric-card">
-                        <span class="news-metric-label">Expected Pips</span>
-                        <span id="modal-pips" class="news-metric-value">150 - 300 pips</span>
-                    </div>
-                    <div class="news-metric-card">
-                        <span class="news-metric-label">Expected Pattern</span>
-                        <span id="modal-pattern" class="news-metric-value">2_WAY_WHIPSAW</span>
-                    </div>
-                    <div class="news-metric-card">
-                        <span class="news-metric-label">Target Instrument</span>
-                        <span id="modal-symbol" class="news-metric-value">XAUUSD</span>
-                    </div>
-                </div>
-
-                <!-- Probability Bar -->
-                <div class="prob-bar-wrap">
-                    <div class="prob-labels">
-                        <span class="text-green" id="modal-prob-buy">BUY 65%</span>
-                        <span class="text-red" id="modal-prob-sell">SELL 35%</span>
-                    </div>
-                    <div class="prob-bar-outer">
-                        <div id="modal-prob-bar-inner" class="prob-bar-inner-buy" style="width: 65%;"></div>
-                    </div>
-                </div>
-
-                <!-- Bilingual Switch -->
-                <div class="bilingual-toggle-bar">
-                    <button class="bilingual-tab-btn active" id="modal-lang-vi" onclick="switchModalLanguage('vi')">🇻🇳 Tiếng Việt</button>
-                    <button class="bilingual-tab-btn" id="modal-lang-en" onclick="switchModalLanguage('en')">🇬🇧 English</button>
-                </div>
-
-                <!-- Scenarios -->
-                <div style="display:flex; flex-direction:column; gap:8px;">
-                    <div class="scenario-box">
-                        <strong style="color:var(--accent-bright);"><i data-lucide="trending-up" style="width:14px; height:14px; vertical-align:middle;"></i> Scenario A (Actual &gt; Forecast):</strong>
-                        <p id="modal-scenario-better" style="margin-top:4px;"></p>
-                    </div>
-                    <div class="scenario-box scenario-box--worse">
-                        <strong style="color:#f87171;"><i data-lucide="trending-down" style="width:14px; height:14px; vertical-align:middle;"></i> Scenario B (Actual &lt; Forecast):</strong>
-                        <p id="modal-scenario-worse" style="margin-top:4px;"></p>
-                    </div>
-                </div>
-
-                <!-- cBot Guidance -->
-                <div class="guidance-box">
-                    <strong style="color:#60a5fa;"><i data-lucide="shield-alert" style="width:14px; height:14px; vertical-align:middle;"></i> cBot &amp; Algorithmic Guidance:</strong>
-                    <p id="modal-guidance" style="margin-top:4px;"></p>
-                </div>
-
-                <!-- Detailed SMC Report -->
-                <div>
-                    <h4 style="font-size:0.85rem; color:var(--text-muted); margin-bottom:6px; text-transform:uppercase; letter-spacing:0.05em;">Quantitative Order Flow Report</h4>
-                    <div id="modal-markdown" class="analysis-markdown-content"></div>
-                </div>
-            </div>
-        </div>
-    </div>
         </main>
     </div>
 
@@ -964,5 +721,5 @@
             leaderboard: {{ leaderboard | tojson }},
         };
     </script>
-    <script src="/static/js/dashboard.js?v=20260927_lb1w"></script>
+    <script src="/static/js/dashboard.js?v=20260927_2bots"></script>
 </body></html>

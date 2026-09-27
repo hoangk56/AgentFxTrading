@@ -6,12 +6,12 @@ import pytest
 from app import backtest_store as store
 
 FIELDS = {
-    "bot_name": "cbot-demo-demo-eurusd-all-flowrsi", "strategy": "flowrsi", "symbol": "EURUSD", "period": "m15",
-    "algo": "FlowRsiBot.algo", "algo_sha": "abc", "algo_build_time": "2026-09-24T16:34:43Z",
+    "bot_name": "cbot-demo-demo-usdjpy-fix-gotobi", "strategy": "gotobi", "symbol": "EURUSD", "period": "m15",
+    "algo": "GotobiBot.algo", "algo_sha": "abc", "algo_build_time": "2026-09-24T16:34:43Z",
     "ctid_email": "trader@example.com", "account": "10115236", "pwd_file": "/root/ctrader_data/ctid_demo-demo_pwd",
     "start_date": "2026-07-24", "end_date": "2026-09-23", "data_mode": "ticks", "spread_pips": None,
-    "balance": 10000.0, "overrides": {"TargetRiskReward": {"from": "1.5", "to": "2.0"}},
-    "params": {"TargetRiskReward": "2.0"}, "note": "rr 2",
+    "balance": 10000.0, "overrides": {"StopAtrMultiplier": {"from": "3.0", "to": "2.0"}},
+    "params": {"StopAtrMultiplier": "2.0"}, "note": "stop 2",
 }
 
 

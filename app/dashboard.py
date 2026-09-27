@@ -17,7 +17,6 @@ from typing import Dict, List, Optional, Any
 from app.accounts import get_account_registry
 from app.leaderboard import InvalidDateRange, compute_bot_leaderboard, compute_profit_factor
 import logging
-from app import news_service
 
 
 VN_TZ = timezone(timedelta(hours=7))  # Vietnam has no DST, so a fixed offset is exact
@@ -163,9 +162,8 @@ def tick_levels(payload: Any) -> Optional[Dict]:
 def _no_live_tp(levels: Dict) -> bool:
     """A bot's live levels hold a stop but no target: the broker has no TP on the position.
 
-    FlowRSI takes the TP off when it starts trailing the runner left after its partial close,
-    so the trade then exits only at its stop. Bots send SL and TP as a pair, so a report without
-    a stop says nothing about the TP.
+    Gotobi and Crypto Donchian open without a TP and exit on their own rules or at the stop.
+    Bots send SL and TP as a pair, so a report without a stop says nothing about the TP.
     """
     return bool(levels.get("sl_price")) and not levels.get("tp_price")
 
@@ -419,28 +417,8 @@ def get_daily_pnl_history(days: int = 30, account_id: str = "all") -> List[Dict]
 
 
 # --- In-Memory Store for AI Decisions (Mini-Feed) ---
-_latest_decisions: List[Dict] = []
-
-def record_ai_decision(decision: Dict):
-    """Store the AI decision in memory (FIFO up to 50)."""
-    global _latest_decisions
-    # Ensure timestamp exists
-    if "timestamp" not in decision or not decision["timestamp"]:
-        decision["timestamp"] = datetime.now(timezone.utc).isoformat()
-    _latest_decisions.insert(0, decision)
-    if len(_latest_decisions) > 50:
-        _latest_decisions = _latest_decisions[:50]
-
-def get_latest_ai_decisions(limit: int = 5, symbol: Optional[str] = None) -> List[Dict]:
-    """Get latest AI decisions, optionally filtered by symbol."""
-    if symbol and symbol.upper() != "ALL":
-        sym_clean = symbol.strip().upper()
-        filtered = [d for d in _latest_decisions if (d.get("symbol") or "").upper() == sym_clean]
-        return filtered[:limit]
-    return _latest_decisions[:limit]
-
 def get_market_sessions_info() -> Dict:
-    """Calculate current market sessions, Judas killzones, and weekend status."""
+    """Calculate current market sessions and weekend status."""
     now_utc = datetime.now(timezone.utc)
     weekday = now_utc.weekday()  # 0=Monday ... 4=Friday, 5=Saturday, 6=Sunday
     hour = now_utc.hour
@@ -460,35 +438,6 @@ def get_market_sessions_info() -> Dict:
     # New York: 12:00 - 21:00 UTC
     ny_active = (12.0 <= current_time_dec < 21.0) and not is_forex_weekend
 
-    # Judas Killzones (UTC)
-    # London Open Killzone: 07:00 - 10:00 UTC
-    london_kz = (7.0 <= current_time_dec < 10.0) and not is_forex_weekend
-    # New York Overlap Killzone: 12:30 - 16:00 UTC
-    ny_kz = (12.5 <= current_time_dec < 16.0) and not is_forex_weekend
-
-    active_kz_name = "Outside Killzones"
-    if london_kz:
-        active_kz_name = "London Open Killzone (07:00-10:00 UTC)"
-    elif ny_kz:
-        active_kz_name = "NY Overlap Killzone (12:30-16:00 UTC)"
-
-    # Next Killzone Countdown
-    next_kz_text = ""
-    if london_kz or ny_kz:
-        next_kz_text = "Active Now"
-    elif not is_forex_weekend:
-        if current_time_dec < 7.0:
-            diff_h = 7.0 - current_time_dec
-            next_kz_text = f"London KZ in {int(diff_h)}h {int((diff_h%1)*60)}m"
-        elif current_time_dec < 12.5:
-            diff_h = 12.5 - current_time_dec
-            next_kz_text = f"NY KZ in {int(diff_h)}h {int((diff_h%1)*60)}m"
-        else:
-            diff_h = (24.0 - current_time_dec) + 7.0
-            next_kz_text = f"London KZ in {int(diff_h)}h {int((diff_h%1)*60)}m"
-    else:
-        next_kz_text = "Market opens Mon 07:00 UTC"
-
     return {
         "utc_time": now_utc.strftime("%Y-%m-%d %H:%M:%S UTC"),
         "gmt7_time": (now_utc + timedelta(hours=7)).strftime("%Y-%m-%d %H:%M:%S (GMT+7)"),
@@ -501,11 +450,6 @@ def get_market_sessions_info() -> Dict:
             "london": {"name": "London", "active": london_active, "hours": "07:00-16:00 UTC"},
             "new_york": {"name": "New York", "active": ny_active, "hours": "12:00-21:00 UTC"}
         },
-        "killzone": {
-            "active": (london_kz or ny_kz),
-            "name": active_kz_name,
-            "next_in": next_kz_text
-        }
     }
 
 def get_asset_exposure(account_id: str = "all") -> Dict:
@@ -638,7 +582,6 @@ async def dashboard_page(request: Request):
             "leaderboard": leaderboard,
             "market_sessions": get_market_sessions_info(),
             "exposure": get_asset_exposure(filter_acc),
-            "latest_decisions": get_latest_ai_decisions(3),
         }
     )
     response.headers["Cache-Control"] = "no-cache, no-store, must-revalidate"
@@ -689,7 +632,7 @@ async def api_dashboard_leaderboard(account_id: str = "all", account_type: Optio
         raise HTTPException(status_code=400, detail=str(e))
 @router.get("/api/dashboard/sessions")
 async def api_dashboard_sessions():
-    """API endpoint for trading sessions, killzones, and market status."""
+    """API endpoint for trading sessions and market status."""
     return get_market_sessions_info()
 
 @router.get("/api/dashboard/exposure")
@@ -701,12 +644,6 @@ async def api_dashboard_exposure(account_id: str = "all"):
 async def api_dashboard_cumulative_pnl(days: int = 30, account_id: str = "all"):
     """API endpoint for cumulative equity curve."""
     return get_cumulative_equity_curve(days, account_id)
-
-@router.get("/api/dashboard/latest-decisions")
-async def api_dashboard_latest_decisions(limit: int = 20, symbol: Optional[str] = None):
-    """API endpoint for latest AI decisions with structured reasoning and symbol filter."""
-    return get_latest_ai_decisions(limit=limit, symbol=symbol)
-
 
 @router.get("/api/dashboard/logs")
 async def api_dashboard_logs(
@@ -931,67 +868,6 @@ async def websocket_endpoint(websocket: WebSocket):
         manager.disconnect(websocket)
 
 
-@router.websocket("/ws/cbot")
-async def cbot_websocket_endpoint(websocket: WebSocket):
-    """
-    Bidirectional low-latency WebSocket endpoint for cBots.
-    Handles fast tick telemetry streaming and real-time push orders/adjustments.
-    """
-    from app.cbot_watchdog import record_bot_tick
-
-    await websocket.accept()
-    bot_id = "unknown"
-    try:
-        while True:
-            text = await websocket.receive_text()
-            try:
-                payload = json.loads(text)
-                msg_type = payload.get("type", "tick")
-                bot_id = payload.get("bot_id", bot_id)
-                
-                if msg_type == "ping":
-                    await websocket.send_json({"type": "pong", "time": datetime.now().isoformat()})
-                elif msg_type == "tick":
-                    symbol = payload.get("symbol")
-                    bid = float(payload.get("bid", 0.0) or 0.0)
-                    ask = float(payload.get("ask", 0.0) or 0.0)
-                    account_id = payload.get("account_id")
-                    if symbol and (bid > 0 or ask > 0):
-                        pm = get_portfolio_manager()
-                        pm.update_market_price(symbol, bid, ask, bot_id=bot_id)
-                        record_bot_tick(bot_id, payload.get("last_bar"))
-
-                        # A bot with a position open also sends its own broker P&L sample, which
-                        # keeps the dashboard live between bar snapshots without the server
-                        # reconstructing anything (it cannot: no pip size / FX rate server-side).
-                        try:
-                            pnl = float(payload["pnl"]) if payload.get("pnl") is not None else None
-                            pips = float(payload["pips"]) if payload.get("pips") is not None else None
-                        except (TypeError, ValueError):
-                            pnl = pips = None
-                        levels = tick_levels(payload)
-                        if pnl is not None:
-                            pm.update_position_metrics(bot_id, pnl, pips or 0.0, account_id=account_id,
-                                                       levels=levels)
-
-                        # Acknowledge before fanning out: the bot paces its next tick on this reply,
-                        # so its cadence must not depend on the health of dashboard clients.
-                        await websocket.send_json({"type": "ack", "status": "ok"})
-                        try:
-                            await broadcast_tick(symbol, bid, ask, account_id,
-                                                 bot_id=bot_id, pnl=pnl, pips=pips,
-                                                 levels=levels if pnl is not None else None)
-                        except Exception:
-                            pass
-                    else:
-                        await websocket.send_json({"type": "ack", "status": "ok"})
-                else:
-                    await websocket.send_json({"type": "ack", "status": "received"})
-            except json.JSONDecodeError:
-                await websocket.send_json({"type": "error", "message": "Invalid JSON"})
-    except WebSocketDisconnect:
-        logger.info(f"[cBot WS] Bot {bot_id} disconnected")
-
 async def broadcast_update(account_id: Optional[str] = None):
     """Broadcast dashboard summary, active positions, recent trades, and daily P&L to all connected clients."""
     targets = ["demo", "live", "all"]
@@ -1046,14 +922,6 @@ async def broadcast_event(event_type: str, message: str, bot_id: str = "", accou
         "timestamp": datetime.now().isoformat()
     })
 
-async def broadcast_decision(decision: dict):
-    """Broadcast AI decision to connected clients."""
-    await manager.broadcast({
-        "type": "ai_decision",
-        "decision": decision,
-        "timestamp": datetime.now().isoformat()
-    })
-
 # --- Docker Management Routes ---
 from pydantic import BaseModel
 from app.docker_manager import docker_manager
@@ -1071,7 +939,7 @@ class BotUpdateConfigRequest(BaseModel):
 
 # The bot control handlers below are plain `def` on purpose: FastAPI runs them in a threadpool.
 # Docker calls block (stop/restart wait up to 10 s; inspect+logs took seconds under load), and
-# inside `async def` that pinned the event loop, stalling /trade and /ws/cbot for every cBot.
+# inside `async def` that pinned the event loop, stalling /api/tick and /portfolio/report for every cBot.
 
 @router.get("/api/bots")
 def api_get_bots():
@@ -1436,147 +1304,3 @@ def api_setup_instances(req: SetupInstancesRequest):
 async def api_watchdog_status():
     from app.cbot_watchdog import cbot_watchdog
     return cbot_watchdog.get_status()
-
-
-# ── Daily loss limits (account / strategy / container) ─────────────────────
-
-class RiskLimitUpdate(BaseModel):
-    scope: str
-    target: str
-    max_daily_loss: Optional[float] = None
-    enabled: Optional[bool] = None
-
-
-class RiskLimitsRequest(BaseModel):
-    limits: List[RiskLimitUpdate]
-
-
-RISK_CONTAINERS_SHOWN = 8
-
-
-@router.get("/api/risk-limits")
-def api_get_risk_limits():
-    """The limits and today's loss against them, per account: the account, each strategy,
-    and the containers that have lost the most."""
-    pm = get_portfolio_manager()
-    accounts = []
-    for account_id in pm.get_account_ids():
-        usage = pm.daily_loss_usage(account_id)
-        containers = sorted(
-            ({"bot_id": bot_id, **used} for bot_id, used in usage["container"].items()),
-            key=lambda c: c["total"],
-        )[:RISK_CONTAINERS_SHOWN]
-        accounts.append({
-            "account_id": account_id,
-            "account": usage["account"],
-            "strategy": usage["strategy"],
-            "containers": containers,
-        })
-    return {
-        "date": datetime.now(timezone.utc).date().isoformat(),
-        "limits": pm.get_risk_limits(),
-        "accounts": accounts,
-    }
-
-
-@router.put("/api/risk-limits")
-def api_put_risk_limits(req: RiskLimitsRequest):
-    pm = get_portfolio_manager()
-    try:
-        limits = pm.update_risk_limits([u.model_dump() for u in req.limits])
-    except ValueError as e:
-        raise HTTPException(status_code=400, detail=str(e))
-    logger.info(f"Risk limits updated: {[u.model_dump() for u in req.limits]}")
-    return {"limits": limits}
-
-# ── News Service & Macro Assessment API Endpoints ─────────────────────────
-
-class NewsAssessRequest(BaseModel):
-    cluster_id: str
-    symbol: str = "XAUUSD"
-    range: str = "thisweek"
-    notes: str = ""
-    cluster_data: Optional[Dict[str, Any]] = None
-@router.get("/api/news/raw")
-async def api_news_raw(range: str = "thisweek", refresh: bool = False):
-    """
-    Returns raw ForexFactory events JSON for cBots and downstream consumers.
-    Leverages backend caching (15-min TTL) to prevent 429 rate-limiting.
-    """
-    try:
-        events = await news_service.fetch_forexfactory_raw_events(range, force_refresh=refresh)
-        return events
-    except Exception as ex:
-        logger.error(f"[News API] Error fetching raw calendar: {ex}")
-        return []
-
-@router.get("/api/news/calendar")
-async def api_news_calendar(range: str = "thisweek", refresh: bool = False):
-    try:
-        events = await news_service.fetch_forexfactory_raw_events(range, force_refresh=refresh)
-        clusters = news_service.cluster_red_news(events)
-        for c in clusters:
-            latest = news_service.get_latest_assessment_for_cluster(c["id"])
-            if latest:
-                c["is_assessed"] = True
-                c["latest_assessment"] = latest
-        return {
-            "success": True,
-            "range": range,
-            "total_clusters": len(clusters),
-            "clusters": clusters,
-            "raw_events_count": len(events)
-        }
-    except Exception as ex:
-        logger.error(f"[News API] Error fetching calendar: {ex}")
-        return {"success": False, "error": str(ex), "clusters": []}
-
-@router.post("/api/news/assess")
-async def api_news_assess(req: NewsAssessRequest):
-    try:
-        result = await news_service.assess_news_cluster(
-            cluster_id=req.cluster_id,
-            symbol=req.symbol,
-            week_range=req.range,
-            user_notes=req.notes,
-            cluster_data=req.cluster_data
-        )
-        return {"success": True, "assessment": result}
-    except Exception as ex:
-        logger.error(f"[News API] Error assessing cluster {req.cluster_id}: {ex}")
-        return {"success": False, "error": str(ex)}
-
-@router.get("/api/news/assessments")
-async def api_news_assessments(limit: int = 50):
-    try:
-        items = news_service.get_recent_news_assessments(limit=limit)
-        return {"success": True, "assessments": items, "count": len(items)}
-    except Exception as ex:
-        logger.error(f"[News API] Error retrieving assessments: {ex}")
-        return {"success": False, "error": str(ex), "assessments": []}
-
-@router.get("/api/news/assessments/{assessment_id}")
-async def api_news_assessment_detail(assessment_id: int):
-    item = news_service.get_news_assessment_by_id(assessment_id)
-    if not item:
-        return {"success": False, "error": "Assessment not found"}
-    return {"success": True, "assessment": item}
-
-@router.get("/api/news/shield-status")
-async def api_news_shield_status(symbol: str = "XAUUSD", pause_before: int = 30, pause_after: int = 30):
-    try:
-        is_active, title, remaining_mins = await news_service.is_news_blackout_active(
-            symbol=symbol,
-            pause_before_mins=pause_before,
-            pause_after_mins=pause_after
-        )
-        return {
-            "success": True,
-            "symbol": symbol.upper(),
-            "is_blackout": is_active,
-            "event_title": title,
-            "remaining_minutes": remaining_mins
-        }
-    except Exception as ex:
-        return {"success": False, "error": str(ex), "is_blackout": False}
-

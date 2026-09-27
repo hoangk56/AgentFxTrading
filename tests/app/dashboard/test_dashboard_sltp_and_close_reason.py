@@ -23,7 +23,7 @@ client = TestClient(app)
 def pm(tmp_path):
     manager = PortfolioManager(db_path=str(tmp_path / "sltp.db"))
     manager.register_position(
-        bot_id="xauusd-judas", symbol="XAUUSD", side="Buy", volume=0.1, entry_price=2500.0,
+        bot_id="cbot-demo-usdjpy-fix-gotobi", symbol="XAUUSD", side="Buy", volume=0.1, entry_price=2500.0,
         sl_pips=100.0, tp_pips=200.0, account_id="acct-1", ctrader_id=11,
         sl_price=2490.0, tp_price=2520.0,
     )
@@ -50,7 +50,7 @@ def test_open_records_the_sl_tp_prices(pm):
 
 def test_close_stores_the_final_levels_and_the_reason(pm):
     # The stop was trailed to 2505 before it was hit
-    pm.close_position("xauusd-judas", "XAUUSD", 2505.0, 48.5, "acct-1", ctrader_id=11,
+    pm.close_position("cbot-demo-usdjpy-fix-gotobi", "XAUUSD", 2505.0, 48.5, "acct-1", ctrader_id=11,
                       close_reason="Stop Loss (Trailing / Break-Even)", sl_price=2505.0, tp_price=2520.0)
     row = _row(pm)
     assert row["status"] == "closed"
@@ -59,7 +59,7 @@ def test_close_stores_the_final_levels_and_the_reason(pm):
 
 
 def test_close_from_an_older_bot_keeps_the_entry_levels(pm):
-    pm.close_position("xauusd-judas", "XAUUSD", 2520.0, 99.0, "acct-1", ctrader_id=11)
+    pm.close_position("cbot-demo-usdjpy-fix-gotobi", "XAUUSD", 2520.0, 99.0, "acct-1", ctrader_id=11)
     row = _row(pm)
     assert row["sl_price"] == 2490.0
     assert row["tp_price"] == 2520.0
@@ -101,8 +101,8 @@ def test_report_endpoint_round_trips_levels_and_reason():
             conn.close()
 
 
-def test_flowrsi_reason_field_is_accepted_and_zero_levels_mean_none(pm):
-    from app.server import _level_price
+def test_zero_levels_mean_none():
+    from app.portfolio_api import _level_price
 
     assert _level_price(0) is None
     assert _level_price(None) is None
@@ -114,34 +114,13 @@ def test_flowrsi_reason_field_is_accepted_and_zero_levels_mean_none(pm):
 def test_tick_levels_parses_both_payload_shapes():
     from app.dashboard import tick_levels
 
-    # WebSocket tick (AiAgentBot, Judas): sl / tp / sl_pnl / tp_pnl
+    # Flat tick fields: sl / tp / sl_pnl / tp_pnl
     assert tick_levels({"sl": 2490.0, "tp": None, "sl_pnl": -101.234, "tp_pnl": None}) == {
         "sl_price": 2490.0, "tp_price": None, "sl_pnl": -101.23, "tp_pnl": None, "no_tp": True}
-    # FlowRsiBot position entry: sl_price / tp_price
+    # A `positions` entry (Gotobi, Crypto Donchian): sl_price / tp_price
     assert tick_levels({"sl_price": 1.1, "tp_price": 1.2, "sl_pnl": -5, "tp_pnl": 10})["tp_price"] == 1.2
     # A bot build without levels -> None, so the cached levels are left alone
     assert tick_levels({"pnl": 1.0, "pips": 2.0}) is None
-
-
-def test_tick_levels_replace_cached_levels_and_snapshots_keep_the_estimate():
-    pm = PortfolioManager.__new__(PortfolioManager)  # no DB needed for the cache
-    pm._bot_positions_cache = {}
-
-    pm.update_market_price("XAUUSD", 2500.0, 2500.3, bot_id="bot-a", account_id="acc",
-                           position_data={"sl_price": 2490.0, "tp_price": 2520.0})
-    pm.update_position_metrics("bot-a", 5.0, 50.0, account_id="acc",
-                               levels={"sl_price": 2490.0, "tp_price": 2520.0, "sl_pnl": -100.0, "tp_pnl": 200.0})
-    assert pm._bot_positions_cache["acc:bot-a"]["sl_pnl"] == -100.0
-
-    # The next bar snapshot has no estimate; it is kept while the level has not moved...
-    pm.update_market_price("XAUUSD", 2501.0, 2501.3, bot_id="bot-a", account_id="acc",
-                           position_data={"sl_price": 2490.0, "tp_price": 2520.0})
-    assert pm._bot_positions_cache["acc:bot-a"]["sl_pnl"] == -100.0
-    # ...and dropped once the stop has been trailed, rather than shown next to the wrong price
-    pm.update_market_price("XAUUSD", 2510.0, 2510.3, bot_id="bot-a", account_id="acc",
-                           position_data={"sl_price": 2500.0, "tp_price": 2520.0})
-    assert pm._bot_positions_cache["acc:bot-a"].get("sl_pnl") is None
-    assert pm._bot_positions_cache["acc:bot-a"]["tp_pnl"] == 200.0
 
 
 def test_active_position_prefers_live_levels_over_entry_levels():
@@ -174,30 +153,11 @@ def test_dashboard_renders_the_new_columns():
     assert 'data-bot="${escapeHtml(p.bot_id' in html
 
 
-# --- cBots -----------------------------------------------------------------------------------
+# --- cBots ----------------------------------------------------------------------------------
 
-@pytest.mark.parametrize("cs_name,raw_close", [
-    ("AiAgentBot.cs", "pos.Close();"),
-    ("AsianRangeJudasSweepBot.cs", "ClosePosition(pos);"),
-])
-def test_bot_reports_close_reason_and_levels(cs_name, raw_close):
+@pytest.mark.parametrize("cs_name", ["GotobiBot.cs", "CryptoDonchianBot.cs"])
+def test_tick_and_close_carry_levels_and_the_reason(cs_name):
     src = (CBOT_DIR / cs_name).read_text(encoding="utf-8")
-    assert "ResolveCloseReason(args)" in src
-    assert "close_reason = closeReason" in src
-    assert "sl_price = position.StopLoss" in src
-    # Every bot-initiated close goes through CloseWithReason, the only raw close call left
-    assert src.count(raw_close) == 1
-    assert "ClosePosition(position);" not in src
-
-
-@pytest.mark.parametrize("cs_name", ["AiAgentBot.cs", "AsianRangeJudasSweepBot.cs"])
-def test_tick_stream_carries_levels(cs_name):
-    src = (CBOT_DIR / cs_name).read_text(encoding="utf-8")
-    assert "sl_pnl = hasPnl ? slPnl : null" in src
-    assert "slPnl = PnlAtLevel(pos, pos.StopLoss);" in src
-
-
-def test_flowrsi_tick_and_close_carry_levels():
-    src = (CBOT_DIR / "FlowRsiBot.cs").read_text(encoding="utf-8")
     assert "sl_pnl = p.StopLoss.HasValue" in src
-    assert "exit_price = resolvedExitPrice,\n                    sl_price = slPrice," in src
+    assert "sl_price = position.StopLoss," in src
+    assert 'reason = string.IsNullOrWhiteSpace(reason) ? "Closed" : reason,' in src

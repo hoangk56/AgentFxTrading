@@ -1,4 +1,4 @@
-"""Per-pair contract data, cost constants and FlowRSI parameters for the simulator.
+"""Per-pair contract data and cost constants for the simulator.
 
 Numbers come from backtest reports #27-#42: pip = |close - entry| / pips; min/step = observed deal
 volumes; comm_per_unit = sum |commissions| / sum volume (round trip); usd_per_quote = gross /
@@ -11,8 +11,6 @@ from datetime import datetime, timedelta, timezone
 from zoneinfo import ZoneInfo
 
 import numpy as np
-
-from app.cbot_presets import PRESETS
 
 
 @dataclass(frozen=True)
@@ -98,42 +96,3 @@ def swap_usd(symbol: str, side: int, units: float, entry_ms: int, exit_ms: int) 
     approximation, not a claim their real swap is zero."""
     long_rate, short_rate, triple = SWAPS.get(symbol, (0.0, 0.0, 2))
     return (long_rate if side > 0 else short_rate) * units * rollovers(entry_ms, exit_ms, triple)
-
-
-# [Parameter] DefaultValue in cBot/FlowRsiBot.cs; test_specs checks every entry against the source.
-CBOT_DEFAULTS = {
-    "FastRsiPeriod": 7, "SlowRsiPeriod": 14, "RsiCrossLookbackBars": 3,
-    "RsiBullishCrossMin": 25.0, "RsiBullishCrossMax": 50.0, "RsiBearishCrossMin": 50.0, "RsiBearishCrossMax": 75.0,
-    "EnableSmcFilter": True, "SwingLookback": 5, "EnableFvgDetection": True, "FvgMinPips": 2.0,
-    "EquilibriumThreshold": 0.5, "EnableLiquiditySweepFilter": True, "EnableMacroTmsFilter": True,
-    "RiskPercentage": 0.5, "MaxRiskPerTradeMoney": 50.0, "MaxMinLotRiskMultiple": 1.5,
-    "AtrPeriod": 14, "AtrSlMultiplier": 1.5, "TargetRiskReward": 1.5, "MinSlFloorPips": 15.0, "MaxSpreadPips": 30.0,
-    "EnableBreakEven": True, "BreakEvenTriggerRr": 1.0, "MinBreakEvenPips": 10.0, "BreakEvenExtraPips": 0.5,
-    "EnableTrailingStop": True, "TrailingStopTriggerRr": 1.2, "TrailingStopDistancePips": 25.0,
-    "EnablePartialClose": True, "PartialCloseRatio": 0.5, "RemoveTpOnTrailing": True,
-}
-
-
-def flowrsi_params(symbol: str, **overrides) -> dict:
-    """cBot defaults, then the live preset for the symbol, then the overrides."""
-    params = dict(CBOT_DEFAULTS)
-    params.update(PRESETS[("flowrsi", symbol)]["params"])
-    params.update(overrides)
-    return params
-
-
-def normalize_units(units: float, spec: SymbolSpec) -> float:
-    """Symbol.NormalizeVolumeInUnits with its default RoundingMode.ToNearest."""
-    return round(float(np.floor(units / spec.step_units + 0.5)) * spec.step_units, 8)
-
-
-def size_units(equity: float, sl_pips: float, spec: SymbolSpec, p: dict) -> float:
-    """CalculateDynamicVolumeInUnits (FlowRsiBot.cs:1812); 0.0 when a guardrail refuses the entry."""
-    risk = min(equity * p["RiskPercentage"] / 100.0, p["MaxRiskPerTradeMoney"])
-    units = max(normalize_units(risk / (sl_pips * spec.pip_value), spec), spec.min_units)
-    final = units * sl_pips * spec.pip_value
-    if final > p["MaxRiskPerTradeMoney"]:
-        return 0.0
-    if p["MaxMinLotRiskMultiple"] > 0 and risk > 0 and final > risk * p["MaxMinLotRiskMultiple"]:
-        return 0.0
-    return units

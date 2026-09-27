@@ -93,7 +93,7 @@ def test_db_password_from_env_decodes_password(tmp_path):
 def test_db_password_from_env_missing_file_or_var(tmp_path):
     assert run_fn(f"db_password_from_env '{tmp_path / 'nope'}'").stdout == ""
     env_file = tmp_path / ".env"
-    env_file.write_text("LLM_PROVIDER=qwen\n")
+    env_file.write_text("SERVER_PORT=8000\n")
     assert run_fn(f"db_password_from_env '{env_file}'").stdout == ""
 
 
@@ -153,13 +153,13 @@ def _env_for_write(tmp_path: Path) -> dict:
 def test_render_env_replaces_placeholders_and_keeps_rest(tmp_path):
     example = tmp_path / ".env.example"
     example.write_text(
-        "LLM_PROVIDER=qwen\n"
+        "SERVER_PORT=8000\n"
         "# DATABASE_URL=postgresql://agentfx:old@127.0.0.1:5432/agentfx\n"
         "CTRADER_HOME=/root\n"
     )
     out = run_fn(f"render_env '{example}' '{DB_URL}' /home/forge/ctrader").stdout
     lines = out.splitlines()
-    assert "LLM_PROVIDER=qwen" in lines
+    assert "SERVER_PORT=8000" in lines
     assert f"DATABASE_URL={DB_URL}" in lines
     assert "CTRADER_HOME=/home/forge/ctrader" in lines
     assert not any(l.startswith("# DATABASE_URL") for l in lines)
@@ -169,26 +169,26 @@ def test_render_env_replaces_placeholders_and_keeps_rest(tmp_path):
 
 def test_write_env_creates_file_from_example(tmp_path):
     env = _env_for_write(tmp_path)
-    (Path(env["REPO_DIR"]) / ".env.example").write_text("LLM_PROVIDER=qwen\n# DATABASE_URL=x\nCTRADER_HOME=/root\n")
+    (Path(env["REPO_DIR"]) / ".env.example").write_text("SERVER_PORT=8000\n# DATABASE_URL=x\nCTRADER_HOME=/root\n")
     result = run_fn("DB_PASSWORD='fake@pw123.'; write_env", env)
     assert result.returncode == 0, result.stderr
     env_file = Path(env["REPO_DIR"]) / ".env"
     content = env_file.read_text().splitlines()
     assert f"DATABASE_URL={DB_URL}" in content
     assert f"CTRADER_HOME={env['CTRADER_HOME']}" in content
-    assert "LLM_PROVIDER=qwen" in content
+    assert "SERVER_PORT=8000" in content
     assert oct(env_file.stat().st_mode & 0o777) == "0o600"
 
 
 def test_write_env_leaves_existing_file_alone_but_fills_missing_keys(tmp_path):
     env = _env_for_write(tmp_path)
     env_file = Path(env["REPO_DIR"]) / ".env"
-    env_file.write_text("LLM_PROVIDER=openai\nOPENAI_API_KEY=sk-real\n")
+    env_file.write_text("SERVER_PORT=9000\nSERVER_HOST=0.0.0.0\n")
     result = run_fn("DB_PASSWORD='fake@pw123.'; write_env", env)
     assert result.returncode == 0, result.stderr
     content = env_file.read_text().splitlines()
-    assert content[0] == "LLM_PROVIDER=openai"
-    assert "OPENAI_API_KEY=sk-real" in content
+    assert content[0] == "SERVER_PORT=9000"
+    assert "SERVER_HOST=0.0.0.0" in content
     assert f"DATABASE_URL={DB_URL}" in content
     assert f"CTRADER_HOME={env['CTRADER_HOME']}" in content
 
@@ -196,7 +196,7 @@ def test_write_env_leaves_existing_file_alone_but_fills_missing_keys(tmp_path):
 def test_write_env_is_idempotent_when_complete(tmp_path):
     env = _env_for_write(tmp_path)
     env_file = Path(env["REPO_DIR"]) / ".env"
-    original = f"LLM_PROVIDER=qwen\nDATABASE_URL={DB_URL}\nCTRADER_HOME={env['CTRADER_HOME']}\n"
+    original = f"SERVER_PORT=8000\nDATABASE_URL={DB_URL}\nCTRADER_HOME={env['CTRADER_HOME']}\n"
     env_file.write_text(original)
     run_fn("DB_PASSWORD='different'; write_env", env)
     assert env_file.read_text() == original

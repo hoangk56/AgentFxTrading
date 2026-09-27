@@ -1,5 +1,5 @@
 {
-  "main": {"symbol": "EURUSD", "period": "m15", "cBotName": "FlowRsiBot", "depositAsset": "USD",
+  "main": {"symbol": "EURUSD", "period": "m15", "cBotName": "GotobiBot", "depositAsset": "USD",
            "roi": -0.01, "netProfit": -0.98, "startingCapital": 10000, "endingEquity": 9999.02,
            "endingBalance": 9999.02, "testingPeriod": {"formatted": "10d (24/07/2026 - 03/08/2026)"}},
   "equity": {
@@ -29,8 +29,8 @@
   },
   "parameters": [
     {"group": "General", "displayName": "Bot ID", "propertyName": "BotId", "value": "bt-7"},
-    {"group": "Risk Management", "displayName": "Target Risk-to-Reward Ratio", "propertyName": "TargetRiskReward", "value": "1.5"},
-    {"group": "Risk Management", "displayName": "Stop Loss Mode", "propertyName": "SlMode", "value": "Technical_Swing"}
+    {"group": "Risk", "displayName": "Default Risk per Trade ($)", "propertyName": "RiskPerTradeMoney", "value": "50.0"},
+    {"group": "Risk", "displayName": "Stop (x ATR of H1)", "propertyName": "StopAtrMultiplier", "value": "3.0"}
   ],
   "history": {
     "columns": ["id", "symbol", "direction", "net", "gross", "entryTime", "closeTime", "entryPrice", "closePrice",

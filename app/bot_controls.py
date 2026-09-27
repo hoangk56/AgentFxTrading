@@ -2,17 +2,12 @@
 
 A paused bot takes no new entries until Resume is clicked. It keeps running and keeps managing
 the positions it already has (trailing, break-even, SL/TP). The pause is stored in the
-bot_controls table so it survives service and container restarts, and it is enforced twice:
-PortfolioManager.check_risk refuses entries for a paused bot_id (every /trade entry), and the
-bots read the flag from GET /api/cbot/commands and skip their own entry paths, which covers the
-ones that never ask the server (UseAiGateMode=false, Judas UseDirectAiApi, Judas DCA adds).
+bot_controls table so it survives service and container restarts. The bots read the flag from
+GET /api/cbot/commands and skip their own entry paths.
 """
 
 from datetime import datetime, timezone
 from typing import Dict, Optional, Set
-
-PAUSED_REASON = "Paused from dashboard"
-
 
 def sanitize_bot_id(bot_id: Optional[str]) -> str:
     """The bot_id a cBot sent, without the quotes or trailing flags the cTrader CLI can leave on it."""
@@ -44,11 +39,6 @@ def init_schema(conn) -> None:
 
 def load_paused(conn) -> Set[str]:
     return {row[0] for row in conn.execute("SELECT bot_id FROM bot_controls WHERE paused = 1").fetchall()}
-
-
-def is_paused(conn, bot_id: str) -> bool:
-    row = conn.execute("SELECT paused FROM bot_controls WHERE bot_id = ?", (bot_id,)).fetchone()
-    return bool(row and row[0])
 
 
 def save_paused(conn, bot_id: str, paused: bool) -> None:
