@@ -3,10 +3,10 @@ import os
 import stat
 import subprocess
 from pathlib import Path
+from tests._paths import REPO_ROOT
 
-ROOT = Path(__file__).resolve().parent.parent
-SCRIPT = ROOT / "scripts" / "backup_postgres.sh"
-DB_URL = "postgresql://agentfx:kaz%40112358.@127.0.0.1:5432/agentfx"
+SCRIPT = REPO_ROOT / "scripts" / "backup_postgres.sh"
+DB_URL = "postgresql://agentfx:fake%40pw123.@127.0.0.1:5432/agentfx"
 
 
 def _make_fake_pg_dump(bin_dir: Path, args_file: Path) -> None:

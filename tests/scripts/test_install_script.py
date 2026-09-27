@@ -3,9 +3,9 @@ import subprocess
 from pathlib import Path
 
 import pytest
+from tests._paths import REPO_ROOT
 
-ROOT = Path(__file__).resolve().parent.parent
-SCRIPT = ROOT / "scripts" / "install.sh"
+SCRIPT = REPO_ROOT / "scripts" / "install.sh"
 
 
 def run_fn(snippet: str, env: dict | None = None) -> subprocess.CompletedProcess:
@@ -44,7 +44,7 @@ def test_sourcing_does_not_run_main():
 
 
 @pytest.mark.parametrize("raw,encoded", [
-    ("kaz@112358.", "kaz%40112358."),
+    ("fake@pw123.", "fake%40pw123."),
     ("abc-_.~09", "abc-_.~09"),
     ("p w:d/#?", "p%20w%3Ad%2F%23%3F"),
 ])
@@ -54,7 +54,7 @@ def test_urlencode(raw, encoded):
 
 
 @pytest.mark.parametrize("encoded,raw", [
-    ("kaz%40112358.", "kaz@112358."),
+    ("fake%40pw123.", "fake@pw123."),
     ("p%20w%3Ad%2F%23%3F", "p w:d/#?"),
     ("a+b%2Bc", "a+b+c"),
 ])
@@ -85,9 +85,9 @@ def test_supported_ubuntu_version_rejects_other_releases(version):
 
 def test_db_password_from_env_decodes_password(tmp_path):
     env_file = tmp_path / ".env"
-    env_file.write_text('X=1\nDATABASE_URL="postgresql://agentfx:kaz%40112358.@127.0.0.1:5432/agentfx"\n')
+    env_file.write_text('X=1\nDATABASE_URL="postgresql://agentfx:fake%40pw123.@127.0.0.1:5432/agentfx"\n')
     result = run_fn(f"db_password_from_env '{env_file}'")
-    assert result.stdout == "kaz@112358."
+    assert result.stdout == "fake@pw123."
 
 
 def test_db_password_from_env_missing_file_or_var(tmp_path):
@@ -134,7 +134,7 @@ def test_err_trap_fires_for_failures_inside_functions():
     assert 'Install failed during step "demo step"' in result.stderr
 
 
-DB_URL = "postgresql://agentfx:kaz%40112358.@127.0.0.1:5432/agentfx"
+DB_URL = "postgresql://agentfx:fake%40pw123.@127.0.0.1:5432/agentfx"
 
 
 def _env_for_write(tmp_path: Path) -> dict:
@@ -170,7 +170,7 @@ def test_render_env_replaces_placeholders_and_keeps_rest(tmp_path):
 def test_write_env_creates_file_from_example(tmp_path):
     env = _env_for_write(tmp_path)
     (Path(env["REPO_DIR"]) / ".env.example").write_text("LLM_PROVIDER=qwen\n# DATABASE_URL=x\nCTRADER_HOME=/root\n")
-    result = run_fn("DB_PASSWORD='kaz@112358.'; write_env", env)
+    result = run_fn("DB_PASSWORD='fake@pw123.'; write_env", env)
     assert result.returncode == 0, result.stderr
     env_file = Path(env["REPO_DIR"]) / ".env"
     content = env_file.read_text().splitlines()
@@ -184,7 +184,7 @@ def test_write_env_leaves_existing_file_alone_but_fills_missing_keys(tmp_path):
     env = _env_for_write(tmp_path)
     env_file = Path(env["REPO_DIR"]) / ".env"
     env_file.write_text("LLM_PROVIDER=openai\nOPENAI_API_KEY=sk-real\n")
-    result = run_fn("DB_PASSWORD='kaz@112358.'; write_env", env)
+    result = run_fn("DB_PASSWORD='fake@pw123.'; write_env", env)
     assert result.returncode == 0, result.stderr
     content = env_file.read_text().splitlines()
     assert content[0] == "LLM_PROVIDER=openai"

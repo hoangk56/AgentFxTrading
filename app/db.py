@@ -14,8 +14,9 @@ from contextlib import contextmanager
 
 logger = logging.getLogger(__name__)
 
-# Default Database URL (can be overridden via environment)
-DEFAULT_PG_URL = "postgresql://agentfx:kaz%40112358.@127.0.0.1:5432/agentfx"
+# Used only when DATABASE_URL is unset. It carries no password: production sets DATABASE_URL in .env
+# (scripts/install.sh writes it and checks it connects); libpq also reads PGPASSWORD or ~/.pgpass.
+DEFAULT_PG_URL = "postgresql://agentfx@127.0.0.1:5432/agentfx"
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 DEFAULT_SQLITE_PATH = PROJECT_ROOT / "portfolio.db"
 

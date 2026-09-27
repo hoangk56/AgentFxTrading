@@ -4,14 +4,20 @@ Migration script from SQLite portfolio.db to PostgreSQL agentfx.
 Preserves all historical accounts, positions, cbot_configs, and news_assessments.
 """
 
+import os
 import sqlite3
 import psycopg2
 import psycopg2.extras
 import sys
 from pathlib import Path
 
-PG_DSN = "postgresql://agentfx:kaz%40112358.@127.0.0.1:5432/agentfx"
+from dotenv import load_dotenv
+
 SQLITE_PATH = Path(__file__).resolve().parent.parent / "portfolio.db"
+load_dotenv(SQLITE_PATH.parent / ".env")
+PG_DSN = os.getenv("DATABASE_URL", "").strip()
+if not PG_DSN.startswith(("postgresql://", "postgres://")):
+    sys.exit("DATABASE_URL (postgresql://...) must be set in the environment or in .env")
 
 
 def migrate():
