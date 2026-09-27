@@ -399,6 +399,50 @@ def fix_window(b, symbol=None, windows=((690, 720),), side=-1, tz="Europe/London
     return Signals(le, se, slk * _h1_atr_on(b, symbol), None, lx, sx)
 
 
+def weekdays_from_month_end(first, last):
+    """{date: k} for every weekday in [first, last]: k = 1 on the month's last weekday, 2 on the one before, ...
+    (weekdays, not exchange business days: holidays are not modelled)."""
+    out, y, m = {}, first.year, first.month
+    while (y, m) <= (last.year, last.month):
+        nxt = datetime.date(y + (m == 12), m % 12 + 1, 1)
+        d, k = nxt - datetime.timedelta(days=1), 0
+        while d.month == m:
+            if d.weekday() < 5:
+                k += 1
+                if first <= d <= last:
+                    out[d] = k
+            d -= datetime.timedelta(days=1)
+        y, m = nxt.year, nxt.month
+    return out
+
+
+# +1 = buying the symbol buys USD (USD is the base), -1 = selling it buys USD.
+USD_SIDE = {"USDJPY": 1, "USDCHF": 1, "USDCAD": 1, "EURUSD": -1, "GBPUSD": -1, "AUDUSD": -1, "NZDUSD": -1}
+
+
+def month_end_usd(b, symbol=None, bd=3, start_utc=10 * 60, end_utc=13 * 60, slk=3.0, **_):
+    """Month-end value-date USD demand (research candidate M1, results/portfolio/prereg_month_end_usd_2026-09-27.md):
+    on the bd-th last weekday of the month (bd=3: the last day whose T+2 spot trade settles inside the month), buy
+    USD from start_utc to end_utc (minutes after 00:00 UTC, decided on M5 bar closes); stop slk x ATR20(H1).
+    bd=None trades every weekday (the random-day control draws from those trades)."""
+    step = 5 * 60_000
+    close = b.t + step
+    mins = ((close // 60_000) % 1440).astype(int)
+    first = datetime.datetime.fromtimestamp(int(close[0]) / 1000, datetime.timezone.utc).date()
+    last = datetime.datetime.fromtimestamp(int(close[-1]) / 1000, datetime.timezone.utc).date()
+    k_of = weekdays_from_month_end(first, last)
+    day0 = datetime.date(1970, 1, 1)
+    days = close // 86_400_000
+    uniq, inv = np.unique(days, return_inverse=True)
+    ks = np.array([k_of.get(day0 + datetime.timedelta(days=int(x)), 0) for x in uniq])
+    on_day = (ks > 0 if bd is None else ks == bd)[inv]
+    ent = on_day & (mins == start_utc)
+    ex = mins == end_utc
+    z = np.zeros(len(b), bool)
+    le, se = (ent, z) if USD_SIDE[symbol] > 0 else (z, ent)
+    return Signals(le, se, slk * _h1_atr_on(b, symbol), None, ex, ex)
+
+
 C4_DAY_SIZES = {"20": 2.0, "25": 2.0, "15": 1.0, "5": 0.5, "10": 0.5, "last": 0.5}
 
 RULES = {"rsi2": rsi2, "cum_rsi2": cum_rsi2, "tps": tps, "double7": double7, "ibs": ibs, "down_days": down_days,

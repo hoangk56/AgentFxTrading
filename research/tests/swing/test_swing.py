@@ -70,3 +70,42 @@ def test_weekend_closed_mask_follows_new_york_time_across_dst():
         ms(2025, 7, 12, 12, 0), ms(2025, 7, 9, 12, 0),      # Saturday closed, Wednesday open
     ], dtype=np.int64)
     assert weekend_closed_mask(ts).tolist() == [False, True, True, False, False, True, True, False, True, False]
+
+
+def test_weekdays_from_month_end_counts_back_from_the_last_weekday():
+    from research.swing.swing_rules import weekdays_from_month_end
+    k = weekdays_from_month_end(datetime.date(2026, 1, 1), datetime.date(2026, 9, 30))
+    assert k[datetime.date(2026, 9, 30)] == 1              # Wednesday, the month's last day
+    assert k[datetime.date(2026, 9, 28)] == 3
+    assert k[datetime.date(2026, 9, 25)] == 4              # the weekend in between is skipped
+    assert k[datetime.date(2026, 1, 30)] == 1              # Sat 31st: Friday 30th is the last weekday
+    assert k[datetime.date(2026, 1, 28)] == 3
+    assert datetime.date(2026, 1, 31) not in k
+
+
+@needs_m1
+def test_month_end_usd_buys_usd_from_10_to_13_utc_on_the_third_last_weekday():
+    from research.swing import swing as S
+    from research.swing import swing_rules as SR
+    tr = S.run_bot(SR.month_end_usd, ["USDJPY", "EURUSD"], (5, 0), cap=3, per_symbol=1)
+    assert tr
+    k = SR.weekdays_from_month_end(datetime.date(2016, 1, 1), datetime.date(2026, 9, 30))
+    for t in tr:
+        t_in = datetime.datetime.fromtimestamp(t.t_in / 1000, datetime.timezone.utc)
+        assert t_in.strftime("%H:%M") == "10:00" and k[t_in.date()] == 3
+        assert t.t_out - t.t_in <= 3 * 3_600_000 + 60_000
+        assert t.side == (1 if t.symbol == "USDJPY" else -1)
+        assert t.scale == 1.0
+
+
+def test_account_compounds_off_equity_at_entry():
+    from research.swing.account import compound, stats
+    h = 3_600_000
+    # sequential: +1R then -1R at 10 % risk -> 1.1, then 1.1 - 0.11 = 0.99
+    seq = compound([(0, h, 1.0, 1.0), (2 * h, 3 * h, -1.0, 1.0)], 0.10)
+    assert [round(e, 6) for _, e in seq] == [1.1, 0.99]
+    # overlapping: both sized off the starting equity, since neither has closed when the other opens
+    ovl = compound([(0, 2 * h, 1.0, 1.0), (h, 3 * h, 1.0, 2.0)], 0.10)
+    assert [round(e, 6) for _, e in ovl] == [1.1, 1.3]
+    s = stats(compound([(0, h, 1.0, 1.0), (2 * h, 3 * h, -2.0, 1.0)], 0.10))
+    assert abs(s["max_dd"] - 0.2) < 1e-9 and abs(s["final"] - 0.88) < 1e-9
