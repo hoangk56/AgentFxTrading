@@ -1,7 +1,7 @@
 /**
- * Oh My Pi Hook / Extension: Post-Feature Delivery Invariant
- * Checks git status at agent_end / turn_end.
- * Alerts if code was modified without committing or restarting agentfx.service / cbots.
+ * Oh My Pi Hook / Extension: Post-Feature Delivery Reminder
+ * At agent_end, lists uncommitted changes so the final report can mention them.
+ * Per AGENTS.md, the agent must NOT commit or push on its own — this is only a reminder.
  */
 
 interface ExtensionContext {
@@ -20,10 +20,11 @@ export default function postFeatureDeliveryHook(pi: ExtensionContext): void {
       const res = await pi.exec("git status --porcelain");
       const uncommitted = (res?.stdout || "").trim();
       if (uncommitted.length > 0) {
-        pi.logger.warn(
-          "[HOOK post-feature-delivery] ⚠️ Uncommitted changes detected:\n" +
+        pi.logger.info(
+          "[HOOK post-feature-delivery] Uncommitted changes:\n" +
           uncommitted +
-          "\n-> Mandatory steps: 1. git commit & push. 2. systemctl restart agentfx.service (if app changed). 3. docker restart <cbot> (if bot changed)."
+          "\n-> Report them and the test result; commit/push only when the user asks (AGENTS.md)." +
+          " After deploy: restart agentfx.service (app/templates/static) or the affected cbot container (cBot/*.cs)."
         );
       }
     } catch (e) {
