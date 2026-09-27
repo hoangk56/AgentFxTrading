@@ -1,16 +1,17 @@
-# 🐳 Docker Instance Catalog — all 48 presets
+# 🐳 Docker Instance Catalog — all 50 presets
 
 Every instance AgentFxTrading ships: **15 symbols × 3 strategies = 45 `docker run` commands**, plus the Gotobi Fix bot on
-its three JPY pairs = **48**, written out in full.
+its three JPY pairs and the Crypto Donchian bot on BTCUSD and ETHUSD = **50**, written out in full.
 
 This file is the long form of the dashboard's **Docker Bot Management → Setup Instances** grid. Ticking a cell there
 runs exactly the command printed here. Both come from [`app/cbot_presets.py`](../app/cbot_presets.py), which is the
 single source of truth for strategy flags — `tests/test_cbot_presets.py` fails the build if this file and that module
 drift apart.
 
-> **Prerequisites live in the README.** Install the server, write the cTID password file and build the four `.algo`
+> **Prerequisites live in the README.** Install the server, write the cTID password file and build the five `.algo`
 > packages first: [Quick Start → Setup & Run cBot](../README.md#4-setup--run-cbot). Come back here once
-> `cBot/AiAgentBot.algo`, `cBot/AsianRangeJudasSweepBot.algo`, `cBot/FlowRsiBot.algo` and `cBot/GotobiBot.algo` exist.
+> `cBot/AiAgentBot.algo`, `cBot/AsianRangeJudasSweepBot.algo`, `cBot/FlowRsiBot.algo`, `cBot/GotobiBot.algo` and
+> `cBot/CryptoDonchianBot.algo` exist.
 
 ---
 
@@ -18,11 +19,12 @@ drift apart.
 
 - [Adapting a block](#-adapting-a-block)
 - [Container naming](#-container-naming)
-- [The 48-cell grid](#-the-48-cell-grid)
+- [The 50-cell grid](#-the-50-cell-grid)
 - [TMS + ORB — `AiAgentBot.algo`](#-tms--orb--aiagentbotalgo)
 - [Asian Range Judas Sweep — `AsianRangeJudasSweepBot.algo`](#-asian-range-judas-sweep--asianrangejudassweepbotalgo)
 - [FlowRSI — `FlowRsiBot.algo`](#-flowrsi--flowrsibotalgo)
 - [Gotobi Fix — `GotobiBot.algo`](#-gotobi-fix--gotobibotalgo)
+- [Crypto Donchian — `CryptoDonchianBot.algo`](#-crypto-donchian--cryptodonchianbotalgo)
 - [Running demo and live side by side](#-running-demo-and-live-side-by-side)
 
 ---
@@ -44,7 +46,8 @@ Two flags are worth a second look before you go live:
 
 - **`--RiskPerTradePercent`** (TMS+ORB) / **`--riskFactor`** (Judas) / **`--RiskPercentage`** + **`--MaxRiskPerTradeMoney`**
   (FlowRSI) — the presets are sized for a demo balance. Cut them to `0.1`–`0.2` on real capital. **`--RiskPerTradeMoney`**
-  (Gotobi Fix) is dollars per trade, not a percentage: set it to what one trade may lose on that account.
+  (Gotobi Fix, Crypto Donchian) is dollars per trade, not a percentage: set it to what one trade may lose on that
+  account (Crypto Donchian scales it 0.5x-2x by breakout strength).
 - **`--network host`** assumes the API server runs on the same machine as the container. On a split setup, drop it and
   point `--ApiUrl` / `--DashboardServerUrl` at the server's reachable address instead.
 
@@ -61,35 +64,36 @@ same scheme with `demo` as the slug:
 | Judas Sweep | `cbot-<slug>-<symbol>-KZ-london-ny-judas` | `cbot-demo-xauusd-KZ-london-ny-judas` |
 | FlowRSI | `cbot-<slug>-<symbol>-all-flowrsi` | `cbot-demo-xauusd-all-flowrsi` |
 | Gotobi Fix | `cbot-<slug>-<symbol>-fix-gotobi` | `cbot-demo-usdjpy-fix-gotobi` |
+| Crypto Donchian | `cbot-<slug>-<symbol>-h4-donchian` | `cbot-demo-btcusd-h4-donchian` |
 
 The name doubles as `--BotId`, so `docker ps` tells you the account, symbol, session and strategy of every bot without
 opening its flags — and the dashboard can match a running container back to its config row.
 
 ---
 
-## 🗺️ The 48-cell grid
+## 🗺️ The 50-cell grid
 
 `period` · session for each cell. ✅ = a block the READMEs spelled out verbatim; 🧮 = derived from the nearest block,
 scaled by pip size (indices `0.1`, XAU / BTC / ETH / JPY `0.01`, forex `0.0001`); 🔬 = validated by the research, only
-on the JPY pairs.
+on the JPY pairs; 🧪 = research C1, forward test only (failed its 2025-26 holdout), only on BTCUSD and ETHUSD.
 
-| Symbol | TMS + ORB | Judas Sweep | FlowRSI | Gotobi Fix |
-| :--- | :--- | :--- | :--- | :--- |
-| **XAUUSD** | ✅ `m15` · New York | ✅ `m15` · London + NY killzones | 🧮 `m15` · All sessions | – |
-| **EURUSD** | ✅ `m15` · London | ✅ `m15` · London + NY killzones | ✅ `m15` · All sessions | – |
-| **GBPUSD** | ✅ `m15` · London | ✅ `m15` · London + NY killzones | 🧮 `m15` · All sessions | – |
-| **USDJPY** | ✅ `m15` · Tokyo | 🧮 `m15` · London + NY killzones | 🧮 `m15` · All sessions | 🔬 `m15` · Tokyo fix |
-| **GBPJPY** | ✅ `m15` · London | ✅ `m15` · London + NY killzones | 🧮 `m15` · All sessions | 🔬 `m15` · Tokyo fix |
-| **EURJPY** | ✅ `m15` · London | ✅ `m15` · London + NY killzones | 🧮 `m15` · All sessions | 🔬 `m15` · Tokyo fix |
-| **USDCAD** | ✅ `m15` · New York | 🧮 `m15` · London + NY killzones | 🧮 `m15` · All sessions | – |
-| **AUDUSD** | ✅ `m15` · Tokyo | 🧮 `m15` · London + NY killzones | 🧮 `m15` · All sessions | – |
-| **AUDJPY** | ✅ `m15` · Tokyo | 🧮 `m15` · London + NY killzones | 🧮 `m15` · All sessions | – |
-| **US30** | ✅ `m15` · New York | 🧮 `m15` · London + NY killzones | 🧮 `m15` · All sessions | – |
-| **USTEC** | ✅ `m5` · New York | 🧮 `m15` · London + NY killzones | 🧮 `m15` · All sessions | – |
-| **DE40** | ✅ `m15` · London | 🧮 `m15` · London + NY killzones | 🧮 `m15` · All sessions | – |
-| **UK100** | ✅ `m15` · London | ✅ `m15` · London + NY killzones | 🧮 `m15` · All sessions | – |
-| **BTCUSD** | 🧮 `m15` · New York | ✅ `m15` · London + NY killzones | 🧮 `m15` · All sessions | – |
-| **ETHUSD** | 🧮 `m15` · New York | ✅ `m15` · London + NY killzones | 🧮 `m15` · All sessions | – |
+| Symbol | TMS + ORB | Judas Sweep | FlowRSI | Gotobi Fix | Crypto Donchian |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| **XAUUSD** | ✅ `m15` · New York | ✅ `m15` · London + NY killzones | 🧮 `m15` · All sessions | – | – |
+| **EURUSD** | ✅ `m15` · London | ✅ `m15` · London + NY killzones | ✅ `m15` · All sessions | – | – |
+| **GBPUSD** | ✅ `m15` · London | ✅ `m15` · London + NY killzones | 🧮 `m15` · All sessions | – | – |
+| **USDJPY** | ✅ `m15` · Tokyo | 🧮 `m15` · London + NY killzones | 🧮 `m15` · All sessions | 🔬 `m15` · Tokyo fix | – |
+| **GBPJPY** | ✅ `m15` · London | ✅ `m15` · London + NY killzones | 🧮 `m15` · All sessions | 🔬 `m15` · Tokyo fix | – |
+| **EURJPY** | ✅ `m15` · London | ✅ `m15` · London + NY killzones | 🧮 `m15` · All sessions | 🔬 `m15` · Tokyo fix | – |
+| **USDCAD** | ✅ `m15` · New York | 🧮 `m15` · London + NY killzones | 🧮 `m15` · All sessions | – | – |
+| **AUDUSD** | ✅ `m15` · Tokyo | 🧮 `m15` · London + NY killzones | 🧮 `m15` · All sessions | – | – |
+| **AUDJPY** | ✅ `m15` · Tokyo | 🧮 `m15` · London + NY killzones | 🧮 `m15` · All sessions | – | – |
+| **US30** | ✅ `m15` · New York | 🧮 `m15` · London + NY killzones | 🧮 `m15` · All sessions | – | – |
+| **USTEC** | ✅ `m5` · New York | 🧮 `m15` · London + NY killzones | 🧮 `m15` · All sessions | – | – |
+| **DE40** | ✅ `m15` · London | 🧮 `m15` · London + NY killzones | 🧮 `m15` · All sessions | – | – |
+| **UK100** | ✅ `m15` · London | ✅ `m15` · London + NY killzones | 🧮 `m15` · All sessions | – | – |
+| **BTCUSD** | 🧮 `m15` · New York | ✅ `m15` · London + NY killzones | 🧮 `m15` · All sessions | – | 🧪 `h1` · H4 breakout |
+| **ETHUSD** | 🧮 `m15` · New York | ✅ `m15` · London + NY killzones | 🧮 `m15` · All sessions | – | 🧪 `h1` · H4 breakout |
 
 ---
 
@@ -2158,6 +2162,82 @@ docker run -d \
   --AccountLabel="demo" \
   --RiskPerTradeMoney=50.0 \
   --MaxSpreadPips=4.0
+```
+
+## 🪙 Crypto Donchian — `CryptoDonchianBot.algo`
+
+Research candidate C1 in
+[`research/results/portfolio/swing_lab_v2_2026-09-27.md`](../research/results/portfolio/swing_lab_v2_2026-09-27.md):
+on an H4 close above the prior 55-bar high it buys (below the prior 55-bar low it sells); every qualifying bar is an
+entry, so a breakout that keeps going stacks up to 3 positions. A position leaves on an H4 close below the prior
+20-bar low (shorts: above the 20-bar high), at its stop of 3 x ATR20(H4) from the fill, or after 5 days. Like Gotobi
+Fix it has no AI gate and no `/trade` calls, and obeys the dashboard's pause and close commands. The H4 bars are
+UTC-aligned (00:00, 04:00, ... UTC) as in the research; the bot builds them from H1 bars, so its chart is `h1` — the
+broker's own H4 bars start at 21:00/22:00 UTC and would give other channels.
+
+**Forward test only.** The rule was strong in 2018-2021 (R +0.276) and 2022-2024 (R +0.227) but failed its
+pre-registered 2025-2026 holdout (R -0.025: BTCUSD -0.151, ETHUSD +0.123), so run it small and on demo first.
+
+Every trade risks `--RiskPerTradeMoney` (dollars, never a share of equity) x a multiplier of 0.5-2 from the breakout's
+distance past the channel against the median of this symbol's earlier breakouts, so one bot risks at most 3 x 2 x
+the default at once. The channels, the stop, the scaling and the spread cap (10 % of the stop distance, which needs no
+pip size) are the cBot's defaults; a cell only sets the risk. `--KillSwitchTrades=100` stops new entries once the mean
+R of the last 100 closed trades is below `--KillSwitchMinR` (default 0); it is off by default because on 2018-2026 it
+would have stopped ETHUSD in January 2020 and missed the next $12,000
+([`crypto_donchian_cbot_2026-09-27.md`](../research/results/portfolio/crypto_donchian_cbot_2026-09-27.md)).
+
+### BTCUSD — Crypto Donchian
+
+`h1` · H4 breakout
+
+The weaker of the two at the holdout (R -0.151; net +$380 only thanks to the lot scaling).
+
+```bash
+docker run -d \
+  --name cbot-demo-btcusd-h4-donchian \
+  --restart unless-stopped \
+  --network host \
+  -v $(pwd):/workspace \
+  -v /root:/root \
+  ghcr.io/spotware/ctrader-console:latest \
+  run /workspace/cBot/CryptoDonchianBot.algo \
+  --ctid=your_email@example.com \
+  --pwd-file=/root/ctrader_data/ctid_pwd \
+  --account=YOUR_ACCOUNT_ID \
+  --symbol=BTCUSD \
+  --period=h1 \
+  --full-access \
+  --BotId="cbot-demo-btcusd-h4-donchian" \
+  --ApiUrl="http://127.0.0.1:8000/trade" \
+  --AccountLabel="demo" \
+  --RiskPerTradeMoney=100.0
+```
+
+### ETHUSD — Crypto Donchian
+
+`h1` · H4 breakout
+
+Positive in every era, holdout included (R +0.123).
+
+```bash
+docker run -d \
+  --name cbot-demo-ethusd-h4-donchian \
+  --restart unless-stopped \
+  --network host \
+  -v $(pwd):/workspace \
+  -v /root:/root \
+  ghcr.io/spotware/ctrader-console:latest \
+  run /workspace/cBot/CryptoDonchianBot.algo \
+  --ctid=your_email@example.com \
+  --pwd-file=/root/ctrader_data/ctid_pwd \
+  --account=YOUR_ACCOUNT_ID \
+  --symbol=ETHUSD \
+  --period=h1 \
+  --full-access \
+  --BotId="cbot-demo-ethusd-h4-donchian" \
+  --ApiUrl="http://127.0.0.1:8000/trade" \
+  --AccountLabel="demo" \
+  --RiskPerTradeMoney=100.0
 ```
 
 ---

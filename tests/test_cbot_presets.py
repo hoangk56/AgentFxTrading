@@ -22,7 +22,8 @@ LIVE = {"id": 2, "slug": "live-ic", "ctid_email": "me@example.com", "account_num
         "account_type": "live", "label": "IC", "pwd_file": "/root/ctrader_data/ctid_live-ic_pwd"}
 
 # The matrix: the three AI-gated strategies on every symbol (15 × 3 = 45 cells), plus Gotobi on the three
-# JPY pairs the research validated (research/results/portfolio/swing_lab_v2_2026-09-27.md) = 48.
+# JPY pairs the research validated (research/results/portfolio/swing_lab_v2_2026-09-27.md) and Crypto Donchian
+# (research C1, forward test) on BTCUSD/ETHUSD = 50.
 EXPECTED_MATRIX = {sym: {"tms_orb", "judas", "flowrsi"} for sym in (
     "XAUUSD", "EURUSD", "GBPUSD", "USDJPY", "GBPJPY", "EURJPY", "USDCAD", "AUDUSD",
     "AUDJPY", "US30", "USTEC", "DE40", "UK100", "BTCUSD", "ETHUSD",
@@ -30,10 +31,13 @@ EXPECTED_MATRIX = {sym: {"tms_orb", "judas", "flowrsi"} for sym in (
 GOTOBI_SYMBOLS = ("USDJPY", "EURJPY", "GBPJPY")
 for _sym in GOTOBI_SYMBOLS:
     EXPECTED_MATRIX[_sym] = EXPECTED_MATRIX[_sym] | {"gotobi"}
+DONCHIAN_SYMBOLS = ("BTCUSD", "ETHUSD")
+for _sym in DONCHIAN_SYMBOLS:
+    EXPECTED_MATRIX[_sym] = EXPECTED_MATRIX[_sym] | {"donchian"}
 
 
 def test_matrix_covers_every_strategy_on_every_symbol():
-    assert len(PRESETS) == 48
+    assert len(PRESETS) == 50
     actual = {}
     for strategy, symbol in PRESETS:
         actual.setdefault(symbol, set()).add(strategy)
@@ -43,11 +47,12 @@ def test_matrix_covers_every_strategy_on_every_symbol():
 
 
 def test_every_cell_is_well_formed():
-    assert set(STRATEGIES) == {"tms_orb", "judas", "flowrsi", "gotobi"}
+    assert set(STRATEGIES) == {"tms_orb", "judas", "flowrsi", "gotobi", "donchian"}
     for (strategy, symbol), cell in PRESETS.items():
         assert strategy in STRATEGIES
         assert symbol == symbol.upper()
-        assert cell["period"] in ("m5", "m15"), (strategy, symbol)
+        # Crypto Donchian decides on UTC H4 closes it builds from H1 bars, so its chart is H1.
+        assert cell["period"] in (("h1",) if strategy == "donchian" else ("m5", "m15")), (strategy, symbol)
         assert cell["session"], (strategy, symbol)
         assert cell["params"], (strategy, symbol)
     # --period in the README block is the source of truth
@@ -234,6 +239,24 @@ def test_gotobi_cells_carry_only_risk_and_spread():
         assert set(PRESETS[("gotobi", sym)]["params"]) == {"RiskPerTradeMoney", "MaxSpreadPips"}, sym
 
 
+def test_donchian_golden_command():
+    cmd = build_run_command(DEMO, "donchian", "BTCUSD", ROOT, HOME)
+    assert cmd == (
+        "docker run -d --name cbot-demo-main-btcusd-h4-donchian --restart unless-stopped --network host "
+        f"-v {ROOT}:/workspace -v {HOME}:/root {DEFAULT_IMAGE} run /workspace/cBot/CryptoDonchianBot.algo "
+        "--ctid=me@example.com --pwd-file=/root/ctrader_data/ctid_demo-main_pwd --account=10101649 "
+        "--symbol=BTCUSD --period=h1 --full-access "
+        '--BotId="cbot-demo-main-btcusd-h4-donchian" --ApiUrl="http://127.0.0.1:8000/trade" --AccountLabel="Demo Main" '
+        "--RiskPerTradeMoney=100.0"
+    )
+
+
+def test_donchian_cells_carry_only_the_risk():
+    """Channels, stop, scaling and the spread cap are the research's (cBot defaults); a cell must not re-tune them."""
+    for sym in DONCHIAN_SYMBOLS:
+        assert set(PRESETS[("donchian", sym)]["params"]) == {"RiskPerTradeMoney"}, sym
+
+
 def test_container_name_carries_the_session():
     assert container_name("demo-main", "tms_orb", "XAUUSD") == "cbot-demo-main-xauusd-newyork"
     assert container_name("demo-main", "tms_orb", "EURUSD") == "cbot-demo-main-eurusd-london"
@@ -241,6 +264,7 @@ def test_container_name_carries_the_session():
     assert container_name("live-ic", "judas", "XAUUSD") == "cbot-live-ic-xauusd-KZ-london-ny-judas"
     assert container_name("live-ic", "flowrsi", "EURUSD") == "cbot-live-ic-eurusd-all-flowrsi"
     assert container_name("demo-main", "gotobi", "USDJPY") == "cbot-demo-main-usdjpy-fix-gotobi"
+    assert container_name("demo-main", "donchian", "ETHUSD") == "cbot-demo-main-ethusd-h4-donchian"
 
 
 def test_every_preset_session_has_a_slug_in_its_name():
@@ -285,7 +309,7 @@ def test_presets_payload_shape():
     payload = presets_payload()
     assert payload["strategies"] == STRATEGIES
     assert payload["symbols"] == SYMBOLS
-    assert len(payload["cells"]) == 48
+    assert len(payload["cells"]) == 50
     cell = next(c for c in payload["cells"] if c["symbol"] == "USTEC" and c["strategy"] == "tms_orb")
     assert cell == {"symbol": "USTEC", "strategy": "tms_orb", "period": "m5", "session": "New York"}
     for c in payload["cells"]:
@@ -318,7 +342,7 @@ def test_installed_cells_is_empty_without_accounts_or_configs():
 
 
 # --- docs ↔ preset drift guard ---------------------------------------------------
-# docs/docker-instances.md spells out all 48 cells as `docker run` commands. Those blocks are what a
+# docs/docker-instances.md spells out all 50 cells as `docker run` commands. Those blocks are what a
 # user copies by hand, so a preset edit that forgets them ships docs that silently disagree with what
 # the dashboard generates. Compare the strategy flags only: the doc uses placeholder credentials and a
 # `demo` account slug. The six READMEs must not re-document cells — they link to the catalog instead,
@@ -358,7 +382,7 @@ def test_instances_doc_exists():
 
 def test_instances_doc_covers_every_cell():
     assert set(_documented_cells(INSTANCES_DOC)) == set(PRESETS), (
-        "docs/docker-instances.md must document all 48 preset cells, no more and no fewer")
+        "docs/docker-instances.md must document all 50 preset cells, no more and no fewer")
 
 
 @pytest.mark.parametrize(("strategy", "symbol"), sorted(PRESETS), ids=lambda v: v)
@@ -409,7 +433,8 @@ def _without_currency_mapping(src: str) -> str:
     return src[:start] + src[end:]
 
 
-@pytest.mark.parametrize("cs_name", ["AiAgentBot.cs", "AsianRangeJudasSweepBot.cs", "FlowRsiBot.cs", "GotobiBot.cs"])
+@pytest.mark.parametrize("cs_name", ["AiAgentBot.cs", "AsianRangeJudasSweepBot.cs", "FlowRsiBot.cs", "GotobiBot.cs",
+                                     "CryptoDonchianBot.cs"])
 def test_cbots_do_not_branch_on_the_symbol_name(cs_name):
     src = _without_currency_mapping((root / "cBot" / cs_name).read_text(encoding="utf-8"))
     hits = [m.group(0) for m in _SYMBOL_BRANCH.finditer(src)]

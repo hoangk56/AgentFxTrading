@@ -276,6 +276,14 @@ Você pode executar o cBot através da **Interface Gráfica cTrader Desktop (GUI
    docker run --rm -v $(pwd):/workspace -v /root:/root \
      ghcr.io/spotware/ctrader-console:latest build /root/cAlgo/Sources/Robots/GotobiBot/GotobiBot/GotobiBot.csproj
    cp /root/cAlgo/Sources/Robots/GotobiBot.algo cBot/GotobiBot.algo
+
+   # 5. CryptoDonchianBot (Crypto Donchian H4)
+   docker run --rm -v $(pwd):/workspace -v /root:/root \
+     ghcr.io/spotware/ctrader-console:latest create cbot CryptoDonchianBot
+   cp cBot/CryptoDonchianBot.cs /root/cAlgo/Sources/Robots/CryptoDonchianBot/CryptoDonchianBot/CryptoDonchianBot.cs
+   docker run --rm -v $(pwd):/workspace -v /root:/root \
+     ghcr.io/spotware/ctrader-console:latest build /root/cAlgo/Sources/Robots/CryptoDonchianBot/CryptoDonchianBot/CryptoDonchianBot.csproj
+   cp /root/cAlgo/Sources/Robots/CryptoDonchianBot.algo cBot/CryptoDonchianBot.algo
    ```
 3. **Diretrizes de Implantação Multi-Contas (Executando Demo e Real Simultaneamente)**:
 

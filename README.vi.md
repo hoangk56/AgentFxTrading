@@ -276,6 +276,14 @@ Bạn có thể chạy cBot bằng **Giao diện cTrader Desktop (GUI)** hoặc 
    docker run --rm -v $(pwd):/workspace -v /root:/root \
      ghcr.io/spotware/ctrader-console:latest build /root/cAlgo/Sources/Robots/GotobiBot/GotobiBot/GotobiBot.csproj
    cp /root/cAlgo/Sources/Robots/GotobiBot.algo cBot/GotobiBot.algo
+
+   # 5. CryptoDonchianBot (Crypto Donchian H4)
+   docker run --rm -v $(pwd):/workspace -v /root:/root \
+     ghcr.io/spotware/ctrader-console:latest create cbot CryptoDonchianBot
+   cp cBot/CryptoDonchianBot.cs /root/cAlgo/Sources/Robots/CryptoDonchianBot/CryptoDonchianBot/CryptoDonchianBot.cs
+   docker run --rm -v $(pwd):/workspace -v /root:/root \
+     ghcr.io/spotware/ctrader-console:latest build /root/cAlgo/Sources/Robots/CryptoDonchianBot/CryptoDonchianBot/CryptoDonchianBot.csproj
+   cp /root/cAlgo/Sources/Robots/CryptoDonchianBot.algo cBot/CryptoDonchianBot.algo
    ```
 
 3. **Hướng Dẫn Chạy Đa Tài Khoản (Song Song DEMO &amp; LIVE Không Xung Đột)**:

@@ -147,6 +147,25 @@ def test_gotobi_backtest_never_reaches_the_server(homes):
     assert "--RiskPerTradeMoney=50.0" in command
 
 
+def test_donchian_backtest_is_supported_and_never_reaches_the_server(homes):
+    project, ctrader = homes
+    (project / "cBot" / "CryptoDonchianBot.algo").write_bytes(b"algo")
+    name = "cbot-demo-demo-btcusd-h4-donchian"
+    row = bc.describe_source(name, preset("donchian", "BTCUSD"), project, ctrader)
+    assert row == {"name": name, "strategy": "donchian", "symbol": "BTCUSD", "period": "h1",
+                   "account_label": "demo", "supported": True, "reason": ""}
+    src = bc.parse_run_command(name, preset("donchian", "BTCUSD"))
+    job = make_job(strategy="donchian", algo="CryptoDonchianBot.algo", symbol="BTCUSD", period="h1",
+                   params=dict(src.params))
+    command = bc.build_container_spec(job, project, ctrader)["command"]
+    locked = bc.locked_params("donchian", 7)
+    assert command[-len(locked):] == [f"--{k}={v}" for k, v in locked.items()]
+    for key in ("ApiUrl", "TelemetryUrl", "ReportUrl"):
+        assert f"--{key}={bc.DISABLED_URL}" in command
+    assert "--CommandPollMs=0" in command
+    assert "--RiskPerTradeMoney=100.0" in command
+
+
 @pytest.mark.parametrize("strategy", ["judas", "tms_orb"])
 def test_describe_ai_only_bots_as_unsupported(homes, strategy):
     row = bc.describe_source("x", preset(strategy), *homes)

@@ -15,9 +15,9 @@ misbehaves, e.g. one that sizes far past its risk budget.
 import math
 from typing import Dict, Iterable, List, Optional, Tuple
 
-# gotobi (GotobiBot) has no default limit: limits are enforced on /trade, which that bot never calls. It is a
-# strategy of its own so its trades are not counted against the TMS budget.
-STRATEGIES = ("flowrsi", "tms", "judas", "gotobi")
+# gotobi (GotobiBot) and donchian (CryptoDonchianBot) have no default limit: limits are enforced on /trade, which
+# those bots never call. Each is a strategy of its own so its trades are not counted against the TMS budget.
+STRATEGIES = ("flowrsi", "tms", "judas", "gotobi", "donchian")
 
 # (scope, target, max daily loss in $). "*" means every account / every container.
 DEFAULT_LIMITS: Tuple[Tuple[str, str, float], ...] = (
@@ -32,13 +32,15 @@ DEFAULT_LIMITS: Tuple[Tuple[str, str, float], ...] = (
 def strategy_of(bot_id: Optional[str]) -> Optional[str]:
     """The strategy a bot runs, by the same name tests as is_flow_rsi_bot/is_judas_sweep_bot.
 
-    Everything that is neither FlowRSI, Judas nor Gotobi is a session (TMS/ORB) bot.
+    Everything that is neither FlowRSI, Judas, Gotobi nor Donchian is a session (TMS/ORB) bot.
     """
     name = (bot_id or "").lower()
     if not name:
         return None
     if "gotobi" in name:
         return "gotobi"
+    if "donchian" in name:
+        return "donchian"
     if "flowrsi" in name or "flow_rsi" in name or "nestedrsi" in name:
         return "flowrsi"
     if "judas" in name or "asian" in name or "sweep" in name:

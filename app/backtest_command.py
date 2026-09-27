@@ -35,8 +35,9 @@ STRATEGY_BY_ALGO = {
     "AsianRangeJudasSweepBot.algo": "judas",
     "AiAgentBot.algo": "tms_orb",
     "GotobiBot.algo": "gotobi",
+    "CryptoDonchianBot.algo": "donchian",
 }
-SUPPORTED_STRATEGIES = {"flowrsi", "gotobi"}
+SUPPORTED_STRATEGIES = {"flowrsi", "gotobi", "donchian"}
 UNSUPPORTED_REASON = "Judas/TMS+ORB enter only through the AI; backtest mode not implemented yet"
 DATA_MODES = ("ticks", "m1")
 
@@ -58,6 +59,13 @@ LOCKED_PARAMS: Dict[str, Dict[str, str]] = {
     },
     # GotobiBot only talks to the server in RealTime; locked anyway so a backtest can never reach production.
     "gotobi": {
+        "ApiUrl": DISABLED_URL,
+        "TelemetryUrl": DISABLED_URL,
+        "ReportUrl": DISABLED_URL,
+        "CommandPollMs": "0",
+    },
+    # CryptoDonchianBot: same reporting code as GotobiBot, locked the same way.
+    "donchian": {
         "ApiUrl": DISABLED_URL,
         "TelemetryUrl": DISABLED_URL,
         "ReportUrl": DISABLED_URL,

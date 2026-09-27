@@ -280,6 +280,14 @@ cBotは**cTraderデスクトップGUI**または**ヘッドレスDocker CLI**（
    docker run --rm -v $(pwd):/workspace -v /root:/root \
      ghcr.io/spotware/ctrader-console:latest build /root/cAlgo/Sources/Robots/GotobiBot/GotobiBot/GotobiBot.csproj
    cp /root/cAlgo/Sources/Robots/GotobiBot.algo cBot/GotobiBot.algo
+
+   # 5. CryptoDonchianBot (Crypto Donchian H4)
+   docker run --rm -v $(pwd):/workspace -v /root:/root \
+     ghcr.io/spotware/ctrader-console:latest create cbot CryptoDonchianBot
+   cp cBot/CryptoDonchianBot.cs /root/cAlgo/Sources/Robots/CryptoDonchianBot/CryptoDonchianBot/CryptoDonchianBot.cs
+   docker run --rm -v $(pwd):/workspace -v /root:/root \
+     ghcr.io/spotware/ctrader-console:latest build /root/cAlgo/Sources/Robots/CryptoDonchianBot/CryptoDonchianBot/CryptoDonchianBot.csproj
+   cp /root/cAlgo/Sources/Robots/CryptoDonchianBot.algo cBot/CryptoDonchianBot.algo
    ```
 3. **マルチアカウント運用のガイドライン（DemoとLiveの同時実行）**:
 

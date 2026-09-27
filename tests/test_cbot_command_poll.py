@@ -16,6 +16,7 @@ OWN_POSITIONS = {
     "AsianRangeJudasSweepBot.cs": "var own = Positions.FindAll(label, SymbolName);",
     "FlowRsiBot.cs": "var own = GetBotPositions();",
     "GotobiBot.cs": "var own = GetBotPositions();",
+    "CryptoDonchianBot.cs": "var own = GetBotPositions();",
 }
 BOTS = list(OWN_POSITIONS)
 

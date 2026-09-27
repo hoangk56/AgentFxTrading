@@ -64,6 +64,7 @@ def _check(pm, bot_id):
     (TMS, "tms"),
     ("cbot-demo-demo-ustec-newyork", "tms"),
     ("cbot-demo-demo-usdjpy-fix-gotobi", "gotobi"),
+    ("cbot-demo-demo-btcusd-h4-donchian", "donchian"),
     (None, None),
     ("", None),
 ])
