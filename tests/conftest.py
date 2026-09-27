@@ -33,3 +33,11 @@ def isolate_test_database():
     """Drop the throwaway test database once the pytest session ends."""
     yield
     shutil.rmtree(_TEST_DB_DIR, ignore_errors=True)
+
+
+@pytest.fixture(autouse=True)
+def dashboard_login_off(monkeypatch):
+    """app.server loads .env with override=True, and the VPS .env sets the dashboard login: turn it off, so the
+    tests call the API as before. tests/app/test_auth.py turns it back on."""
+    monkeypatch.delenv("DASHBOARD_USERNAME", raising=False)
+    monkeypatch.delenv("DASHBOARD_PASSWORD", raising=False)

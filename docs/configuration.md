@@ -18,6 +18,24 @@ commands in [docker-instances.md](docker-instances.md).
 The systemd service started by the VPS installer runs `uvicorn app.server:app --host 127.0.0.1 --port 8000`
 directly, so these three variables do not apply there.
 
+### Dashboard login
+
+| Variable | Meaning |
+| :--- | :--- |
+| `DASHBOARD_USERNAME` | Login name of the dashboard |
+| `DASHBOARD_PASSWORD` | Its password |
+
+With both set (`app/auth.py`), every page, API call and WebSocket needs the session cookie the `/login` page sets
+(HttpOnly, SameSite=Lax, Secure over HTTPS, 30 days). Changing either variable and restarting the service logs every
+browser out. Five failed logins from one IP lock it out for 15 minutes. With either one unset there is no login, and
+the server logs a warning at start.
+
+The cBots and local scripts are not asked: a request that reaches `127.0.0.1:8000` directly passes. A request
+proxied by nginx carries `X-Real-IP` / `X-Forwarded-For`, and one with either header needs the login, so the nginx
+site must keep setting them (`proxy_set_header X-Real-IP $remote_addr;` and
+`proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;` in every proxied `location`). The cookie is signed
+with a random secret the server creates in `webui_data/session_secret`.
+
 ### Dashboard accounts
 
 No environment variable lists the accounts: you create each one on the dashboard (**Docker Bot Management →

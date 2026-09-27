@@ -80,6 +80,14 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(title="AgentFx Server", lifespan=lifespan)
 
+# Dashboard login (app/auth.py): every request needs a session, except the cBots' and local scripts' calls to
+# 127.0.0.1:8000 that do not come through nginx.
+from app.auth import LoginMiddleware, login_enabled, router as auth_router
+app.add_middleware(LoginMiddleware)
+app.include_router(auth_router)
+if not login_enabled() and not is_running_under_test():
+    logger.warning("DASHBOARD_USERNAME / DASHBOARD_PASSWORD are not set: the dashboard has no login")
+
 # Mount static files
 app.mount("/static", StaticFiles(directory=str(PROJECT_ROOT / "static")), name="static")
 

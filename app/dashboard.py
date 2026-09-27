@@ -15,6 +15,7 @@ import asyncio
 from datetime import datetime, date, timedelta, timezone
 from typing import Dict, List, Optional, Any
 from app.accounts import get_account_registry
+from app.auth import login_enabled
 from app.leaderboard import InvalidDateRange, compute_bot_leaderboard, compute_profit_factor
 import logging
 
@@ -177,6 +178,7 @@ PROJECT_ROOT = Path(__file__).resolve().parent.parent
 DB_PATH = PROJECT_ROOT / "portfolio.db"
 TEMPLATES_DIR = PROJECT_ROOT / "templates"
 templates = Jinja2Templates(directory=str(TEMPLATES_DIR))
+templates.env.globals["login_enabled"] = login_enabled       # the topbar's Logout button (app/auth.py)
 
 def get_db():
     """Get database connection."""

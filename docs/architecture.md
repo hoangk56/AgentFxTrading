@@ -38,6 +38,9 @@ The server cannot reach a cBot directly, which is why commands are polled. Every
 `--ApiUrl` (`http://127.0.0.1:8000/trade`) by replacing or stripping its `/trade` suffix; the server has no `/trade`
 route.
 
+These calls reach `127.0.0.1:8000` directly, not through nginx, so the dashboard login (`app/auth.py`) does not
+apply to them.
+
 ## HTTP API
 
 FastAPI generates the full, current reference: open **`http://127.0.0.1:8000/docs`** (Swagger UI) or
@@ -85,6 +88,7 @@ cTrader accounts created on the Setup Instances screen; a cBot tags its trades w
 AgentFxTrading/
 ├── app/                         FastAPI server (Python)
 │   ├── server.py                app entry point: logging, lifespan, routers
+│   ├── auth.py                  dashboard login (DASHBOARD_USERNAME / DASHBOARD_PASSWORD), session middleware
 │   ├── portfolio_api.py         bot reporting routes (/portfolio/report, /api/tick)
 │   ├── dashboard.py             dashboard pages and APIs (APIRouter)
 │   ├── backtest_*.py            Backtest page: API, container specs, params, worker, reports, job store

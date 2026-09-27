@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AgentFxTrading Login</title>
+    <link rel="stylesheet" href="/static/css/dashboard.css?v=20260927_login">
+    <link rel="icon" type="image/png" href="/static/favicon.png">
+</head>
+<body class="app-shell login-shell">
+    <!-- Dashboard login (app/auth.py): the credentials are DASHBOARD_USERNAME / DASHBOARD_PASSWORD in .env -->
+    <form class="panel login-card" method="post" action="/login">
+        <div class="panel-header"><span class="panel-title">AgentFxTrading</span></div>
+        <div class="login-body">
+            <input type="hidden" name="next" value="{{ next }}">
+            <label class="login-label" for="login-username">Username</label>
+            <input id="login-username" class="log-input login-input" name="username" value="{{ username }}" autocomplete="username" required{% if not username %} autofocus{% endif %}>
+            <label class="login-label" for="login-password">Password</label>
+            <input id="login-password" class="log-input login-input" name="password" type="password" autocomplete="current-password" required{% if username %} autofocus{% endif %}>
+            {% if error %}<p class="login-error" role="alert">{{ error }}</p>{% endif %}
+            <button type="submit" class="log-btn login-submit">Sign in</button>
+        </div>
+    </form>
+</body>
+</html>
