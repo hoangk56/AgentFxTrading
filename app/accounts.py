@@ -1,48 +1,15 @@
-import os
 import logging
 from contextlib import contextmanager
 from typing import List, Dict, Optional, Generator, Any
 from app.db import get_db_connection
 logger = logging.getLogger(__name__)
 
-def parse_dashboard_accounts_env() -> List[Dict]:
-    """
-    Read DASHBOARD_ACCOUNTS from env.
-    Format (semicolon-separated entries): account_id|account_number|type|label
-    Example: live-main|1234567|live|Live Main;demo-1|7654321|demo|Demo Test
-    """
-    env_str = os.getenv("DASHBOARD_ACCOUNTS", "")
-    if not env_str:
-        return []
-        
-    accounts = []
-    for entry in env_str.split(";"):
-        if not entry.strip():
-            continue
-            
-        parts = entry.split("|")
-        if len(parts) != 4:
-            logger.warning(f"Malformed account entry in DASHBOARD_ACCOUNTS: {entry}")
-            continue
-            
-        account_id, account_number, acc_type, label = parts
-        acc_type = acc_type.lower()
-        if acc_type not in ("live", "demo"):
-            logger.warning(f"Invalid account type '{acc_type}' in DASHBOARD_ACCOUNTS entry: {entry}. Must be live or demo.")
-            continue
-            
-        accounts.append({
-            "account_id": account_id,
-            "account_number": account_number,
-            "account_type": acc_type,
-            "label": label
-        })
-        
-    return accounts
-
 class AccountRegistry:
     def __init__(self, db_path: Optional[str] = None):
         self.db_path = db_path
+        # account_id -> the balance last written to account_balance_log; ticks arrive every 10 s per bot,
+        # so the log is only read from the DB once per account after a start.
+        self._logged_balance: Dict[str, float] = {}
         self._init_schema()
         
     @contextmanager
@@ -69,6 +36,19 @@ class AccountRegistry:
             );
             """)
             cursor.execute("CREATE UNIQUE INDEX IF NOT EXISTS idx_accounts_number_type ON accounts(account_number, account_type);")
+            # Every change of an account's balance as the bots report it. A change that matches no closed
+            # trade is a deposit, a withdrawal, or a trade whose report was lost (daily-audit ledger check).
+            cursor.execute("""
+            CREATE TABLE IF NOT EXISTS account_balance_log (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                account_id TEXT NOT NULL,
+                recorded_at TEXT NOT NULL,
+                balance_before DOUBLE PRECISION,
+                balance DOUBLE PRECISION NOT NULL
+            );
+            """)
+            cursor.execute("CREATE INDEX IF NOT EXISTS idx_balance_log_account_time "
+                           "ON account_balance_log(account_id, recorded_at);")
             # cTrader login accounts used by the dashboard's "Setup Instances" screen.
             # pwd_file is the in-container path; the password itself lives only on disk.
             cursor.execute("""
@@ -85,10 +65,6 @@ class AccountRegistry:
             """)
             conn.commit()
             
-    def seed_from_env(self):
-        for acc in parse_dashboard_accounts_env():
-            self.upsert_configured_account(acc["account_id"], acc["account_number"], acc["account_type"], acc["label"])
-
     def upsert_configured_account(self, account_id: str, account_number: str, account_type: str, label: str) -> None:
         """Insert or relabel a dashboard account and mark it configured (unique on number+type)."""
         with self._get_connection() as conn:
@@ -142,9 +118,28 @@ class AccountRegistry:
                 INSERT INTO accounts (account_id, account_number, account_type, label, last_balance, last_equity, last_seen, is_configured)
                 VALUES (?, ?, ?, ?, ?, ?, datetime('now'), 0)
                 """, (account_id, account_number, acc_type, final_label, balance, equity))
-                
+
+            self._log_balance(cursor, account_id, balance)
             conn.commit()
             return account_id
+
+    def _log_balance(self, cursor, account_id: str, balance: float) -> None:
+        """Append to account_balance_log when the balance differs from the last logged one. A report without
+        a balance sends 0; that is not a change."""
+        if not balance or balance <= 0:
+            return
+        last = self._logged_balance.get(account_id)
+        if last is None:
+            cursor.execute("SELECT balance FROM account_balance_log WHERE account_id = ? ORDER BY id DESC LIMIT 1",
+                           (account_id,))
+            row = cursor.fetchone()
+            last = row["balance"] if row else None
+        if last is not None and abs(balance - last) < 0.005:
+            self._logged_balance[account_id] = last
+            return
+        cursor.execute("INSERT INTO account_balance_log (account_id, recorded_at, balance_before, balance) "
+                       "VALUES (?, datetime('now'), ?, ?)", (account_id, last, balance))
+        self._logged_balance[account_id] = balance
             
     def list_accounts(self, include_unconfigured: bool = False) -> List[Dict]:
         with self._get_connection() as conn:

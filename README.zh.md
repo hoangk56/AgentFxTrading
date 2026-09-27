@@ -63,6 +63,7 @@ bot 按各自的规则交易，并把持仓和遥测数据报告给 **FastAPI �
 - **仪表盘指令**：在 Bots 页中平掉某个持仓、暂停 / 恢复 bot，或平掉其全部持仓并停止它。
 - **看门狗**：重启卡在登录阶段或不再处理 K 线的容器。
 - **排行榜**：按美元盈亏或手数中性指标，对任意时段内的 bot 排名。
+- **账本（Ledger）**：按账户对比预期余额与券商余额；记录入金/出金并查看差额。
 - **回测页面**：在容器中对已安装的 bot 运行 cTrader 回测，并以图表展示报告。
 - **模拟 / 实盘隔离**：模拟账户与实盘账户使用各自独立的仪表盘和数据。
 
@@ -106,7 +107,7 @@ cd AgentFxTrading
 python3 -m venv .venv && source .venv/bin/activate
 pip install -r requirements.txt
 
-cp .env.example .env        # 可选：DATABASE_URL、DASHBOARD_ACCOUNTS
+cp .env.example .env        # 可选：DATABASE_URL
 python app/server.py        # 运行于 http://127.0.0.1:8000
 ```
 
@@ -154,7 +155,7 @@ docker run -d \
 ## ⚙️ 配置
 
 服务器的所有设置都来自 `.env`，请从 [`.env.example`](.env.example) 开始；本地运行不需要设置任何变量。全部变量、
-`DASHBOARD_ACCOUNTS` 格式、数据库选择以及不属于预设的 cBot 参数，见 [docs/configuration.md](docs/configuration.md)。
+数据库选择以及不属于预设的 cBot 参数，见 [docs/configuration.md](docs/configuration.md)。
 
 ---
 

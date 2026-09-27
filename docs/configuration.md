@@ -20,15 +20,15 @@ directly, so these three variables do not apply there.
 
 ### Dashboard accounts
 
-`DASHBOARD_ACCOUNTS` lists the accounts the dashboard knows about, separated by `;`, each as
-`account_id|account_number|type|label` with `type` = `live` or `demo` (parsed in `app/accounts.py`):
+No environment variable lists the accounts: you create each one on the dashboard (**Docker Bot Management →
+Setup Instances → New account**), which stores the cTrader login in the database and lists the account in the
+dashboard's account selector. Do that even for bots you start by hand. A cBot's `--AccountLabel` (`demo`, `live`,
+...) decides which dashboard mode its trades belong to.
 
-```bash
-DASHBOARD_ACCOUNTS=demo-10101649|10101649|demo|Demo Account;live-88888888|88888888|live|Live Main
-```
-
-A cBot's `--AccountLabel` (`demo`, `live`, `live-main`, ...) decides which account and which dashboard mode its
-trades belong to. cTrader logins added on the Setup Instances screen are stored in the database instead.
+The server logs every change of an account's balance (`account_balance_log`). The dashboard's **Ledger** view
+compares the broker's balance with opening balance + deposits − withdrawals + the bots' closed P&L, lists the
+balance changes no closed trade explains, and lets you record each one as a deposit or a withdrawal (or enter one
+by hand).
 
 ### Database
 

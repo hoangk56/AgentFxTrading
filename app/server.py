@@ -93,9 +93,8 @@ async def favicon():
     if favicon_path.exists():
         return FileResponse(favicon_path)
     return ""
-# Initialize Account Registry
+# Initialize Account Registry (accounts are created on the dashboard's Setup Instances screen)
 account_registry = init_account_registry()
-account_registry.seed_from_env()
 
 # Initialize Portfolio Manager. Code reads it through get_portfolio_manager() at call time, so
 # app.portfolio.portfolio_manager is the one place to replace it; this name is kept for importers.
@@ -103,6 +102,8 @@ portfolio_manager = init_portfolio()
 
 # Bot telemetry and portfolio reporting routes (app/portfolio_api.py).
 app.include_router(portfolio_router)
+from app.ledger_api import router as ledger_router
+app.include_router(ledger_router)
 
 
 if __name__ == "__main__":

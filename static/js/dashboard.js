@@ -42,6 +42,8 @@ const DASHBOARD_BOOTSTRAP = window.DASHBOARD_BOOTSTRAP || {};
                     fetchLeaderboard();
                 } else if (targetId === 'view-backtest') {
                     btOnShow();
+                } else if (targetId === 'view-ledger') {
+                    ledgerOnShow();
                 }
             }
         }
@@ -588,6 +590,7 @@ const DASHBOARD_BOOTSTRAP = window.DASHBOARD_BOOTSTRAP || {};
             }
             refreshDashboardData();
             fetchLeaderboard();
+            if (typeof ledgerRefreshIfShown === 'function') ledgerRefreshIfShown();
         });
 
         let rawDailyHistory = DASHBOARD_BOOTSTRAP.pnlHistory;

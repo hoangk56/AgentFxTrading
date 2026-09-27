@@ -64,6 +64,7 @@ Xem [docs/strategies.md](docs/strategies.md) để biết từng bot làm gì.
 - **Lệnh từ dashboard**: đóng một vị thế, tạm dừng / chạy lại bot, hoặc đóng hết vị thế rồi dừng bot, ngay trong tab Bots.
 - **Watchdog**: khởi động lại container bị kẹt ở bước đăng nhập hoặc ngừng xử lý nến.
 - **Bảng xếp hạng**: xếp hạng bot theo P&L USD hoặc trung hoà khối lượng, trong khoảng thời gian bất kỳ.
+- **Sổ cái (Ledger)**: số dư kỳ vọng so với số dư broker của từng tài khoản; ghi nạp/rút và xem khoản lệch.
 - **Trang Backtest**: chạy backtest cTrader cho một bot đã cài trong container và vẽ biểu đồ báo cáo.
 - **Tách biệt Demo / Real**: dashboard và dữ liệu riêng cho tài khoản demo và tài khoản thật.
 
@@ -107,7 +108,7 @@ cd AgentFxTrading
 python3 -m venv .venv && source .venv/bin/activate
 pip install -r requirements.txt
 
-cp .env.example .env        # tuỳ chọn: DATABASE_URL, DASHBOARD_ACCOUNTS
+cp .env.example .env        # tuỳ chọn: DATABASE_URL
 python app/server.py        # chạy tại http://127.0.0.1:8000
 ```
 
@@ -155,7 +156,7 @@ lại. Trên VPS cài bằng script, thay `-v /root:/root` bằng `-v /home/forg
 ## ⚙️ Cấu Hình
 
 Mọi thiết lập của máy chủ lấy từ `.env` — bắt đầu từ [`.env.example`](.env.example); chạy local không cần biến nào.
-Toàn bộ biến môi trường, định dạng `DASHBOARD_ACCOUNTS`, cách chọn cơ sở dữ liệu và các tham số cBot không thuộc
+Toàn bộ biến môi trường, cách chọn cơ sở dữ liệu và các tham số cBot không thuộc
 preset được mô tả trong [docs/configuration.md](docs/configuration.md).
 
 ---

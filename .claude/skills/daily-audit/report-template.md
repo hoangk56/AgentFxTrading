@@ -16,7 +16,7 @@ section that would be empty. Keep the prose short; the evidence goes in the tabl
 | Code | VPS `<sha>` · local `<sha>` · origin/main `<sha>`; commit/deploy trong ngày: … |
 | Lệnh | <n> đóng, <n> mở mới, <n> còn mở cuối ngày (+<n> lệnh ngoài sổ nếu có) |
 | P&L | DB: <x> $ (lệnh đóng trong cửa sổ). Nếu biết balance đầu ngày: Δ balance <x> $ (nguồn), phần chênh do lệnh ngoài sổ |
-| Tài khoản | balance <x>, equity <x>; **ledger (balance − Σpnl) = <x>** (dòng này để lần chạy sau so sánh) |
+| Tài khoản | balance đầu → cuối cửa sổ <x> → <x>; P&L lệnh đóng <x>; thay đổi số dư không khớp lệnh nào <x> (nạp/rút hay lệnh mất báo cáo) |
 | Test local | pytest: <passed/failed> |
 
 ## 1. Tóm tắt

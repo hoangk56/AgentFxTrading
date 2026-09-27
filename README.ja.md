@@ -64,6 +64,7 @@ AgentFxTrading は取引戦略を **cTrader cBot**（C#）として実行し、�
 - **ダッシュボードからの指示**：Bots タブでポジションの決済、bot の一時停止 / 再開、全ポジション決済と停止。
 - **ウォッチドッグ**：ログインで止まった、または足の処理が止まったコンテナを再起動。
 - **リーダーボード**：任意の期間で、USD 損益またはロット中立の指標で bot を順位付け。
+- **台帳（Ledger）**：口座ごとに想定残高とブローカー残高を比較し、入出金を記録して差額を確認。
 - **バックテストページ**：インストール済み bot の cTrader バックテストをコンテナで実行し、レポートをグラフ表示。
 - **デモ / リアルの分離**：デモ口座とリアル口座でダッシュボードとデータを分離。
 
@@ -108,7 +109,7 @@ cd AgentFxTrading
 python3 -m venv .venv && source .venv/bin/activate
 pip install -r requirements.txt
 
-cp .env.example .env        # 任意：DATABASE_URL、DASHBOARD_ACCOUNTS
+cp .env.example .env        # 任意：DATABASE_URL
 python app/server.py        # http://127.0.0.1:8000 で起動
 ```
 
@@ -157,7 +158,7 @@ docker run -d \
 ## ⚙️ 設定
 
 サーバーの設定はすべて `.env` から読み込まれます。[`.env.example`](.env.example) から始めてください。ローカル実行では
-設定は不要です。すべての変数、`DASHBOARD_ACCOUNTS` の形式、データベースの選択、プリセットに含まれない cBot
+設定は不要です。すべての変数、データベースの選択、プリセットに含まれない cBot
 パラメーターは [docs/configuration.md](docs/configuration.md) にあります。
 
 ---

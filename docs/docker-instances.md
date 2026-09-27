@@ -267,11 +267,8 @@ things must differ per account:
 3. **`--AccountLabel`** — `live` (or `live-main`), so trades are tagged and routed to `/real/dashboard`.
 4. **`--pwd-file`** — a dedicated password file if the live account sits under a different cTID.
 
-Then register both accounts in `.env` so the dashboard renders a tab for each:
-
-```bash
-DASHBOARD_ACCOUNTS=demo-10101649|10101649|demo|Demo Account;live-88888888|88888888|live|Live Main
-```
+Then create both accounts on the dashboard (**Setup Instances → New account**) so its account selector lists
+each one.
 
 And lower the risk flags on the live side — see [Adapting a block](#-adapting-a-block).
 

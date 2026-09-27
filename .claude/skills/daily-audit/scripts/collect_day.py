@@ -250,24 +250,60 @@ def trades(conn, start, end, now):
                                       f"balance {bal}")
     print(f"open now (DB): {len(open_now)}")
 
-    section("ACCOUNTS AND LEDGER (balance now vs every recorded pnl, so it spans all days up to now)")
-    drifts = {}
-    for a in rows(conn, "SELECT * FROM accounts WHERE last_seen IS NOT NULL"):
-        total = rows(conn, "SELECT COALESCE(SUM(pnl), 0) AS s FROM positions WHERE account_id = ?", (a["account_id"],))[0]["s"]
-        if a["last_balance"] is None:
-            continue
-        implied = a["last_balance"] - total
-        print(f"{a['account_id']}: balance {a['last_balance']} equity {a['last_equity']} last_seen {vn(ts(a['last_seen']))} "
-              f"| sum of recorded pnl {total:.2f} | implied deposit {implied:.2f}")
-        drifts[a["account_id"]] = round(implied - round(implied, -2), 2)
-        if abs(implied - round(implied, -2)) > 1.0:
-            flag("LEDGER_DRIFT", f"{a['account_id']}: balance - recorded pnl = {implied:.2f}, not a round deposit; "
-                                 f"a close report is missing or a pnl is wrong (compare with the last report)")
+    section("ACCOUNTS")
+    for a in rows(conn, "SELECT * FROM accounts ORDER BY account_id"):
+        print(f"{a['account_id']}: balance {a['last_balance']} equity {a['last_equity']} "
+              f"last_seen {vn(ts(a['last_seen']))} configured {a['is_configured']}")
+    unexplained = ledger(conn, start, end, all_rows)
 
     section("BOT CONTROLS (paused)")
     for r in rows(conn, "SELECT * FROM bot_controls"):
         print(r)
-    return all_rows, drifts
+    return all_rows, unexplained
+
+
+def ledger(conn, start, end, all_rows):
+    """The accounts' ledgers (app/ledger.py, the dashboard's Ledger view): opening balance + recorded deposits /
+    withdrawals + closed P&L against the broker's balance. A balance change inside the window that no close
+    explains and nobody recorded is money moved in or out, or a trade whose report was lost; the container logs
+    tell the two apart (OPEN_NOT_IN_DB / REPORT_FAILED). Returns {account_id: unexplained total in the window}.
+    """
+    section("LEDGER (app/ledger.py; the same figures as the dashboard's Ledger view)")
+    try:
+        from app import ledger as L
+    except ImportError:
+        print("app.ledger is missing: the server predates the ledger")
+        return {}
+    unexplained = {}
+    for a in rows(conn, "SELECT * FROM accounts ORDER BY account_id"):
+        try:
+            e = L.account_ledger(conn, a)
+        except Exception as ex:
+            print(f"ledger unavailable ({ex!r})")
+            return {}
+        if e["opening_balance"] is None:
+            print(f"{a['account_id']}: no balance logged yet")
+            continue
+        print(f"{e['account_id']}: opening {e['opening_balance']} ({vn(ts(e['opening_at']))} VN) + deposits {e['deposits']} "
+              f"- withdrawals {e['withdrawals']} + closed pnl {e['closed_pnl']} ({e['closed_trades']} trades) = expected "
+              f"{e['expected_balance']} | broker {e['broker_balance']} | discrepancy {e['discrepancy']:+.2f}")
+        for m in e["movements"]:
+            t = ts(m["occurred_at"])
+            if t and start <= t < end:
+                print(f"  cash movement in window: {vn(t)} VN {m['amount']:+.2f} ({m['note'] or ''})"
+                      + ("" if m["counted"] else " [before the opening balance, not counted]"))
+        inside = [u for u in e["unexplained"] if start <= ts(u["recorded_at"]) < end]
+        for u in inside:
+            flag("BALANCE_UNEXPLAINED", f"{e['account_id']} {vn(ts(u['recorded_at']))} VN: balance {u['balance_before']} -> "
+                                        f"{u['balance']} ({u['delta']:+.2f}) matches no close booked around it and is not "
+                                        f"recorded as a deposit/withdrawal (nearby closes: {u['nearby_closes'] or 'none'})")
+        if len(e["unexplained"]) > len(inside):
+            print(f"  {len(e['unexplained']) - len(inside)} unexplained balance changes before the window (earlier audits)")
+        if not e["balanced"] and not e["unexplained"]:
+            print(f"  discrepancy with no unexplained balance change: a close whose pnl differs from what the broker "
+                  f"booked, or a balance update the log missed")
+        unexplained[e["account_id"]] = round(sum(u["delta"] for u in inside), 2)
+    return unexplained
 
 
 # ---------- server logs ----------
@@ -391,7 +427,7 @@ def container_lines(log_path, name, start, end):
             lines.append(rec.get("log", "").rstrip("\n"))
     return lines, bad
 
-def containers(start, end, all_rows, restarts, drifts):
+def containers(start, end, all_rows, restarts, unexplained):
     section("CONTAINERS")
     rc, out = sh("docker inspect -f '{{.Name}}|{{.State.Status}}|{{.State.StartedAt}}|{{.RestartCount}}|"
                  "{{.State.OOMKilled}}|{{.Created}}|{{.LogPath}}|{{json .Args}}' $(docker ps -aq)")
@@ -497,8 +533,9 @@ def containers(start, end, all_rows, restarts, drifts):
                                             f"but the container log has no open for it")
     if missing_pnl:
         total = round(sum(missing_pnl), 2)
-        print(f"P&L of trades missing from the DB: {total} over {len(missing_pnl)} trades; ledger drift now "
-              f"{drifts} (a match means the lost reports explain the drift)")
+        print(f"P&L of trades missing from the DB: {total} over {len(missing_pnl)} trades; "
+              f"unexplained balance changes {unexplained} (a match means the lost reports explain them; the rest is "
+              f"money moved in or out)")
     if corrupt:
         flag("DOCKER_LOG_CORRUPT", f"{len(corrupt)} containers have unreadable records in their json log (NUL block "
                                    f"from a hard reset): plain `docker logs`/--since stops there silently; this "
@@ -570,12 +607,12 @@ def main():
           f"{' (cut at now)' if end == now else ''}; collected {now:%Y-%m-%d %H:%M} UTC")
     conn = db_conn()
     try:
-        all_rows, drifts = trades(conn, start, end, now)
+        all_rows, unexplained = trades(conn, start, end, now)
     finally:
         conn.close()
     agent_log(day)
     restarts = journal(start, end)
-    containers(start, end, all_rows, restarts, drifts)
+    containers(start, end, all_rows, restarts, unexplained)
     deploy_state(start, end)
     health()
     system(arg == "today" or day == now.astimezone(VN).date())

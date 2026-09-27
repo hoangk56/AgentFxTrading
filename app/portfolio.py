@@ -11,7 +11,7 @@ from typing import Dict, List, Set, Optional
 from pathlib import Path
 from app.accounts import get_account_registry
 from app.db import get_db_connection, INTEGRITY_ERRORS
-from app import backtest_store, bot_controls
+from app import backtest_store, bot_controls, ledger
 
 logger = logging.getLogger(__name__)
 
@@ -166,6 +166,7 @@ class PortfolioManager:
             """)
             bot_controls.init_schema(conn)
             backtest_store.init_schema(conn)
+            ledger.init_schema(conn)
             # Tables of the removed AI layer (/trade, news shield, daily loss limits).
             for table in ("news_assessments", "risk_limits"):
                 conn.execute(f"DROP TABLE IF EXISTS {table}")

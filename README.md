@@ -62,6 +62,7 @@ See [docs/strategies.md](docs/strategies.md) for what each bot does.
 - **Dashboard commands**: close a position, pause / resume a bot, or close its positions and stop it, from the Bots tab.
 - **Watchdog**: restarts containers stuck at login or no longer handling bars.
 - **Leaderboard**: ranks the bots by USD P&L or lot-neutral, over any period.
+- **Ledger**: expected vs broker balance per account; record deposits and withdrawals, see any discrepancy.
 - **Backtest page**: runs cTrader backtests of an installed bot in containers and charts the report.
 - **Demo / Real isolation**: separate dashboards and data for demo and live accounts.
 
@@ -105,7 +106,7 @@ cd AgentFxTrading
 python3 -m venv .venv && source .venv/bin/activate
 pip install -r requirements.txt
 
-cp .env.example .env        # optional: DATABASE_URL, DASHBOARD_ACCOUNTS
+cp .env.example .env        # optional: DATABASE_URL
 python app/server.py        # serves http://127.0.0.1:8000
 ```
 
@@ -154,7 +155,7 @@ README does not repeat them. On a VPS set up by the installer, replace `-v /root
 ## ⚙️ Configuration
 
 All server settings come from `.env` — start from [`.env.example`](.env.example); a local run needs none of them.
-Every variable, the `DASHBOARD_ACCOUNTS` format, database selection and the cBot parameters that are not presets are
+Every variable, database selection and the cBot parameters that are not presets are
 described in [docs/configuration.md](docs/configuration.md).
 
 ---

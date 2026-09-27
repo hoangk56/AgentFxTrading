@@ -19,7 +19,7 @@ graph LR
 | cBots (`cBot/*.cs`) | C# / cTrader, run headless by `ghcr.io/spotware/ctrader-console` | Detect setups on their own rules, size and execute trades, manage open positions |
 | Server (`app/`) | Python / FastAPI / uvicorn | Position tracking, dashboard, bot management, backtests |
 | Database | PostgreSQL 17 in production, SQLite `portfolio.db` fallback | Positions, trade history, bot configs, accounts, pause flags, backtest jobs |
-| Dashboard | Jinja2 template + static JS/CSS | Monitoring, leaderboard, Docker bot management, Setup Instances, Backtest, logs |
+| Dashboard | Jinja2 template + static JS/CSS | Monitoring, leaderboard, Docker bot management, Setup Instances, Backtest, Ledger, logs |
 
 The server must run as a **single uvicorn worker** (`uvicorn app.server:app`, no `--workers`): the dashboard →
 cBot command queue (`app/bot_commands.py`) and several caches live in process memory.
@@ -50,6 +50,7 @@ FastAPI generates the full, current reference: open **`http://127.0.0.1:8000/doc
 | Dashboard data | `/api/dashboard/*`, `/api/leaderboard`, `WS /ws/dashboard` | `app/dashboard.py` |
 | Docker bot management | `/api/bots/*`, `/api/positions/{id}/close`, `/api/bot-commands/*`, `/api/watchdog/status` | `app/dashboard.py` |
 | Setup Instances | `/api/setup/*`, `/api/ctrader-accounts/*` | `app/dashboard.py` |
+| Ledger | `/api/ledger`, `/api/ledger/movements` | `app/ledger_api.py` (logic in `app/ledger.py`) |
 | Backtests | `/api/backtests/*` | `app/backtest_api.py` |
 
 Most dashboard data routes accept `account_id=demo|live|all|<id>`; see `/docs` for parameters. New endpoints go in
@@ -69,9 +70,8 @@ Started from the FastAPI lifespan in `app/server.py`:
 ## Dashboard modes
 
 `/demo/dashboard` and `/real/dashboard` show only demo or only live accounts. `/` and `/dashboard` redirect to the
-mode used last, remembered by the `agentfx_trade_mode` cookie and `webui_data/trade_mode.json`. Accounts and their
-type come from `DASHBOARD_ACCOUNTS` and the cTrader accounts added on the Setup Instances screen; a cBot tags its
-trades with `--AccountLabel`.
+mode used last, remembered by the `agentfx_trade_mode` cookie and `webui_data/trade_mode.json`. Accounts are the
+cTrader accounts created on the Setup Instances screen; a cBot tags its trades with `--AccountLabel`.
 
 ## Logging
 
@@ -93,6 +93,7 @@ AgentFxTrading/
 │   ├── docker_manager.py        Docker bot configs and container control
 │   ├── portfolio.py             position tracking
 │   ├── leaderboard.py           bot performance ranking
+│   ├── ledger.py, ledger_api.py account ledger: deposits / withdrawals, expected vs broker balance
 │   ├── accounts.py, ctrader_accounts.py   dashboard accounts, cTrader logins
 │   ├── bot_commands.py, bot_controls.py   dashboard → cBot commands, per-bot pause
 │   └── db.py                    PostgreSQL / SQLite layer

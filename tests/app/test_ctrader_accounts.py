@@ -69,11 +69,43 @@ def test_upsert_configured_account_marks_dashboard_account(registry):
     assert len(accounts) == 1 and accounts[0]["label"] == "IC Main"
 
 
-def test_seed_from_env_still_uses_the_upsert(registry, monkeypatch):
-    monkeypatch.setenv("DASHBOARD_ACCOUNTS", "demo-1|7654321|demo|Demo Test;live-main|1234567|live|Live Main")
-    registry.seed_from_env()
-    ids = sorted(a["account_id"] for a in registry.list_accounts())
-    assert ids == ["demo-1", "live-main"]
+def test_no_account_is_configured_from_the_environment(registry, monkeypatch):
+    """Accounts are created on the Setup Instances screen; DASHBOARD_ACCOUNTS is no longer read."""
+    monkeypatch.setenv("DASHBOARD_ACCOUNTS", "demo-1|7654321|demo|Demo Test")
+    assert not hasattr(registry, "seed_from_env")
+    AccountRegistry(registry.db_path)
+    assert registry.list_accounts() == []
+
+
+# ---------------------------------------------------------------------------
+# Balance log: every change of an account's balance, so deposits and withdrawals can be told from trades
+
+def _log(reg):
+    with reg._get_connection() as conn:
+        return [(r["balance_before"], r["balance"]) for r in
+                conn.execute("SELECT balance_before, balance FROM account_balance_log ORDER BY id").fetchall()]
+
+
+def test_balance_log_records_each_change_once(registry):
+    for balance in (1000.0, 1000.0, 1012.5, 1012.5, 1512.5):
+        registry.upsert_from_bot("10101649", "demo", "demo", balance, balance)
+    assert _log(registry) == [(None, 1000.0), (1000.0, 1012.5), (1012.5, 1512.5)]
+
+
+def test_balance_log_ignores_reports_without_a_balance(registry):
+    registry.upsert_from_bot("10101649", "demo", "demo", 1000.0, 1000.0)
+    registry.upsert_from_bot("10101649", "demo", "demo", 0.0, 0.0)      # a report that carried no balance
+    registry.upsert_from_bot("10101649", "demo", "demo", 1000.0, 1000.0)
+    assert _log(registry) == [(None, 1000.0)]
+
+
+def test_balance_log_survives_a_restart_and_keeps_accounts_apart(registry):
+    registry.upsert_from_bot("10101649", "demo", "demo", 1000.0, 1000.0)
+    registry.upsert_from_bot("6182960", "live", "live", 100.0, 100.0)
+    reopened = AccountRegistry(registry.db_path)                          # empty in-memory cache
+    reopened.upsert_from_bot("10101649", "demo", "demo", 1000.0, 1000.0)
+    reopened.upsert_from_bot("10101649", "demo", "demo", 990.0, 990.0)
+    assert _log(registry) == [(None, 1000.0), (None, 100.0), (1000.0, 990.0)]
 
 
 # ---------------------------------------------------------------------------
@@ -216,7 +248,7 @@ def test_unwritable_ctrader_home_is_500_and_no_row(ctrader_home, monkeypatch):
 
 
 def test_create_keeps_a_preconfigured_dashboard_account_id(ctrader_home):
-    """A .env-style id like 'demo-1' must survive registering the same number in Setup Instances."""
+    """An existing account id like 'demo-1' must survive registering the same number in Setup Instances."""
     reg = get_account_registry()
     reg.upsert_configured_account("demo-1", "7654321", "demo", "Demo Test")
     res = client.post("/api/ctrader-accounts", json=_payload(label="Main", account_number="7654321"))

@@ -10,8 +10,8 @@ Find what went wrong on **one GMT+7 day**: trades, server and bot logs, and the 
 Everything on the VPS is **read-only**. The output is a Vietnamese report plus a short chat summary.
 
 Mode: `$ARGUMENTS`. Empty means `yesterday`. `today` means 00:00 GMT+7 until now. A `YYYY-MM-DD`
-value means that GMT+7 date. Audit that window only. Earlier days are used only as a baseline,
-such as the previous report's ledger figure, and never as a second audit.
+value means that GMT+7 date. Audit that window only. Earlier days are used only as context, never
+as a second audit.
 
 ## Hard rules
 
@@ -65,7 +65,7 @@ a finding.
   - strategy/risk issue
   - noise
 - Trace each bug to its root cause at `file:line`.
-- Merge FLAGs that share one cause. For example, REPORT_FAILED, OPEN_NOT_IN_DB, LEDGER_DRIFT
+- Merge FLAGs that share one cause. For example, REPORT_FAILED, OPEN_NOT_IN_DB, BALANCE_UNEXPLAINED
   and "Close position ignored" can all be one lost report.
 
 **4. Read past the flags.** Several things raise no FLAG, so look at them in the digest:
@@ -78,8 +78,7 @@ a finding.
 
 **5. Compare with earlier reports.**
 - Read the report files in `docs/audits/`. Include every format, not only `*-daily-check.md`;
-  for example `*-audit.md` is a manual audit. Take the last known ledger figure
-  (balance − Σpnl) from them as the baseline.
+  for example `*-audit.md` is a manual audit.
 - Mark each issue **mới** (new), **đã biết** (already known, with the report it came from), or
   **tái phát** (was fixed and is back).
 - Don't write up a known issue again at length. Give its count for the day and a reference.
@@ -99,5 +98,5 @@ window, trade counts and P&L, the issues by severity, and the file link.
 | DB peek without `DATABASE_URL` | `get_db_connection` falls back to the local SQLite without a word. Use the header in reference.md. |
 | Container list | The app is at `/home/forge/AgentFxTrading`. Containers are named `cbot-<account slug>-<sym>-fix-gotobi` or `cbot-<account slug>-<sym>-h4-donchian`; list them with `docker ps`. Containers of the removed TMS+ORB / Judas / FlowRSI bots may still exist on the VPS until they are removed by hand. |
 | Time zones | Log files and the window use GMT+7. DB, docker and journal timestamps are UTC. |
-| LEDGER_DRIFT in `yesterday` mode | The balance is "now", so the drift may come from today. Attribute it before you report it. |
+| Deposits and withdrawals | The app logs every balance change (`account_balance_log`) and the user records deposits / withdrawals on the dashboard's **Ledger** view (`account_cash_movements`). A change that matches no close and is not recorded is BALANCE_UNEXPLAINED: money moved in or out, or a lost trade report. Say which, with the evidence; an unrecorded deposit is not a bug, the fix is to record it on the Ledger view. |
 | STALE_ALGO, bots/watchdog, SYSTEM | These describe now, not the audited day. Label them "(hiện tại)". |

@@ -64,6 +64,7 @@ Veja [docs/strategies.md](docs/strategies.md) para o que cada bot faz.
 - **Comandos pelo painel**: fechar uma posição, pausar / retomar um bot, ou fechar as posições dele e pará-lo, na aba Bots.
 - **Watchdog**: reinicia contêineres travados no login ou que deixaram de processar barras.
 - **Ranking**: classifica os bots por P&L em USD ou neutro em lotes, em qualquer período.
+- **Livro-razão (Ledger)**: saldo esperado vs saldo da corretora por conta; registre depósitos e saques e veja a diferença.
 - **Página de backtest**: roda backtests do cTrader de um bot instalado em contêineres e mostra o relatório em gráficos.
 - **Isolamento Demo / Real**: painéis e dados separados para contas demo e reais.
 
@@ -107,7 +108,7 @@ cd AgentFxTrading
 python3 -m venv .venv && source .venv/bin/activate
 pip install -r requirements.txt
 
-cp .env.example .env        # opcional: DATABASE_URL, DASHBOARD_ACCOUNTS
+cp .env.example .env        # opcional: DATABASE_URL
 python app/server.py        # serve em http://127.0.0.1:8000
 ```
 
@@ -155,7 +156,7 @@ repete. Numa VPS configurada pelo instalador, troque `-v /root:/root` por `-v /h
 ## ⚙️ Configuração
 
 Todas as configurações do servidor vêm do `.env` — comece por [`.env.example`](.env.example); uma execução local não
-precisa de nenhuma. Todas as variáveis, o formato de `DASHBOARD_ACCOUNTS`, a escolha do banco de dados e os parâmetros
+precisa de nenhuma. Todas as variáveis, a escolha do banco de dados e os parâmetros
 dos cBots que não fazem parte dos presets estão descritos em [docs/configuration.md](docs/configuration.md).
 
 ---

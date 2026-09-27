@@ -4,10 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AgentFxTrading Dashboard</title>
-    <link rel="stylesheet" href="/static/css/dashboard.css?v=20260927_2bots">
+    <link rel="stylesheet" href="/static/css/dashboard.css?v=20260927_ledger">
     <script src="https://unpkg.com/lucide@latest"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="/static/js/backtest.js?v=20260927_2bots" defer></script>
+    <script src="/static/js/ledger.js?v=20260927_ledger" defer></script>
     <link rel="icon" type="image/png" href="/static/favicon.png">
 </head>
 <body class="app-shell">
@@ -85,6 +86,10 @@
             <a href="#" class="nav-item" data-target="view-backtest" title="Backtest">
                 <span class="nav-icon"><i data-lucide="flask-conical"></i></span>
                 <span class="nav-label">Backtest</span>
+            </a>
+            <a href="#" class="nav-item" data-target="view-ledger" title="Ledger: deposits, withdrawals and discrepancy">
+                <span class="nav-icon"><i data-lucide="book-open"></i></span>
+                <span class="nav-label">Ledger</span>
             </a>
             <a href="#" class="nav-item" data-target="view-logs" title="Agent Logs">
                 <span class="nav-icon"><i data-lucide="terminal"></i></span>
@@ -680,6 +685,20 @@
                 </section>
             </div>
             
+            <!-- Ledger View (static/js/ledger.js) -->
+            <div id="view-ledger" class="view-section">
+                <section class="panel">
+                    <div class="panel-header">
+                        <span class="panel-title"><i data-lucide="book-open" class="panel-icon text-blue"></i> Ledger</span>
+                        <button id="lg-refresh-btn" class="log-btn" style="margin-left:auto;"><i data-lucide="refresh-cw" class="btn-icon"></i> Refresh</button>
+                    </div>
+                    <div class="panel-body">
+                        <p class="td-dim lg-hint">Expected balance = opening balance + deposits − withdrawals + P&amp;L of the bots' closed trades. A discrepancy is money the ledger cannot explain: record deposits and withdrawals here, from the list of unexplained balance changes or by hand.</p>
+                    </div>
+                </section>
+                <div id="lg-body"><p class="td-dim">Loading...</p></div>
+            </div>
+
             <!-- Agent Logs View -->
             <div id="view-logs" class="view-section">
                 <section class="panel log-section">
@@ -721,5 +740,5 @@
             leaderboard: {{ leaderboard | tojson }},
         };
     </script>
-    <script src="/static/js/dashboard.js?v=20260927_2bots"></script>
+    <script src="/static/js/dashboard.js?v=20260927_ledger"></script>
 </body></html>
