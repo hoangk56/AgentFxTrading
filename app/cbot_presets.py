@@ -3,8 +3,8 @@ Strategy × symbol presets for the dashboard's "Setup Instances" screen.
 
 The three AI-gated strategies have a cell on every symbol (15 × 3 = 45). 22 of
 those are tuned per symbol; the other 23 are derived from the nearest tuned cell,
-scaled by pip size (index 0.1, XAU/BTC/ETH/JPY 0.01, forex 0.0001) — see README
-"Derived presets". Gotobi (GotobiBot) trades only the three JPY pairs the research
+scaled by pip size (index 0.1, XAU/BTC/ETH/JPY 0.01, forex 0.0001) — see the
+50-cell grid legend in docs/docker-instances.md. Gotobi (GotobiBot) trades only the three JPY pairs the research
 validated (research/results/portfolio/swing_lab_v2_2026-09-27.md) and Crypto Donchian
 (CryptoDonchianBot, research C1, forward test) only BTCUSD and ETHUSD, so the grid has
 50 cells. All 50 are written out as `docker run` commands in

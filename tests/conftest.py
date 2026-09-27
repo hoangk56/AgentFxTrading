@@ -1,5 +1,4 @@
 import os
-import sys
 import logging
 import shutil
 import tempfile
@@ -14,9 +13,8 @@ os.environ["TESTING"] = "1"
 _TEST_DB_DIR = tempfile.mkdtemp(prefix="agentfx-tests-")
 os.environ["AGENTFX_TEST_DB"] = str(Path(_TEST_DB_DIR) / "test_portfolio.db")
 
-root = Path(__file__).resolve().parent.parent
-if str(root) not in sys.path:
-    sys.path.insert(0, str(root))
+# The repo root (for `app` and `tests._paths`) is on sys.path via `pythonpath = .` in the root
+# pytest.ini. This conftest applies to every directory under tests/.
 
 @pytest.fixture(scope="session", autouse=True)
 def isolate_test_logging():

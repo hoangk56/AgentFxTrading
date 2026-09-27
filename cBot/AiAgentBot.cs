@@ -135,7 +135,7 @@ namespace cAlgo.Robots
 
         [Parameter("ORB Buffer (pips)", Group = "ORB", DefaultValue = 3.0, MinValue = 0, Step = 0.5)]
         public double OrbBufferPips { get; set; }
-        // Keep in sync with MODEL1_ENTRY_WINDOW_BARS in app/server.py
+        // Keep in sync with MODEL1_ENTRY_WINDOW_BARS in app/trade_gates.py
         [Parameter("Max Bars After Breakout", Group = "ORB", DefaultValue = 8, MinValue = 1)]
         public int MaxBarsAfterBreakout { get; set; }
         // ---- Session / EOD ----
@@ -202,7 +202,7 @@ namespace cAlgo.Robots
         public double MinAdjustBeProfitPips { get; set; }
 
         // Keep the absolute breakout ceiling aligned with the per-class caps in
-        // app/server.py BREAKOUT_DISTANCE_LIMITS (absolute ATR x = 3.2 - 3.6).
+        // app/trade_gates.py BREAKOUT_DISTANCE_LIMITS (absolute ATR x = 3.2 - 3.6).
         [Parameter("Max Breakout Dist (x ATR, 0=off)", Group = "Guardrails", DefaultValue = 3.5, MinValue = 0, Step = 0.1)]
         public double MaxBreakoutDistanceAtr { get; set; }
 
