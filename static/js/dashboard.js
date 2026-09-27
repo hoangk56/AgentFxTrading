@@ -1349,7 +1349,7 @@ const DASHBOARD_BOOTSTRAP = window.DASHBOARD_BOOTSTRAP || {};
             lot: 'Weight: 30% WinRate + 30% ProfitFactor + 20% Return/DD + 20% Consistency · each closed trade over its risk at entry',
         };
         let lbTab = 'usd';
-        let lbPeriod = 'all';
+        let lbPeriod = '1w';  // default: a deleted bot's old trades drop out after a week
         let lbDateFrom = '';  // custom range, 'YYYY-MM-DD' in Vietnam time; '' = open side
         let lbDateTo = '';
         try {
@@ -1823,8 +1823,8 @@ const DASHBOARD_BOOTSTRAP = window.DASHBOARD_BOOTSTRAP || {};
         }
         applyLbControls();
 
-        // First paint from the page's own payload (all time, the page's account scope) when the
-        // saved period is "all"; otherwise the view's first fetch fills the tables.
+        // First paint from the page's own payload (last 7 days, the page's account scope) when the
+        // period is the default "1w"; otherwise the view's first fetch fills the tables.
         const lbInitial = DASHBOARD_BOOTSTRAP.leaderboard;
         if (lbInitial && lbInitial.period === lbPeriod) {
             lbShownQuery = lbQuery();
