@@ -2073,7 +2073,8 @@ follows volatility around that default. The schedule, the stop and the one-posit
 defaults and are the same on every pair; a cell only sets the risk and the entry spread cap. Server-side daily loss
 limits are enforced on `/trade` and so do not gate this bot: its own exposure is one position of one default risk,
 two legs a day, eight gotobi days a month. Japanese public holidays have no Tokyo fix; list them in
-`--SkipDates="yyyy-MM-dd,..."` to sit them out.
+`--SkipDates="yyyy-MM-dd,..."` to sit them out. The default skips 2026-12-25 (a Friday gotobi day while the broker
+is closed for Christmas). A `--SkipDates` value replaces that default, so include 2026-12-25 in it.
 
 ### USDJPY — Gotobi Fix
 

@@ -78,7 +78,9 @@ namespace cAlgo.Robots
         public int ShortExitMinuteUtc { get; set; }
 
         // Gotobi days to skip, e.g. Japanese public holidays (no Tokyo fix): "2026-11-03,2026-11-23".
-        [Parameter("Skip Dates (yyyy-MM-dd, comma separated)", Group = "Schedule (UTC)", DefaultValue = "")]
+        // Default: Christmas 2026 (a Friday gotobi day). The broker is closed at the 09:55 fix, so the long bought on
+        // the 24th could not close until the market reopens after the weekend. A value passed in replaces this one.
+        [Parameter("Skip Dates (yyyy-MM-dd, comma separated)", Group = "Schedule (UTC)", DefaultValue = "2026-12-25")]
         public string SkipDates { get; set; }
 
         [Parameter("Default Risk per Trade ($)", Group = "Risk", DefaultValue = 50.0, MinValue = 1.0)]
@@ -132,6 +134,13 @@ namespace cAlgo.Robots
         private readonly Dictionary<string, DateTime> _lastAttemptAt = new Dictionary<string, DateTime>();
         private readonly Dictionary<int, string> _closeReasons = new Dictionary<int, string>();
         private readonly Dictionary<int, double> _initialSlPips = new Dictionary<int, double>();
+        // Evaluate() also runs from the 1 s timer, which fires without ticks. Before the first quote of the week (or
+        // while the broker is closed on a holiday) Symbol.Bid/Ask still hold the last quote before the close, so the
+        // spread check, an order and a close would all use that stale price (backtests #366-#374 filled USDJPY at
+        // Friday's ask on winter Sundays at 21:01 UTC, an hour before the first tick). Nothing trades until a quote
+        // at most MaxQuoteAgeSeconds old has arrived.
+        private const double MaxQuoteAgeSeconds = 60;
+        private DateTime _lastTickAt = DateTime.MinValue;
         private DateTime _lastBarHandled = DateTime.MinValue;
         private DateTime _lastTickTelemetryTime = DateTime.MinValue;
         private DateTime _lastSpreadLogAt = DateTime.MinValue;
@@ -169,6 +178,7 @@ namespace cAlgo.Robots
 
         protected override void OnTick()
         {
+            _lastTickAt = Server.Time;
             Evaluate();
             SendLiveTickTelemetry();
         }
@@ -247,6 +257,7 @@ namespace cAlgo.Robots
             try
             {
                 var now = Server.Time;
+                if (!HasFreshQuote(now)) return;   // no quote yet this week, or the broker is closed
                 CloseDueLegs(now);
 
                 // Long leg for tomorrow's gotobi day: from 18:00 UTC today (03:00 Tokyo tomorrow) to the latest entry.
@@ -266,6 +277,10 @@ namespace cAlgo.Robots
                 if (ShowLogs) Print($"[Gotobi Evaluate Error] {ex.Message}");
             }
         }
+
+        /// <summary>True when a tick arrived at most MaxQuoteAgeSeconds ago, so Symbol.Bid/Ask are the market's
+        /// current prices and not the last quote before a weekend or a holiday. A leg that is due waits for it.</summary>
+        private bool HasFreshQuote(DateTime now) => (now - _lastTickAt).TotalSeconds <= MaxQuoteAgeSeconds;
 
         /// <summary>Closes every own position whose leg has reached its planned exit (the fix for a long, 11:55
         /// Tokyo for a short), and anything older than MaxHoldHours.</summary>
@@ -297,7 +312,9 @@ namespace cAlgo.Robots
             if (_legsDone.Contains(tag)) return;
             if (GetBotPositions().Count > 0) return;   // one position at a time; the long closes before the short opens
             // A Monday gotobi day's long window opens on Sunday 18:00 UTC, before the FX week does; wait for the
-            // first quote after the open (as the research did) instead of filling on Friday's stale price.
+            // first quote after the open (as the research did) instead of filling on Friday's stale price. The
+            // schedule alone is not enough: a backtest's can say "open" an hour before the first tick, so Evaluate()
+            // also waits for a fresh quote (HasFreshQuote).
             if (!Symbol.MarketHours.IsOpened()) return;
 
             if (_lastAttemptAt.TryGetValue(tag, out var last) && (Server.Time - last).TotalSeconds < 30) return;

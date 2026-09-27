@@ -99,6 +99,27 @@ def test_one_position_at_a_time_and_one_attempt_per_leg():
     assert "History.Any(h => h.Label == BotId && h.SymbolName == SymbolName && h.Comment == tag)" in traded
 
 
+def test_nothing_trades_on_a_stale_quote():
+    # Backtests #366-#374: the 1 s timer bought USDJPY at Friday's ask on winter Sundays, an hour before the week's
+    # first tick, because the backtest's schedule already said "open". Only a tick counts as a quote.
+    assert "_lastTickAt = Server.Time;" in _body("protected override void OnTick()")
+    assert "_lastTickAt" not in _body("protected override void OnTimer()")
+    evaluate = _body("private void Evaluate()")
+    guard = evaluate.index("if (!HasFreshQuote(now)) return;")
+    assert guard < evaluate.index("CloseDueLegs(now);") and guard < evaluate.index("TryOpenLeg(")
+    assert "(now - _lastTickAt).TotalSeconds <= MaxQuoteAgeSeconds" in SRC
+    age = float(re.search(r"private const double MaxQuoteAgeSeconds = ([\d.]+);", SRC).group(1))
+    assert 0 < age <= 120, "a quote older than a couple of minutes is not the market's price"
+
+
+def test_christmas_2026_is_skipped_by_default():
+    # 2026-12-25 is a Friday gotobi day and the broker is closed at the fix: the long bought on the 24th could not
+    # be closed until the market reopens after the weekend.
+    m = re.search(r'DefaultValue = "([^"]*)"\)\]\s*public string SkipDates \{ get; set; \}', SRC)
+    assert m, "no [Parameter] default for SkipDates"
+    assert "2026-12-25" in m.group(1).split(",")
+
+
 def test_backtests_never_reach_the_server():
     for sig in ("private void StartCommandPoll()", "private void SendLiveTickTelemetry(bool force = false)",
                 "private void ReportPositionOpen(Position position, double slPips, string reason)",
