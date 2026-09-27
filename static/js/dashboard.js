@@ -48,10 +48,26 @@ const DASHBOARD_BOOTSTRAP = window.DASHBOARD_BOOTSTRAP || {};
             }
         }
 
+        // The open view lives in the URL hash (#backtest, #ledger, …; Overview has none),
+        // so F5 and Back/Forward stay on it.
+        function viewFromHash(hash) {
+            const view = hash.length > 1 ? document.getElementById('view-' + hash.slice(1)) : null;
+            return view && view.classList.contains('view-section') ? view.id : 'view-dashboard';
+        }
+
+        function openView(targetId) {
+            if (viewFromHash(location.hash) !== targetId) {
+                history.pushState(null, '', targetId === 'view-dashboard'
+                    ? location.pathname + location.search
+                    : '#' + targetId.replace(/^view-/, ''));
+            }
+            switchView(targetId);
+        }
+
         document.querySelectorAll('.nav-item').forEach(item => {
             item.addEventListener('click', (e) => {
                 e.preventDefault();
-                switchView(item.getAttribute('data-target'));
+                openView(item.getAttribute('data-target'));
             });
         });
 
@@ -59,9 +75,17 @@ const DASHBOARD_BOOTSTRAP = window.DASHBOARD_BOOTSTRAP || {};
         if (topbarDockerBtn) {
             topbarDockerBtn.addEventListener('click', (e) => {
                 e.preventDefault();
-                switchView('view-docker');
+                openView('view-docker');
             });
         }
+
+        window.addEventListener('popstate', () => switchView(viewFromHash(location.hash)));
+        // Wait for DOMContentLoaded: switchView's loaders live further down this file and in the deferred
+        // backtest.js / ledger.js.
+        document.addEventListener('DOMContentLoaded', () => {
+            const initialView = viewFromHash(location.hash);
+            if (initialView !== 'view-dashboard') switchView(initialView);
+        });
         // --- Docker Bot Management ---
         let botsFetchInFlight = false;   // a slow poll must not stack up behind itself
         let botActionInFlight = false;   // a poll must not re-render over a row that says "Stopping…"
@@ -568,15 +592,15 @@ const DASHBOARD_BOOTSTRAP = window.DASHBOARD_BOOTSTRAP || {};
             } catch(err) { console.error('Fetch error:', err); }
         }
 
-        // Mode switcher buttons navigate cleanly to respective URL routes
+        // Mode switcher buttons navigate cleanly to respective URL routes, keeping the open view (hash)
         document.querySelectorAll('.trade-mode-btn').forEach(btn => {
             btn.addEventListener('click', (e) => {
                 e.preventDefault();
                 const targetMode = btn.dataset.mode;
                 if (targetMode === 'real' || targetMode === 'live') {
-                    window.location.href = '/real/dashboard';
+                    window.location.href = '/real/dashboard' + location.hash;
                 } else {
-                    window.location.href = '/demo/dashboard';
+                    window.location.href = '/demo/dashboard' + location.hash;
                 }
             });
         });
