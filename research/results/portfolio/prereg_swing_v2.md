@@ -110,3 +110,47 @@ Pass bar for C3 and C4 at HOLD: as for C1 (net $ > 0, mean R > 0); C3 additional
 - **C4 PASSED the bar, sizing not confirmed.** HOLD n 246, net +$757, mean R +0.038 (t 1.3), 1/2 years net > 0,
   max DD $591. The day-type lots made less than 1x lots at HOLD (+$757 vs +$940), so the day-type sizing is not
   supported out of sample; the rule itself (= N2) is.
+
+## Addendum — code provenance (written 2026-09-27, after every HOLD run above; changes no candidate or verdict)
+
+The hashes above were written at 23:58:46 UTC on 2026-09-26, when C1 was registered. `swing.py` and `swing_rules.py`
+were edited again before the first commit (`af3ab38`), so the registered versions were never in git. C3 and C4 were
+registered at 00:46:08 UTC without hashes of their own.
+
+**Reconstruction.** The session's edit log was replayed backwards from `af3ab38`, undoing the 11 edits made to
+these two files after 23:58:46. The result hashes exactly to the registered `e9d80497d33a9d84` / `10fd11c9dfa0f90c`,
+so the list of later edits is complete. Those versions are kept in [prereg_swing_v2_code/](prereg_swing_v2_code/)
+(named `<file>@<hash>.py.txt`). `research/tests/test_prereg_code.py` checks their hashes, and checks that the other
+four files are unchanged in `af3ab38`.
+
+**Timeline (UTC):**
+
+| time | event | effect on the registered candidates |
+|---|---|---|
+| 23:58:46 | C1 hashes written | — |
+| 23:58:54 | **C1 HOLD run** | ran on the registered code: no edit in between |
+| 00:02 – 00:17 | `swing_rules`: new rules `carry`, `session_fx`, `day_long` (+ helpers) | new functions only; `donchian` untouched |
+| 00:04:54 | `swing.py`: `if ex is None` → `if ex is None or not ex.any()` | fixes an IndexError on an all-False exit array; any run that finished before gives the same result |
+| 00:44:59 | `swing_rules`: `gotobi` and helpers added (used for N2, then C3/C4) | before C3/C4 were registered |
+| 00:46:08 | C3 / C4 registered (no hashes) | — |
+| 00:46:26 | `gotobi` gets an optional `day_sizes` (default `None`) and `C4_DAY_SIZES`; **C3/C4 HOLD run** in the same call | with `day_sizes=None` (C3), `size` stays `None` and the signals are identical; C4 is exactly what this parameter implements |
+| 00:47:52 | `swing_rules`: new rule `fix_window` | new function only; the result is the `af3ab38` file |
+
+So C1 ran on the registered code, and C3 ran on the rule as it was registered. **Process gap:** C3/C4 should have
+recorded their own hashes before the run. `swing_rules.py` as it was when they ran hashes to `b6160f125b6255d4`
+(kept in the same folder). From now on, run `python -m research.tools.prereg_hashes <files>` and paste its output into
+the prereg file before each holdout.
+
+**Move in the 2026-09-27 cleanup.** The code moved to `research/swing/` and the shared helpers moved to the top of
+`research/`. Only paths, imports and docstrings changed. C1, C3 and C4 were then re-run with the moved code, and every
+number in this file came out identical (C1 HOLD n 302, $+2,859, R -0.025; C3 HOLD n 738, $+3,115, R +0.042; C4
+HOLD n 246, $+757; spread-stress and long-only lines too).
+
+| registered file | registered | `af3ab38` | now at | now |
+|---|---|---|---|---|
+| `research/scan/swing.py` | e9d80497d33a9d84 | 7c5185dd85f7b6ae | `research/swing/swing.py` | 8511bfbae1366fc4 |
+| `research/scan/swing_rules.py` | 10fd11c9dfa0f90c | df60101287655d67 | `research/swing/swing_rules.py` | 43059165c2210c17 |
+| `research/scan/rates.py` | 5a84860812283a21 | same | `research/swing/rates.py` | 5de71c1ba5069f93 |
+| `research/scan/specs_ext.py` | e63964ed74d204b2 | same | `research/specs_ext.py` | e63964ed74d204b2 |
+| `research/scan/data.py` | 763e848464232614 | same | `research/m1bars.py` | f7ad6f3f8e79432d |
+| `research/specs.py` | 9ef05930b3f0baf1 | same | `research/specs.py` | 5be0d7b3b7bf3d79 |

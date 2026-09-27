@@ -7,12 +7,12 @@ from datetime import date, timedelta
 from pathlib import Path
 
 from research.bars import build_bars
-from research.signals import Market, build
-from research.sim import make_levels, run_account
+from research.flowrsi.signals import Market, build
+from research.flowrsi.sim import make_levels, run_account
 from research.specs import SPECS, flowrsi_params
 from research.ticks import day_ms, load_ticks
 
-RESULTS = Path(__file__).resolve().parent / "results"
+RESULTS = Path(__file__).resolve().parents[1] / "results"
 PAIRS = ["AUDJPY", "AUDUSD", "BTCUSD", "DE40", "ETHUSD", "EURJPY", "EURUSD", "GBPJPY", "GBPUSD",
          "UK100", "US30", "USDCAD", "USDJPY", "USTEC", "XAUUSD"]
 JPY = {"AUDJPY", "EURJPY", "GBPJPY", "USDJPY"}

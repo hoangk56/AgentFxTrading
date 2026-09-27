@@ -7,7 +7,7 @@ not used. The API caps a run at 365 days: 2016/2020 are leap years so they end o
 since 12-29..31 are already cached. Indices (US500, JP225, AUS200, HK50) go last: their conversion ticks
 (USD/JPY/AUD/HKD) may load lazily inside the first order, so a cold run can abort once by timeout; the
 Backtest page reruns it and the failed run still fills the cache.
-Run on the VPS:  ssh forge@204.168.144.232 'python3 -' < research/fill_2016_2024_new_symbols.py"""
+Run on the VPS:  ssh forge@204.168.144.232 'python3 -' < research/tools/fill_2016_2024_new_symbols.py"""
 import json
 import urllib.request
 

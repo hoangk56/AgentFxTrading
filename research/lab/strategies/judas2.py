@@ -11,7 +11,7 @@ import numpy as np
 from research.lab.engine import Ctx
 from research.lab.strategies.canon import (NY, chunk_days, fractal_highs, fractal_lows, last_fvg, local_ms,
                                            trade)
-from research.sim import _first_hit
+from research.ticks import _first_hit
 
 ASIA = (time(20, 0), time(0, 0))          # the previous New York evening -> New York midnight
 KILLZONES = {"london": (time(2, 0), time(5, 0)), "nyam": (time(7, 0), time(10, 0))}

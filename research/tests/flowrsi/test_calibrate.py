@@ -2,8 +2,8 @@ import pytest
 
 np = pytest.importorskip("numpy")
 
-from research.calibrate import ctrader_positions, match  # noqa: E402
-from research.sim import Trade  # noqa: E402
+from research.flowrsi.calibrate import ctrader_positions, match  # noqa: E402
+from research.flowrsi.sim import Trade  # noqa: E402
 
 
 def test_ctrader_positions_group_partial_deals():

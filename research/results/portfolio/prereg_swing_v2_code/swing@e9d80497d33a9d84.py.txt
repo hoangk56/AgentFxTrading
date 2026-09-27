@@ -187,7 +187,7 @@ def simulate_symbol(symbol: str, tf: Tuple[int, int], sig: Signals, spread_mult:
     exit_next = {}
     for side, ex in ((1, sig.long_exit), (-1, sig.short_exit)):
         # index of the first exit bar at or after each bar (n_bars = none)
-        if ex is None or not ex.any():
+        if ex is None:
             exit_next[side] = np.full(n_bars + 1, n_bars)
         else:
             nxt = np.full(n_bars + 1, n_bars)

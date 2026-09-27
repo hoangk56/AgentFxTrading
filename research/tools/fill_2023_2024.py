@@ -1,7 +1,7 @@
 """Queue the cTrader backtests that fill the 2023-2024 tick cache for the strategy-search candidates
 (BTC-S1: BTCUSD; XAU-T1: XAUUSD; TOM: US30, USTEC, DE40). Live FlowRSI presets, $2000, ticks; the reports
 themselves are not used. The API caps a run at 365 days, so 2024 ends on 12-30 (12-29..31 are cached).
-Run on the VPS:  ssh forge@204.168.144.232 'python3 -' < research/fill_2023_2024.py"""
+Run on the VPS:  ssh forge@204.168.144.232 'python3 -' < research/tools/fill_2023_2024.py"""
 import json
 import urllib.request
 

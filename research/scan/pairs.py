@@ -10,9 +10,9 @@ from typing import List
 
 import numpy as np
 
-from research.scan.data import comm_price, resample
+from research.m1bars import comm_price, resample
 from research.scan.engine import period_of
-from research.scan.m1 import load
+from research.m1 import load
 from research.specs import SPECS, swap_usd
 
 TFS = {"M15": 15, "M30": 30, "H1": 60, "H4": 240}

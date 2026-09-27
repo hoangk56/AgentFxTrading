@@ -7,7 +7,7 @@ import numpy as np
 from research.bars import Bars
 from research.indicators import atr_sma, prior_max, prior_min
 from research.specs import SymbolSpec, normalize_units, size_units, swap_usd
-from research.ticks import Ticks
+from research.ticks import Ticks, _first_hit
 
 Levels = Callable[[int, int, float, float], Tuple[float, float]]
 
@@ -92,19 +92,6 @@ def place_order(side: int, tech_sl: float, tech_tp: float, bid: float, ask: floa
     if units <= 0:
         return None
     return units, sl, tp
-
-
-def _first_hit(price: np.ndarray, start: int, lo: float, hi: float) -> int:
-    """First index >= start with price <= lo or price >= hi; len(price) if none."""
-    n, size = len(price), 4096
-    while start < n:
-        seg = price[start:start + size]
-        hit = np.flatnonzero((seg <= lo) | (seg >= hi))
-        if hit.size:
-            return start + int(hit[0])
-        start += size
-        size *= 2
-    return n
 
 
 def _close(t: Ticks, tr: Trade, j: int, price: float, units: float, spec: SymbolSpec) -> None:

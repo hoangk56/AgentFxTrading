@@ -1,5 +1,5 @@
 """Queue the cTrader backtests that fill the 2025 tick cache for the 8 pairs that lack it.
-Live presets, $2000, ticks. Run on the VPS:  ssh forge@204.168.144.232 'python3 -' < research/fill_2025.py"""
+Live presets, $2000, ticks. Run on the VPS:  ssh forge@204.168.144.232 'python3 -' < research/tools/fill_2025.py"""
 import json
 import urllib.request
 

@@ -21,7 +21,7 @@ from research.indicators import ema, true_range
 from research.lab import costs
 from research.lab.cbot import cbot_params
 from research.lab.engine import Ctx, Pos
-from research.sim import _first_hit
+from research.ticks import _first_hit
 
 SIGNAL_WINDOW_BARS = 3            # CrossSignalWindowBars
 UNMODELLED = {"enableTrailingStop": False, "enableTrailingStopFromBreakEven": False, "dcaEnable": False,
@@ -61,7 +61,7 @@ def in_killzone(dt: datetime, p: dict) -> bool:
 
 
 def server_range_ok(symbol: str, pips: float) -> bool:
-    """evaluate_judas_sweep_gate's Asian-range band per asset class (app/server.py)."""
+    """evaluate_judas_sweep_gate's Asian-range band per asset class (app/trade_gates.py)."""
     s = symbol.upper()
     if "XAU" in s or "GOLD" in s:
         lo, hi = 100.0, 10000.0

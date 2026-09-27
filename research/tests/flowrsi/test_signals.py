@@ -3,7 +3,7 @@ import pytest
 np = pytest.importorskip("numpy")
 
 from research.bars import Bars  # noqa: E402
-from research.signals import rsi_cross_signals, smc_flags  # noqa: E402
+from research.flowrsi.signals import rsi_cross_signals, smc_flags  # noqa: E402
 
 P = {"RsiCrossLookbackBars": 3, "RsiBullishCrossMin": 25.0, "RsiBullishCrossMax": 50.0,
      "RsiBearishCrossMin": 50.0, "RsiBearishCrossMax": 75.0, "SwingLookback": 1, "EquilibriumThreshold": 0.5,
@@ -46,7 +46,7 @@ def test_smc_bullish_fvg():
     assert smc_flags(b, P, 0.0001)["fvg_b"][2]
 
 
-from research.signals import (bb_fade, donchian_breakout, htf_index, htf_trend, pullback,  # noqa: E402
+from research.flowrsi.signals import (bb_fade, donchian_breakout, htf_index, htf_trend, pullback,  # noqa: E402
                               random_like, reverse_extreme, rsi2_extreme)
 
 

@@ -129,7 +129,7 @@ namespace cAlgo.Robots
         private const string LongTag = "DONCH-L";
         private const string ShortTag = "DONCH-S";
         private const string ManualCloseReason = "Manual close (dashboard)";
-        // research/scan/swing.py: SCALE_MIN, SCALE_MAX, SCALE_MIN_HISTORY.
+        // research/swing/swing.py: SCALE_MIN, SCALE_MAX, SCALE_MIN_HISTORY.
         private const double ScaleMin = 0.5;
         private const double ScaleMax = 2.0;
         private const int ScaleMinHistory = 10;
@@ -246,7 +246,7 @@ namespace cAlgo.Robots
         #endregion
 
         #region Channel
-        /// <summary>Start of the UTC 4-hour bucket holding `t` (00:00, 04:00, ... 20:00), research/scan/swing.H4.</summary>
+        /// <summary>Start of the UTC 4-hour bucket holding `t` (00:00, 04:00, ... 20:00), research/swing/swing.H4.</summary>
         public static DateTime H4BucketStart(DateTime t) => t.Date.AddHours(t.Hour / 4 * 4);
 
         /// <summary>Folds newly closed H1 bars into UTC H4 bars. A bar closes once an H1 bar of a later bucket exists;
@@ -316,7 +316,7 @@ namespace cAlgo.Robots
             return v;
         }
 
-        /// <summary>Entry signal of closed bar i (research/scan/swing_rules.donchian): +1 on a close above the prior
+        /// <summary>Entry signal of closed bar i (research/swing/swing_rules.donchian): +1 on a close above the prior
         /// EntryPeriod-bar high, -1 on a close below the prior low (with TradeShorts), else 0. Strength = the
         /// breakout's distance past the channel in ATR.</summary>
         private int EntrySignal(int i, out double level, out double atr, out double strength)
@@ -360,7 +360,7 @@ namespace cAlgo.Robots
             return n % 2 == 1 ? s[n / 2] : (s[n / 2 - 1] + s[n / 2]) / 2.0;
         }
 
-        /// <summary>research/scan/swing._scale: strength / median of this symbol's earlier breakouts, clipped to
+        /// <summary>research/swing/swing._scale: strength / median of this symbol's earlier breakouts, clipped to
         /// [0.5, 2]; 1 until there are ScaleMinHistory of them.</summary>
         private double ScaleFor(double strength, out double median)
         {

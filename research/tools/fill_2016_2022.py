@@ -4,7 +4,7 @@ used. The API caps a run at 365 days: 2016/2020 are leap years so they end on 12
 12-28 since 12-29..31 are already cached. Indices go last: their EUR/GBP conversion ticks load lazily
 inside the first order, so a cold run can abort once by timeout; the Backtest page reruns it and the
 failed run still fills the cache.
-Run on the VPS:  ssh forge@204.168.144.232 'python3 -' < research/fill_2016_2022.py"""
+Run on the VPS:  ssh forge@204.168.144.232 'python3 -' < research/tools/fill_2016_2022.py"""
 import json
 import urllib.request
 

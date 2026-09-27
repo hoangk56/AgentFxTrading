@@ -9,7 +9,7 @@ from typing import Optional
 import numpy as np
 
 from research.lab.universe import SYNTH_SPREAD_FACTOR, Instrument, instrument
-from research.scan.m1 import load as load_m1
+from research.m1 import load as load_m1
 from research.ticks import Ticks, day_ms, load_ticks
 
 DATA_START, DATA_END = date(2023, 1, 1), date(2026, 9, 24)

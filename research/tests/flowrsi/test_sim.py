@@ -3,7 +3,7 @@ import pytest
 np = pytest.importorskip("numpy")
 
 from research.bars import Bars  # noqa: E402
-from research.sim import Trade, make_levels, place_order, run_account  # noqa: E402
+from research.flowrsi.sim import Trade, make_levels, place_order, run_account  # noqa: E402
 from research.specs import SPECS, flowrsi_params  # noqa: E402
 from research.ticks import Ticks  # noqa: E402
 
@@ -82,7 +82,7 @@ def test_signals_before_start_ms_are_warm_up_only():
     assert [tr.entry_tick for tr in trades] == [3]
 
 
-from research.sim import _run_flowrsi  # noqa: E402
+from research.flowrsi.sim import _run_flowrsi  # noqa: E402
 
 
 def _x2_ticks(bids):

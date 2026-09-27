@@ -12,7 +12,7 @@ import numpy as np
 
 from research.indicators import heikin_ashi, stoch, tdi
 from research.lab.engine import NAN, Ctx, Trade
-from research.sim import _first_hit
+from research.ticks import _first_hit
 
 NY, LONDON, TOKYO, BERLIN = "America/New_York", "Europe/London", "Asia/Tokyo", "Europe/Berlin"
 MINUTE_MS = 60_000

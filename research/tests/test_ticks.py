@@ -42,7 +42,7 @@ def test_day_ms_is_utc_midnight():
 REAL = DATA_DIR / "EURUSD" / "t1" / "20260105.zticks"
 
 
-@pytest.mark.skipif(not REAL.exists(), reason="run research/pull_cache.sh first (Task 8)")
+@pytest.mark.skipif(not REAL.exists(), reason="run research/tools/pull_cache.sh first (Task 8)")
 def test_real_day_is_sorted_with_ask_above_bid():
     t = load_ticks("EURUSD", date(2026, 1, 5), date(2026, 1, 5))
     assert len(t) > 10_000

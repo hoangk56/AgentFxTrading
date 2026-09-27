@@ -4,7 +4,7 @@
 set -euo pipefail
 VPS=forge@204.168.144.232
 CACHE=/var/lib/docker/volumes/agentfx-bt-cache/_data/V1/demo_e5322e87
-DEST="$(cd "$(dirname "$0")" && pwd)/data"
+DEST="$(cd "$(dirname "$0")/.." && pwd)/data"
 SYMBOLS=${*:-"AUDJPY AUDUSD BTCUSD DE40 ETHUSD EURJPY EURUSD GBPJPY GBPUSD UK100 US30 USDCAD USDJPY USTEC XAUUSD"}
 for s in $SYMBOLS; do
   mkdir -p "$DEST/$s"

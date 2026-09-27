@@ -354,33 +354,6 @@ def gotobi(b, symbol=None, long_leg=True, short_leg=True, slk=3.0, entry_utc=18 
     return Signals(le, se, slk * _h1_atr_on(b, symbol), None, lx, sx, size=size)
 
 
-def _local_minutes(t_ms, tz_name):
-    from zoneinfo import ZoneInfo
-    tz = ZoneInfo(tz_name)
-    t_ms = np.asarray(t_ms, np.int64)
-    h = t_ms // 3_600_000
-    hu, inv = np.unique(h, return_inverse=True)
-    off = np.array([int(datetime.datetime.fromtimestamp(int(x) * 3600, tz).utcoffset().total_seconds() * 1000) for x in hu])
-    return ((t_ms + off[inv]) // 60_000 % 1440).astype(int)
-
-
-def fix_window(b, symbol=None, windows=((690, 720),), side=-1, tz="Europe/London", slk=3.0, **_):
-    """Trade `side` over fixed local-time windows [start, end) minutes after local midnight (default: short the
-    30 minutes into the 12:00 London silver auction). M5 bars; weekdays only; stop slk x ATR20(H1)."""
-    step = 5 * 60_000
-    mins = _local_minutes(b.t + step, tz)          # local time at each bar's close
-    wd = ((b.t + step) // 86_400_000 + 3) % 7
-    n = len(b)
-    ent, ex = np.zeros(n, bool), np.zeros(n, bool)
-    for a, e in windows:
-        ent |= (mins == a) & (wd < 5)
-        ex |= mins == e
-    z = np.zeros(n, bool)
-    le, se = (ent, z) if side > 0 else (z, ent)
-    lx, sx = (ex, None) if side > 0 else (None, ex)
-    return Signals(le, se, slk * _h1_atr_on(b, symbol), None, lx, sx)
-
-
 C4_DAY_SIZES = {"20": 2.0, "25": 2.0, "15": 1.0, "5": 0.5, "10": 0.5, "last": 0.5}
 
 RULES = {"rsi2": rsi2, "cum_rsi2": cum_rsi2, "tps": tps, "double7": double7, "ibs": ibs, "down_days": down_days,

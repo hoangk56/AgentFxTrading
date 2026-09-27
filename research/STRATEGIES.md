@@ -93,7 +93,7 @@ Lab rules: $10k, fixed lots per symbol, no loss limits, one position per strateg
 ## FLOWRSI — FlowRSI (live bot, Macro TMS off)
 
 - Status: **live** (replica calibrated on cTrader #43-#56, #93 (>= 93 % of entries matched))
-- Origin: cBot/FlowRsiBot.cs + app/cbot_presets.py; replica research/sim.py
+- Origin: cBot/FlowRsiBot.cs + app/cbot_presets.py; replica research/flowrsi/sim.py
 - Family / timeframe: RSI cross + SMC / M15
 - Rules: M15. Fast RSI(7) crosses the slow RSI(14) inside the zone (buy 25-50, sell 50-75) within 3 bars and is still crossed; SMC filter: a buy needs discount, a bullish FVG or a liquidity sweep (premium / bearish FVG / sweep for a sell). SL at the swing +/- 0.5 ATR with a pip floor, TP 1.5R; break-even at 1R with a 50 % partial, trailing from 1.2R. Macro TMS filter off (the replica does not model it; phase 1 showed it hurts).
 - Parameters: `{'name': 'C0', 'exit_mode': 'X2'}`
@@ -117,7 +117,7 @@ Lab rules: $10k, fixed lots per symbol, no loss limits, one position per strateg
 ## FLOWRSI-E1a-X1 — FlowRSI entry E1a, exit X1
 
 - Status: **rejected** (replica)
-- Origin: FlowRSI entry screening (2026-09-25, research/signals.py)
+- Origin: FlowRSI entry screening (2026-09-25, research/flowrsi/signals.py)
 - Family / timeframe: entry screening / M15
 - Rules: M15 entry: the live cross traded in the opposite direction. Exit: fixed stop at the ATR level, TP 1.5R, no break-even or trailing.
 - Parameters: `{'name': 'E1a', 'exit_mode': 'X1'}`
@@ -128,7 +128,7 @@ Lab rules: $10k, fixed lots per symbol, no loss limits, one position per strateg
 ## FLOWRSI-E1a-X2 — FlowRSI entry E1a, exit X2
 
 - Status: **rejected** (replica)
-- Origin: FlowRSI entry screening (2026-09-25, research/signals.py)
+- Origin: FlowRSI entry screening (2026-09-25, research/flowrsi/signals.py)
 - Family / timeframe: entry screening / M15
 - Rules: M15 entry: the live cross traded in the opposite direction. Exit: FlowRSI's exits (break-even + partial at 1R, trailing).
 - Parameters: `{'name': 'E1a', 'exit_mode': 'X2'}`
@@ -139,7 +139,7 @@ Lab rules: $10k, fixed lots per symbol, no loss limits, one position per strateg
 ## FLOWRSI-E1b-X1 — FlowRSI entry E1b, exit X1
 
 - Status: **rejected** (replica)
-- Origin: FlowRSI entry screening (2026-09-25, research/signals.py)
+- Origin: FlowRSI entry screening (2026-09-25, research/flowrsi/signals.py)
 - Family / timeframe: entry screening / M15
 - Rules: M15 entry: fade only the crosses taken with slow RSI < 30 / > 70. Exit: fixed stop at the ATR level, TP 1.5R, no break-even or trailing.
 - Parameters: `{'name': 'E1b', 'exit_mode': 'X1'}`
@@ -150,7 +150,7 @@ Lab rules: $10k, fixed lots per symbol, no loss limits, one position per strateg
 ## FLOWRSI-E1b-X2 — FlowRSI entry E1b, exit X2
 
 - Status: **rejected** (replica)
-- Origin: FlowRSI entry screening (2026-09-25, research/signals.py)
+- Origin: FlowRSI entry screening (2026-09-25, research/flowrsi/signals.py)
 - Family / timeframe: entry screening / M15
 - Rules: M15 entry: fade only the crosses taken with slow RSI < 30 / > 70. Exit: FlowRSI's exits (break-even + partial at 1R, trailing).
 - Parameters: `{'name': 'E1b', 'exit_mode': 'X2'}`
@@ -161,7 +161,7 @@ Lab rules: $10k, fixed lots per symbol, no loss limits, one position per strateg
 ## FLOWRSI-E2a-X1 — FlowRSI entry E2a, exit X1
 
 - Status: **rejected** (replica)
-- Origin: FlowRSI entry screening (2026-09-25, research/signals.py)
+- Origin: FlowRSI entry screening (2026-09-25, research/flowrsi/signals.py)
 - Family / timeframe: entry screening / M15
 - Rules: M15 entry: RSI(14) pullback through 40/60 in the H1 EMA50 trend. Exit: fixed stop at the ATR level, TP 1.5R, no break-even or trailing.
 - Parameters: `{'name': 'E2a', 'exit_mode': 'X1'}`
@@ -172,7 +172,7 @@ Lab rules: $10k, fixed lots per symbol, no loss limits, one position per strateg
 ## FLOWRSI-E2a-X2 — FlowRSI entry E2a, exit X2
 
 - Status: **rejected** (replica)
-- Origin: FlowRSI entry screening (2026-09-25, research/signals.py)
+- Origin: FlowRSI entry screening (2026-09-25, research/flowrsi/signals.py)
 - Family / timeframe: entry screening / M15
 - Rules: M15 entry: RSI(14) pullback through 40/60 in the H1 EMA50 trend. Exit: FlowRSI's exits (break-even + partial at 1R, trailing).
 - Parameters: `{'name': 'E2a', 'exit_mode': 'X2'}`
@@ -183,7 +183,7 @@ Lab rules: $10k, fixed lots per symbol, no loss limits, one position per strateg
 ## FLOWRSI-E2b-X1 — FlowRSI entry E2b, exit X1
 
 - Status: **rejected** (replica)
-- Origin: FlowRSI entry screening (2026-09-25, research/signals.py)
+- Origin: FlowRSI entry screening (2026-09-25, research/flowrsi/signals.py)
 - Family / timeframe: entry screening / M15
 - Rules: M15 entry: RSI(14) pullback through 40/60 in the H4 EMA50 trend. Exit: fixed stop at the ATR level, TP 1.5R, no break-even or trailing.
 - Parameters: `{'name': 'E2b', 'exit_mode': 'X1'}`
@@ -194,7 +194,7 @@ Lab rules: $10k, fixed lots per symbol, no loss limits, one position per strateg
 ## FLOWRSI-E2b-X2 — FlowRSI entry E2b, exit X2
 
 - Status: **rejected** (replica)
-- Origin: FlowRSI entry screening (2026-09-25, research/signals.py)
+- Origin: FlowRSI entry screening (2026-09-25, research/flowrsi/signals.py)
 - Family / timeframe: entry screening / M15
 - Rules: M15 entry: RSI(14) pullback through 40/60 in the H4 EMA50 trend. Exit: FlowRSI's exits (break-even + partial at 1R, trailing).
 - Parameters: `{'name': 'E2b', 'exit_mode': 'X2'}`
@@ -205,7 +205,7 @@ Lab rules: $10k, fixed lots per symbol, no loss limits, one position per strateg
 ## FLOWRSI-E3a-X1 — FlowRSI entry E3a, exit X1
 
 - Status: **rejected** (replica)
-- Origin: FlowRSI entry screening (2026-09-25, research/signals.py)
+- Origin: FlowRSI entry screening (2026-09-25, research/flowrsi/signals.py)
 - Family / timeframe: entry screening / M15
 - Rules: M15 entry: RSI(2) < 10 / > 90 in the H1 trend. Exit: fixed stop at the ATR level, TP 1.5R, no break-even or trailing.
 - Parameters: `{'name': 'E3a', 'exit_mode': 'X1'}`
@@ -216,7 +216,7 @@ Lab rules: $10k, fixed lots per symbol, no loss limits, one position per strateg
 ## FLOWRSI-E3a-X2 — FlowRSI entry E3a, exit X2
 
 - Status: **rejected** (replica)
-- Origin: FlowRSI entry screening (2026-09-25, research/signals.py)
+- Origin: FlowRSI entry screening (2026-09-25, research/flowrsi/signals.py)
 - Family / timeframe: entry screening / M15
 - Rules: M15 entry: RSI(2) < 10 / > 90 in the H1 trend. Exit: FlowRSI's exits (break-even + partial at 1R, trailing).
 - Parameters: `{'name': 'E3a', 'exit_mode': 'X2'}`
@@ -227,7 +227,7 @@ Lab rules: $10k, fixed lots per symbol, no loss limits, one position per strateg
 ## FLOWRSI-E3b-X1 — FlowRSI entry E3b, exit X1
 
 - Status: **rejected** (replica)
-- Origin: FlowRSI entry screening (2026-09-25, research/signals.py)
+- Origin: FlowRSI entry screening (2026-09-25, research/flowrsi/signals.py)
 - Family / timeframe: entry screening / M15
 - Rules: M15 entry: RSI(2) < 10 / > 90, no trend filter. Exit: fixed stop at the ATR level, TP 1.5R, no break-even or trailing.
 - Parameters: `{'name': 'E3b', 'exit_mode': 'X1'}`
@@ -238,7 +238,7 @@ Lab rules: $10k, fixed lots per symbol, no loss limits, one position per strateg
 ## FLOWRSI-E3b-X2 — FlowRSI entry E3b, exit X2
 
 - Status: **rejected** (replica)
-- Origin: FlowRSI entry screening (2026-09-25, research/signals.py)
+- Origin: FlowRSI entry screening (2026-09-25, research/flowrsi/signals.py)
 - Family / timeframe: entry screening / M15
 - Rules: M15 entry: RSI(2) < 10 / > 90, no trend filter. Exit: FlowRSI's exits (break-even + partial at 1R, trailing).
 - Parameters: `{'name': 'E3b', 'exit_mode': 'X2'}`
@@ -249,7 +249,7 @@ Lab rules: $10k, fixed lots per symbol, no loss limits, one position per strateg
 ## FLOWRSI-E4a-X1 — FlowRSI entry E4a, exit X1
 
 - Status: **rejected** (replica)
-- Origin: FlowRSI entry screening (2026-09-25, research/signals.py)
+- Origin: FlowRSI entry screening (2026-09-25, research/flowrsi/signals.py)
 - Family / timeframe: entry screening / M15
 - Rules: M15 entry: close back inside Bollinger(20, 2) with ADX(14) < 20. Exit: fixed stop at the ATR level, TP 1.5R, no break-even or trailing.
 - Parameters: `{'name': 'E4a', 'exit_mode': 'X1'}`
@@ -260,7 +260,7 @@ Lab rules: $10k, fixed lots per symbol, no loss limits, one position per strateg
 ## FLOWRSI-E4a-X2 — FlowRSI entry E4a, exit X2
 
 - Status: **rejected** (replica)
-- Origin: FlowRSI entry screening (2026-09-25, research/signals.py)
+- Origin: FlowRSI entry screening (2026-09-25, research/flowrsi/signals.py)
 - Family / timeframe: entry screening / M15
 - Rules: M15 entry: close back inside Bollinger(20, 2) with ADX(14) < 20. Exit: FlowRSI's exits (break-even + partial at 1R, trailing).
 - Parameters: `{'name': 'E4a', 'exit_mode': 'X2'}`
@@ -271,7 +271,7 @@ Lab rules: $10k, fixed lots per symbol, no loss limits, one position per strateg
 ## FLOWRSI-E4b-X1 — FlowRSI entry E4b, exit X1
 
 - Status: **rejected** (replica)
-- Origin: FlowRSI entry screening (2026-09-25, research/signals.py)
+- Origin: FlowRSI entry screening (2026-09-25, research/flowrsi/signals.py)
 - Family / timeframe: entry screening / M15
 - Rules: M15 entry: close back inside Bollinger(20, 2), no ADX filter. Exit: fixed stop at the ATR level, TP 1.5R, no break-even or trailing.
 - Parameters: `{'name': 'E4b', 'exit_mode': 'X1'}`
@@ -282,7 +282,7 @@ Lab rules: $10k, fixed lots per symbol, no loss limits, one position per strateg
 ## FLOWRSI-E4b-X2 — FlowRSI entry E4b, exit X2
 
 - Status: **rejected** (replica)
-- Origin: FlowRSI entry screening (2026-09-25, research/signals.py)
+- Origin: FlowRSI entry screening (2026-09-25, research/flowrsi/signals.py)
 - Family / timeframe: entry screening / M15
 - Rules: M15 entry: close back inside Bollinger(20, 2), no ADX filter. Exit: FlowRSI's exits (break-even + partial at 1R, trailing).
 - Parameters: `{'name': 'E4b', 'exit_mode': 'X2'}`
@@ -293,7 +293,7 @@ Lab rules: $10k, fixed lots per symbol, no loss limits, one position per strateg
 ## FLOWRSI-E5a-X1 — FlowRSI entry E5a, exit X1
 
 - Status: **rejected** (replica)
-- Origin: FlowRSI entry screening (2026-09-25, research/signals.py)
+- Origin: FlowRSI entry screening (2026-09-25, research/flowrsi/signals.py)
 - Family / timeframe: entry screening / M15
 - Rules: M15 entry: Donchian 20 breakout in the H4 trend. Exit: fixed stop at the ATR level, TP 1.5R, no break-even or trailing.
 - Parameters: `{'name': 'E5a', 'exit_mode': 'X1'}`
@@ -304,7 +304,7 @@ Lab rules: $10k, fixed lots per symbol, no loss limits, one position per strateg
 ## FLOWRSI-E5a-X2 — FlowRSI entry E5a, exit X2
 
 - Status: **rejected** (replica)
-- Origin: FlowRSI entry screening (2026-09-25, research/signals.py)
+- Origin: FlowRSI entry screening (2026-09-25, research/flowrsi/signals.py)
 - Family / timeframe: entry screening / M15
 - Rules: M15 entry: Donchian 20 breakout in the H4 trend. Exit: FlowRSI's exits (break-even + partial at 1R, trailing).
 - Parameters: `{'name': 'E5a', 'exit_mode': 'X2'}`
@@ -315,7 +315,7 @@ Lab rules: $10k, fixed lots per symbol, no loss limits, one position per strateg
 ## FLOWRSI-E5b-X1 — FlowRSI entry E5b, exit X1
 
 - Status: **rejected** (replica)
-- Origin: FlowRSI entry screening (2026-09-25, research/signals.py)
+- Origin: FlowRSI entry screening (2026-09-25, research/flowrsi/signals.py)
 - Family / timeframe: entry screening / M15
 - Rules: M15 entry: Donchian 48 breakout in the H4 trend. Exit: fixed stop at the ATR level, TP 1.5R, no break-even or trailing.
 - Parameters: `{'name': 'E5b', 'exit_mode': 'X1'}`
@@ -326,7 +326,7 @@ Lab rules: $10k, fixed lots per symbol, no loss limits, one position per strateg
 ## FLOWRSI-E5b-X2 — FlowRSI entry E5b, exit X2
 
 - Status: **rejected** (replica)
-- Origin: FlowRSI entry screening (2026-09-25, research/signals.py)
+- Origin: FlowRSI entry screening (2026-09-25, research/flowrsi/signals.py)
 - Family / timeframe: entry screening / M15
 - Rules: M15 entry: Donchian 48 breakout in the H4 trend. Exit: FlowRSI's exits (break-even + partial at 1R, trailing).
 - Parameters: `{'name': 'E5b', 'exit_mode': 'X2'}`
@@ -337,7 +337,7 @@ Lab rules: $10k, fixed lots per symbol, no loss limits, one position per strateg
 ## JUDAS — Asian Range Judas Sweep (live bot)
 
 - Status: **live** (port, uncalibrated: the AI gate approves every candidate; AI SL/TP = the preset fallbacks)
-- Origin: cBot/AsianRangeJudasSweepBot.cs + app/server.py evaluate_judas_sweep_gate
+- Origin: cBot/AsianRangeJudasSweepBot.cs + app/trade_gates.py evaluate_judas_sweep_gate
 - Family / timeframe: liquidity sweep / M15
 - Rules: Asian range = high/low of the 00:00-06:00 UTC bars. In the London (07-10 UTC summer) or New York (12:30-16 UTC summer) killzone, a bar that spikes beyond the range by the sweep buffer and closes back inside with a rejection wick >= 35 % of the bar opens a 3-bar signal window; the trade goes back into the range. Guards: range inside the preset and the server band, one trade per side per Asian session, the side locked after a decisive close beyond the range (an open position on that side is closed), entry within 25 % of the range from the swept level. SL = preset stoplossPip raised to max(AiSlMinFloorPips, 0.8 ATR14), TP = takeprofitPip, break-even at 1.5R.
 - Lab: `research.lab.strategies.judas.judas` on all 22, variants real, mirror, shuffle
@@ -347,7 +347,7 @@ Lab rules: $10k, fixed lots per symbol, no loss limits, one position per strateg
 ## TMSORB — TMS + ORB (live AiAgentBot)
 
 - Status: **live** (port, uncalibrated: the AI approves every gate-passing candidate; loss-streak and dollar-risk guards off)
-- Origin: cBot/AiAgentBot.cs + app/server.py evaluate_cycle_gate / validate_tms_close_decision
+- Origin: cBot/AiAgentBot.cs + app/trade_gates.py evaluate_cycle_gate / validate_tms_close_decision
 - Family / timeframe: ORB breakout + TDI bias / M15 (USTEC M5), H1 bias
 - Rules: Opening range = the first 15 minutes of the session (Tokyo 00:00, London 08:00, New York 13:00, US indices 14:30 UTC in winter, DST-adjusted). Macro bias = the last confirmed H1 TDI cross (RSI6 of Heikin-Ashi vs its SMA6, with HA colour and Stoch 6/6/4), with flip hysteresis. The server's cycle gate: in session and outside the NYSE-open buffer, bias set, post-TP gate clear, a decisive ORB breakout in the bias direction inside the entry window (or a TDI bounce / EMA-retest model 2), breakout-distance caps, choppy-market gate. Entry in the bias direction; SL 1.5 ATR clamped to [0.8, 3] ATR and widened to the far side of the range, TP >= SL x 4/3 (none in a trending session). Exits: break-even + 50 % partial at 1.2 ATR, ATR trailing with a tier 2, MFE giveback lock, session-end flatten, the AI's exit-signal / session-ending close (server-validated), bias-flip exit.
 - Lab: `research.lab.strategies.tmsorb.tms_orb` on all 22, variants real, mirror, shuffle
@@ -479,7 +479,7 @@ Lab rules: $10k, fixed lots per symbol, no loss limits, one position per strateg
 - Rules: On the 5th/10th/15th/20th/25th/last day (weekend -> Friday before): long USDJPY 03:00 -> 09:55 Tokyo, short 09:55 -> 11:55 Tokyo; SL 3 x ATR20(H1).
 - Lab: `research.lab.strategies.literature.gotobi` on USDJPY, variants real, shuffle
 - Finding: Lab run v2 (2026-09-26, pre-registered bar): failed. Holdout 2025-01..2026-09: 248 trades, mean net +0.035R (t +1.2), gross +0.044R, costs 0.009R; 2025 $+161, 2026 $+107; 2023-24 +0.041R; control 95 %; 100% of 1 symbols positive (best USDJPY $+268). Failed: holdout >= 100 trades, mean R > 0, t >= 2.5.
-- Finding: Retest 2016-2022 (2026-09-27, unchanged code, out of sample; research/results/portfolio/prereg_swing_v2.md): passed: 1,002 trades, +0.078R (t +5.7), 7/7 years positive, 10/10 random seeds beaten. Ported to research/scan/swing.py with historical swaps: IS 2016-21 +0.066R, VAL 2022-24 +0.054R, HOLD +0.038R; placebo (non-gotobi days) ~0. Basket with EURJPY/GBPJPY = C3, passed its holdout (research/results/portfolio/swing_lab_v2_2026-09-27.md).
+- Finding: Retest 2016-2022 (2026-09-27, unchanged code, out of sample; research/results/portfolio/prereg_swing_v2.md): passed: 1,002 trades, +0.078R (t +5.7), 7/7 years positive, 10/10 random seeds beaten. Ported to research/swing/swing.py with historical swaps: IS 2016-21 +0.066R, VAL 2022-24 +0.054R, HOLD +0.038R; placebo (non-gotobi days) ~0. Basket with EURJPY/GBPJPY = C3, passed its holdout (research/results/portfolio/swing_lab_v2_2026-09-27.md).
 - Latest lab run `v2`: net $+802 over 1 symbols, 1 positive, 1 positive every year, 0 with all four flags; best USDJPY $+802
 
 ## N3-IMOM — Market intraday momentum

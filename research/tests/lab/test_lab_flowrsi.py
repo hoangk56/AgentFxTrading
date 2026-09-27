@@ -10,9 +10,9 @@ from research.lab.engine import Ctx  # noqa: E402
 from research.lab.feed import Chunk  # noqa: E402
 from research.lab.strategies.flowrsi import flowrsi  # noqa: E402
 from research.lab.universe import instrument  # noqa: E402
-from research.screen import params_for  # noqa: E402
-from research.signals import Market, build  # noqa: E402
-from research.sim import make_levels, place_order, run_account  # noqa: E402
+from research.flowrsi.screen import params_for  # noqa: E402
+from research.flowrsi.signals import Market, build  # noqa: E402
+from research.flowrsi.sim import make_levels, place_order, run_account  # noqa: E402
 from research.specs import SPECS, flowrsi_params  # noqa: E402
 from research.ticks import day_ms, load_ticks  # noqa: E402
 

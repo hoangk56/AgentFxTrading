@@ -36,7 +36,7 @@ def _zbar_months():
             yield m15.parent.name, path
 
 
-@pytest.mark.skipif(next(_zbar_months(), None) is None, reason="run research/pull_cache.sh first (Task 8)")
+@pytest.mark.skipif(next(_zbar_months(), None) is None, reason="run research/tools/pull_cache.sh first (Task 8)")
 def test_m15_bars_match_ctrader_zbars():
     """If no bar times are in common, print zb[:3, 0] against b.open_time[:3]: the .zbars stamp may be
     seconds or the close time. Convert the stamp; do not loosen the price tolerance."""

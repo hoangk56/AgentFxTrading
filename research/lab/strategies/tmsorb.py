@@ -3,7 +3,7 @@ lets through" and the AI's position management by its prompt rules and the serve
 
 Sources: cBot/AiAgentBot.cs (Heikin-Ashi TDI and Stochastic, the H1 macro bias with its cross lock and flip
 hysteresis, ORB, session, ExecuteDecision's SL/TP, ManageExits, CheckMaxGiveback, CheckSessionEnd, the post-TP
-gate, BiasFlipExit) and app/server.py (evaluate_cycle_gate, validate_tms_close_decision, the prompt's rules 1-2:
+gate, BiasFlipExit) and app/trade_gates.py + app/trade_prompts.py (evaluate_cycle_gate, validate_tms_close_decision, the prompt's rules 1-2:
 close on session "ending" or on the chart exit signal). An approved candidate trades in the macro bias
 direction. Switched off to honour the lab's account rules: the loss-streak gate, MaxDollarRiskPerTrade and the
 min-lot guards (fixed units). Not modelled: the US-index alignment gate (it needs other bots' positions),
@@ -22,7 +22,7 @@ from research.lab import costs
 from research.lab.cbot import cbot_params, preset
 from research.lab.engine import NAN, Ctx, Pos
 from research.lab.strategies.judas import europe_dst, us_dst
-from research.sim import _first_hit
+from research.ticks import _first_hit
 from research.specs import normalize_units
 
 NY = ZoneInfo("America/New_York")
@@ -30,7 +30,7 @@ PERIOD_MIN = {"m5": 5, "m15": 15}
 # cBot/AiAgentBot.cs private constants
 GIVEBACK_ARM_ATR, GIVEBACK_ARM_RISK, GIVEBACK_ARM_PEAK_ATR = 0.4, 0.5, 1.5
 TIER2_TP_FRACTION, POST_TP_MIN_EXIT_ATR = 0.65, 0.5
-# app/server.py (pinned to the source by the tests)
+# app/trade_gates.py (pinned to the source by the tests)
 BREAKOUT_DISTANCE_LIMITS = (
     # (symbol tokens, prompt label, direct ATR x, direct cap, absolute ATR x, absolute cap)
     (("USTEC", "NAS100"), "USTEC/NAS100", 1.3, 700.0, 3.2, 2100.0),

@@ -1,4 +1,4 @@
-"""research/scan/swing.py invariants: the three hard constraints (hold <= 5 days, <= 3 open positions per bot,
+"""research/swing/swing.py invariants: the three hard constraints (hold <= 5 days, <= 3 open positions per bot,
 lots off a default risk, never equity) and the gotobi calendar."""
 import datetime
 
@@ -11,12 +11,12 @@ needs_m1 = pytest.mark.skipif(not (DATA_DIR / "m1" / "USDJPY.npz").exists(), rea
 
 
 def _trade(sym, t_in, t_out, strength=1.0):
-    from research.scan.swing import Trade
+    from research.swing.swing import Trade
     return Trade(sym, 1, t_in, t_in, t_out, 1.0, 1.0, 0.1, 0.0, "time", strength)
 
 
 def test_admit_caps_open_positions_per_bot_and_per_symbol():
-    from research.scan.swing import admit
+    from research.swing.swing import admit
     h = 3_600_000
     tr = [_trade("A", 0, 10 * h), _trade("A", 1 * h, 10 * h), _trade("B", 2 * h, 10 * h),
           _trade("C", 3 * h, 10 * h), _trade("C", 11 * h, 12 * h)]
@@ -26,7 +26,7 @@ def test_admit_caps_open_positions_per_bot_and_per_symbol():
 
 
 def test_gotobi_nominal_moves_weekend_days_to_the_friday_before():
-    from research.scan.swing_rules import gotobi_nominal
+    from research.swing.swing_rules import gotobi_nominal
     lab = gotobi_nominal(datetime.date(2026, 1, 1), datetime.date(2026, 1, 31))
     assert lab[datetime.date(2026, 1, 5)] == "5"          # Monday
     assert lab[datetime.date(2026, 1, 9)] == "10"         # Sat 10th -> Fri 9th
@@ -36,8 +36,8 @@ def test_gotobi_nominal_moves_weekend_days_to_the_friday_before():
 
 @needs_m1
 def test_gotobi_basket_respects_the_hard_constraints():
-    from research.scan import swing as S
-    from research.scan import swing_rules as SR
+    from research.swing import swing as S
+    from research.swing import swing_rules as SR
     tr = S.run_bot(SR.gotobi, ["USDJPY", "EURJPY"], (5, 0), cap=3)
     assert tr
     assert max(t.t_out - t.t_in for t in tr) <= S.HOLD_MS
@@ -50,7 +50,7 @@ def test_gotobi_basket_respects_the_hard_constraints():
 
 @needs_m1
 def test_crypto_donchian_respects_the_hold_limit():
-    from research.scan import swing as S
-    from research.scan.swing_rules import donchian
+    from research.swing import swing as S
+    from research.swing.swing_rules import donchian
     tr = S.run_bots(donchian, ["BTCUSD"], S.H4, n=55, exit_n=20, shorts=True)
     assert tr and max(t.t_out - t.t_in for t in tr) <= S.HOLD_MS

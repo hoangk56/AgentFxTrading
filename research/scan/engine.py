@@ -10,7 +10,7 @@ from typing import List, Optional
 import math
 import numpy as np
 
-from research.scan.data import comm_price, spec_for
+from research.m1bars import comm_price, spec_for
 from research.specs import swap_usd
 from research.ticks import day_ms
 

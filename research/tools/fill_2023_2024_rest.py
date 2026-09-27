@@ -3,7 +3,7 @@
 the reports themselves are not used. The API caps a run at 365 days, so 2024 ends on 12-30 (12-29..31 are
 cached). Cross pairs go last: their conversion-symbol ticks load lazily inside the first order, so a cold run
 can abort once by timeout; the Backtest page reruns it and the failed run still fills the cache.
-Run on the VPS:  ssh forge@204.168.144.232 'python3 -' < research/fill_2023_2024_rest.py"""
+Run on the VPS:  ssh forge@204.168.144.232 'python3 -' < research/tools/fill_2023_2024_rest.py"""
 import json
 import urllib.request
 

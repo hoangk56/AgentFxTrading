@@ -146,7 +146,7 @@ def test_close_validation():
 
 
 def test_constants_match_the_sources():
-    src = (ROOT / "app" / "server.py").read_text()
+    src = (ROOT / "app" / "trade_gates.py").read_text()
     block = src[src.index("BREAKOUT_DISTANCE_LIMITS = (") + len("BREAKOUT_DISTANCE_LIMITS = "):]
     assert ast.literal_eval(block[:block.index("\n)\n") + 2]) == tm.BREAKOUT_DISTANCE_LIMITS
     for line in ("MAX_BARS_SINCE_BREAKOUT_MODEL2 = 20", "CHOPPY_OVERRIDE_MAX_BARS_SINCE_BREAKOUT = 3",

@@ -1,0 +1,203 @@
+"""Rules for research/scan/swing.py. The first block are rules published before 2016 with their published
+parameters, so the whole 2016-2026 cache is out of sample for them; anything tuned here says so.
+
+Every rule returns swing.Signals for one symbol's bars (decided on the bar close). Stops are wide ATR stops: the
+published rules mostly have none, but the lot is sized off the stop (risk-based, capital-independent), so a
+trade needs one; SLK x ATR(20) is a catastrophic stop, not a tuned exit.
+"""
+import datetime
+
+import numpy as np
+
+from research.indicators import atr_sma, ema, prior_max, prior_min, rsi, sma
+from research.scan.swing import Signals, m1
+
+NAN = np.nan
+
+
+def _atr(b, n=20):
+    return atr_sma(b.h, b.l, b.c, n)
+
+
+def _prev(x, k=1, fill=np.nan):
+    out = np.full(len(x), fill, dtype=float)
+    out[k:] = x[:-k]
+    return out
+
+
+def _dates(b, symbol):
+    """UTC date of each bar's last M1 row."""
+    ts = m1(symbol)["ts"]
+    return [datetime.datetime.fromtimestamp(int(ts[j]) / 1000, datetime.timezone.utc).date() for j in b.last]
+
+
+# ---------------------------------------------------------------- Connors RSI(2) (Connors & Alvarez 2008/2009)
+def rsi2(b, lo=10.0, hi=90.0, trend=200, exit_ma=5, shorts=False, slk=3.0, **_):
+    """Long: close > SMA(trend) and RSI(2) < lo; exit on a close above SMA(exit_ma). Short (optional): mirror."""
+    r = rsi(b.c, 2)
+    st, ex = sma(b.c, trend), sma(b.c, exit_ma)
+    a = _atr(b)
+    with np.errstate(invalid="ignore"):
+        le = (b.c > st) & (r < lo)
+        se = (b.c < st) & (r > hi) if shorts else np.zeros(len(b), bool)
+        lx = b.c > ex
+        sx = b.c < ex
+    strength = np.where(le, lo - r, np.where(se, r - hi, 0.0)) + 1.0
+    return Signals(le, se, slk * a, np.nan_to_num(strength, nan=1.0), lx, sx)
+
+
+def cum_rsi2(b, lo=35.0, trend=200, days=2, exit_rsi=65.0, slk=3.0, **_):
+    """Connors 'Cumulative RSI': long when close > SMA(200) and the sum of RSI(2) over `days` days < lo;
+    exit when RSI(2) > exit_rsi."""
+    r = rsi(b.c, 2)
+    cum = sum(_prev(r, k, np.nan) if k else r for k in range(days))
+    st = sma(b.c, trend)
+    with np.errstate(invalid="ignore"):
+        le = (b.c > st) & (cum < lo)
+        lx = r > exit_rsi
+    return Signals(le, np.zeros(len(b), bool), slk * _atr(b), np.nan_to_num(lo - cum + 1, nan=1.0), lx, None)
+
+
+def tps(b, trend=200, lo=25.0, exit_rsi=70.0, slk=3.0, **_):
+    """Connors 'TPS' (trend, pullback, scale-in), capped at 3 units: close > SMA(200) and RSI(2) < lo two days
+    running opens unit 1; each later close below the previous entry while still in the pullback adds a unit
+    (1x, 1.5x, 2x of the default lot); exit all when RSI(2) > exit_rsi."""
+    r = rsi(b.c, 2)
+    st = sma(b.c, trend)
+    n = len(b)
+    le = np.zeros(n, bool)
+    size = np.ones(n)
+    units, last_px = 0, np.inf
+    for i in range(1, n):
+        if not np.isfinite(st[i]) or not np.isfinite(r[i]):
+            continue
+        if units and r[i] > exit_rsi:
+            units, last_px = 0, np.inf
+            continue
+        if units == 0:
+            if b.c[i] > st[i] and r[i] < lo and r[i - 1] < lo:
+                le[i], size[i], units, last_px = True, 1.0, 1, b.c[i]
+        elif units < 3 and b.c[i] < last_px:
+            units += 1
+            le[i], size[i], last_px = True, (1.0, 1.5, 2.0)[units - 1], b.c[i]
+    with np.errstate(invalid="ignore"):
+        lx = r > exit_rsi
+    return Signals(le, np.zeros(n, bool), slk * _atr(b), None, lx, None, size=size)
+
+
+# ---------------------------------------------------------------- Double 7s (Connors & Alvarez 2009)
+def double7(b, n=7, trend=200, slk=3.0, **_):
+    """Long: close > SMA(200) and the close is the lowest close of n days; exit on the highest close of n days."""
+    st = sma(b.c, trend)
+    lowc = prior_min(b.c, n - 1)
+    highc = prior_max(b.c, n - 1)
+    with np.errstate(invalid="ignore"):
+        le = (b.c > st) & (b.c <= lowc)
+        lx = b.c >= highc
+    return Signals(le, np.zeros(len(b), bool), slk * _atr(b), None, lx, None)
+
+
+# ---------------------------------------------------------------- IBS (internal bar strength)
+def ibs(b, lo=0.2, hi=0.8, trend=0, shorts=False, slk=3.0, **_):
+    """IBS = (C - L) / (H - L). Long when IBS < lo, exit on the next close with IBS > hi or after one bar
+    (published version: hold to the next close). Optional SMA trend filter and short mirror."""
+    rng = b.h - b.l
+    with np.errstate(invalid="ignore", divide="ignore"):
+        x = np.where(rng > 0, (b.c - b.l) / rng, 0.5)
+    le = x < lo
+    se = x > hi if shorts else np.zeros(len(b), bool)
+    if trend:
+        st = sma(b.c, trend)
+        with np.errstate(invalid="ignore"):
+            le &= b.c > st
+            se &= b.c < st
+    ones = np.ones(len(b), bool)
+    return Signals(le, se, slk * _atr(b), np.nan_to_num(lo - x + 0.05, nan=0.05), ones, ones)
+
+
+# ---------------------------------------------------------------- N down days
+def down_days(b, n=3, trend=200, slk=3.0, **_):
+    """Long after n consecutive lower closes above SMA(200); exit on the first higher close."""
+    d = np.r_[False, b.c[1:] < b.c[:-1]]
+    run = np.zeros(len(b), int)
+    for i in range(1, len(b)):
+        run[i] = run[i - 1] + 1 if d[i] else 0
+    st = sma(b.c, trend)
+    with np.errstate(invalid="ignore"):
+        le = (run >= n) & (b.c > st)
+    lx = np.r_[False, b.c[1:] > b.c[:-1]]
+    return Signals(le, np.zeros(len(b), bool), slk * _atr(b), run.astype(float), lx, None)
+
+
+# ---------------------------------------------------------------- turn of the month (Lakonishok & Smidt 1988)
+def tom(b, symbol=None, before=1, after=3, slk=3.0, **_):
+    """Long at the close `before`+1 trading days before month end (holding the last `before` trading day(s)),
+    exit at the close of the `after`-th trading day of the new month."""
+    dates = _dates(b, symbol)
+    n = len(b)
+    months = np.array([d.year * 12 + d.month for d in dates])
+    first = np.flatnonzero(np.r_[True, months[1:] != months[:-1]])
+    le, lx = np.zeros(n, bool), np.zeros(n, bool)
+    for f in first[1:]:
+        e = f - before - 1
+        if e >= 0:
+            le[e] = True
+        x = f + after - 1
+        if x < n:
+            lx[x] = True
+    return Signals(le, np.zeros(n, bool), slk * _atr(b), None, lx, None)
+
+
+# ---------------------------------------------------------------- crypto time-series momentum
+def tsmom(b, look=7, shorts=False, weekday=None, symbol=None, slk=3.0, **_):
+    """Long when the close is above the close `look` bars ago (short below it when shorts). With weekday set,
+    only enter on that weekday's bar (weekly rebalance); the 5-day cap is the exit."""
+    past = _prev(b.c, look)
+    with np.errstate(invalid="ignore"):
+        le = b.c > past
+        se = (b.c < past) if shorts else np.zeros(len(b), bool)
+    if weekday is not None:
+        wd = np.array([d.weekday() for d in _dates(b, symbol)])
+        le &= wd == weekday
+        se &= wd == weekday
+    with np.errstate(invalid="ignore", divide="ignore"):
+        strength = np.abs(b.c / past - 1)
+    return Signals(le, se, slk * _atr(b), np.nan_to_num(strength, nan=0.0) + 1e-9, None, None)
+
+
+def trend(b, look=28, flip_exit=True, shorts=False, slk=3.0, ma=0, **_):
+    """Time-series trend: long while close > close[look] (and > SMA(ma) when ma), entered on every bar that
+    qualifies (the bot's cap turns this into up to 3 staggered units); with flip_exit, all longs close on the
+    first close back below close[look]. Shorts mirror it."""
+    past = _prev(b.c, look)
+    with np.errstate(invalid="ignore"):
+        up, dn = b.c > past, b.c < past
+        if ma:
+            m = sma(b.c, ma)
+            up &= b.c > m
+            dn &= b.c < m
+    se = dn if shorts else np.zeros(len(b), bool)
+    with np.errstate(invalid="ignore", divide="ignore"):
+        strength = np.nan_to_num(np.abs(b.c / past - 1), nan=0.0) + 1e-9
+    return Signals(up, se, slk * _atr(b), strength, (~up) if flip_exit else None, (~dn) if flip_exit else None)
+
+
+def donchian(b, n=20, exit_n=10, shorts=False, slk=3.0, **_):
+    """Donchian breakout: long on a close above the prior n-bar high, exit on a close below the prior exit_n-bar
+    low (turtle-style); shorts mirror."""
+    hh, ll = prior_max(b.h, n), prior_min(b.l, n)
+    xl, xh = prior_min(b.l, exit_n), prior_max(b.h, exit_n)
+    with np.errstate(invalid="ignore"):
+        le = b.c > hh
+        se = (b.c < ll) if shorts else np.zeros(len(b), bool)
+        lx = b.c < xl
+        sx = b.c > xh
+    a = _atr(b)
+    with np.errstate(invalid="ignore", divide="ignore"):
+        strength = np.nan_to_num(np.where(le, (b.c - hh) / a, (ll - b.c) / a), nan=0.0) + 1e-9
+    return Signals(le, se, slk * a, strength, lx, sx)
+
+
+RULES = {"rsi2": rsi2, "cum_rsi2": cum_rsi2, "tps": tps, "double7": double7, "ibs": ibs, "down_days": down_days,
+         "tom": tom, "tsmom": tsmom}
+

@@ -16,7 +16,7 @@ import numpy as np
 from research.bars import Bars, build_bars
 from research.lab import costs
 from research.lab.feed import Chunk
-from research.sim import _first_hit
+from research.ticks import _first_hit
 from research.ticks import Ticks
 
 NAN = float("nan")

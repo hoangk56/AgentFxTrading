@@ -3,7 +3,7 @@
 Bars are the bid M15 bars cTrader builds; the order fills at the first tick after the bar close (OnBarClosed),
 SL/TP sit SLK/TPK x ATR20 (SMA of TR) from the fill, and a position still open H bars later is closed at the
 first tick after that bar's close. Sizing: research.specs.size_units (0.5 % of equity, $50 cap, 1.5x min-lot
-guard). Commission and swaps as in research.sim."""
+guard). Commission and swaps as in research.flowrsi.sim."""
 import argparse
 from dataclasses import dataclass
 from datetime import date, timedelta
@@ -12,7 +12,7 @@ import numpy as np
 
 from research.bars import build_bars
 from research.indicators import atr_sma
-from research.sim import _first_hit
+from research.ticks import _first_hit
 from research.specs import SPECS, size_units, swap_usd
 from research.ticks import day_ms, load_ticks
 

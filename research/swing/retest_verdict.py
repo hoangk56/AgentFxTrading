@@ -1,6 +1,6 @@
 """Verdict of the 2016-2022 retest of old-lab strategies (research/results/portfolio/prereg_swing_v2.md, R-series).
 
-  python -m research.scan.retest_verdict RUN_DIR [RUN_DIR ...]
+  python -m research.swing.retest_verdict RUN_DIR [RUN_DIR ...]
 
 Pooled over each strategy's symbols: mean R, t, years with net > 0, share of random-entry seeds beaten on summed R;
 pass = mean R > 0 and t >= 2, >= 5 of 7 years net > 0, >= 90 % of seeds beaten."""

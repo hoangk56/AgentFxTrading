@@ -1,4 +1,4 @@
-"""Historical short rates (FRED) and a time-varying swap model for research/scan/swing.py.
+"""Historical short rates (FRED) and a time-varying swap model for research/swing/swing.py.
 
 Swap per rollover as a fraction of price (docs/superpowers/specs/2026-09-26-h1-history-data-design.md):
   FX BASEQUOTE : long = (r_base - r_quote)/360 - m_long,   short = (r_quote - r_base)/360 - m_short
@@ -94,7 +94,7 @@ def _raw_markups(symbol: str, frac_2026: Tuple[float, float]) -> Tuple[float, fl
 
 @lru_cache(maxsize=None)
 def markups(symbol: str) -> Tuple[float, float]:
-    from research.scan.swing import swap_frac   # 2026 fractions (calibrated or class-approximated)
+    from research.swing.swing import swap_frac   # 2026 fractions (calibrated or class-approximated)
     from research.specs import SWAPS
     if symbol in SWAPS:
         return _raw_markups(symbol, swap_frac(symbol)[:2])
@@ -106,7 +106,7 @@ def markups(symbol: str) -> Tuple[float, float]:
 def swap_frac_at(symbol: str, side: int, ms: int) -> float:
     """Swap per rollover as a fraction of price for a position opened at ms; None-model symbols (energies,
     crypto) keep IC's 2026 fraction."""
-    from research.scan.swing import swap_frac
+    from research.swing.swing import swap_frac
     if symbol in FX_CCY:
         b, q = FX_CCY[symbol]
         ml, msh = markups(symbol)

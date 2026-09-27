@@ -6,9 +6,9 @@ from datetime import datetime, timezone
 import numpy as np
 
 from research.indicators import ema, rsi
-from research.scan.data import atr, resample
+from research.m1bars import atr, resample
 from research.scan.engine import Order, simulate
-from research.scan.m1 import PAIRS, load
+from research.m1 import PAIRS, load
 
 HZ = 4
 

@@ -9,7 +9,7 @@ from typing import Tuple
 import numpy as np
 
 from research.lab.universe import CONVERSION, Instrument
-from research.scan.m1 import load
+from research.m1 import load
 from research.specs import rollovers
 
 DAY_MS = 86_400_000

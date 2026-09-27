@@ -6,8 +6,8 @@ import sys
 from datetime import date, datetime, timezone
 
 from research.bars import build_bars
-from research.signals import Market, legacy
-from research.sim import make_levels, run_account
+from research.flowrsi.signals import Market, legacy
+from research.flowrsi.sim import make_levels, run_account
 from research.specs import SPECS, flowrsi_params, size_units
 from research.ticks import DATA_DIR, day_ms, load_ticks
 

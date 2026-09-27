@@ -55,7 +55,7 @@ def test_server_asian_range_bands():
     assert not server_range_ok("XAUUSD", 50) and server_range_ok("XAUUSD", 150)
     assert not server_range_ok("USDJPY", 14) and server_range_ok("EURUSD", 20)
     assert not server_range_ok("US30", 5000)
-    src = (ROOT / "app" / "server.py").read_text()
+    src = (ROOT / "app" / "trade_gates.py").read_text()
     for pair in ("100.0, 10000.0", "15.0, 200.0", "10000.0, 400000.0", "800.0, 35000.0", "120.0, 800.0",
                  "50.0, 4000.0", "12.0, 100.0"):
         assert f"min_asian_pips, max_asian_pips = {pair}" in src

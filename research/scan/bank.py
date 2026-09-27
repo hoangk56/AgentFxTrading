@@ -12,9 +12,9 @@ from pathlib import Path
 import numpy as np
 
 from research.indicators import prior_max, prior_min, rsi
-from research.scan.data import atr, resample
+from research.m1bars import atr, resample
 from research.scan.engine import Order, simulate
-from research.scan.m1 import PAIRS, load
+from research.m1 import PAIRS, load
 
 OUT = Path(__file__).resolve().parents[1] / "results" / "bank_stats.csv"
 TFS = {"M15": (15, 0), "H1": (60, 0), "H4": (240, 0), "D1": (1440, 120)}

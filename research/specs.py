@@ -94,7 +94,7 @@ def rollovers(entry_ms: int, exit_ms: int, triple_weekday: int) -> int:
 
 
 def swap_usd(symbol: str, side: int, units: float, entry_ms: int, exit_ms: int) -> float:
-    """0 for a symbol without a calibrated swap fit (research/scan/specs_ext.py's 11 symbols) -- a disclosed
+    """0 for a symbol without a calibrated swap fit (research/specs_ext.py's 11 symbols) -- a disclosed
     approximation, not a claim their real swap is zero."""
     long_rate, short_rate, triple = SWAPS.get(symbol, (0.0, 0.0, 2))
     return (long_rate if side > 0 else short_rate) * units * rollovers(entry_ms, exit_ms, triple)

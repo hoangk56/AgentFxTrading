@@ -3,8 +3,8 @@ from dataclasses import dataclass
 
 import numpy as np
 
-from research.scan.m1 import load
-from research.scan.specs_ext import EXT_SPECS
+from research.m1 import load
+from research.specs_ext import EXT_SPECS
 from research.specs import SPECS
 
 MIN = 60_000

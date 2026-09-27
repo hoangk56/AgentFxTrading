@@ -26,9 +26,9 @@ import numpy as np
 from numpy.lib.stride_tricks import sliding_window_view
 
 from research.indicators import atr_sma, rsi, prior_max, prior_min, ema, bollinger, adx
-from research.scan.data import resample
+from research.m1bars import resample
 from research.scan.engine import Order, simulate, period_of, PERIODS
-from research.scan.m1 import load as _load_m1
+from research.m1 import load as _load_m1
 
 _load = lru_cache(maxsize=None)(_load_m1)
 

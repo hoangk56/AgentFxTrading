@@ -52,3 +52,16 @@ def load_ticks(symbol: str, start: date, end: date, data_dir: Path = DATA_DIR) -
     bid, ask = _ffill(rows[:, 1]), _ffill(rows[:, 2])
     keep = (bid != 0) & (ask != 0)
     return Ticks(rows[keep, 0].copy(), bid[keep] / PRICE_SCALE, ask[keep] / PRICE_SCALE)
+
+
+def _first_hit(price: np.ndarray, start: int, lo: float, hi: float) -> int:
+    """First index >= start with price <= lo or price >= hi; len(price) if none."""
+    n, size = len(price), 4096
+    while start < n:
+        seg = price[start:start + size]
+        hit = np.flatnonzero((seg <= lo) | (seg >= hi))
+        if hit.size:
+            return start + int(hit[0])
+        start += size
+        size *= 2
+    return n

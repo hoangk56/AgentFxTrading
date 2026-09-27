@@ -17,10 +17,10 @@ from numpy.lib.stride_tricks import sliding_window_view
 from research.indicators import atr_sma, ema, prior_max, prior_min, rsi
 from research.lab.engine import D1_ENTRY_DELAY_MS, DAY_MS, NAN, Ctx, Intent, run_intents
 from research.lab.universe import FX_REAL
-from research.scan.data import atr as scan_atr, resample
+from research.m1bars import atr as scan_atr, resample
 from research.scan.engine import Order, simulate
-from research.scan.m1 import load as load_m1
-from research.sim import _first_hit
+from research.m1 import load as load_m1
+from research.ticks import _first_hit
 
 TF_MIN = {"M15": 15, "H1": 60, "H4": 240, "D1": 1440}
 

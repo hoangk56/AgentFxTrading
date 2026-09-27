@@ -2,7 +2,7 @@ import pytest
 
 np = pytest.importorskip("numpy")
 
-from research.screen import PAIRS, c2_means, params_for, summarize, verdict  # noqa: E402
+from research.flowrsi.screen import PAIRS, c2_means, params_for, summarize, verdict  # noqa: E402
 
 
 def _rows(config, pattern_by_period):

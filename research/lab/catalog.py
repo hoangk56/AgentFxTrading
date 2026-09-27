@@ -83,7 +83,7 @@ BANK_FINDING = ("552-config bank on 2025-2026 (M1 engine): 0 configs with t >= 2
 
 def _flowrsi_entries() -> List[StrategyInfo]:
     out = [StrategyInfo("FLOWRSI", "FlowRSI (live bot, Macro TMS off)", "live",
-                        "cBot/FlowRsiBot.cs + app/cbot_presets.py; replica research/sim.py", "RSI cross + SMC", "M15",
+                        "cBot/FlowRsiBot.cs + app/cbot_presets.py; replica research/flowrsi/sim.py", "RSI cross + SMC", "M15",
                         FLOWRSI_RULES, FLOWRSI_FINDINGS, flowrsi, dict(name="C0", exit_mode="X2"),
                         label="replica calibrated on cTrader #43-#56, #93 (>= 93 % of entries matched)"),
            StrategyInfo("FLOWRSI-C1", "FlowRSI with the wider SL floor", "rejected", "FlowRSI phase 1, H2 (2026-09-25)",
@@ -93,7 +93,7 @@ def _flowrsi_entries() -> List[StrategyInfo]:
     for e, desc in E_DESC.items():
         for x in ("X1", "X2"):
             out.append(StrategyInfo(f"FLOWRSI-{e}-{x}", f"FlowRSI entry {e}, exit {x}", "rejected",
-                                    "FlowRSI entry screening (2026-09-25, research/signals.py)", "entry screening",
+                                    "FlowRSI entry screening (2026-09-25, research/flowrsi/signals.py)", "entry screening",
                                     "M15", f"M15 entry: {desc}. Exit: {EXIT_DESC[x]}.", (SCREEN_FINDING,), flowrsi,
                                     dict(name=e, exit_mode=x), label="replica"))
     return out
@@ -101,7 +101,7 @@ def _flowrsi_entries() -> List[StrategyInfo]:
 
 JUDAS = StrategyInfo(
     "JUDAS", "Asian Range Judas Sweep (live bot)", "live",
-    "cBot/AsianRangeJudasSweepBot.cs + app/server.py evaluate_judas_sweep_gate", "liquidity sweep", "M15",
+    "cBot/AsianRangeJudasSweepBot.cs + app/trade_gates.py evaluate_judas_sweep_gate", "liquidity sweep", "M15",
     "Asian range = high/low of the 00:00-06:00 UTC bars. In the London (07-10 UTC summer) or New York (12:30-16 UTC "
     "summer) killzone, a bar that spikes beyond the range by the sweep buffer and closes back inside with a rejection "
     "wick >= 35 % of the bar opens a 3-bar signal window; the trade goes back into the range. Guards: range inside "
@@ -114,7 +114,7 @@ JUDAS = StrategyInfo(
 
 TMSORB = StrategyInfo(
     "TMSORB", "TMS + ORB (live AiAgentBot)", "live",
-    "cBot/AiAgentBot.cs + app/server.py evaluate_cycle_gate / validate_tms_close_decision",
+    "cBot/AiAgentBot.cs + app/trade_gates.py evaluate_cycle_gate / validate_tms_close_decision",
     "ORB breakout + TDI bias", "M15 (USTEC M5), H1 bias",
     "Opening range = the first 15 minutes of the session (Tokyo 00:00, London 08:00, New York 13:00, US indices 14:30 "
     "UTC in winter, DST-adjusted). Macro bias = the last confirmed H1 TDI cross (RSI6 of Heikin-Ashi vs its SMA6, with "
@@ -427,7 +427,7 @@ INFO = [
 _RT = "Retest 2016-2022 (2026-09-27, unchanged code, out of sample; research/results/portfolio/prereg_swing_v2.md): "
 RETEST_2016_2022 = {
     "N2-GOTOBI": _RT + "passed: 1,002 trades, +0.078R (t +5.7), 7/7 years positive, 10/10 random seeds beaten. "
-                 "Ported to research/scan/swing.py with historical swaps: IS 2016-21 +0.066R, VAL 2022-24 +0.054R, "
+                 "Ported to research/swing/swing.py with historical swaps: IS 2016-21 +0.066R, VAL 2022-24 +0.054R, "
                  "HOLD +0.038R; placebo (non-gotobi days) ~0. Basket with EURJPY/GBPJPY = C3, passed its holdout "
                  "(research/results/portfolio/swing_lab_v2_2026-09-27.md).",
     "N3-IMOM": _RT + "failed: 6,978 trades, -0.041R (t -8.1), 2/7 years.",
