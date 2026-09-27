@@ -17,8 +17,11 @@ def test_refresh_entries_are_the_fourteen_pre_registered_candidates():
     assert REFRESH_IDS == ("T1-ORB", "T2-TMSORB", "T3-TMSORB-X", "T4-TMS-H4", "T5-TMS-H1", "J1-ICT", "J2-ICT-MO",
                            "J3-ICT-2R", "J4-ICT-2KZ", "J5-SWEEP", "N1-FIX", "N2-GOTOBI", "N3-IMOM", "N4-LBO")
     cat = by_id()
-    assert all(cat[i].status == "rejected" and cat[i].runnable for i in REFRESH_IDS)      # verdict v2: none passed
+    # verdict v2: none passed; the 2016-2022 retest (2026-09-27) brought N2 back as a candidate
+    assert all(cat[i].status == ("candidate" if i == "N2-GOTOBI" else "rejected") and cat[i].runnable
+               for i in REFRESH_IDS)
     assert all(cat[i].findings[0].startswith("Lab run v2 (2026-09-26") for i in REFRESH_IDS)
+    assert cat["N2-GOTOBI"].findings[1].startswith("Retest 2016-2022 (2026-09-27")
     assert not ({"BTCUSD", "ETHUSD"} & set(cat["J1-ICT"].symbols))
     assert cat["N2-GOTOBI"].symbols == ("USDJPY",) and "mirror" not in cat["N1-FIX"].variants
     assert {"PREFOMC", "WKGAP", "CARRY"} <= {s.id for s in CATALOG if s.status == "rejected" and not s.runnable}

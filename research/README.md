@@ -2,7 +2,9 @@
 
 Offline strategy research on the cTrader backtest tick cache. Nothing here runs in production.
 
-**Where things stand (2026-09-26):** no strategy tested so far has an edge that survives multiple testing
+**Where things stand (2026-09-27):** the swing lab v2 found one algorithm that survives out-of-sample years and a
+pre-registered holdout: C3, the gotobi Tokyo-fix trade on USDJPY/EURJPY/GBPJPY (positive every year 2016-2026;
+`results/portfolio/swing_lab_v2_2026-09-27.md`). Before that (2026-09-26): no strategy tested so far has an edge that survives multiple testing
 and out-of-sample years. The 2026-09-26 refresh rebuilt TMS + ORB and the Asian Range Judas Sweep from their
 canonical definitions and added four literature rules (14 pre-registered variants, `results/lab/v2/verdict.md`):
 none passed; only N2 gotobi USDJPY was positive in every period (+0.035R, t 1.2). The full list, with rules,
@@ -12,11 +14,14 @@ origin and findings per strategy, is [STRATEGIES.md](STRATEGIES.md). Read it bef
 
 | path | what |
 |---|---|
+| `PROMPT.md` | prompt mẫu để giao một đợt research thuật toán mới (ràng buộc, pass bar, những gì phải đọc trước) |
 | `STRATEGIES.md` | the catalog, rendered from `lab/catalog.py` + lab results. Edit the catalog, not this file |
 | `lab/` | the strategy lab: every catalogued strategy x 22 symbols, tick level, fixed lots, 2023-01..2026-09 |
 | `lab/strategies/` | lab strategy code: `rules.py` (researched rules), `flowrsi.py`, `judas.py`, `tmsorb.py` (live bots); `canon.py`, `tms_orb2.py`, `judas2.py`, `literature.py` (2026-09-26 refresh) |
 | `lab/verdict.py` | the refresh's pre-registered pass bar applied to a run -> `RUN_DIR/verdict.md` |
 | `scan/` | round 1-2 strategy search on the M1 cache: 552-config bank, pairs, walk-forward ridge, tick sim, 2023-24 confirmation |
+| `scan/portfolio.py` | portfolio-cap swing lab: one bot, up to 3 symbols at once, hold <= 5 days, risk-scaled lots (not fixed, not equity-based). 26 symbols, 2016-2026 M1 cache (`scan/m1.py`), costs for the 11 non-calibrated symbols in `scan/specs_ext.py`. 2026-09-27 v1: 9 families, none passed (`results/portfolio/swing_lab_2026-09-27.md`) |
+| `scan/swing.py`, `swing_rules.py`, `rates.py` | swing lab v2: per-bot cap 3 with stacking, signal exits, <= 5 days, risk-scaled lots, swaps from historical FRED rates. **C3 Gotobi JPY basket passed its pre-registered holdout** (IS/VAL/HOLD R +0.043/+0.041/+0.042); crypto Donchian H4 strong in IS/VAL, failed HOLD R -- `results/portfolio/swing_lab_v2_2026-09-27.md`, `prereg_swing_v2.md` |
 | `*.py` (top level) | FlowRSI replica (`signals`, `sim`, `specs`, `calibrate`), entry screening (`screen`), tick/bar decoding (`ticks`, `bars`) |
 | `pull_cache.sh`, `pull_years.sh` | copy the tick/M15 cache from the VPS into `data/` |
 | `fill_*.py` | queue the VPS backtests that make cTrader download missing years of ticks |

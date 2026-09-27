@@ -1,0 +1,384 @@
+"""Swing lab v2: per-bot position cap, signal exits, <= 5-day hold, capital-independent risk-scaled lots.
+
+A *bot* trades a list of symbols and never holds more than `cap` positions at once (several may be in the same
+symbol when `per_symbol` > 1, i.e. scale-in). Every position leaves at the earliest of: its stop, its target, the
+strategy's exit signal (evaluated on a bar close, filled at the next M1 open) or 5 calendar days after entry
+(filled at the close of the last M1 row before the deadline). Entries are decided on a bar close and filled at
+the next M1 open: a buy at bid open + the previous minute's closing spread, a sell at the bid open.
+
+Costs: the real bid/ask of the M1 cache, commission from research.specs / research.scan.specs_ext, and swaps as a
+*fraction of price* per rollover (fitted to IC's 2026 swaps where research/specs.SWAPS has them, approximated for
+the other symbols in SWAP_FRAC). research/specs.SWAPS is in USD per unit, which over 2016-2026 overstates index and
+crypto swaps in the early years by the price ratio (US30 17k -> 46k); a fraction of price does not. Rates were much
+lower in 2016-2021 than in 2026, so these swaps are still conservative for the early years.
+
+Sizing: a trade risks BASE_RISK_USD x scale, scale in [0.5, 2] from this signal's strength vs. the causal
+expanding median of the same rule's earlier signals on the same symbol (never equity). R = net price move per unit
+(after spread, commission, swap) / |entry - stop|; $ = R x the trade's risk in USD.
+
+Eras: IS 2016-2021 (design), VAL 2022-2024 (validation), HOLD 2025-01..2026-09 (final holdout, looked at once per
+pre-registered candidate).
+"""
+import datetime
+import math
+from dataclasses import dataclass, field
+from functools import lru_cache
+from typing import Callable, Dict, List, Optional, Sequence, Tuple
+
+import numpy as np
+
+from research.scan.data import TF, comm_price, spec_for
+from research.scan.m1 import load as _load_m1
+from research.specs import SWAPS, rollovers
+
+
+def swap_frac_at(symbol, side, ms):
+    from research.scan.rates import swap_frac_at as f
+    return f(symbol, side, ms)
+
+MIN, HOUR_MS, DAY_MS = 60_000, 3_600_000, 86_400_000
+HOLD_MS = 5 * DAY_MS
+BASE_RISK_USD = 100.0
+SWAP_MODEL = "rates"      # "rates": research/scan/rates.py (historical short rates + fitted markup); "2026": constant
+SCALE_MIN, SCALE_MAX, SCALE_MIN_HISTORY = 0.5, 2.0, 10
+
+
+def _ms(y, m=1, d=1) -> int:
+    return int(datetime.datetime(y, m, d, tzinfo=datetime.timezone.utc).timestamp() * 1000)
+
+
+VAL_START, HOLD_START = _ms(2022), _ms(2025)
+ERAS = ("IS", "VAL", "HOLD")
+
+
+def era_of(ms: int) -> str:
+    return "IS" if ms < VAL_START else ("VAL" if ms < HOLD_START else "HOLD")
+
+
+# ---------------------------------------------------------------- symbols
+INDICES = ["US30", "USTEC", "US500", "DE40", "UK100", "JP225", "AUS200", "HK50"]
+US_INDICES = ["US30", "USTEC", "US500"]
+METALS = ["XAUUSD", "XAGUSD", "XPTUSD"]
+ENERGIES = ["XTIUSD", "XBRUSD", "XNGUSD"]
+CRYPTO = ["BTCUSD", "ETHUSD"]
+FX = ["EURUSD", "GBPUSD", "USDJPY", "USDCAD", "AUDUSD", "NZDUSD", "USDCHF", "AUDJPY", "EURJPY", "GBPJPY"]
+ALL = INDICES + METALS + ENERGIES + CRYPTO + FX
+
+# Swap per rollover as a fraction of price (long, short, triple weekday) for symbols research/specs.SWAPS lacks:
+# indices = mean of the four calibrated indices, metals = XAUUSD's, USD/CHF and NZD/USD from the calibrated USD
+# pairs, energies a conservative -2.5e-4 (XNG -4e-4) both sides (IC's oil swaps follow the futures curve).
+SWAP_FRAC_EXTRA = {
+    "NZDUSD": (-4.3e-5, -5.2e-5, 2), "USDCHF": (5.0e-5, -1.06e-4, 2),
+    "XTIUSD": (-2.5e-4, -2.5e-4, 4), "XBRUSD": (-2.5e-4, -2.5e-4, 4), "XNGUSD": (-4.0e-4, -4.0e-4, 4),
+}
+
+
+@lru_cache(maxsize=None)
+def m1(symbol: str) -> dict:
+    return _load_m1(symbol)
+
+
+@lru_cache(maxsize=None)
+def ref_price(symbol: str) -> float:
+    """Median bid 2025-09..2026-09 -- the prices IC's 2026 swaps were quoted against."""
+    m = m1(symbol)
+    sel = m["ts"] >= _ms(2025, 9)
+    return float(np.median(m["c"][sel]))
+
+
+@lru_cache(maxsize=None)
+def swap_frac(symbol: str) -> Tuple[float, float, int]:
+    if symbol in SWAPS:
+        lo, sh, tri = SWAPS[symbol]
+        k = 1.0 / (spec_for(symbol).usd_per_quote * ref_price(symbol))
+        return lo * k, sh * k, tri
+    if symbol in SWAP_FRAC_EXTRA:
+        return SWAP_FRAC_EXTRA[symbol]
+    if symbol in INDICES:
+        fr = [swap_frac(s) for s in ("US30", "USTEC", "DE40", "UK100")]
+        return float(np.mean([f[0] for f in fr])), float(np.mean([f[1] for f in fr])), 4
+    if symbol in ("XAGUSD", "XPTUSD"):
+        return swap_frac("XAUUSD")
+    raise KeyError(symbol)
+
+
+# ---------------------------------------------------------------- bars
+def resample_merged(m: dict, minutes: int, offset_min: int = 0, min_frac: float = 0.3) -> TF:
+    """UTC buckets of `minutes` (edges shifted by offset); a bucket with fewer than min_frac x the median minute
+    count (a Friday-evening or holiday stub) is merged into the bucket after it, so D1 bars have no stubs."""
+    span = minutes * MIN
+    b = (m["ts"] + offset_min * MIN) // span
+    s = np.flatnonzero(np.r_[True, b[1:] != b[:-1]])
+    cnt = np.diff(np.r_[s, len(b)])
+    med = np.median(cnt)
+    keep = np.ones(len(s), bool)
+    stub = np.flatnonzero(cnt < min_frac * med)
+    keep[np.clip(stub + 1, 0, len(s) - 1)] = False    # drop the start of the bar after a stub -> they merge
+    keep[0] = True
+    keep[stub[stub == len(s) - 1]] = True
+    s = s[keep]
+    e = np.r_[s[1:], len(b)] - 1
+    return TF(b[s] * span - offset_min * MIN, m["o"][s], np.maximum.reduceat(m["h"], s),
+              np.minimum.reduceat(m["l"], s), m["c"][e], m["ca"][e], s, e)
+
+
+@lru_cache(maxsize=None)
+def bars(symbol: str, minutes: int, offset_min: int = 0) -> TF:
+    return resample_merged(m1(symbol), minutes, offset_min)
+
+
+# D1 bars closing at 20:00 UTC (US cash session still open, before the 21-22 UTC rollover spread).
+D1 = (1440, 240)
+H4 = (240, 0)
+H1 = (60, 0)
+
+
+# ---------------------------------------------------------------- signals -> candidates
+@dataclass
+class Signals:
+    """Per-bar arrays for one symbol, all decided on that bar's close."""
+    long_entry: np.ndarray                    # bool
+    short_entry: np.ndarray                   # bool
+    stop_dist: np.ndarray                     # price distance of the stop (> 0), per bar
+    strength: Optional[np.ndarray] = None     # sizing score (higher = bigger), default 1
+    long_exit: Optional[np.ndarray] = None    # bool: close longs at the next open
+    short_exit: Optional[np.ndarray] = None
+    tp_dist: Optional[np.ndarray] = None      # price distance of the target, NaN = none
+    size: Optional[np.ndarray] = None         # explicit lot multiplier of the default lot (overrides strength)
+
+
+@dataclass
+class Trade:
+    symbol: str
+    side: int
+    t_sig: int
+    t_in: int
+    t_out: int
+    entry: float
+    exit: float
+    risk: float          # price distance to the stop at entry
+    r: float
+    why: str
+    strength: float
+    scale: float = 1.0
+    bar: int = -1
+
+    @property
+    def usd(self) -> float:
+        return self.r * BASE_RISK_USD * self.scale
+
+
+def _first(mask: np.ndarray) -> int:
+    idx = np.flatnonzero(mask)
+    return int(idx[0]) if idx.size else -1
+
+
+def simulate_symbol(symbol: str, tf: Tuple[int, int], sig: Signals, spread_mult: float = 1.0,
+                    start_ms: int = 0) -> List[Trade]:
+    """Every entry signal becomes a trade, independent of the others (the bot's cap is applied later)."""
+    m = m1(symbol)
+    b = bars(symbol, *tf)
+    o, h, l, c, ca, ts = m["o"], m["h"], m["l"], m["c"], m["ca"], m["ts"]
+    spr = (ca - c) * spread_mult
+    comm = comm_price(symbol)
+    fl, fs, tri = swap_frac(symbol)
+    n_bars, n_m1 = len(b), len(ts)
+    strength = sig.strength if sig.strength is not None else np.ones(n_bars)
+    exit_next = {}
+    for side, ex in ((1, sig.long_exit), (-1, sig.short_exit)):
+        # index of the first exit bar at or after each bar (n_bars = none)
+        if ex is None or not ex.any():
+            exit_next[side] = np.full(n_bars + 1, n_bars)
+        else:
+            nxt = np.full(n_bars + 1, n_bars)
+            idx = np.flatnonzero(ex)
+            pos = np.searchsorted(idx, np.arange(n_bars), side="left")
+            nxt[:n_bars] = np.where(pos < len(idx), idx[np.minimum(pos, len(idx) - 1)], n_bars)
+            exit_next[side] = nxt
+    out: List[Trade] = []
+    for side, ent in ((1, sig.long_entry), (-1, sig.short_entry)):
+        for i in np.flatnonzero(ent):
+            sd = float(sig.stop_dist[i])
+            if not (np.isfinite(sd) and sd > 0) or b.t[i] < start_ms:
+                continue
+            k = int(b.last[i]) + 1
+            if k >= n_m1 - 2:
+                continue
+            entry = o[k] + spr[k - 1] if side > 0 else o[k]
+            sl = entry - side * sd
+            tpd = float(sig.tp_dist[i]) if sig.tp_dist is not None else float("nan")
+            tp = entry + side * tpd if np.isfinite(tpd) and tpd > 0 else None
+            deadline = int(ts[k]) + HOLD_MS - MIN
+            k_dead = int(np.searchsorted(ts, deadline, side="right")) - 1
+            j_sig = int(exit_next[side][i + 1]) if i + 1 <= n_bars else n_bars
+            k_sig = int(b.last[j_sig]) + 1 if j_sig < n_bars else n_m1
+            k_end = min(k_dead, k_sig - 1, n_m1 - 1)
+            if k_end < k:
+                k_end = k
+            w = slice(k, k_end + 1)
+            if side > 0:
+                j_sl = _first(l[w] <= sl)
+                j_tp = _first(h[w] >= tp) if tp is not None else -1
+            else:
+                j_sl = _first(h[w] + spr[w] >= sl)
+                j_tp = _first(l[w] + spr[w] <= tp) if tp is not None else -1
+            hits = [(j, why) for j, why in ((j_sl, "sl"), (j_tp, "tp")) if j >= 0]
+            if hits:
+                j, why = min(hits, key=lambda x: (x[0], x[1] != "sl"))
+                j += k
+                ask_open = o[j] + spr[max(j - 1, 0)]
+                if why == "sl":
+                    px = (min(sl, o[j]) if side > 0 else max(sl, ask_open)) if j > k else sl
+                else:
+                    px = (max(tp, o[j]) if side > 0 else min(tp, ask_open)) if j > k else tp
+                t_out = int(ts[j]) + MIN
+            elif k_sig < n_m1 and k_sig - 1 <= k_dead and ts[k_sig] <= deadline:
+                j, why = k_sig, "signal"
+                px = o[j] if side > 0 else o[j] + spr[j - 1]
+                t_out = int(ts[j])
+            else:
+                j, why = k_end, "time"
+                px = c[j] if side > 0 else c[j] + spr[j]
+                t_out = int(ts[j]) + MIN
+            nroll = rollovers(int(ts[k]), t_out, tri)
+            if nroll:
+                frac = swap_frac_at(symbol, side, int(ts[k])) if SWAP_MODEL == "rates" else (fl if side > 0 else fs)
+                swap = frac * entry * nroll
+            else:
+                swap = 0.0
+            net = (px - entry) * side - comm + swap
+            out.append(Trade(symbol, side, int(b.t[i]), int(ts[k]), t_out, float(entry), float(px), sd,
+                             float(net / sd), why, float(strength[i]), bar=int(i)))
+    out.sort(key=lambda t: t.t_in)
+    if sig.size is not None:
+        for t in out:
+            t.scale = float(np.clip(sig.size[t.bar], SCALE_MIN, SCALE_MAX))
+    else:
+        _scale(out)
+    return out
+
+
+def _scale(trades: List[Trade]) -> None:
+    """Causal size multiplier: strength / median of this rule's earlier strengths on this symbol."""
+    hist: List[float] = []
+    for t in trades:
+        if len(hist) >= SCALE_MIN_HISTORY:
+            ref = float(np.median(hist))
+            t.scale = float(np.clip(t.strength / ref, SCALE_MIN, SCALE_MAX)) if ref > 0 else 1.0
+        hist.append(t.strength)
+
+
+def admit(trades: Sequence[Trade], cap: int = 3, per_symbol: int = 3) -> List[Trade]:
+    """The bot's cap: in entry-time order, take a trade when fewer than `cap` positions (and fewer than
+    `per_symbol` in its symbol) are open at its entry; ties at one timestamp go to the strongest."""
+    order = sorted(trades, key=lambda t: (t.t_in, -t.strength))
+    open_: List[Trade] = []
+    taken: List[Trade] = []
+    for t in order:
+        open_ = [p for p in open_ if p.t_out > t.t_in]
+        if len(open_) >= cap or sum(1 for p in open_ if p.symbol == t.symbol) >= per_symbol:
+            continue
+        open_.append(t)
+        taken.append(t)
+    return taken
+
+
+# ---------------------------------------------------------------- strategies
+Strategy = Callable[..., Signals]
+
+
+def run_bot(strategy: Strategy, symbols: Sequence[str], tf=D1, cap: int = 3, per_symbol: int = 3,
+            spread_mult: float = 1.0, **params) -> List[Trade]:
+    cands: List[Trade] = []
+    for s in symbols:
+        b = bars(s, *tf)
+        cands += simulate_symbol(s, tf, strategy(b, symbol=s, **params), spread_mult)
+    return admit(cands, cap, per_symbol)
+
+
+def run_bots(strategy: Strategy, symbols: Sequence[str], tf=D1, cap: int = 3, per_symbol: int = 3,
+             spread_mult: float = 1.0, **params) -> List[Trade]:
+    """One bot per symbol (each with its own cap), pooled."""
+    out: List[Trade] = []
+    for s in symbols:
+        out += run_bot(strategy, [s], tf, cap, per_symbol, spread_mult, **params)
+    return sorted(out, key=lambda t: t.t_in)
+
+
+# ---------------------------------------------------------------- stats
+def tstat(rs) -> Tuple[int, float, float]:
+    n = len(rs)
+    if n < 2:
+        return n, (float(rs[0]) if n else 0.0), 0.0
+    a = np.asarray(rs, float)
+    sd = a.std(ddof=1)
+    return n, float(a.mean()), float(a.mean() / (sd / math.sqrt(n))) if sd > 0 else 0.0
+
+
+def year_of(ms: int) -> int:
+    return datetime.datetime.fromtimestamp(ms / 1000, datetime.timezone.utc).year
+
+
+def summary(trades: Sequence[Trade], eras: Sequence[str] = ERAS) -> Dict[str, dict]:
+    out = {}
+    for era in list(eras) + ["ALL"]:
+        tr = [t for t in trades if era == "ALL" or era_of(t.t_in) == era]
+        n, mu, t = tstat([x.r for x in tr])
+        net = sum(x.usd for x in tr)
+        by_year: Dict[int, float] = {}
+        for x in tr:
+            by_year[year_of(x.t_in)] = by_year.get(year_of(x.t_in), 0.0) + x.usd
+        curve = np.cumsum([x.usd for x in sorted(tr, key=lambda x: x.t_out)]) if tr else np.zeros(1)
+        dd = float(np.max(np.maximum.accumulate(np.r_[0.0, curve]) - np.r_[0.0, curve]))
+        out[era] = dict(n=n, mean_r=mu, t=t, net=net, dd=dd, years=len(by_year),
+                        pos_years=sum(1 for v in by_year.values() if v > 0), by_year=by_year,
+                        win=float(np.mean([x.r > 0 for x in tr])) if tr else float("nan"))
+    return out
+
+
+def fmt(s: Dict[str, dict], eras: Sequence[str] = ("IS", "VAL", "HOLD")) -> str:
+    return " | ".join(f"{e} n{s[e]['n']:4d} ${s[e]['net']:+8,.0f} R{s[e]['mean_r']:+.3f} t{s[e]['t']:+4.1f} "
+                      f"y{s[e]['pos_years']}/{s[e]['years']}" for e in eras)
+
+
+def random_control(strategy: Strategy, trades: Sequence[Trade], symbols: Sequence[str], tf=D1, cap: int = 3,
+                   per_symbol: int = 3, seeds: int = 20, same_side: bool = True, per_bot: bool = True,
+                   eras: Sequence[str] = ("IS", "VAL", "HOLD", "ALL"), **params) -> Dict[str, float]:
+    """Share of seeds whose summed R the real trades beat, per era (R, not $, so sizing is not part of it). A seed keeps the strategy's exits, stops and cap
+    but moves every entry to a random bar of the same symbol (same side when same_side, else a coin flip), with
+    as many candidates per symbol and side as the strategy produced -- so what is tested is the entry timing."""
+    def sum_r(tr):
+        return {e: sum(t.r for t in tr if e == "ALL" or era_of(t.t_in) == e) for e in eras}
+
+    real = sum_r(trades)
+    rng = np.random.default_rng(12345)
+    beats = {e: 0 for e in eras}
+    for _ in range(seeds):
+        pool: List[Trade] = []
+        bots_trades: List[Trade] = []
+        for s in symbols:
+            b = bars(s, *tf)
+            sg = strategy(b, symbol=s, **params)
+            n = len(b)
+            valid = np.flatnonzero(np.isfinite(sg.stop_dist) & (sg.stop_dist > 0))
+            valid = valid[valid > 200]
+            le, se = np.zeros(n, bool), np.zeros(n, bool)
+            nl, ns = int(sg.long_entry.sum()), int(sg.short_entry.sum())
+            if same_side:
+                le[rng.choice(valid, min(nl, len(valid)), replace=False)] = True
+                se[rng.choice(valid, min(ns, len(valid)), replace=False)] = True
+            else:
+                pick = rng.choice(valid, min(nl + ns, len(valid)), replace=False)
+                coin = rng.random(len(pick)) < 0.5
+                le[pick[coin]] = True
+                se[pick[~coin]] = True
+            rs = Signals(le, se, sg.stop_dist, None, sg.long_exit, sg.short_exit, sg.tp_dist)
+            tr = simulate_symbol(s, tf, rs)
+            if per_bot:
+                bots_trades += admit(tr, cap, per_symbol)
+            else:
+                pool += tr
+        ctrl = sum_r(bots_trades if per_bot else admit(pool, cap, per_symbol))
+        for e in eras:
+            beats[e] += real[e] > ctrl[e]
+    return {e: beats[e] / seeds for e in eras}

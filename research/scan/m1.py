@@ -12,9 +12,11 @@ import numpy as np
 from research.ticks import DATA_DIR, load_ticks
 
 OUT = DATA_DIR / "m1"
-START, END = date(2022, 12, 25), date(2026, 9, 24)
+START, END = date(2016, 1, 1), date(2026, 9, 24)
 PAIRS = ["AUDJPY", "AUDUSD", "BTCUSD", "DE40", "ETHUSD", "EURJPY", "EURUSD", "GBPJPY", "GBPUSD",
-         "UK100", "US30", "USDCAD", "USDJPY", "USTEC", "XAUUSD"]
+         "UK100", "US30", "USDCAD", "USDJPY", "USTEC", "XAUUSD",
+         "NZDUSD", "USDCHF", "US500", "JP225", "AUS200", "HK50",
+         "XAGUSD", "XPTUSD", "XTIUSD", "XBRUSD", "XNGUSD"]
 
 
 def _month_chunks():

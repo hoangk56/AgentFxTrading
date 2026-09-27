@@ -10,8 +10,8 @@ from typing import List, Optional
 import math
 import numpy as np
 
-from research.scan.data import comm_price
-from research.specs import SPECS, swap_usd
+from research.scan.data import comm_price, spec_for
+from research.specs import swap_usd
 from research.ticks import day_ms
 
 P2_START, P3_START = day_ms(date(2026, 1, 1)), day_ms(date(2026, 6, 1))
@@ -56,7 +56,7 @@ def _first(mask: np.ndarray) -> int:
 
 
 def simulate(m: dict, symbol: str, orders: List[Order], one_at_a_time: bool = True) -> List[Fill]:
-    spec = SPECS[symbol]
+    spec = spec_for(symbol)
     comm = comm_price(symbol)
     o, h, l, c, ca, ts = m["o"], m["h"], m["l"], m["c"], m["ca"], m["ts"]
     spr = ca - c

@@ -41,7 +41,7 @@ Lab rules: $10k, fixed lots per symbol, no loss limits, one position per strateg
 | J4-ICT-2KZ | Judas sweep, ICT, London + NY AM | rejected | liquidity sweep | M5 | all 22 but BTC/ETH | -9,350 | 2/20 | 0 |
 | J5-SWEEP | Judas sweep-and-close (no MSS/FVG) | rejected | liquidity sweep | M15 | all 22 but BTC/ETH | -10,310 | 3/20 | 0 |
 | N1-FIX | FX fixing reversal (London fix) | rejected | flow | clock | EURUSD, GBPUSD, AUDUSD, USDCAD, USDJPY | -9,396 | 0/5 | 0 |
-| N2-GOTOBI | Gotobi Tokyo-fix USDJPY | rejected | flow | clock | USDJPY | +802 | 1/1 | 0 |
+| N2-GOTOBI | Gotobi Tokyo-fix USDJPY | candidate | flow | clock | USDJPY | +802 | 1/1 | 0 |
 | N3-IMOM | Market intraday momentum | rejected | intraday momentum | 30 min | DE40, UK100, US30, USTEC | -2,167 | 0/4 | 0 |
 | N4-LBO | London breakout of the Asian range | rejected | breakout | ticks | FX 15 + XAUUSD | -9,170 | 3/16 | 0 |
 | BTC-S1 | Shock-bar momentum | rejected | momentum | M15 | all 22 | -32,259 | 3/22 | 0 |
@@ -473,12 +473,13 @@ Lab rules: $10k, fixed lots per symbol, no loss limits, one position per strateg
 
 ## N2-GOTOBI — Gotobi Tokyo-fix USDJPY
 
-- Status: **rejected**
+- Status: **candidate**
 - Origin: strategy refresh 2026-09-26 (docs/superpowers/specs/2026-09-26-strategy-refresh-design.md); Bessho, Sugimoto & Suzuki (2023)
 - Family / timeframe: flow / clock
 - Rules: On the 5th/10th/15th/20th/25th/last day (weekend -> Friday before): long USDJPY 03:00 -> 09:55 Tokyo, short 09:55 -> 11:55 Tokyo; SL 3 x ATR20(H1).
 - Lab: `research.lab.strategies.literature.gotobi` on USDJPY, variants real, shuffle
 - Finding: Lab run v2 (2026-09-26, pre-registered bar): failed. Holdout 2025-01..2026-09: 248 trades, mean net +0.035R (t +1.2), gross +0.044R, costs 0.009R; 2025 $+161, 2026 $+107; 2023-24 +0.041R; control 95 %; 100% of 1 symbols positive (best USDJPY $+268). Failed: holdout >= 100 trades, mean R > 0, t >= 2.5.
+- Finding: Retest 2016-2022 (2026-09-27, unchanged code, out of sample; research/results/portfolio/prereg_swing_v2.md): passed: 1,002 trades, +0.078R (t +5.7), 7/7 years positive, 10/10 random seeds beaten. Ported to research/scan/swing.py with historical swaps: IS 2016-21 +0.066R, VAL 2022-24 +0.054R, HOLD +0.038R; placebo (non-gotobi days) ~0. Basket with EURJPY/GBPJPY = C3, passed its holdout (research/results/portfolio/swing_lab_v2_2026-09-27.md).
 - Latest lab run `v2`: net $+802 over 1 symbols, 1 positive, 1 positive every year, 0 with all four flags; best USDJPY $+802
 
 ## N3-IMOM — Market intraday momentum
@@ -489,6 +490,7 @@ Lab rules: $10k, fixed lots per symbol, no loss limits, one position per strateg
 - Rules: Sign of the return from the previous session close to open + 30 minutes, traded over the session's last 30 minutes (US30/USTEC New York 9:30-16:00, DE40 Berlin 9:00-17:30, UK100 London 8:00-16:30); SL 2 x ATR20(30-min bars).
 - Lab: `research.lab.strategies.literature.intraday_momentum` on DE40, UK100, US30, USTEC, variants real, mirror, shuffle
 - Finding: Lab run v2 (2026-09-26, pre-registered bar): failed. Holdout 2025-01..2026-09: 1,735 trades, mean net -0.017R (t -2.0), gross -0.017R, costs 0.000R; 2025 $-505, 2026 $-757; 2023-24 -0.018R; control 60 %; mirror $-783; 25% of 4 symbols positive (best USTEC $+44). Failed: holdout >= 100 trades, mean R > 0, t >= 2.5; 2025 > 0 and 2026 > 0; 2023-24 mean R > 0; beats >= 95 % of control seeds; mirror net > 0; breadth >= 60 %.
+- Finding: Retest 2016-2022 (2026-09-27, unchanged code, out of sample; research/results/portfolio/prereg_swing_v2.md): failed: 6,978 trades, -0.041R (t -8.1), 2/7 years.
 - Latest lab run `v2`: net $-2,167 over 4 symbols, 0 positive, 0 positive every year, 0 with all four flags; best DE40 $-38
 
 ## N4-LBO — London breakout of the Asian range
@@ -533,6 +535,7 @@ Lab rules: $10k, fixed lots per symbol, no loss limits, one position per strateg
 - Rules: Long over the cash session on the last and the first three trading days of each month; SL 3 %.
 - Lab: `research.lab.strategies.rules.turn_of_month` on DE40, UK100, US30, USTEC, variants real, mirror, shuffle
 - Finding: 2025 +0.041R, 2026 +0.088R (t 3.0); 2023 +0.047R but the other days +0.021R; 2024 -0.014R: failed.
+- Finding: Retest 2016-2022 (2026-09-27, unchanged code, out of sample; research/results/portfolio/prereg_swing_v2.md): failed: 1,316 trades, -0.006R (t -0.7), 2/7 years.
 - Latest lab run `main`: net $+5,651 over 4 symbols, 4 positive, 1 positive every year, 0 with all four flags; best USTEC $+2,693
 
 ## K1 — FX weekly fade
@@ -565,6 +568,7 @@ Lab rules: $10k, fixed lots per symbol, no loss limits, one position per strateg
 - Rules: Direction of the first 60 minutes of the cash session, entered at its end, stop at the other end of the range, exit at the close.
 - Lab: `research.lab.strategies.rules.opening_range` on DE40, UK100, US30, USTEC, variants real, mirror, shuffle
 - Finding: 2025 +0.13R (t 2.3, best of 16 ORB variants) -> 2026 +0.005R: failed.
+- Finding: Retest 2016-2022 (2026-09-27, unchanged code, out of sample; research/results/portfolio/prereg_swing_v2.md): failed: 7,138 trades, -0.034R (t -2.0), 2/7 years.
 - Latest lab run `main`: net $+1,158 over 4 symbols, 2 positive, 0 positive every year, 0 with all four flags; best USTEC $+2,792
 
 ## VB1 — Index volatility breakout
@@ -575,6 +579,7 @@ Lab rules: $10k, fixed lots per symbol, no loss limits, one position per strateg
 - Rules: Stop entries at the open +/- 0.35 x the mean range of the last 5 sessions; the first side touched trades; SL at the open; exit at the close.
 - Lab: `research.lab.strategies.rules.vol_breakout` on DE40, UK100, US30, USTEC, variants real, mirror, shuffle
 - Finding: 2025 +0.10R (t 2.1), Jan-May 2026 +0.08R, Jun-Sep 2026 -0.14R: failed.
+- Finding: Retest 2016-2022 (2026-09-27, unchanged code, out of sample; research/results/portfolio/prereg_swing_v2.md): failed: 6,572 trades, +0.023R (t +1.3), 5/7 years.
 - Latest lab run `main`: net $+1,940 over 4 symbols, 2 positive, 1 positive every year, 1 with all four flags; best USTEC $+3,732
 
 ## LC1 — US last-30-minute fade
@@ -585,6 +590,7 @@ Lab rules: $10k, fixed lots per symbol, no loss limits, one position per strateg
 - Rules: Fade C(15:30) - C(10:00) New York from 15:30 to the 16:00 close; SL 2 x ATR20 (30 min).
 - Lab: `research.lab.strategies.rules.last30_fade` on US30, USTEC, variants real, mirror, shuffle
 - Finding: 2025 +0.040R (t 2.2), 2026 +0.022R (t 1.3); Jul-Dec 2024 -0.001R: failed.
+- Finding: Retest 2016-2022 (2026-09-27, unchanged code, out of sample; research/results/portfolio/prereg_swing_v2.md): failed: 3,591 trades, -0.060R (t -7.9), 0/7 years.
 - Latest lab run `main`: net $+1,510 over 2 symbols, 2 positive, 0 positive every year, 0 with all four flags; best USTEC $+810
 
 ## GF1 — US opening-gap fade
@@ -595,6 +601,7 @@ Lab rules: $10k, fixed lots per symbol, no loss limits, one position per strateg
 - Rules: An opening gap larger than 0.1 x the mean session range is faded at 9:31 New York, TP at the previous close, SL the gap's size beyond the open, exit at the close.
 - Lab: `research.lab.strategies.rules.gap_fade` on US30, USTEC, variants real, mirror, shuffle
 - Finding: 2026 +0.046R (t 0.8): failed.
+- Finding: Retest 2016-2022 (2026-09-27, unchanged code, out of sample; research/results/portfolio/prereg_swing_v2.md): failed: 2,944 trades, -0.036R (t -2.0), 1/7 years.
 - Latest lab run `main`: net $+2,069 over 2 symbols, 2 positive, 0 positive every year, 0 with all four flags; best USTEC $+2,008
 
 ## OD1 — Overnight drift
@@ -605,6 +612,7 @@ Lab rules: $10k, fixed lots per symbol, no loss limits, one position per strateg
 - Rules: Long US30 / USTEC from 02:00 to 03:00 New York on weekdays; SL 2 x ATR20(H1).
 - Lab: `research.lab.strategies.rules.overnight_drift` on US30, USTEC, variants real, mirror, shuffle
 - Finding: 2025 -0.006R, 2026 +0.029R (t 2.6): sign flip, failed.
+- Finding: Retest 2016-2022 (2026-09-27, unchanged code, out of sample; research/results/portfolio/prereg_swing_v2.md): failed: 3,603 trades, -0.048R (t -11.2), 1/7 years.
 - Latest lab run `main`: net $-275 over 2 symbols, 1 positive, 0 positive every year, 0 with all four flags; best USTEC $+78
 
 ## MEF — Month-end London fix USD flow
@@ -615,6 +623,7 @@ Lab rules: $10k, fixed lots per symbol, no loss limits, one position per strateg
 - Rules: Last business day of the month, 10:00 -> 16:00 London: sell USD if US30 beat DE40 in USD over the month, else buy it; SL 2 x ATR20(H1).
 - Lab: `research.lab.strategies.rules.month_end_fix` on EURUSD, GBPUSD, AUDUSD, USDCAD, USDJPY, variants real
 - Finding: 20 events in 2025-26, +0.15R (t 1.0): too few to judge.
+- Finding: Retest 2016-2022 (2026-09-27, unchanged code, out of sample; research/results/portfolio/prereg_swing_v2.md): failed: 415 trades, -0.040R (t -0.7), 2/7 years.
 - Latest lab run `main`: net $+844 over 5 symbols, 5 positive, 0 positive every year, 0 with all four flags; best USDJPY $+417
 
 ## FXM1 — FX fade/follow regime switch
@@ -705,6 +714,7 @@ Lab rules: $10k, fixed lots per symbol, no loss limits, one position per strateg
 - Lab: `research.lab.strategies.rules.bank_rule` on all 22, variants real, mirror, shuffle
 - Finding: 552-config bank on 2025-2026 (M1 engine): 0 configs with t >= 2 in 2025, Jan-May and Jun-Sep 2026. This entry is the family's best pooled 2025 cell, frozen for the lab.
 - Finding: Pooled 2025 mean R of this cell: +0.099.
+- Finding: Retest 2016-2022 (2026-09-27, unchanged code, out of sample; research/results/portfolio/prereg_swing_v2.md): failed: 2,242 trades, -0.053R (t -2.5), 2/7 years.
 - Latest lab run `main`: net $+5,469 over 22 symbols, 8 positive, 1 positive every year, 0 with all four flags; best ETHUSD $+11,029
 
 ## BANK-donchR_H1_N20_H6_SL1.5_TPNone — Bank: Donchian fade H1
@@ -801,6 +811,7 @@ Lab rules: $10k, fixed lots per symbol, no loss limits, one position per strateg
 - Lab: `research.lab.strategies.rules.bank_rule` on all 22, variants real, mirror, shuffle
 - Finding: 552-config bank on 2025-2026 (M1 engine): 0 configs with t >= 2 in 2025, Jan-May and Jun-Sep 2026. This entry is the family's best pooled 2025 cell, frozen for the lab.
 - Finding: Pooled 2025 mean R of this cell: +0.063.
+- Finding: Retest 2016-2022 (2026-09-27, unchanged code, out of sample; research/results/portfolio/prereg_swing_v2.md): failed: 2,293 trades, -0.035R (t -2.1), 3/7 years.
 - Latest lab run `main`: net $+2,799 over 22 symbols, 8 positive, 1 positive every year, 0 with all four flags; best ETHUSD $+7,421
 
 ## BANK-rsiR_H1_P2_lo5_H3_SL1.5_TPNone — Bank: RSI fade H1
@@ -849,6 +860,7 @@ Lab rules: $10k, fixed lots per symbol, no loss limits, one position per strateg
 - Lab: `research.lab.strategies.rules.bank_rule` on all 22, variants real, mirror, shuffle
 - Finding: 552-config bank on 2025-2026 (M1 engine): 0 configs with t >= 2 in 2025, Jan-May and Jun-Sep 2026. This entry is the family's best pooled 2025 cell, frozen for the lab.
 - Finding: Pooled 2025 mean R of this cell: +0.107.
+- Finding: Retest 2016-2022 (2026-09-27, unchanged code, out of sample; research/results/portfolio/prereg_swing_v2.md): failed: 334 trades, +0.021R (t +0.4), 5/7 years.
 - Latest lab run `main`: net $+4,478 over 22 symbols, 10 positive, 2 positive every year, 1 with all four flags; best ETHUSD $+4,152
 
 ## BANK-zmoveF_H1_L3_Z3.0_H3_SL1.0_TP1.0 — Bank: z-move follow H1

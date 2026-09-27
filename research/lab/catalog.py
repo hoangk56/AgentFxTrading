@@ -422,8 +422,38 @@ INFO = [
                  "30 min", "Trade index breakouts of the average intraday move envelope.", ("2025 t < 1. Not coded.",)),
 ]
 
-CATALOG: List[StrategyInfo] = [*_flowrsi_entries(), JUDAS, TMSORB, *REFRESH, *RESEARCH, *_bank_entries(), *INFO,
-                               *DROPPED]
+# 2026-09-27 retest on 2016-2022 (out of sample for strategies designed on 2023-2026), unchanged lab code, 15 real
+# symbols; bar and verdicts in research/results/portfolio/prereg_swing_v2.md (R-series).
+_RT = "Retest 2016-2022 (2026-09-27, unchanged code, out of sample; research/results/portfolio/prereg_swing_v2.md): "
+RETEST_2016_2022 = {
+    "N2-GOTOBI": _RT + "passed: 1,002 trades, +0.078R (t +5.7), 7/7 years positive, 10/10 random seeds beaten. "
+                 "Ported to research/scan/swing.py with historical swaps: IS 2016-21 +0.066R, VAL 2022-24 +0.054R, "
+                 "HOLD +0.038R; placebo (non-gotobi days) ~0. Basket with EURJPY/GBPJPY = C3, passed its holdout "
+                 "(research/results/portfolio/swing_lab_v2_2026-09-27.md).",
+    "N3-IMOM": _RT + "failed: 6,978 trades, -0.041R (t -8.1), 2/7 years.",
+    "TOM": _RT + "failed: 1,316 trades, -0.006R (t -0.7), 2/7 years.",
+    "K2": _RT + "failed: 7,138 trades, -0.034R (t -2.0), 2/7 years.",
+    "VB1": _RT + "failed: 6,572 trades, +0.023R (t +1.3), 5/7 years.",
+    "LC1": _RT + "failed: 3,591 trades, -0.060R (t -7.9), 0/7 years.",
+    "GF1": _RT + "failed: 2,944 trades, -0.036R (t -2.0), 1/7 years.",
+    "OD1": _RT + "failed: 3,603 trades, -0.048R (t -11.2), 1/7 years.",
+    "MEF": _RT + "failed: 415 trades, -0.040R (t -0.7), 2/7 years.",
+    "BANK-zmoveF_D1_L3_Z3.0_H3_SL1.0_TP1.0": _RT + "failed: 334 trades, +0.021R (t +0.4), 5/7 years.",
+    "BANK-rsiR_D1_P2_lo5_H3_SL1.5_TPNone": _RT + "failed: 2,293 trades, -0.035R (t -2.1), 3/7 years.",
+    "BANK-donchR_D1_N10_H6_SL1.5_TPNone": _RT + "failed: 2,242 trades, -0.053R (t -2.5), 2/7 years.",
+}
+
+
+def _with_retest(s: StrategyInfo) -> StrategyInfo:
+    if s.id not in RETEST_2016_2022:
+        return s
+    status = "candidate" if s.id == "N2-GOTOBI" else s.status
+    return replace(s, status=status, findings=s.findings + (RETEST_2016_2022[s.id],))
+
+
+CATALOG: List[StrategyInfo] = [_with_retest(s) for s in
+                               [*_flowrsi_entries(), JUDAS, TMSORB, *REFRESH, *RESEARCH, *_bank_entries(), *INFO,
+                                *DROPPED]]
 
 
 def by_id() -> Dict[str, StrategyInfo]:

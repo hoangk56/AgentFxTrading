@@ -4,9 +4,14 @@ from dataclasses import dataclass
 import numpy as np
 
 from research.scan.m1 import load
+from research.scan.specs_ext import EXT_SPECS
 from research.specs import SPECS
 
 MIN = 60_000
+
+
+def spec_for(symbol: str):
+    return SPECS.get(symbol) or EXT_SPECS[symbol]
 
 
 @dataclass
@@ -36,7 +41,7 @@ def resample(m: dict, minutes: int, offset_min: int = 0) -> TF:
 
 def comm_price(symbol: str) -> float:
     """Round-trip commission per unit, expressed in quote price units."""
-    sp = SPECS[symbol]
+    sp = spec_for(symbol)
     return sp.comm_per_unit / sp.usd_per_quote
 
 
