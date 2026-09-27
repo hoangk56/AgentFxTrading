@@ -2,11 +2,9 @@
 
 <div align="center">
 
-**Giao Dịch Forex Tự Động Với Chiến Lược TMS + ORB**
+**cBot cTrader + máy chủ ra quyết định FastAPI + dashboard web đa tài khoản**
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Python 3.9+](https://img.shields.io/badge/python-3.9+-blue.svg)](https://www.python.org/downloads/)
-[![cTrader](https://img.shields.io/badge/cTrader-4.x+-green.svg)](https://ctdn.com/)
 [![Stars](https://img.shields.io/github/stars/kienphan/AgentFxTrading?style=social)](https://github.com/kienphan/AgentFxTrading/stargazers)
 [![Forks](https://img.shields.io/github/forks/kienphan/AgentFxTrading?style=social)](https://github.com/kienphan/AgentFxTrading/network/members)
 [![Issues](https://img.shields.io/github/issues/kienphan/AgentFxTrading)](https://github.com/kienphan/AgentFxTrading/issues)
@@ -14,15 +12,13 @@
 
 [🇬🇧 English](README.md) | [🇻🇳 Tiếng Việt](README.vi.md) | [🇨🇳 中文](README.zh.md) | [🇵🇹 Português](README.pt.md) | [🇯🇵 日本語](README.ja.md) | [🇷🇺 Русский](README.ru.md)
 
-[Cài Đặt](#-hướng-dẫn-cài-đặt) • [Tính Năng](#-tính-năng) • [Chiến Lược](#-chiến-lược-giao-dịch) • [API Docs](#-api-documentation) • [Ủng Hộ](#-ủng-hộ--sàn-giao-dịch) • [Đóng Góp](#-đóng-góp)
+*Đây là bản dịch của README ngắn; tài liệu tham chiếu chi tiết trong `docs/` chỉ có bằng tiếng Anh.*
 
 <br/>
 
-<a href="#-giao-diện-dashboard">
-  <img src="docs/screenshots/overview.png" alt="AgentFxTrading Web Dashboard Overview" width="95%" style="border-radius: 8px; box-shadow: 0 4px 20px rgba(0,0,0,0.4);" />
-</a>
+<img src="docs/screenshots/overview.png" alt="AgentFxTrading Web Dashboard Overview" width="95%" style="border-radius: 8px; box-shadow: 0 4px 20px rgba(0,0,0,0.4);" />
 
-*Giao diện giám sát giao dịch AI đa tài khoản thời gian thực với killzone phiên giao dịch, KPI tài khoản, vị thế mở và nhật ký lệnh.*
+*Màn hình giám sát đa tài khoản: killzone phiên giao dịch, KPI tài khoản, vị thế đang mở và telemetry lệnh.*
 
 </div>
 
@@ -31,15 +27,13 @@
 ## 📋 Mục Lục
 
 - [Tổng Quan](#-tổng-quan)
-- [Tính Năng](#-tính-năng)
-- [Kiến Trúc](#-kiến-trúc)
-- [Hướng Dẫn Cài Đặt](#-hướng-dẫn-cài-đặt)
-- [Docker Instances (đủ 45 lệnh)](docs/docker-instances.md)
-- [Chiến Lược Giao Dịch](#-chiến-lược-giao-dịch)
+- [Tính Năng Chính](#-tính-năng-chính)
+- [Dashboard](#-dashboard)
+- [Bắt Đầu Nhanh](#-bắt-đầu-nhanh)
+- [Chạy cBot](#-chạy-cbot)
 - [Cấu Hình](#-cấu-hình)
-- [API Documentation](#-api-documentation)
-- [Phát Triển](#-phát-triển)
-- [Hiệu Suất](#-hiệu-suất)
+- [Tài Liệu](#-tài-liệu)
+- [Tình Trạng Nghiên Cứu](#-tình-trạng-nghiên-cứu)
 - [Ủng Hộ & Sàn Giao Dịch](#-ủng-hộ--sàn-giao-dịch)
 - [Đóng Góp](#-đóng-góp)
 - [Giấy Phép](#-giấy-phép)
@@ -48,849 +42,209 @@
 
 ## 🎯 Tổng Quan
 
-AgentFxTrading là **hệ thống giao dịch forex tự động** kết hợp sức mạnh của AI với các chiến lược phân tích kỹ thuật đã được chứng minh. Hệ thống sử dụng **TMS (Trend Momentum Signal)** để phát hiện xu hướng và **ORB (Opening Range Breakout)** để xác định thời điểm vào lệnh chính xác.
+AgentFxTrading chạy các chiến lược giao dịch dưới dạng **cBot cTrader** (C#), mỗi tổ hợp chiến lược × mã × tài khoản
+là một container Docker. Các bot có cổng AI gửi ảnh chụp thị trường tới **máy chủ FastAPI** (Python); máy chủ áp dụng
+các cổng lọc cố định và kiểm tra rủi ro danh mục, và khi setup đạt yêu cầu thì hỏi **LLM** để ra quyết định. Mọi bot
+đều báo cáo vị thế và telemetry về máy chủ; máy chủ lưu vào **PostgreSQL** (SQLite làm dự phòng khi chạy local) và
+phục vụ **dashboard web** để giám sát, quản lý bot và backtest.
 
-### Tại Sao Chọn AgentFxTrading?
+Hiện có năm cBot:
 
-✅ **Hoàn Toàn Tự Động** - AI đưa ra quyết định giao dịch 24/7  
-✅ **Hỗ Trợ Đa LLM** - Hoạt động với Qwen, OpenAI, Claude, Gemini, DeepSeek  
-✅ **Quản Lý Rủi Ro** - Kiểm soát rủi ro cấp độ danh mục trên nhiều cặp tiền  
-✅ **Chiến Lược Đã Chứng Minh** - Dựa trên phương pháp TMS chuyên nghiệp  
-✅ **Dễ Dàng Cài Đặt** - Bắt đầu trong vòng 10 phút  
-✅ **Mã Nguồn Mở** - Hoàn toàn minh bạch và tùy chỉnh được  
-
----
-
-## 🚀 Tính Năng
-
-### 🤖 Hệ Thống Đa Chiến Thuật AI (3 Engines)
-- **1. Động cơ TMS + ORB (`AiAgentBot`)**: Kết hợp Trend Momentum Signal (Heikin Ashi + TDI + Stochastic) với Opening Range Breakout và nhận diện Kaufman Efficiency Regimes linh hoạt.
-- **2. Động cơ Asian Range Judas Sweep (`AsianRangeJudasSweepBot`)**: Bắt sóng đảo chiều săn quét thanh khoản ICT Smart Money Concepts tại đỉnh/đáy phiên Á (00:00–06:00 UTC) trong các khung giờ vàng London (07:00–10:00 UTC) và New York (12:30–16:00 UTC) với xác nhận Order Block / FVG.
-- **3. Động cơ FlowRSI / Nested RSI SMC (`FlowRsiBot`)**: Hội tụ động lượng đa khung thời gian kết hợp điểm giao cắt RSI nhanh (7) và RSI chậm (14) với ICT Smart Money Concepts (Fair Value Gap - FVG, vùng cân bằng Premium/Discount Equilibrium, và bẫy quét thanh khoản Swing Liquidity Sweeps). Tích hợp SL/TP động, hòa vốn True Break-Even chống drawdown, trailing stop theo điều kiện, và xác thực quyết định trực tiếp qua cầu nối AI Agent.
-- **Hỗ Trợ Đa LLM**: Qwen, OpenAI GPT-4o, Claude 3.5 Sonnet, Gemini 2.0 Flash, DeepSeek V3/R1.
-- **Phân Tích Đa Khung Thời Gian**: Đồng bộ xu hướng M15 + H1 + H4, cấu trúc swing high/low và bộ lọc tin tức thời gian thực.
-### 💼 Quản Lý Danh Mục
-- **Giao Dịch Đa Symbol**: Chạy nhiều bot trên các cặp tiền khác nhau
-- **Kiểm Soát Phơi Nhiễm Tiền Tệ**: Ngăn chặn phơi nhiễm quá mức vào một tiền tệ
-- **Phát Hiện Tương Quan**: Chặn các vị thế có tương quan cao
-- **Giới Hạn Lỗ Hàng Ngày**: Tự động dừng giao dịch sau khi lỗ tối đa
-
-- **Bộ Nhớ Vị Thế**: Theo dõi MFE (Maximum Favorable Excursion) từng tick
-- **Bộ Lọc Phiên Á Linh Hoạt (Adaptive Asian Range)**: Ngưỡng phiên Á tương thích từng loại tài sản (`[200p, 8000p]` cho Vàng, `[12p, 100p]` cho Forex, `[15p, 200p]` cho JPY crosses, `[10000p, 400000p]` cho BTC, `[800p, 35000p]` cho ETH) cùng cơ chế chặn gọi AI dư thừa khi không có vị thế
-- **Trailing Stop**: Điều chỉnh SL động bám sát đường giá bắt đầu từ $1.2\times$ ATR (trail $0.7\times$ ATR)
-- **Khóa Lợi Nhuận & Bảo Vệ Giveback**: Đóng vị thế chốt lời ngay nếu mất $\ge 40\%$ số lãi cao nhất (Forex/Vàng) hoặc $\ge 55\%$ với kích hoạt $\ge 1.5\times$ ATR (Chỉ số: US30, USTEC, DE40), tránh bị cắt non khi chỉ số co giật 50–300 giá
-- **Bộ Lọc Chống Quá Mức (Anti-Overextension Guard)**: Chặn hoàn toàn các lệnh phá vỡ đã chạy quá $2.5\times$ ATR từ vùng OR
-- **Giới Hạn Trần Rủi Ro (Max Dollar Risk Cap)**: Khống chế mức lỗ tối đa ($12.00) trên mỗi lệnh đối với các tài sản có khối lượng tối thiểu lớn
-- **Bảo Vệ Chuỗi Thua**: Chặn vào lệnh sau 3 lần thua liên tiếp
-- **Cycle Gating (Cost Gate)**: Tự động bỏ qua gọi LLM khi ngoài phiên, giá trong OR, quá xa vùng cản hoặc đang chuỗi thua — tiết kiệm 80-90% chi phí API
-- **Trend TP Disabled**: Tự động hủy TP cố định khi thị trường có xu hướng mạnh (`trending`) để gồng lời tối đa bằng Trailing SL & Giveback Floor
-- **Độ Chính Xác Đa Tài Sản Động (Dynamic Precision)**: Tự động scale số thập phân (5 số cho Forex, 3 số cho cặp JPY, 2 số cho Vàng, Chỉ số và Crypto), chống méo mó nến trong prompt AI
-- **Chuẩn Hóa ATR Pips**: Tự động quy đổi đơn vị biến động sang pips thực tế cho từng symbol để LLM đánh giá chuẩn xác
-- **Cycle Gate Đa Lớp Cho Crypto**: Phân loại chuẩn xác nhóm Crypto (`BTC`, `ETH`, `SOL`, `XRP`) với ngưỡng trần khoảng cách breakout thực tế (lên đến 60.000 pips)
-- **Bộ Lọc Phiên Á Linh Hoạt (Adaptive Asian Range)**: Ngưỡng phiên Á tương thích từng loại tài sản (`[200p, 8000p]` cho Vàng, `[12p, 100p]` cho Forex) cùng cơ chế chặn gọi AI dư thừa khi không có vị thế
-- **Tích Hợp Telemetry cBot**: cBot tự động báo cáo các sự kiện chặn lệnh (Guardrail blocks) về FastAPI server qua `/api/cbot_event`
-### ⏰ Quản Lý Phiên
-- **Phiên Giao Dịch**: Thời gian phiên có thể cấu hình (London, NY, Tokyo)
-- **Tự Động Đóng Cuối Ngày**: Tự động đóng vị thế khi kết thúc phiên
-- **Phát Hiện Giai Đoạn**: Pre-market, active, ending, closed
-
----
-
-## 🏗️ Kiến Trúc
-
-```mermaid
-graph LR
-    A[cTrader cBot<br/>C#] -->|HTTP POST| B[FastAPI Server<br/>Python]
-    B -->|JSON Response| A
-    B --> C{LLM Provider}
-    C --> D[Qwen]
-    C --> E[OpenAI]
-    C --> F[Claude]
-    C --> G[Gemini]
-    C --> H[DeepSeek]
-    B --> I[(PostgreSQL<br/>Portfolio DB)]
-```
-
-### Phân Tích Component
-
-| Component | Công Nghệ | Trách Nhiệm |
-|-----------|-----------|----------------|
-| **cBot** | C# / cTrader | Tính toán chỉ báo, thực thi giao dịch |
-| **Server** | Python / FastAPI | Ra quyết định AI, quản lý rủi ro |
-| **Database** | PostgreSQL / SQLite | Theo dõi danh mục, lịch sử vị thế (PostgreSQL cho production, SQLite fallback) |
-| **LLM** | Nhiều loại | Phân tích quyết định giao dịch |
-
-
----
-
-## 📊 Giao Diện Dashboard
-
-Theo dõi và quản lý hệ thống giao dịch thời gian thực qua giao diện web dashboard hiện đại:
-
-### 🖥️ Hình Ảnh Giao Diện Dashboard
-
-| 📈 Giám Sát Tổng Quan & Phiên Giao Dịch | 🧠 Luồng Quyết Định & Suy Luận AI |
-| :---: | :---: |
-| [![Giám Sát Tổng Quan](docs/screenshots/overview.png)](docs/screenshots/overview.png) | [![Luồng Quyết Định AI](docs/screenshots/ai-thinking.png)](docs/screenshots/ai-thinking.png) |
-| *Chỉ số KPI thời gian thực, vị thế mở, lịch sử lệnh và killzones* | *Phân tích đa khung thời gian, độ tin cậy LLM và thông số SL/TP* |
-
-| 🏆 Bảng Xếp Hạng Hiệu Suất Bot (Quant) | 📰 Đánh Giá Tin Tức ForexFactory & AI Macro |
-| :---: | :---: |
-| [![Bảng Xếp Hạng Bot](docs/screenshots/leaderboard.png)](docs/screenshots/leaderboard.png) | [![Đánh Giá Tin Tức](docs/screenshots/news-assessment.png)](docs/screenshots/news-assessment.png) |
-| *Điểm định lượng tổng hợp, tỷ lệ thắng và huy hiệu Tier S/A/B/C* | *Lịch tin tức kinh tế mạnh, cảnh báo tác động tiền tệ và độ biến động* |
-
-| Chế độ | Đường dẫn URL | Mô tả |
+| cBot | Chiến lược | Quyết định |
 | :--- | :--- | :--- |
-| **Demo** | `http://127.0.0.1:8000/demo/dashboard` *(hoặc `/demo`)* | Dashboard tài khoản Paper Trading (tách biệt độc lập) |
-| **Real / Live** | `http://127.0.0.1:8000/real/dashboard` *(hoặc `/real`, `/live`)* | Dashboard tài khoản tiền thật Real/Live (tách biệt độc lập) |
-| **Tự Động Chuyển** | `http://127.0.0.1:8000/` *(hoặc `/dashboard`)* | Tự động điều hướng về chế độ hoạt động gần nhất (Demo hoặc Real) |
+| `cBot/AiAgentBot.cs` | TMS (Trend Momentum Signal) + Opening Range Breakout | Qua cổng AI |
+| `cBot/AsianRangeJudasSweepBot.cs` | Asian Range Judas Sweep (quét thanh khoản kiểu ICT) | Qua cổng AI |
+| `cBot/FlowRsiBot.cs` | FlowRSI: RSI nhanh/chậm lồng nhau + bộ lọc SMC | Qua cổng AI |
+| `cBot/GotobiBot.cs` | Giao dịch Gotobi quanh giờ fix Tokyo trên USDJPY / EURJPY / GBPJPY | Theo luật |
+| `cBot/CryptoDonchianBot.cs` | Breakout Donchian H4 trên BTCUSD / ETHUSD (forward test) | Theo luật |
 
-### Tính Năng Dashboard
+Xem [docs/strategies.md](docs/strategies.md) để biết từng bot làm gì.
 
-- **Phân Lập Nhị Phân Nghiêm Ngặt**: Chỉ duy trì 2 chế độ độc lập (`Demo | Real`), loại bỏ hoàn toàn chế độ All để tránh nhầm lẫn giữa tiền thật và tiền ảo.
-- **Ghi Nhớ Chế Độ Gần Nhất**: Hệ thống tự động ghi nhớ chế độ bạn truy cập lần cuối (qua cookie & file persistence); khi vào `/` hoặc `/dashboard`, hệ thống sẽ tự động đưa bạn về đúng chế độ gần nhất.
-- **Nút Switch Chuyển Đổi Nhanh**: Chuyển đổi 1-click (`Demo | Real`) ngay trên Header với thanh trạng thái cảnh báo trực quan (`🔴 REAL MODE` vs `🟡 DEMO MODE`).
-- **Phân Lập Dữ Liệu Tuyệt Đối**: Định tuyến URL tách biệt 100% số dư (Balance/Equity), vị thế mở, lịch sử giao dịch, cấu hình bot Docker và nhật ký reasoning giữa tài khoản Demo và Live.
-- **Cập Nhật Thời Gian Thực**: Kết nối WebSocket 2 chiều cập nhật tức thời trạng thái vị thế và P&L thả nổi.
-- **Bảng Vị Thế Mở (Active Positions)**: Phân loại trực quan chiến lược (`Judas SMC` badge tím vs `TMS+ORB` badge xanh), định danh cBot, symbol, khối lượng, giá vào, SL/TP và PnL thả nổi.
-- **Lịch Sử Giao Dịch (Recent Trades)**: Chi tiết các lệnh đã đóng kèm nhãn bot, badge tài khoản (`DEMO` / `LIVE`) và P&L.
-- **Biểu Đồ P&L**: Trực quan hóa hiệu suất lợi nhuận hàng ngày.
-- **Giám Sát Guardrail**: Theo dõi trực tiếp các sự kiện cBot và lý do chặn lệnh từ server.
-
-### API Endpoints
-
-```
-GET  /demo/dashboard           # Giao diện web dashboard Demo (phân lập)
-GET  /real/dashboard           # Giao diện web dashboard Real/Live (phân lập)
-GET  /                         # Tự động chuyển hướng về chế độ gần nhất
-GET  /dashboard                # Tự động chuyển hướng về chế độ gần nhất
-GET  /api/dashboard/positions  # Danh sách vị thế đang mở (hỗ trợ ?account_id=demo|live|all|<id>)
-GET  /api/dashboard/history    # Lịch sử lệnh đã đóng, phân trang 10/trang (?account_id=demo|live|all|<id>&page=N&page_size=N)
-GET  /api/dashboard/pnl-history# Lịch sử P&L theo ngày (hỗ trợ ?account_id=demo|live|all|<id>)
-GET  /api/dashboard/logs       # Log hệ thống & reasoning (hỗ trợ ?mode=demo|live|all)
-GET  /api/bots                 # Cấu hình bot Docker & trạng thái (kèm account_type)
-POST /api/tick                 # Telemetry giá & số dư từ cBot (dự phòng qua HTTP)
-WS   /ws/cbot                  # Luồng tick từ cBot: bid/ask + P&L broker (--TickStreamMs, 0=tắt)
-POST /api/cbot_event           # Telemetry sự kiện & cảnh báo guardrail từ cBot
-POST /portfolio/report         # Báo cáo vòng đời mở/đóng lệnh từ cBot
-WS   /ws/dashboard             # Luồng WebSocket thời gian thực
-```
 ---
 
-## ⚡ Hướng Dẫn Cài Đặt
+## 🚀 Tính Năng Chính
 
-### Yêu Cầu Hệ Thống
+- **Nhiều LLM**: Qwen (DashScope), OpenAI, Anthropic Claude, Google Gemini, DeepSeek, hoặc endpoint tương thích OpenAI bất kỳ.
+- **Cổng tiết kiệm chi phí**: máy chủ trả `HOLD` mà không gọi LLM khi không có setup hợp lệ.
+- **Rủi ro danh mục**: kiểm tra lệnh vào ở cấp danh mục cùng giới hạn lỗ theo ngày cho tài khoản, chiến lược và container, chỉnh được trên dashboard.
+- **Bot headless**: container Docker `ctrader-console`, tạo từ màn hình **Setup Instances** trên dashboard.
+- **Watchdog**: khởi động lại container bị kẹt ở bước đăng nhập hoặc ngừng gửi dữ liệu.
+- **Trang Backtest**: chạy backtest cTrader cho một bot đã cài trong container và vẽ biểu đồ báo cáo.
+- **Lá chắn tin tức**: lịch tin quan trọng ForexFactory kèm đánh giá bằng AI.
+- **Tách biệt Demo / Real**: dashboard và dữ liệu riêng cho tài khoản demo và tài khoản thật.
 
-- Python 3.9+
-- cTrader 4.x+ (Chưa có tài khoản? Đăng ký [IC Markets cTrader](https://ic.com/?camp=95400) để nhận Raw Spread và độ trễ cực thấp)
-- API key LLM (Qwen/OpenAI/Claude/Gemini/DeepSeek)
+---
 
-### 1. Cài Đặt Dependencies Python
+## 📊 Dashboard
+
+| 📈 Tổng Quan & Phiên Giao Dịch | 🧠 Chiến Lược AI & Luồng Quyết Định |
+| :---: | :---: |
+| [![Overview Dashboard](docs/screenshots/overview.png)](docs/screenshots/overview.png) | [![AI Strategy Feed](docs/screenshots/ai-thinking.png)](docs/screenshots/ai-thinking.png) |
+| *Chỉ số KPI, vị thế đang mở, lệnh gần đây và killzone* | *Lập luận đa khung thời gian, độ tin cậy của LLM và gợi ý SL/TP* |
+
+| 🏆 Bảng Xếp Hạng Hiệu Suất | 📰 Tin Đỏ ForexFactory & Đánh Giá AI |
+| :---: | :---: |
+| [![Quant Leaderboard](docs/screenshots/leaderboard.png)](docs/screenshots/leaderboard.png) | [![News Assessment](docs/screenshots/news-assessment.png)](docs/screenshots/news-assessment.png) |
+| *Xếp hạng tổng hợp, tỷ lệ thắng và huy hiệu Tier S/A/B/C* | *Lịch tin quan trọng, mức ảnh hưởng theo đồng tiền và đánh giá vĩ mô* |
+
+Mở `http://127.0.0.1:8000/demo/dashboard` cho tài khoản demo, `http://127.0.0.1:8000/real/dashboard` cho tài khoản
+thật, hoặc `http://127.0.0.1:8000/` để quay lại chế độ dùng gần nhất.
+
+---
+
+## ⚡ Bắt Đầu Nhanh
+
+### Cách 1: cài VPS bằng một lệnh (Ubuntu 22.04 / 24.04 / 26.04)
+
+Trên VPS mới, với quyền root:
 
 ```bash
-# Clone repository
+curl -fsSL https://raw.githubusercontent.com/kienphan/AgentFxTrading/main/scripts/install.sh | sudo bash
+```
+
+Script hỏi SSH public key cho user `forge`, rồi cài PostgreSQL 17, Docker, máy chủ dưới dạng service systemd
+`agentfx` (lắng nghe `127.0.0.1:8000`), build năm gói `.algo` của cBot và bật backup cơ sở dữ liệu hằng ngày.
+**Đăng nhập SSH bằng mật khẩu bị tắt**, nên hãy kiểm tra key từ một terminal khác trước khi đóng phiên root. Chi tiết,
+tuỳ chọn và cách nâng cấp: [docs/deployment.md](docs/deployment.md).
+
+Sau đó mở dashboard qua tunnel (`ssh -N -L 8000:127.0.0.1:8000 forge@YOUR_VPS_IP`), điền LLM key vào
+`/home/forge/AgentFxTrading/.env` và chạy `sudo systemctl restart agentfx`.
+
+### Cách 2: chạy local / cài thủ công
+
+```bash
 git clone https://github.com/kienphan/AgentFxTrading.git
 cd AgentFxTrading
-
-# Cài đặt dependencies
+python3 -m venv .venv && source .venv/bin/activate
 pip install -r requirements.txt
+
+cp .env.example .env        # rồi đặt LLM_PROVIDER và API key tương ứng
+python app/server.py        # chạy tại http://127.0.0.1:8000
 ```
 
-### 2. Cấu Hình LLM Provider
-
-```bash
-# Copy template môi trường
-cp .env.example .env
-
-# Chỉnh sửa .env với API key của bạn
-# Ví dụ cho Qwen (khuyến nghị):
-LLM_PROVIDER=qwen
-DASHSCOPE_API_KEY=sk-your-dashscope-key
-LLM_MODEL=qwen-max
-```
-
-### 3. Khởi Động Server
-
-```bash
-python app/server.py
-```
-
-Server sẽ chạy tại `http://127.0.0.1:8000`
-
-### 4. Thiết Lập & Chạy cBot
-
-Bạn có thể chạy cBot bằng **Giao diện cTrader Desktop (GUI)** hoặc **Headless Docker CLI** (`ctrader-console`).
-
-#### Cách A: Giao diện cTrader Desktop (GUI)
-
-1. Mở **cTrader** → **Automate**
-2. Click **New** → **cBot**
-3. Dán code từ `cBot/AiAgentBot.cs`
-4. Click **Build**
-5. Attach vào chart (khuyến nghị M15 hoặc H1)
-6. Cấu hình parameters:
-   - **Bot ID**: `xauusd_m15` (identifier duy nhất)
-   - **API URL**: `http://127.0.0.1:8000/trade`
-   - **Session**: New York (13:00-21:00 UTC) / London (8:00-17:00 UTC) / Tokyo (0:00-9:00 UTC)
-
-#### Cách B: Chạy Bằng Docker CLI (`ctrader-console`)
-
-1. **Chuẩn bị File Mật khẩu cTID**:
-   ```bash
-   mkdir -p /root/ctrader_data
-   echo "mat_khau_ctid_cua_ban" > /root/ctrader_data/ctid_pwd
-   chmod 600 /root/ctrader_data/ctid_pwd
-   ```
-
-2. **Build/Biên dịch gói `.algo`**:
-2. **Biên Dịch Các Gói `.algo`**:
-   ```bash
-   # 1. Biên dịch TMS+ORB Bot (AiAgentBot)
-   docker run --rm -v $(pwd):/workspace -v /root:/root \
-     ghcr.io/spotware/ctrader-console:latest create cbot AiAgentBot
-   cp cBot/AiAgentBot.cs /root/cAlgo/Sources/Robots/AiAgentBot/AiAgentBot/AiAgentBot.cs
-   docker run --rm -v $(pwd):/workspace -v /root:/root \
-     ghcr.io/spotware/ctrader-console:latest build /root/cAlgo/Sources/Robots/AiAgentBot/AiAgentBot/AiAgentBot.csproj
-   cp /root/cAlgo/Sources/Robots/AiAgentBot.algo cBot/AiAgentBot.algo
-
-   # 2. Biên dịch Asian Range Judas Sweep Bot (AsianRangeJudasSweepBot)
-   docker run --rm -v $(pwd):/workspace -v /root:/root \
-     ghcr.io/spotware/ctrader-console:latest create cbot AsianRangeJudasSweepBot
-   cp cBot/AsianRangeJudasSweepBot.cs /root/cAlgo/Sources/Robots/AsianRangeJudasSweepBot/AsianRangeJudasSweepBot/AsianRangeJudasSweepBot.cs
-   docker run --rm -v $(pwd):/workspace -v /root:/root \
-     ghcr.io/spotware/ctrader-console:latest build /root/cAlgo/Sources/Robots/AsianRangeJudasSweepBot/AsianRangeJudasSweepBot/AsianRangeJudasSweepBot.csproj
-   cp /root/cAlgo/Sources/Robots/AsianRangeJudasSweepBot.algo cBot/AsianRangeJudasSweepBot.algo
-
-   # 3. Biên dịch FlowRSI SMC Bot (FlowRsiBot)
-   docker run --rm -v $(pwd):/workspace -v /root:/root \
-     ghcr.io/spotware/ctrader-console:latest create cbot FlowRsiBot
-   cp cBot/FlowRsiBot.cs /root/cAlgo/Sources/Robots/FlowRsiBot/FlowRsiBot/FlowRsiBot.cs
-   docker run --rm -v $(pwd):/workspace -v /root:/root \
-     ghcr.io/spotware/ctrader-console:latest build /root/cAlgo/Sources/Robots/FlowRsiBot/FlowRsiBot/FlowRsiBot.csproj
-   cp /root/cAlgo/Sources/Robots/FlowRsiBot.algo cBot/FlowRsiBot.algo
-
-   # 4. GotobiBot (Gotobi Fix)
-   docker run --rm -v $(pwd):/workspace -v /root:/root \
-     ghcr.io/spotware/ctrader-console:latest create cbot GotobiBot
-   cp cBot/GotobiBot.cs /root/cAlgo/Sources/Robots/GotobiBot/GotobiBot/GotobiBot.cs
-   docker run --rm -v $(pwd):/workspace -v /root:/root \
-     ghcr.io/spotware/ctrader-console:latest build /root/cAlgo/Sources/Robots/GotobiBot/GotobiBot/GotobiBot.csproj
-   cp /root/cAlgo/Sources/Robots/GotobiBot.algo cBot/GotobiBot.algo
-
-   # 5. CryptoDonchianBot (Crypto Donchian H4)
-   docker run --rm -v $(pwd):/workspace -v /root:/root \
-     ghcr.io/spotware/ctrader-console:latest create cbot CryptoDonchianBot
-   cp cBot/CryptoDonchianBot.cs /root/cAlgo/Sources/Robots/CryptoDonchianBot/CryptoDonchianBot/CryptoDonchianBot.cs
-   docker run --rm -v $(pwd):/workspace -v /root:/root \
-     ghcr.io/spotware/ctrader-console:latest build /root/cAlgo/Sources/Robots/CryptoDonchianBot/CryptoDonchianBot/CryptoDonchianBot.csproj
-   cp /root/cAlgo/Sources/Robots/CryptoDonchianBot.algo cBot/CryptoDonchianBot.algo
-   ```
-
-3. **Hướng Dẫn Chạy Đa Tài Khoản (Song Song DEMO &amp; LIVE Không Xung Đột)**:
-
-   Khi triển khai bot cho tài khoản LIVE song song với bot DEMO, tùy chỉnh các cờ tham số để tránh xung đột hệ thống:
-   - **Tên Container (`--name`)**: Phải là duy nhất trên Docker host. Dùng `cbot-live-<symbol>` vs `cbot-demo-<symbol>`.
-   - **Số Tài Khoản (`--account`)**: Điền số tài khoản Live cTrader thực tế (VD: `88888888`).
-   - **Nhãn Tài Khoản (`--AccountLabel`)**: Điền `"live"` (hoặc `"live-main"`). cBot gửi nhãn này để gắn tag và định tuyến dữ liệu về `/real/dashboard`.
-   - **Định Danh Bot (`--BotId`)**: Dùng mã định danh phân biệt, ví dụ `live_xauusd_m15` vs `demo_xauusd_m15`.
-   - **Quản Lý Rủi Ro**: Thiết lập rủi ro chặt chẽ hơn cho vốn thật (VD: `--RiskPerTradePercent=0.1` hoặc `0.2`).
-   - **Thông Tin Đăng Nhập (`--pwd-file`)**: Nếu dùng cTID riêng cho tài khoản Live, tạo file mật khẩu riêng (VD: `/root/ctrader_data/ctid_live_pwd`).
-   - **Biến Môi Trường (`.env`)**:
-     ```bash
-     DASHBOARD_ACCOUNTS=demo-10101649|10101649|demo|Demo Account;live-88888888|88888888|live|Live Main
-     ```
-
-4. **Khởi Chạy Multi-Instance Docker Containers**:
-
-   Toàn bộ **45** lệnh chạy sẵn — 15 symbol × 3 chiến lược — đã được tách sang một file riêng:
-
-   **📖 [docs/docker-instances.md](docs/docker-instances.md)**
-
-   File đó liệt kê đầy đủ từng ô của lưới Setup Instances — TMS+ORB, Asian Range Judas Sweep và FlowRSI trên
-   XAUUSD, EURUSD, GBPUSD, USDJPY, GBPJPY, EURJPY, USDCAD, AUDUSD, AUDJPY, US30, USTEC, DE40, UK100, BTCUSD và
-   ETHUSD — kèm các giá trị placeholder cần thay, quy tắc đặt tên container và cách chạy song song DEMO với LIVE.
-
-   Một ví dụ, XAUUSD TMS+ORB phiên New York:
-
-   ```bash
-   docker run -d \
-     --name cbot-demo-xauusd-newyork \
-     --restart unless-stopped \
-     --network host \
-     -v $(pwd):/workspace \
-     -v /root:/root \
-     ghcr.io/spotware/ctrader-console:latest \
-     run /workspace/cBot/AiAgentBot.algo \
-     --ctid=your_email@example.com \
-     --pwd-file=/root/ctrader_data/ctid_pwd \
-     --account=YOUR_ACCOUNT_ID \
-     --symbol=XAUUSD \
-     --period=m15 \
-     --full-access \
-     --BotId="cbot-demo-xauusd-newyork" \
-     --ApiUrl="http://127.0.0.1:8000/trade" \
-     --AccountLabel="demo" \
-     --OrbStartHour=13 \
-     --SessionEndHour=21 \
-     --SessionDstRule="US" \
-     --MinDecisiveBreakoutPips=200.0 \
-     --MinOrWidthPips=400.0 \
-     --OrbBufferPips=50.0 \
-     --BreakevenTriggerAtr=1.2 \
-     --BreakevenOffsetAtr=0.1 \
-     --TrailTriggerAtr=2.0 \
-     --TrailDistanceAtr=1.0 \
-     --PartialCloseRatio=0.5 \
-     --MinSlAtr=0.8 \
-     --MaxSlAtr=3.0 \
-     --MinTpAtr=1.0 \
-     --MaxTpAtr=6.0 \
-     --MaxGivebackAtr=1.0 \
-     --GivebackArmMinPips=150.0 \
-     --MinAdjustBeProfitPips=300.0 \
-     --EnablePostTpGate=true \
-     --PostTpPullbackAtr=0.5 \
-     --BounceTradeEnabled=true \
-     --BounceDistanceThreshold=10 \
-     --RiskPerTradePercent=0.2 \
-     --TrendTpDisabled=true
-   ```
-
-### 5. Bắt Đầu Giao Dịch! 🎉
-
-Bot sẽ tự động:
-- Tính toán chỉ báo khi mỗi nến đóng
-- Gửi snapshot thị trường đến AI server
-- Nhận quyết định giao dịch
-- Thực thi giao dịch với quản lý rủi ro
+Nếu `DATABASE_URL` không trỏ tới một PostgreSQL kết nối được, máy chủ dùng file SQLite `portfolio.db`.
 
 ---
 
-## 📈 Chiến Lược Giao Dịch
+## 🤖 Chạy cBot
 
-### TMS (Trend Momentum Signal)
+1. **Build các gói `.algo`** — script cài đặt đã làm việc này; muốn build thủ công xem
+   [docs/deployment.md → Building the cBots](docs/deployment.md#building-the-cbots). Cũng có thể dán một file
+   `cBot/*.cs` vào cTrader Desktop (**Automate → New cBot → Build**) rồi gắn vào chart.
+2. **Tạo instance** — trên dashboard, **Docker Bot Management → Setup Instances**: chọn hoặc thêm tài khoản cTrader,
+   tích các ô mã × chiến lược và bấm **Create instances**.
+3. **Hoặc chạy tay** — mọi preset đều được viết thành lệnh `docker run` trong
+   **[docs/docker-instances.md](docs/docker-instances.md)** (50 ô). Một ví dụ, XAUUSD TMS+ORB phiên New York:
 
-TMS xác định **directional bias** bằng ba xác nhận:
-
-| Chỉ Báo | Tín Hiệu Bullish | Tín Hiệu Bearish |
-|----------|------------------|------------------|
-| **TDI** | Green > Red | Green < Red |
-| **Heiken Ashi** | Nến xanh | Nến đỏ |
-| **Stochastic** | K > D | K < D |
-
-**Khái Niệm Chính**: Bias được khóa cho đến khi có cross tiếp theo, ngăn chặn whipsaws.
-
-### ORB (Opening Range Breakout)
-
-ORB cung cấp **thời điểm vào lệnh chính xác**:
-
-1. **Opening Range**: High/Low của 15 phút đầu phiên
-2. **Breakout**: Giá đóng cửa vượt qua ranh giới OR
-3. **Bộ Lọc Quyết Định**: Breakout phải dứt khoát (≥ MinDecisiveBreakoutPips, mặc định 10.0 pips cho XAUUSD)
-
-### Nhận Diện Chế Độ Thị Trường (Market Regime)
-
-Hệ thống tính toán các chỉ số hiệu suất dòng tiền thời gian thực:
-- **`er_session` & `er_recent`**: Kaufman Efficiency Ratio ($ER = \frac{|\text{Net Move}|}{\sum |\text{Bar Moves}|}$). $1.0$ thể hiện xu hướng một chiều mượt mà, $\approx 0.0$ thể hiện sideway dập dình.
-- **`or_flips`**: Đếm số lần phá vỡ giả ra ngoài Opening Range rồi thụt đầu đóng nến vào trong.
-- **Các chế độ thị trường**:
-  - **`trending`** ($ER \ge 0.35$): Tự động hủy TP cố định (`TrendTpDisabled = true`), thả trôi lệnh để Trailing SL và Giveback Floor ăn trọn con sóng lớn.
-  - **`choppy`** (`or_flips \ge 5`): Nguy cơ bẫy giá cao → Cycle Gate tự động chọn `HOLD`.
-  - **`mixed`**: Kỷ luật giao dịch tiêu chuẩn; chỉ vào lệnh khi setup được xác nhận.
-  - **`forming`**: Giai đoạn mở phiên tích lũy ($< 6$ nến).
-
-### Mô Hình Vào Lệnh & Kỷ Luật Định Lượng
-- **Model 1: Phá vỡ xung lực trực tiếp (Direct Breakout)**: Giá đóng cửa dứt khoát ra ngoài Opening Range trong cửa sổ vào lệnh ($\le 5$ nến) và khoảng cách chưa bị quá mua/quá bán ($\le 2.5\times$ ATR).
-- **Model 2: Hồi quy + TDI Bounce (Pullback Continuation)**: Khi breakout đã cũ ($5 < \text{nến} \le 10$), chỉ cho phép vào lệnh nếu có tín hiệu **TDI Bounce** chuẩn xác (`tdi_bounce_bull` / `tdi_bounce_bear`), giá nằm đúng chiều và gần EMA5 (`price_above_ema` cho BUY / `price_below_ema` cho SELL), và khoảng cách chưa quá mức. Ngăn chặn triệt để việc vào lệnh tại các vùng giá kiệt sức ở đáy/đỉnh.
-- **Quy tắc ANTI-OVEREXTENSION**: TUYỆT ĐỐI KHÔNG mua/bán khi giá đã bứt phá quá xa ($> 2.5\times$ ATR, hoặc $> 1500$ pips với Vàng / $\$15.00$, $> 30,000$ pips với BTC, $> 1500$ pips với Chỉ số, $> 50$ pips với Forex) so với biên OR. Chặn hoàn toàn việc đu đỉnh/bán đáy.
-- **Ngoại lệ BIAS-FRESH**: Khi giao cắt TDI vừa mới xảy ra ($\le 1$ nến trước), xung lực bứt phá sớm được xem là **bắt đầu một con sóng mới** chứ không phải nến quá mua/quá bán → Ưu tiên vào lệnh ngay.
-- **Quy tắc ANTI-CHASE**: Khi giá đã breakout $\ge 4$ nến dưới một xu hướng đã cũ mà chưa có nhịp hồi/bounce hợp lệ, **TUYỆT ĐỐI KHÔNG đu đỉnh/đáy** → Giữ lệnh `HOLD` chờ nhịp pullback có xác nhận.
-- **Cửa chặn Post-TP Gate (Anti-FOMO)**: Sau khi một lệnh vừa chạm TP hoặc chốt lời lớn, hệ thống khóa chặt hướng giao dịch đó và chỉ mở lại khi có nhịp Pullback thực sự ($\ge 0.5\times$ ATR), giá chạm lại OR hoặc đảo chiều xu hướng.
-- **Khóa Lợi Nhuận & Giveback Floor**: Cho phép lệnh có không gian thở trước biến động ngắn hạn. Theo dõi đỉnh lãi cao nhất ($MFE$) từng tick. Cơ chế bảo vệ kích hoạt khi lệnh đạt lãi $\ge 0.8\times$ ATR (Forex/Vàng) hoặc $\ge 1.5\times$ ATR / tối thiểu 100 giá (Chỉ số): nếu giá quay đầu làm mất $\ge 40\%$ (Forex/Vàng) hoặc $\ge 55\%$ (Chỉ số) số lãi cao nhất (MFE) kèm xung lực chững lại, bot đóng lệnh ngay lập tức để bảo vệ lợi nhuận.
-
-### 🏹 Chiến Thuật Asian Range Judas Sweep (ICT Smart Money Concepts)
-
-**Asian Range Judas Sweep AI Bot** áp dụng mô hình săn quét thanh khoản tạo lập trên **XAUUSD (Vàng M15)**:
-
-1. **Theo Dõi Phiên Á (`00:00 – 06:00 UTC`)**:
-   - Xác lập biên thanh khoản: `Asian High` (Buy-Side Liquidity / BSL) và `Asian Low` (Sell-Side Liquidity / SSL).
-   - Kiểm tra độ rộng biên độ phiên Á hợp lệ (`50` đến `350` pips).
-2. **Khung Giờ Vàng (Golden Killzones)**:
-   - **London Open Killzone**: `07:00 – 10:00 UTC` (Cửa sổ săn quét thanh khoản mạnh nhất).
-   - **New York Overlap Killzone**: `12:30 – 16:00 UTC` (Thời điểm dòng tiền Mỹ tham gia).
-3. **Cổng Lọc Trước (Pre-Filter Judas Sweep Gate)**:
-   - **Kích Hoạt BÁN (`JUDAS_SWEEP_SELL`)**: Nến tạo râu quét vượt `Asian High + sweepBufferPips (15 pips)` để bẫy buyer, sau đó rút râu đóng nến quay trở lại *bên trong* phiên Á.
-   - **Kích Hoạt MUA (`JUDAS_SWEEP_BUY`)**: Nến tạo râu quét sâu dưới `Asian Low - sweepBufferPips (15 pips)` để bẫy seller, sau đó rút râu đóng nến quay trở lại *bên trong* phiên Á.
-4. **AI Agent Ra Quyết Định Sniper**:
-   - Phân tích Order Block (OB), Fair Value Gap (FVG), cấu trúc đa khung (M15 + H1 + H4) và chuỗi 50 nến OHLCV gần nhất.
-   - Đặt Stop Loss an toàn sau râu quét (sàn tối thiểu `200 pips` / $2.00 USD cho Vàng) và Take Profit tại biên đối diện của phiên Á.
-### Quy Tắc Vào Lệnh
-
-```
-IF TMS_BULLISH AND ORB_BREAKOUT_UP AND DECISIVE:
-    → BUY
-    
-IF TMS_BEARISH AND ORB_BREAKOUT_DOWN AND DECISIVE:
-    → SELL
-    
-ELSE:
-    → HOLD
+```bash
+docker run -d \
+  --name cbot-demo-xauusd-newyork \
+  --restart unless-stopped \
+  --network host \
+  -v $(pwd):/workspace \
+  -v /root:/root \
+  ghcr.io/spotware/ctrader-console:latest \
+  run /workspace/cBot/AiAgentBot.algo \
+  --ctid=your_email@example.com \
+  --pwd-file=/root/ctrader_data/ctid_pwd \
+  --account=YOUR_ACCOUNT_ID \
+  --symbol=XAUUSD \
+  --period=m15 \
+  --full-access \
+  --BotId="cbot-demo-xauusd-newyork" \
+  --ApiUrl="http://127.0.0.1:8000/trade" \
+  --AccountLabel="demo" \
+  --OrbStartHour=13 \
+  --SessionEndHour=21 \
+  --SessionDstRule="US" \
+  --MinDecisiveBreakoutPips=200.0 \
+  --MinOrWidthPips=400.0 \
+  --OrbBufferPips=50.0 \
+  --BreakevenTriggerAtr=1.2 \
+  --BreakevenOffsetAtr=0.1 \
+  --TrailTriggerAtr=2.0 \
+  --TrailDistanceAtr=1.0 \
+  --PartialCloseRatio=0.5 \
+  --MinSlAtr=0.8 \
+  --MaxSlAtr=3.0 \
+  --MinTpAtr=1.0 \
+  --MaxTpAtr=6.0 \
+  --MaxGivebackAtr=1.0 \
+  --GivebackArmMinPips=150.0 \
+  --MinAdjustBeProfitPips=300.0 \
+  --EnablePostTpGate=true \
+  --PostTpPullbackAtr=0.5 \
+  --BounceTradeEnabled=true \
+  --BounceDistanceThreshold=10 \
+  --RiskPerTradePercent=0.2 \
+  --TrendTpDisabled=true
 ```
 
-### Quy Tắc Thoát Lệnh
+Bản thân các preset nằm trong [`app/cbot_presets.py`](app/cbot_presets.py), nguồn sự thật duy nhất; README không chép
+lại. Trên VPS cài bằng script, thay `-v /root:/root` bằng `-v /home/forge/ctrader:/root`.
 
-| Điều Kiện | Hành Động |
-|-----------|-----------|
-| Đảo chiều TDI xác nhận (TDI cắt ngược đường Đỏ / Quá mua-quá bán đảo chiều mất EMA) | CLOSE_ALL |
-| Bias đảo ngược | Tự động đóng |
-| Phiên kết thúc (EOD) | Tự động đóng toàn bộ lệnh (EOD Force-Flatten safety net) |
-| Lợi nhuận $\ge 0.8\times$ ATR | Di chuyển SL về breakeven (+0.1x ATR offset) |
-| Lợi nhuận $\ge 1.2\times$ ATR | Trail SL $0.7\times$ ATR |
-| Giveback $\ge 40\%$ (Forex) / $\ge 55\%$ (Chỉ số) đỉnh lãi MFE hoặc $\ge 0.6\times$ ATR | Tự động đóng (Khóa lợi nhuận & bảo vệ Giveback) |
 ---
 
 ## ⚙️ Cấu Hình
 
-### Tham Số cBot
-
-#### Cài Đặt TMS (Đa Khung Thời Gian)
-| Tham Số | Mặc Định | Mô Tả |
-|---------|----------|-------|
-| TMS Timeframe (Macro) | Hour (H1) | Khung thời gian xu hướng lớn (H1, H4, M15, v.v.) |
-| RSI Period | 6 | Chu kỳ tính toán RSI |
-| Red Period | 6 | Chu kỳ đường signal |
-
-#### Cài Đặt Stochastic
-| Tham Số | Mặc Định | Mô Tả |
-|---------|----------|-------|
-| %K Period | 6 | Stochastic nhanh |
-| %D Period | 6 | Stochastic chậm |
-| Slowing | 4 | Hệ số làm mượt |
-
-#### Bộ Lọc Vào Lệnh
-| Tham Số | Mặc Định | Mô Tả |
-|---------|----------|-------|
-| Max Bars After Cross | 5 | Cửa sổ vào lệnh |
-| Min Angle Delta | 0.0 | Bộ lọc góc (0=tắt) |
-| Min Decisive Breakout | 10.0 pips | Độ mạnh breakout (tối ưu mặc định cho XAUUSD) |
-
-#### Quản Lý Thoát Lệnh
-| Tham Số | Mặc Định | Mô Tả |
-|---------|----------|-------|
-| Flat Threshold | 0.01 | Độ phẳng TDI |
-| Breakeven Trigger | 0.8x ATR | Lợi nhuận (hệ số ATR) để dời SL về hòa vốn |
-| Breakeven Offset | 0.1x ATR | Khoảng offset bảo toàn lợi nhuận khi về BE |
-| Trail Trigger | 1.2x ATR | Lợi nhuận (hệ số ATR) để kích hoạt Trailing Stop |
-| Trail Distance | 0.7x ATR | Khoảng cách SL bám theo giá (hệ số ATR) |
-#### Phiên
-| Tham Số | Mặc Định | Mô Tả |
-|---------|----------|-------|
-| Session Start Hour | 13 (UTC) | New York mở cửa (Winter UTC) |
-| Session End Hour | 21 (UTC) | New York đóng cửa (EOD force-flatten) |
-| Opening Range | 15 min | Cửa sổ tính toán OR |
-| Min OR Width | 20.0 pips | Độ rộng OR tối thiểu |
-| ORB Buffer | 3.0 pips | Vùng đệm tránh fakeout |
-| DST Rule | US | Tự động điều chỉnh giờ mùa hè (DST) |
-
-#### Quản Lý Rủi Ro (Dynamic Sizing & ATR)
-| Tham Số | Mặc Định | Mô Tả |
-|---------|----------|-------|
-| Use ATR for SL/TP | true | Tính toán SL/TP động theo chỉ báo ATR |
-| ATR Period | 14 | Chu kỳ tính toán ATR |
-| ATR SL Multiplier | 1.5 | Hệ số nhân ATR cho khoảng cách Stop Loss |
-| ATR TP Multiplier | 2.0 | Hệ số nhân ATR cho khoảng cách Take Profit |
-| Risk per Trade (%) | 0.2 | Tỷ lệ % tài khoản chịu rủi ro mỗi lệnh |
-
-#### Guardrails
-| Tham Số | Mặc Định | Mô Tả |
-|---------|----------|-------|
-| Min SL | 0.8x ATR | Hệ số Stop loss tối thiểu |
-| Max SL | 3.0x ATR | Hệ số Stop loss tối đa |
-| Min TP | 1.0x ATR | Hệ số Take profit tối thiểu |
-| Max TP | 6.0x ATR | Hệ số Take profit tối đa |
-| Max Giveback (ATR) | 0.6x ATR | Ngưỡng giveback theo ATR để đóng lệnh |
-| Max Giveback (% MFE) | 0.40 (40%) | Tỷ lệ giveback tối đa cho phép từ đỉnh lãi MFE |
-| Max Breakout Dist | 2.5x ATR | Khoảng cách bứt phá tối đa cho phép vào lệnh |
-| Max Dollar Risk | $12.00 | Giới hạn trần mức lỗ tối đa bằng tiền mỗi lệnh |
-| Max Loss Streak | 3 | Chặn sau N lần thua liên tiếp |
-| Bias Flip Exit | true | Tự động đóng khi bias thay đổi |
-| Trend TP Disabled | true | Tự động hủy TP cố định khi trending |
-
-### Bảng Tham Số Asian Range Judas Sweep
-
-| Tham Số | Mặc Định | Mô Tả & Khuyến Nghị Tối Ưu |
-|:---|:---:|:---|
-| `UseDirectAiApi` | `false` | `false` = Local Server Hub (`http://127.0.0.1:8000`), `true` = Direct Cloud API |
-| `UseAiGateMode` | `true` | Cổng lọc 2 tầng: Judas Sweep định hướng → AI Agent xác nhận điểm vào |
-| `enableIndicatorCloseInAiMode` | `false` | Vô hiệu hóa việc đóng lệnh non bằng giao cắt EMA 9/21 trong chế độ AI, nhường toàn quyền quản lý lệnh cho TP/SL, Breakeven, Trailing SL và quyết định AI (`CLOSE_ALL` / `ADJUST`) |
-| `AiConfidenceThreshold` | `70.0%` | Ngưỡng tin cậy AI tối thiểu để thực hiện lệnh BUY/SELL |
-| `AiSlMinFloorPips` | `200.0` | Sàn bảo vệ SL tối thiểu ($2.00 trên Vàng) chống quét râu/spread |
-| `asianStartHour` | `0` | Giờ bắt đầu phiên Á (UTC Hour) |
-| `asianEndHour` | `6` | Giờ kết thúc phiên Á (UTC Hour) |
-| `minAsianRangePips` | `50.0` | Biên độ phiên Á tối thiểu để coi là setup hợp lệ |
-| `maxAsianRangePips` | `350.0` | Biên độ phiên Á tối đa (tránh các ngày phiên Á đã chạy sóng quá dài) |
-| `londonStartHour` | `7` | Giờ bắt đầu London Killzone (UTC) |
-| `londonEndHour` | `10` | Giờ kết thúc London Killzone (UTC) |
-| `nyStartHour` | `12` | Giờ bắt đầu New York Overlap Killzone (UTC) |
-| `nyEndHour` | `16` | Giờ kết thúc New York Overlap Killzone (UTC) |
-| `sweepBufferPips` | `15.0` | Biên độ quét râu tối thiểu vượt đỉnh/đáy Á (pips) |
-| `enableNewsFilter` | `true` | Khiên chắn tin tức ForexFactory tự động khớp đồng tiền (USD cho Vàng/Chỉ số/Crypto, EUR/USD/GBP/JPY cho Forex) |
-| `pauseBeforeNewsMins` | `30` | Thời gian tạm dừng phát hiện tín hiệu và mở lệnh trước tin Đỏ (phút) |
-| `pauseAfterNewsMins` | `30` | Thời gian tạm dừng phát hiện tín hiệu và mở lệnh sau tin Đỏ (phút) |
-| `highImpactOnly` | `true` | Chỉ lọc tin Đỏ (High Impact News) |
-| `closePositionsBeforeNews` | `false` | Đóng toàn bộ lệnh đang chạy trước khi tin Đỏ diễn ra |
-| `riskFactor` | `1.0` | Tỷ lệ rủi ro (%) tài khoản phân bổ cho mỗi lệnh (Khuyến nghị: 0.5% – 1.0%) |
-| `enableBreakEvenPrice` | `true` | Tự động dời SL về hòa vốn khi đạt mục tiêu |
-| `breakEvenMode` | `Risk_Reward_Ratio` | Chọn ngưỡng được đọc: `Risk_Reward_Ratio` (mặc định) hoặc `Fixed_Pips` |
-| `breakEvenRrTrigger` | `1.5 R` | Dời SL về hòa vốn khi lợi nhuận đạt 1.5 lần khoảng SL ban đầu — **đây mới là ngưỡng thực sự có hiệu lực** |
-| `breakEvenTrigger` | `250.0 pips` | Ngưỡng theo pip, **chỉ** được đọc khi `breakEvenMode = Fixed_Pips`; bị bỏ qua ở mode R:R mặc định |
-### 🏹 Bảng Cấu Hình Preset Cho Asian Range Judas Sweep
-
-| Tham Số | XAUUSD | GBPUSD | EURUSD | GBPJPY | EURJPY | BTCUSD | ETHUSD |
-| :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
-| **Khung Thời Gian** | `M15` | `M15` | `M15` | `M15` | `M15` | `M15` | `M15` |
-| **Phiên Á (UTC)** | `00:00 - 06:00` | `00:00 - 06:00` | `00:00 - 06:00` | `00:00 - 06:00` | `00:00 - 06:00` | `00:00 - 06:00` | `00:00 - 06:00` |
-| **Khung Giờ Killzones** | `07-10h & 12:30-16h` | `07-10h & 12:30-16h` | `07-10h & 12:30-16h` | `07-10h & 12:30-16h` | `07-10h & 12:30-16h` | `07-10h & 12:30-16h` | `07-10h & 12:30-16h` |
-| **Biên Độ Phiên Á (Min / Max)** | `200.0 / 8000.0 pips` | `15.0 / 45.0 pips` | `15.0 / 45.0 pips` | `25.0 / 70.0 pips` | `25.0 / 70.0 pips` | `10000.0 / 400000.0 pips` | `800.0 / 35000.0 pips` |
-| **Độ Sâu Râu Quét (Buffer)** | `500.0 pips` | `3.5 pips` | `3.5 pips` | `5.0 pips` | `5.0 pips` | `1500.0 pips` | `150.0 pips` |
-| **Sàn SL Tối Thiểu (Floor)** | `200.0 pips` | `15.0 pips` | `15.0 pips` | `25.0 pips` | `25.0 pips` | `20000.0 pips` | `1500.0 pips` |
-| **Stop Loss Mặc Định** | `200.0 pips` | `15.0 pips` | `15.0 pips` | `25.0 pips` | `25.0 pips` | `25000.0 pips` | `2000.0 pips` |
-| **Take Profit Mặc Định** | `450.0 pips` | `35.0 pips` | `35.0 pips` | `50.0 pips` | `50.0 pips` | `60000.0 pips` | `5000.0 pips` |
-| **Điểm Kích Hoạt Hòa Vốn (R:R)** | `1.5 R` | `1.5 R` | `1.5 R` | `1.5 R` | `1.5 R` | `1.5 R` | `1.5 R` |
-| **Điểm Tin Cậy AI Tối Thiểu** | `70.0%` | `70.0%` | `70.0%` | `70.0%` | `70.0%` | `70.0%` | `70.0%` |
-| **Tỷ Lệ Rủi Ro / Lệnh** | `1.0%` | `1.0%` | `1.0%` | `1.0%` | `1.0%` | `0.2%` | `0.2%` |
-
-### 📊 Bảng Cấu Hình Preset Cho TMS + ORB (Theo Từng Mã)
-#### Metals & Indices
-
-| Parameter | XAUUSD | US30 | USTEC | DE40 |
-| :--- | :--- | :--- | :--- | :--- |
-| **Trading Session** | New York | New York (Index) | New York (Index) | London |
-| **DST Rule** | `US` | `US` | `US` | `Europe` |
-| **Min Decisive Breakout** | `100.0 pips` | `100.0 pips` | `80.0 pips` | `70.0 pips` |
-| **Min OR Width** | `250.0 pips` | `300.0 pips` | `250.0 pips` | `200.0 pips` |
-| **ORB Buffer** | `30.0 pips` | `50.0 pips` | `40.0 pips` | `35.0 pips` |
-| **Breakeven Trigger** | `1.2x ATR` | `2.0x ATR` | `2.0x ATR` | `2.0x ATR` |
-| **Breakeven Offset** | `0.1x ATR` | `0.1x ATR` | `0.1x ATR` | `0.1x ATR` |
-| **Trail Trigger** | `2.0x ATR` | `3.0x ATR` | `3.0x ATR` | `3.0x ATR` |
-| **Trail Distance** | `1.0x ATR` | `1.5x ATR` | `1.5x ATR` | `1.5x ATR` |
-| **Min SL / Max SL** | `0.8x / 3.0x ATR` | `1.5x / 4.5x ATR` | `1.5x / 4.5x ATR` | `1.5x / 4.5x ATR` |
-| **Min TP / Max TP** | `1.0x / 6.0x ATR` | `2.0x / 8.0x ATR` | `2.0x / 8.0x ATR` | `2.0x / 8.0x ATR` |
-| **Max Giveback** | `1.0x ATR` | `1.5x ATR` | `1.5x ATR` | `1.5x ATR` |
-| **Recommended Timeframe** | `M15` | `M15` | `M15` | `M15` |
-| **EMA Period** | `5` | `5` | `5` | `5` |
-| **Post-TP Gate / Pullback** | `true` (`0.5x ATR`) | `true` (`0.5x ATR`) | `true` (`0.5x ATR`) | `true` (`0.5x ATR`) |
-| **TDI Bounce Trade** | `1.5` | `1.5` | `1.5` | `1.5` |
-| **Partial Close at BE** | `0.5 (50%)` | `0.5 (50%)` | `0.5 (50%)` | `0.5 (50%)` |
-| **Risk per Trade** | `0.2%` | `0.2%` | `0.2%` | `0.2%` |
-| **Use ATR for SL/TP** | `true` | `true` | `true` | `true` |
-| **ATR Period** | `14` | `14` | `14` | `14` |
-| **ATR SL Multiplier** | `1.5x ATR` | `2.5x ATR` | `2.5x ATR` | `2.5x ATR` |
-| **ATR TP Multiplier** | `2.0x ATR` | `3.5x ATR` | `3.5x ATR` | `3.5x ATR` |
-
-#### Forex Majors
-
-| Parameter | EURUSD | GBPUSD | USDJPY | USDCAD |
-| :--- | :--- | :--- | :--- | :--- |
-| **Trading Session** | London | London | Tokyo | New York |
-| **DST Rule** | `Europe` | `Europe` | `None` | `US` |
-| **Min Decisive Breakout** | `2.5 pips` | `3.5 pips` | `3.0 pips` | `3.5 pips` |
-| **Min OR Width** | `5.0 pips` | `7.0 pips` | `5.0 pips` | `7.0 pips` |
-| **ORB Buffer** | `1.0 pips` | `1.2 pips` | `1.0 pips` | `1.2 pips` |
-| **Breakeven Trigger** | `1.2x ATR` | `1.2x ATR` | `1.2x ATR` | `1.2x ATR` |
-| **Breakeven Offset** | `0.1x ATR` | `0.1x ATR` | `0.1x ATR` | `0.1x ATR` |
-| **Trail Trigger** | `2.0x ATR` | `2.0x ATR` | `2.0x ATR` | `2.0x ATR` |
-| **Trail Distance** | `1.0x ATR` | `1.0x ATR` | `1.0x ATR` | `1.0x ATR` |
-| **Min SL / Max SL** | `0.8x / 3.0x ATR` | `0.8x / 3.0x ATR` | `0.8x / 3.0x ATR` | `0.8x / 3.0x ATR` |
-| **Min TP / Max TP** | `1.0x / 6.0x ATR` | `1.0x / 6.0x ATR` | `1.0x / 6.0x ATR` | `1.0x / 6.0x ATR` |
-| **Max Giveback** | `1.0x ATR` | `1.0x ATR` | `1.0x ATR` | `1.0x ATR` |
-| **Recommended Timeframe** | `M15` | `M15` | `M15` | `M15` |
-| **EMA Period** | `5` | `5` | `5` | `5` |
-| **Post-TP Gate / Pullback** | `true` (`0.5x ATR`) | `true` (`0.5x ATR`) | `true` (`0.5x ATR`) | `true` (`0.5x ATR`) |
-| **TDI Bounce Trade** | `1.5` | `1.5` | `1.5` | `1.5` |
-| **Partial Close at BE** | `0.5 (50%)` | `0.5 (50%)` | `0.5 (50%)` | `0.5 (50%)` |
-| **Risk per Trade** | `0.2%` | `0.2%` | `0.2%` | `0.2%` |
-| **Use ATR for SL/TP** | `true` | `true` | `true` | `true` |
-| **ATR Period** | `14` | `14` | `14` | `14` |
-| **ATR SL Multiplier** | `1.5x ATR` | `1.5x ATR` | `1.5x ATR` | `1.5x ATR` |
-| **ATR TP Multiplier** | `2.0x ATR` | `2.0x ATR` | `2.0x ATR` | `2.0x ATR` |
-
-#### Forex Crosses
-
-| Parameter | GBPJPY | EURJPY | AUDJPY |
-| :--- | :--- | :--- | :--- |
-| **Trading Session** | London | London | Tokyo |
-| **DST Rule** | `Europe` | `Europe` | `None` |
-| **Min Decisive Breakout** | `5.0 pips` | `4.0 pips` | `3.0 pips` |
-| **Min OR Width** | `10.0 pips` | `8.0 pips` | `5.0 pips` |
-| **ORB Buffer** | `1.5 pips` | `1.2 pips` | `1.0 pips` |
-| **Breakeven Trigger** | `1.2x ATR` | `1.2x ATR` | `1.2x ATR` |
-| **Breakeven Offset** | `0.1x ATR` | `0.1x ATR` | `0.1x ATR` |
-| **Trail Trigger** | `2.0x ATR` | `2.0x ATR` | `2.0x ATR` |
-| **Trail Distance** | `1.0x ATR` | `1.0x ATR` | `1.0x ATR` |
-| **Min SL / Max SL** | `0.8x / 3.0x ATR` | `0.8x / 3.0x ATR` | `0.8x / 3.0x ATR` |
-| **Min TP / Max TP** | `1.0x / 6.0x ATR` | `1.0x / 6.0x ATR` | `1.0x / 6.0x ATR` |
-| **Max Giveback** | `1.0x ATR` | `1.0x ATR` | `1.0x ATR` |
-| **Recommended Timeframe** | `M15` | `M15` | `M15` |
-| **EMA Period** | `5` | `5` | `5` |
-| **Post-TP Gate / Pullback** | `true` (`0.5x ATR`) | `true` (`0.5x ATR`) | `true` (`0.5x ATR`) |
-| **TDI Bounce Trade** | `1.5` | `1.5` | `1.5` |
-| **Partial Close at BE** | `0.5 (50%)` | `0.5 (50%)` | `0.5 (50%)` |
-| **Risk per Trade** | `0.2%` | `0.2%` | `0.2%` |
-| **Use ATR for SL/TP** | `true` | `true` | `true` |
-| **ATR Period** | `14` | `14` | `14` |
-| **ATR SL Multiplier** | `1.5x ATR` | `1.5x ATR` | `1.5x ATR` |
-| **ATR TP Multiplier** | `2.0x ATR` | `2.0x ATR` | `2.0x ATR` |
-### Cài Đặt Portfolio Manager
-
-Chỉnh sửa `app/portfolio.py`:
-
-```python
-class PortfolioConfig:
-    MAX_POSITIONS = 4              # Số vị thế mở tối đa
-    MAX_CURRENCY_EXPOSURE = 2      # Số vị thế tối đa mỗi tiền tệ
-    MAX_CORRELATED_POSITIONS = 2   # Số vị thế tương quan tối đa
-    MAX_DAILY_LOSS = -200.0        # Giới hạn lỗ hàng ngày (USD)
-    MAX_MARGIN_USAGE_PCT = 50.0    # Sử dụng margin tối đa
-```
+Mọi thiết lập của máy chủ lấy từ `.env` — bắt đầu từ [`.env.example`](.env.example). Tối thiểu cần `LLM_PROVIDER`
+và API key của nhà cung cấp đó. Toàn bộ biến môi trường, định dạng `DASHBOARD_ACCOUNTS`, cách chọn cơ sở dữ liệu,
+giới hạn rủi ro và các tham số cBot không thuộc preset được mô tả trong [docs/configuration.md](docs/configuration.md).
 
 ---
 
-## 📡 API Documentation
+## 📚 Tài Liệu
 
-### POST /trade
-
-Endpoint chính cho quyết định giao dịch.
-
-**Request** (từ cBot):
-```json
-{
-  "bot_id": "eurusd_bot",
-  "symbol": "EURUSD",
-  "timeframe": "M15",
-  "ask": 1.0850,
-  "bid": 1.0848,
-  "bars": [
-    {"ha_color": "Green", "tdi_green": 55.2, "tdi_red": 52.1, "stoch_k": 75.0, "stoch_d": 70.0},
-    {"ha_color": "Green", "tdi_green": 54.8, "tdi_red": 51.9, "stoch_k": 72.0, "stoch_d": 68.0},
-    {"ha_color": "Red", "tdi_green": 53.5, "tdi_red": 52.5, "stoch_k": 65.0, "stoch_d": 62.0}
-  ],
-  "tms": {
-    "bias": "BULLISH",
-    "bars_since_cross": 2,
-    "long_entry": true,
-    "short_entry": false,
-    "green_tf_value": 55.2,
-    "green_tf_slope": 0.4
-  },
-  "orb": {
-    "or_high": 1.0845,
-    "or_low": 1.0830,
-    "breakout_direction": "up",
-    "breakout_distance_pips": 5.0,
-    "is_decisive": true,
-    "bars_since_breakout": 1
-  },
-  "position": null,
-  "session": {
-    "phase": "active",
-    "minutes_to_end": 180
-  }
-}
-```
-
-**Response** (từ AI):
-```json
-{
-  "action": "BUY",
-  "volume_lots": 0.01,
-  "sl_pips": 0,
-  "tp_pips": 0,
-  "reason": "TMS BULLISH bias confirmed, ORB decisive breakout UP (+5.0p), momentum rising"
-}
-```
-
-> **Lưu ý**: `sl_pips` / `tp_pips` mà LLM trả về bị cBot **bỏ qua** khi `UseAtr = true` (mặc định).
-> cBot tự tính SL/TP động theo ATR (`SL = AtrSlMultiplier × ATR`, `TP = AtrTpMultiplier × ATR`,
-> kẹp bởi guardrails theo ATR), sau đó áp dụng định cỡ vị thế theo rủi ro. LLM chỉ quyết định
-> hướng (`action`), thời điểm, và gợi ý tương đối `volume_lots`.
-
-### POST /portfolio/report
-
-Báo cáo thay đổi vị thế để theo dõi danh mục.
-
-```json
-{
-  "bot_id": "eurusd_bot",
-  "action": "open",
-  "symbol": "EURUSD",
-  "side": "BUY",
-  "volume": 0.01,
-  "entry_price": 1.0850,
-  "sl_pips": 10.0,
-  "tp_pips": 20.0
-}
-```
-
-### GET /portfolio/status
-
-Lấy trạng thái danh mục hiện tại.
-
-```bash
-curl http://127.0.0.1:8000/portfolio/status
-```
+| Tài liệu | Nội dung |
+| :--- | :--- |
+| [docs/architecture.md](docs/architecture.md) | Thành phần, luồng request, nhóm API, cấu trúc dự án |
+| [docs/strategies.md](docs/strategies.md) | Từng cBot làm gì và luật của nó nằm ở đâu |
+| [docs/configuration.md](docs/configuration.md) | Biến `.env`, giới hạn rủi ro, tham số cBot |
+| [docs/deployment.md](docs/deployment.md) | Script cài VPS, cài thủ công, build cBot, service, backup, test |
+| [docs/docker-instances.md](docs/docker-instances.md) | Toàn bộ 50 lệnh `docker run` theo preset |
+| `http://127.0.0.1:8000/docs` | Tham chiếu API tương tác do FastAPI tự sinh (cả `/redoc`) |
+| [research/README.md](research/README.md) | Nghiên cứu chiến lược offline và kết luận |
 
 ---
 
-## 🛠️ Phát Triển
+## 🔬 Tình Trạng Nghiên Cứu
 
-### Cấu Trúc Dự Án
+README này không công bố số liệu hiệu suất nào. Nghiên cứu offline trong [`research/`](research/README.md) cho thấy,
+tính đến 2026-09-27, chưa chiến lược nào được kiểm tra — kể cả các bot TMS+ORB, Judas Sweep và FlowRSI đang chạy thật —
+có lợi thế trụ được sau hiệu chỉnh kiểm định bội (multiple testing) và qua các năm ngoài mẫu. Ngoại lệ duy nhất đến
+nay là giao dịch Gotobi trên các cặp JPY (`GotobiBot`), đã vượt holdout đăng ký trước; `CryptoDonchianBot` trượt
+holdout và chỉ chạy forward test. Hãy coi mọi bot là thử nghiệm và chạy trên tài khoản demo trước.
 
-```
-AgentFxTrading/
-├── app/
-│   ├── llm_client.py      # Lớp trừu tượng hóa LLM
-│   ├── server.py          # FastAPI server
-│   ├── portfolio.py       # Quản lý rủi ro danh mục
-│   └── db.py              # Tầng cơ sở dữ liệu (PostgreSQL / SQLite)
-├── cBot/
-│   ├── AiAgentBot.cs               # cBot chiến thuật TMS + ORB
-│   ├── AsianRangeJudasSweepBot.cs # cBot săn thanh khoản ICT Judas Sweep
-│   └── FlowRsiBot.cs              # cBot lướt sóng Nested RSI & SMC Flow
-├── scripts/
-│   ├── backup_postgres.sh # Tự động sao lưu hàng ngày (03:00 sáng)
-│   └── migrate_sqlite_to_pg.py # Script di chuyển dữ liệu SQLite sang PostgreSQL
-├── .env.example           # Template môi trường
-├── requirements.txt       # Python dependencies
-├── README.md              # Documentation (6 ngôn ngữ)
-└── portfolio.db           # SQLite database (fallback / testing)
-```
-
-### Thêm LLM Provider Mới
-
-1. Tạo class mới trong `app/llm_client.py`:
-
-```python
-class NewProviderClient(LLMClient):
-    def __init__(self, api_key: str, model: str):
-        # Khởi tạo client
-        pass
-    
-    async def chat(self, messages: List[Dict[str, str]], **kwargs) -> str:
-        # Triển khai logic chat
-        pass
-```
-
-2. Cập nhật `create_llm_client()`:
-
-```python
-elif provider == "newprovider":
-    return NewProviderClient(
-        api_key=os.getenv("NEWPROVIDER_API_KEY"),
-        model=os.getenv("LLM_MODEL")
-    )
-```
-
-### Cải Thiện Prompt
-
-Chỉnh sửa `SYSTEM_PROMPT` trong `app/server.py` để điều chỉnh logic giao dịch.
-
-### Chạy Tests
-
-```bash
-pytest tests/
-```
-
----
-
-## 📊 Hiệu Suất
-
-### Kết Quả Backtest
-
-> ⚠️ **Lưu ý**: Hiệu suất trong quá khứ không đảm bảo kết quả tương lai. Luôn test với tài khoản demo trước.
-
-| Metric | Giá Trị |
-|--------|---------|
-| Win Rate | ~55-65% |
-| Risk/Reward | 1:2 trung bình |
-| Max Drawdown | ~15% |
-| Sharpe Ratio | ~1.2 |
-
-### Mẹo Giao Dịch Live
-
-1. **Bắt Đầu Với Demo**: Luôn test chiến lược trước
-2. **Kích Thước Vị Thế Nhỏ**: Bắt đầu với 0.01 lots
-3. **Theo Dõi Hàng Ngày**: Kiểm tra trạng thái danh mục thường xuyên
-4. **Điều Chỉnh Tham Số**: Tune dựa trên điều kiện thị trường
-5. **Quản Lý Rủi Ro**: Không bao giờ rủi ro quá 2% mỗi giao dịch
+> ⚠️ **Tuyên bố miễn trừ**: giao dịch sản phẩm đòn bẩy có rủi ro thua lỗ cao. Phần mềm này phục vụ nghiên cứu và học
+> tập, không đảm bảo kết quả.
 
 ---
 
 ## ☕ Ủng Hộ & Sàn Giao Dịch
 
-Nếu bạn thấy **AgentFxTrading** hữu ích trong quá trình giao dịch và tự động hóa:
-
-- ☕ **Buy Me a Coffee**: Mời tác giả một ly cà phê để tiếp thêm năng lượng phát triển và nghiên cứu thêm mô hình AI: [buymeacoffee.com/kaz126](https://buymeacoffee.com/kaz126).
+- ☕ **Buy Me a Coffee**: ủng hộ phát triển, thử nghiệm mô hình và bảo trì qua [buymeacoffee.com/kaz126](https://buymeacoffee.com/kaz126).
 
   [![Buy Me A Coffee](https://img.buymeacoffee.com/button-api/?text=Buy%20me%20a%20coffee&emoji=&slug=kaz126&button_colour=FFDD00&font_colour=000000&font_family=Cookie&outline_colour=000000&coffee_colour=ffffff)](https://buymeacoffee.com/kaz126)
 
-- 📈 **Sàn Giao Dịch cTrader Đề Xuất**:  
-  Bạn cần tài khoản broker uy tín để chạy cBot thuật toán? Hãy đăng ký mở tài khoản qua link đối tác: **[Mở Tài Khoản IC Markets cTrader](https://ic.com/?camp=95400)**.  
-  *Ưu điểm: Spread siêu mỏng từ 0.0 pip, thanh khoản sâu, tốc độ khớp lệnh cực nhanh, hoàn toàn tương thích và tối ưu cho cTrader / cBot.*
+- 📈 **Sàn cTrader khuyên dùng**: **[Mở tài khoản IC Markets cTrader](https://ic.com/?camp=95400)** (link đối tác).
 
 ---
+
 ## 🤝 Đóng Góp
 
-Mọi đóng góp đều được chào đón! Đây là cách bạn có thể giúp đỡ:
-
-### Cách Đóng Góp
-
-1. **Star repo** ⭐ - Thể hiện sự ủng hộ
-2. **Báo cáo bugs** 🐛 - Mở issue
-3. **Đề xuất tính năng** 💡 - Mở feature request
-4. **Gửi PRs** 🔧 - Đóng góp code
-5. **Cải thiện docs** 📚 - Cải thiện documentation
-6. **Chia sẻ kết quả** 📈 - Chia sẻ kết quả backtest/live
-
-### Hướng Dẫn Phát Triển
-
-- Tuân theo style code hiện có
-- Viết tests cho tính năng mới
-- Cập nhật documentation
-- Giữ PRs tập trung và nhỏ
-
-### Cộng Đồng
-
-- 💬 [Discussions](https://github.com/kienphan/AgentFxTrading/discussions)
-- 🐛 [Issues](https://github.com/kienphan/AgentFxTrading/issues)
-- 📧 Email: senior1206@gmail.com
+Mọi đóng góp đều được hoan nghênh: star repo, báo lỗi hoặc đề xuất tính năng tại
+[Issues](https://github.com/kienphan/AgentFxTrading/issues), thảo luận tại
+[Discussions](https://github.com/kienphan/AgentFxTrading/discussions), hoặc gửi pull request gọn, có kèm test.
+Quy ước cho agent và code nằm trong [AGENTS.md](AGENTS.md). Liên hệ: senior1206@gmail.com.
 
 ---
 
 ## 📄 Giấy Phép
 
-Dự án này được cấp phép theo Giấy Phép MIT - xem file [LICENSE](LICENSE) để biết chi tiết.
-
----
-
-## 🙏 Lời Cảm Ơn
-
-- **Chiến Lược TMS**: Dựa trên phương pháp TMS chuyên nghiệp
-- **cTrader**: Vì đã cung cấp API tuyệt vời
-- **Cộng Đồng Mã Nguồn Mở**: Vì các thư viện và công cụ tuyệt vời
+Dự án được phát hành theo giấy phép MIT.
 
 ---
 
 ## 📈 Star History
 
 [![Star History Chart](https://api.star-history.com/svg?repos=kienphan/AgentFxTrading&type=Date)](https://star-history.com/#kienphan/AgentFxTrading&Date)
-
----
-
-<div align="center">
-
-**Nếu bạn thấy dự án này hữu ích, hãy xem xét cho nó một ⭐ và [mời tác giả ly cà phê](https://buymeacoffee.com/kaz126)!**
-
-[⬆ Lên Đầu Trang](#-agentfxtrading---hệ-thống-giao-dịch-tự-động-với-ai)
-
-</div>

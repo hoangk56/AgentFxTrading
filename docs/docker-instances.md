@@ -8,8 +8,9 @@ runs exactly the command printed here. Both come from [`app/cbot_presets.py`](..
 single source of truth for strategy flags — `tests/test_cbot_presets.py` fails the build if this file and that module
 drift apart.
 
-> **Prerequisites live in the README.** Install the server, write the cTID password file and build the five `.algo`
-> packages first: [Quick Start → Setup & Run cBot](../README.md#4-setup--run-cbot). Come back here once
+> **Prerequisites live in [deployment.md](deployment.md).** Install the server, write the cTID password file and build
+> the five `.algo` packages first: [Building the cBots](deployment.md#building-the-cbots) and
+> [Running bots](deployment.md#running-bots). Come back here once
 > `cBot/AiAgentBot.algo`, `cBot/AsianRangeJudasSweepBot.algo`, `cBot/FlowRsiBot.algo`, `cBot/GotobiBot.algo` and
 > `cBot/CryptoDonchianBot.algo` exist.
 

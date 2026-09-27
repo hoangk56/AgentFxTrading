@@ -1,12 +1,10 @@
-# 🤖 AgentFxTrading - Sistema de Negociação Automatizado com IA
+# 🤖 AgentFxTrading - Sistema de Trading Automatizado com IA
 
 <div align="center">
 
-**Negociação Forex Automatizada com Estratégia TMS + ORB**
+**cBots do cTrader + servidor de decisão FastAPI + painel web multi-conta**
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Python 3.9+](https://img.shields.io/badge/python-3.9+-blue.svg)](https://www.python.org/downloads/)
-[![cTrader](https://img.shields.io/badge/cTrader-4.x+-green.svg)](https://ctdn.com/)
 [![Stars](https://img.shields.io/github/stars/kienphan/AgentFxTrading?style=social)](https://github.com/kienphan/AgentFxTrading/stargazers)
 [![Forks](https://img.shields.io/github/forks/kienphan/AgentFxTrading?style=social)](https://github.com/kienphan/AgentFxTrading/network/members)
 [![Issues](https://img.shields.io/github/issues/kienphan/AgentFxTrading)](https://github.com/kienphan/AgentFxTrading/issues)
@@ -14,15 +12,13 @@
 
 [🇬🇧 English](README.md) | [🇻🇳 Tiếng Việt](README.vi.md) | [🇨🇳 中文](README.zh.md) | [🇵🇹 Português](README.pt.md) | [🇯🇵 日本語](README.ja.md) | [🇷🇺 Русский](README.ru.md)
 
-[Instalação](#-instalação-rápida) • [Recursos](#-recursos) • [Estratégia](#-estratégia-de-negociação) • [API Docs](#-documentação-da-api) • [Apoio & Corretora](#-apoio--corretora-recomendada) • [Contribuir](#-contribuindo)
+*Esta é uma tradução do README curto; a documentação de referência detalhada em `docs/` existe apenas em inglês.*
 
 <br/>
 
-<a href="#-painel-de-controle-dashboard">
-  <img src="docs/screenshots/overview.png" alt="AgentFxTrading Web Dashboard Overview" width="95%" style="border-radius: 8px; box-shadow: 0 4px 20px rgba(0,0,0,0.4);" />
-</a>
+<img src="docs/screenshots/overview.png" alt="AgentFxTrading Web Dashboard Overview" width="95%" style="border-radius: 8px; box-shadow: 0 4px 20px rgba(0,0,0,0.4);" />
 
-*Monitor de trading com IA multi-contas em tempo real com killzones de sessão, KPIs de conta, posições ativas e telemetria de ordens.*
+*Monitor multi-conta: killzones das sessões, KPIs da conta, posições abertas e telemetria de operações.*
 
 </div>
 
@@ -31,16 +27,14 @@
 ## 📋 Índice
 
 - [Visão Geral](#-visão-geral)
-- [Recursos](#-recursos)
-- [Arquitetura](#-arquitetura)
-- [Instalação Rápida](#-instalação-rápida)
-- [Instâncias Docker (todas as 45)](docs/docker-instances.md)
-- [Estratégia de Negociação](#-estratégia-de-negociação)
+- [Principais Recursos](#-principais-recursos)
+- [Painel](#-painel)
+- [Início Rápido](#-início-rápido)
+- [Executando os cBots](#-executando-os-cbots)
 - [Configuração](#-configuração)
-- [Documentação da API](#-documentação-da-api)
-- [Desenvolvimento](#-desenvolvimento)
-- [Performance](#-performance)
-- [Apoio & Corretora Recomendada](#-apoio--corretora-recomendada)
+- [Documentação](#-documentação)
+- [Situação da Pesquisa](#-situação-da-pesquisa)
+- [Apoio & Corretora](#-apoio--corretora)
 - [Contribuindo](#-contribuindo)
 - [Licença](#-licença)
 
@@ -48,838 +42,212 @@
 
 ## 🎯 Visão Geral
 
-AgentFxTrading é um **sistema de negociação forex automatizado** que combina o poder da IA com estratégias de análise técnica comprovadas. Ele usa **TMS (Trend Momentum Signal)** para detecção de tendência e **ORB (Opening Range Breakout)** para timing preciso de entrada.
+O AgentFxTrading executa estratégias de trading como **cBots do cTrader** (C#), um contêiner Docker por combinação de
+estratégia × símbolo × conta. Os bots com filtro de IA enviam um retrato do mercado a um **servidor FastAPI**
+(Python), que aplica filtros determinísticos e verificações de risco da carteira e, quando o setup se qualifica, pede
+a decisão a um **LLM**. Todos os bots reportam posições e telemetria ao servidor, que as guarda no **PostgreSQL**
+(SQLite como alternativa local) e serve um **painel web** para monitoramento, gestão de bots e backtests.
 
-### Por que escolher AgentFxTrading?
+Hoje há cinco cBots:
 
-✅ **Totalmente Autônomo** - IA toma decisões de negociação 24/7  
-✅ **Suporte Multi-LLM** - Funciona com Qwen, OpenAI, Claude, Gemini, DeepSeek  
-✅ **Gestão de Risco** - Controle de risco em nível de portfólio em múltiplos pares  
-✅ **Estratégia Comprovada** - Baseado na metodologia profissional TMS  
-✅ **Fácil Configuração** - Comece em menos de 10 minutos  
-✅ **Código Aberto** - Totalmente transparente e personalizável  
-
----
-
-## 🚀 Recursos
-
-### 🤖 Estrutura de Motores de Estratégia de IA (3 Motores)
-- **1. Motor TMS + ORB (`AiAgentBot`)**: Sinais de Momentum de Tendência (Heikin Ashi + TDI + Stochastic) combinados com rompimento de Opening Range e regimes dinâmicos de eficiência de Kaufman.
-- **2. Motor Asian Range Judas Sweep (`AsianRangeJudasSweepBot`)**: Conceito de Smart Money (SMC) capturando caçadas de liquidez (Judas Swing) nas máximas e mínimas da sessão asiática (00:00–06:00 UTC) durante os Killzones de Londres (07:00–10:00 UTC) e Nova York (12:30–16:00 UTC) com confirmação em Order Block / FVG.
-- **3. Motor FlowRSI / Nested RSI SMC (`FlowRsiBot`)**: Convergência de momentum multi-timeframe combinando cruzamentos de RSI Rápido (7) e RSI Lento (14) com conceitos de Smart Money ICT (detecção de desequilíbrio Fair Value Gap - FVG, zonas de equilíbrio Premium/Discount e caçadas de liquidez Swing Liquidity Sweeps). Apresenta SL/TP dinâmico integrado, True Break-Even (zero-perda) contra drawdown, trailing stop condicional e validação direta de decisões via ponte AI Agent.
-- **Suporte Multi-LLM**: Qwen, OpenAI GPT-4o, Claude 3.5 Sonnet, Gemini 2.0 Flash, DeepSeek V3/R1.
-- **Análise Multi-Timeframe**: Alinhamento de tendência M15 + H1 + H4, estrutura de swing e filtro de notícias em tempo real.
-### 💼 Gestão de Portfólio
-- **Negociação Multi-Símbolo**: Execute múltiplos bots em diferentes pares
-- **Controle de Exposição em Moeda**: Previne sobre-exposição a uma única moeda
-- **Detecção de Correlação**: Bloqueia posições altamente correlacionadas
-- **Limites de Perda Diária**: Parada automática de negociação após perda máxima
-
-- **Memória de Posição**: Rastreia MFE (Maximum Favorable Excursion) a cada tick
-- **Breakeven Automático**: Move SL para o zero (+0.1x ATR offset) quando o lucro atinge $\ge 0.8\times$ ATR
-- **Trailing Stop**: Ajuste dinâmico de SL iniciando em $1.2\times$ ATR (distância de trailing $0.7\times$ ATR)
-- **Trava de Lucro e Proteção de Giveback**: Fecha posição se o giveback atingir $\ge 40\%$ do pico de lucro (MFE) ou $\ge 0.6\times$ ATR
-- **Filtro Anti-Sobre-extensão (Anti-Overextension Guard)**: Bloqueia rompimentos esticados além de $2.5\times$ ATR da borda do Opening Range
-- **Teto de Risco em Dólares (Max Dollar Risk Cap)**: Limite rígido de perda máxima ($12.00) por operação em ativos com volume mínimo
-- **Proteção de Sequência de Perdas**: Bloqueia entradas após 3 perdas consecutivas
-- **Cycle Gating (Cost Gate)**: Ignora chamadas LLM fora da sessão, dentro do OR, sobre-estendido ou em sequência de perdas — economizando 80-90% de custos de API
-- **Trend TP Disabled**: Desativa o TP fixo em forte tendência (`trending`) para maximizar ganhos com Trailing SL & Giveback Floor
-- **Precisão Dinâmica Multi-Ativo (Dynamic Precision)**: Ajusta casas decimais dinamicamente (5 para Forex, 3 para pares JPY, 2 para ouro, índices e cripto), prevenindo distorção de velas nos prompts
-- **Normalização Real de Pips ATR (True ATR Scaling)**: Conversão automática da volatilidade bruta para pips reais para avaliação precisa do LLM
-- **Cycle Gate Adaptativo para Cripto**: Classificação correta de criptoativos (`BTC`, `ETH`, `SOL`, `XRP`) com limites de rompimento de até 60.000 pips
-- **Filtro Adaptativo de Range Asiático**: Limites sob medida por ativo (`[200p, 8000p]` para ouro, `[12p, 100p]` para Forex) e supressão de requisições ociosas sem posições
-- **Integração de Telemetria do cBot**: cBot envia notificações de bloqueios de guardrail ao servidor FastAPI via `/api/cbot_event`
-### ⏰ Gestão de Sessão
-- **Sessões de Negociação**: Tempos de sessão configuráveis (Londres, NY, Tóquio)
-- **Fechamento Automático no Fim do Dia**: Fecha posições automaticamente no fim da sessão
-- **Detecção de Fase**: Fases pré-mercado, ativa, finalizando, fechada
-
----
-
-## 🏗️ Arquitetura
-
-```mermaid
-graph LR
-    A[cTrader cBot<br/>C#] -->|HTTP POST| B[FastAPI Server<br/>Python]
-    B -->|JSON Response| A
-    B --> C{LLM Provider}
-    C --> D[Qwen]
-    C --> E[OpenAI]
-    C --> F[Claude]
-    C --> G[Gemini]
-    C --> H[DeepSeek]
-    B --> I[(PostgreSQL<br/>Portfolio DB)]
-```
-
-### Detalhamento dos Componentes
-
-| Componente | Tecnologia | Responsabilidade |
-|-----------|-----------|------------------|
-| **cBot** | C# / cTrader | Calcular indicadores, executar negociações |
-| **Server** | Python / FastAPI | Tomada de decisão IA, gestão de risco |
-| **Database** | PostgreSQL / SQLite | Rastreamento de portfólio, histórico de posições (PostgreSQL em produção, SQLite fallback) |
-| **LLM** | Múltiplos | Análise de decisão de negociação |
-
-
----
-
-## 📊 Painel de Controle (Dashboard)
-
-Monitore e gerencie o sistema de negociação em tempo real através da interface web moderna:
-
-### 🖥️ Demonstração do Painel (Dashboard Showcase)
-
-| 📈 Visão Geral em Tempo Real e Sessões | 🧠 Feed de Estratégia e Decisão de IA |
-| :---: | :---: |
-| [![Visão Geral do Dashboard](docs/screenshots/overview.png)](docs/screenshots/overview.png) | [![Feed de Decisão de IA](docs/screenshots/ai-thinking.png)](docs/screenshots/ai-thinking.png) |
-| *Métricas KPI em tempo real, posições ativas, histórico de ordens e killzones* | *Raciocínio multi-tempo gráfico, pontuações de confiança do LLM e orientação SL/TP* |
-
-| 🏆 Classificação Quantitativa (Leaderboard) | 📰 Avaliação de Notícias ForexFactory & IA |
-| :---: | :---: |
-| [![Classificação Quantitativa](docs/screenshots/leaderboard.png)](docs/screenshots/leaderboard.png) | [![Avaliação de Notícias](docs/screenshots/news-assessment.png)](docs/screenshots/news-assessment.png) |
-| *Pontuação quantitativa composta, taxas de acerto e insígnias Tier S/A/B/C* | *Calendário econômico de alto impacto, volatilidade e análise macroeconômica* |
-
-### Acessar o Dashboard
-
-Após iniciar o servidor, abra seu navegador:
-
-| Modo | Rota de URL | Descrição |
+| cBot | Estratégia | Decisão |
 | :--- | :--- | :--- |
-| **Demo** | `http://127.0.0.1:8000/demo/dashboard` *(ou `/demo`)* | Dashboard isolado de Paper Trading e telemetria |
-| **Real / Live** | `http://127.0.0.1:8000/real/dashboard` *(ou `/real`, `/live`)* | Dashboard isolado de negociação em conta Real e telemetria de execução |
-| **Auto-Redirecionamento** | `http://127.0.0.1:8000/` *(ou `/dashboard`)* | Roteia automaticamente para o seu último modo ativo (Demo ou Real) |
+| `cBot/AiAgentBot.cs` | TMS (Trend Momentum Signal) + rompimento da faixa de abertura (ORB) | Filtro de IA |
+| `cBot/AsianRangeJudasSweepBot.cs` | Asian Range Judas Sweep (varredura de liquidez estilo ICT) | Filtro de IA |
+| `cBot/FlowRsiBot.cs` | FlowRSI: RSI rápido/lento aninhados + filtros SMC | Filtro de IA |
+| `cBot/GotobiBot.cs` | Operação Gotobi em torno do fixing de Tóquio em USDJPY / EURJPY / GBPJPY | Por regras |
+| `cBot/CryptoDonchianBot.cs` | Rompimento de Donchian H4 em BTCUSD / ETHUSD (forward test) | Por regras |
 
-### Recursos do Dashboard
+Veja [docs/strategies.md](docs/strategies.md) para o que cada bot faz.
 
-- **Atualizações em Tempo Real**: WebSocket bidirecional para sincronização instantânea
-- **Visão Geral do Portfólio**: Posições abertas, P&L diário, taxa de acerto (Win Rate), sequência de perdas e patrimônio
-- **Tabela de Posições Ativas (Active Positions)**: Distinção visual de estratégia (`Judas SMC` roxo vs `TMS+ORB` ciano), identificador cBot, símbolo, volume, preço de entrada e PnL flutuante
-- **Histórico de Negociações (Recent Trades)**: Ordens fechadas com rótulos de estratégia e P&L líquido
-- **Gráfico de P&L Diário**: Visualização de barras do desempenho histórico
-- **Monitoramento de Guardrails**: Acompanhamento em tempo real dos bloqueios de segurança do cBot
-
-### Endpoints da API
-
-```
-GET  /demo/dashboard           # Painel web de demonstração (isolado)
-GET  /real/dashboard           # Painel web real/live (isolado)
-GET  /                         # Redireciona automaticamente para o último modo ativo
-GET  /dashboard                # Redireciona automaticamente para o último modo ativo
-GET  /api/dashboard/positions  # Posições ativas (aceita ?account_id=demo|live|all|<id>)
-GET  /api/dashboard/history    # Histórico de negociações fechadas, 10 por página (aceita ?account_id=demo|live|all|<id>&page=N&page_size=N)
-GET  /api/dashboard/pnl-history# Histórico diário de P&L (aceita ?account_id=demo|live|all|<id>)
-GET  /api/dashboard/logs       # Logs do servidor e do agente (aceita ?mode=demo|live|all)
-GET  /api/bots                 # Configurações e status dos bots Docker (com account_type)
-POST /api/tick                 # Telemetria direta de cotação dos cBots (fallback HTTP)
-WS   /ws/cbot                  # Fluxo de ticks dos cBots: bid/ask + P&L do broker (--TickStreamMs, 0=off)
-POST /api/cbot_event           # Telemetria de eventos e bloqueios dos cBots
-POST /portfolio/report         # Relatório do ciclo de vida de abertura/fechamento
-WS   /ws/dashboard             # WebSocket para atualizações em tempo real do painel
-```
 ---
 
-## ⚡ Instalação Rápida
+## 🚀 Principais Recursos
 
-### Pré-requisitos
+- **Vários LLMs**: Qwen (DashScope), OpenAI, Anthropic Claude, Google Gemini, DeepSeek ou qualquer endpoint compatível com OpenAI.
+- **Filtros de custo**: o servidor responde `HOLD` sem chamar o LLM quando nenhum setup se qualifica.
+- **Risco da carteira**: verificações de entrada no nível da carteira mais limites de perda diária por conta, estratégia e contêiner, editáveis no painel.
+- **Bots headless**: contêineres Docker `ctrader-console`, criados pela tela **Setup Instances** do painel.
+- **Watchdog**: reinicia contêineres travados no login ou que pararam de enviar dados.
+- **Página de backtest**: roda backtests do cTrader de um bot instalado em contêineres e mostra o relatório em gráficos.
+- **Escudo de notícias**: calendário de alto impacto da ForexFactory com avaliação por IA.
+- **Isolamento Demo / Real**: painéis e dados separados para contas demo e reais.
 
-- Python 3.9+
-- cTrader 4.x+ (Não tem conta? Cadastre-se na [IC Markets cTrader](https://ic.com/?camp=95400) com spreads Raw e baixíssima latência)
-- Chave API LLM (Qwen/OpenAI/Claude/Gemini/DeepSeek)
+---
 
-### 1. Instalar Dependências Python
+## 📊 Painel
+
+| 📈 Visão Geral ao Vivo & Sessões | 🧠 Estratégia de IA & Feed de Decisões |
+| :---: | :---: |
+| [![Overview Dashboard](docs/screenshots/overview.png)](docs/screenshots/overview.png) | [![AI Strategy Feed](docs/screenshots/ai-thinking.png)](docs/screenshots/ai-thinking.png) |
+| *KPIs, posições abertas, operações recentes e killzones* | *Raciocínio multi-timeframe, confiança do LLM e orientação de SL/TP* |
+
+| 🏆 Ranking de Desempenho | 📰 Notícias Vermelhas da ForexFactory & Avaliação por IA |
+| :---: | :---: |
+| [![Quant Leaderboard](docs/screenshots/leaderboard.png)](docs/screenshots/leaderboard.png) | [![News Assessment](docs/screenshots/news-assessment.png)](docs/screenshots/news-assessment.png) |
+| *Ranking composto, taxas de acerto e selos Tier S/A/B/C* | *Calendário de alto impacto, impacto por moeda e avaliação macro* |
+
+Abra `http://127.0.0.1:8000/demo/dashboard` para contas demo, `http://127.0.0.1:8000/real/dashboard` para contas
+reais, ou `http://127.0.0.1:8000/` para voltar ao último modo usado.
+
+---
+
+## ⚡ Início Rápido
+
+### Opção 1: instalação em VPS com um comando (Ubuntu 22.04 / 24.04 / 26.04)
+
+Numa VPS nova, como root:
 
 ```bash
-# Clonar repositório
+curl -fsSL https://raw.githubusercontent.com/kienphan/AgentFxTrading/main/scripts/install.sh | sudo bash
+```
+
+O script pede a chave pública SSH do usuário `forge` e depois instala o PostgreSQL 17, o Docker, o servidor como o
+serviço systemd `agentfx` (escutando em `127.0.0.1:8000`), compila os cinco pacotes `.algo` dos cBots e ativa um
+backup diário do banco de dados. **O login SSH por senha é desativado**, então confirme que a chave funciona a partir
+de outro terminal antes de fechar a sessão root. Detalhes, opções e atualizações: [docs/deployment.md](docs/deployment.md).
+
+Depois abra o painel por um túnel (`ssh -N -L 8000:127.0.0.1:8000 forge@YOUR_VPS_IP`), coloque a sua chave de LLM em
+`/home/forge/AgentFxTrading/.env` e execute `sudo systemctl restart agentfx`.
+
+### Opção 2: local / manual
+
+```bash
 git clone https://github.com/kienphan/AgentFxTrading.git
 cd AgentFxTrading
-
-# Instalar dependências
+python3 -m venv .venv && source .venv/bin/activate
 pip install -r requirements.txt
+
+cp .env.example .env        # depois defina LLM_PROVIDER e a chave de API correspondente
+python app/server.py        # serve em http://127.0.0.1:8000
 ```
 
-### 2. Configurar LLM Provider
-
-```bash
-# Copiar template de ambiente
-cp .env.example .env
-
-# Editar .env com sua chave API
-# Exemplo para Qwen (recomendado):
-LLM_PROVIDER=qwen
-DASHSCOPE_API_KEY=sk-your-dashscope-key
-LLM_MODEL=qwen-max
-```
-
-### 3. Iniciar o Servidor
-
-```bash
-python app/server.py
-```
-
-O servidor será executado em `http://127.0.0.1:8000`
-
-### 4. Configurar e Executar o cBot
-
-Você pode executar o cBot através da **Interface Gráfica cTrader Desktop (GUI)** ou pelo **Headless Docker CLI** (`ctrader-console`).
-
-#### Opção A: cTrader Desktop GUI
-
-1. Abrir **cTrader** → **Automate**
-2. Clicar em **New** → **cBot**
-3. Colar código de `cBot/AiAgentBot.cs`
-4. Clicar em **Build**
-5. Anexar ao gráfico (M15 ou H1 recomendado)
-6. Configurar parâmetros:
-   - **Bot ID**: `xauusd_m15` (identificador único)
-   - **API URL**: `http://127.0.0.1:8000/trade`
-   - **Session**: New York (13:00-21:00 UTC) / London (8:00-17:00 UTC) / Tokyo (0:00-9:00 UTC)
-
-#### Opção B: Headless Docker CLI (`ctrader-console`)
-
-1. **Preparar Arquivo de Credenciais cTID**:
-   ```bash
-   mkdir -p /root/ctrader_data
-   echo "sua_senha_ctid" > /root/ctrader_data/ctid_pwd
-   chmod 600 /root/ctrader_data/ctid_pwd
-   ```
-
-2. **Compilar os Pacotes `.algo`**:
-   ```bash
-   # 1. Compilar o bot TMS+ORB (AiAgentBot)
-   docker run --rm -v $(pwd):/workspace -v /root:/root \
-     ghcr.io/spotware/ctrader-console:latest create cbot AiAgentBot
-   cp cBot/AiAgentBot.cs /root/cAlgo/Sources/Robots/AiAgentBot/AiAgentBot/AiAgentBot.cs
-   docker run --rm -v $(pwd):/workspace -v /root:/root \
-     ghcr.io/spotware/ctrader-console:latest build /root/cAlgo/Sources/Robots/AiAgentBot/AiAgentBot/AiAgentBot.csproj
-   cp /root/cAlgo/Sources/Robots/AiAgentBot.algo cBot/AiAgentBot.algo
-
-   # 2. Compilar o bot Asian Range Judas Sweep (AsianRangeJudasSweepBot)
-   docker run --rm -v $(pwd):/workspace -v /root:/root \
-     ghcr.io/spotware/ctrader-console:latest create cbot AsianRangeJudasSweepBot
-   cp cBot/AsianRangeJudasSweepBot.cs /root/cAlgo/Sources/Robots/AsianRangeJudasSweepBot/AsianRangeJudasSweepBot/AsianRangeJudasSweepBot.cs
-   docker run --rm -v $(pwd):/workspace -v /root:/root \
-     ghcr.io/spotware/ctrader-console:latest build /root/cAlgo/Sources/Robots/AsianRangeJudasSweepBot/AsianRangeJudasSweepBot/AsianRangeJudasSweepBot.csproj
-   cp /root/cAlgo/Sources/Robots/AsianRangeJudasSweepBot.algo cBot/AsianRangeJudasSweepBot.algo
-
-   # 3. Compilar o bot FlowRSI SMC (FlowRsiBot)
-   docker run --rm -v $(pwd):/workspace -v /root:/root \
-     ghcr.io/spotware/ctrader-console:latest create cbot FlowRsiBot
-   cp cBot/FlowRsiBot.cs /root/cAlgo/Sources/Robots/FlowRsiBot/FlowRsiBot/FlowRsiBot.cs
-   docker run --rm -v $(pwd):/workspace -v /root:/root \
-     ghcr.io/spotware/ctrader-console:latest build /root/cAlgo/Sources/Robots/FlowRsiBot/FlowRsiBot/FlowRsiBot.csproj
-   cp /root/cAlgo/Sources/Robots/FlowRsiBot.algo cBot/FlowRsiBot.algo
-
-   # 4. GotobiBot (Gotobi Fix)
-   docker run --rm -v $(pwd):/workspace -v /root:/root \
-     ghcr.io/spotware/ctrader-console:latest create cbot GotobiBot
-   cp cBot/GotobiBot.cs /root/cAlgo/Sources/Robots/GotobiBot/GotobiBot/GotobiBot.cs
-   docker run --rm -v $(pwd):/workspace -v /root:/root \
-     ghcr.io/spotware/ctrader-console:latest build /root/cAlgo/Sources/Robots/GotobiBot/GotobiBot/GotobiBot.csproj
-   cp /root/cAlgo/Sources/Robots/GotobiBot.algo cBot/GotobiBot.algo
-
-   # 5. CryptoDonchianBot (Crypto Donchian H4)
-   docker run --rm -v $(pwd):/workspace -v /root:/root \
-     ghcr.io/spotware/ctrader-console:latest create cbot CryptoDonchianBot
-   cp cBot/CryptoDonchianBot.cs /root/cAlgo/Sources/Robots/CryptoDonchianBot/CryptoDonchianBot/CryptoDonchianBot.cs
-   docker run --rm -v $(pwd):/workspace -v /root:/root \
-     ghcr.io/spotware/ctrader-console:latest build /root/cAlgo/Sources/Robots/CryptoDonchianBot/CryptoDonchianBot/CryptoDonchianBot.csproj
-   cp /root/cAlgo/Sources/Robots/CryptoDonchianBot.algo cBot/CryptoDonchianBot.algo
-   ```
-3. **Diretrizes de Implantação Multi-Contas (Executando Demo e Real Simultaneamente)**:
-
-   Ao implantar bots em conta Real juntamente com bots Demo, personalize as flags de comando para evitar colisões:
-   - **Nome do Container (`--name`)**: Deve ser exclusivo no host. Use `cbot-live-<symbol>` vs `cbot-demo-<symbol>`.
-   - **Número da Conta (`--account`)**: Defina o número da sua conta real do cTrader (ex: `88888888`).
-   - **Rótulo da Conta (`--AccountLabel`)**: Defina como `"live"` (ou `"live-main"`). O cBot envia isso para marcar negociações e rotear dados para `/real/dashboard`.
-   - **Identificador do Bot (`--BotId`)**: Use IDs distintos, como `live_xauusd_m15` vs `demo_xauusd_m15`.
-   - **Gerenciamento de Risco**: Configure parâmetros de risco mais rigorosos para capital real (ex: `--RiskPerTradePercent=0.1` ou `0.2`).
-   - **Credenciais (`--pwd-file`)**: Se estiver usando um cTID separado, monte um arquivo de senha dedicado (ex: `/root/ctrader_data/ctid_live_pwd`).
-   - **Configuração de Ambiente (`.env`)**:
-     ```bash
-     DASHBOARD_ACCOUNTS=demo-10101649|10101649|demo|Demo Account;live-88888888|88888888|live|Live Main
-     ```
-
-4. **Executar Containers Docker para cada par/índice**:
-
-   Todos os **45** comandos prontos para rodar — 15 símbolos × 3 estratégias — foram movidos para um arquivo próprio:
-
-   **📖 [docs/docker-instances.md](docs/docker-instances.md)**
-
-   Ele detalha por completo cada célula da grade Setup Instances — TMS+ORB, Asian Range Judas Sweep e FlowRSI em
-   XAUUSD, EURUSD, GBPUSD, USDJPY, GBPJPY, EURJPY, USDCAD, AUDUSD, AUDJPY, US30, USTEC, DE40, UK100, BTCUSD e
-   ETHUSD — além dos placeholders a substituir, do padrão de nomes de container e de como rodar demo e live lado a lado.
-
-   Um exemplo, XAUUSD TMS+ORB na sessão de Nova York:
-
-   ```bash
-   docker run -d \
-     --name cbot-demo-xauusd-newyork \
-     --restart unless-stopped \
-     --network host \
-     -v $(pwd):/workspace \
-     -v /root:/root \
-     ghcr.io/spotware/ctrader-console:latest \
-     run /workspace/cBot/AiAgentBot.algo \
-     --ctid=your_email@example.com \
-     --pwd-file=/root/ctrader_data/ctid_pwd \
-     --account=YOUR_ACCOUNT_ID \
-     --symbol=XAUUSD \
-     --period=m15 \
-     --full-access \
-     --BotId="cbot-demo-xauusd-newyork" \
-     --ApiUrl="http://127.0.0.1:8000/trade" \
-     --AccountLabel="demo" \
-     --OrbStartHour=13 \
-     --SessionEndHour=21 \
-     --SessionDstRule="US" \
-     --MinDecisiveBreakoutPips=200.0 \
-     --MinOrWidthPips=400.0 \
-     --OrbBufferPips=50.0 \
-     --BreakevenTriggerAtr=1.2 \
-     --BreakevenOffsetAtr=0.1 \
-     --TrailTriggerAtr=2.0 \
-     --TrailDistanceAtr=1.0 \
-     --PartialCloseRatio=0.5 \
-     --MinSlAtr=0.8 \
-     --MaxSlAtr=3.0 \
-     --MinTpAtr=1.0 \
-     --MaxTpAtr=6.0 \
-     --MaxGivebackAtr=1.0 \
-     --GivebackArmMinPips=150.0 \
-     --MinAdjustBeProfitPips=300.0 \
-     --EnablePostTpGate=true \
-     --PostTpPullbackAtr=0.5 \
-     --BounceTradeEnabled=true \
-     --BounceDistanceThreshold=10 \
-     --RiskPerTradePercent=0.2 \
-     --TrendTpDisabled=true
-   ```
-
-### 5. Começar a Negociar! 🎉
-
-O bot irá automaticamente:
-- Calcular indicadores em cada fechamento de barra
-- Enviar snapshot de mercado para o servidor IA
-- Receber decisão de negociação
-- Executar negociações com gestão de risco
+Se `DATABASE_URL` não apontar para um PostgreSQL acessível, o servidor usa o arquivo SQLite `portfolio.db`.
 
 ---
 
-## 📈 Estratégia de Negociação
+## 🤖 Executando os cBots
 
-### TMS (Trend Momentum Signal)
+1. **Compile os pacotes `.algo`** — o instalador faz isso; para compilar manualmente veja
+   [docs/deployment.md → Building the cBots](docs/deployment.md#building-the-cbots). Também é possível colar um arquivo
+   `cBot/*.cs` no cTrader Desktop (**Automate → New cBot → Build**) e anexá-lo a um gráfico.
+2. **Crie instâncias** — no painel, **Docker Bot Management → Setup Instances**: escolha ou adicione uma conta cTrader,
+   marque as células símbolo × estratégia e clique em **Create instances**.
+3. **Ou execute manualmente** — cada preset está escrito como um comando `docker run` em
+   **[docs/docker-instances.md](docs/docker-instances.md)** (50 células). Um exemplo, XAUUSD TMS+ORB na sessão de
+   Nova York:
 
-TMS identifica o **viés direcional** usando três confirmações:
-
-| Indicador | Sinal de Alta | Sinal de Baixa |
-|-----------|---------------|----------------|
-| **TDI** | Green > Red | Green < Red |
-| **Heiken Ashi** | Vela verde | Vela vermelha |
-| **Stochastic** | K > D | K < D |
-
-**Conceito Chave**: O viés é travado até o próximo cruzamento, prevenindo whipsaws.
-
-### ORB (Opening Range Breakout)
-
-ORB fornece **timing preciso de entrada**:
-
-1. **Opening Range**: High/Low dos primeiros 15 minutos da sessão
-2. **Breakout**: Preço fecha além do limite OR
-3. **Filtro Decisivo**: Breakout deve ser decisivo (≥ MinDecisiveBreakoutPips, padrão 10.0 pips no XAUUSD)
-
-### Detecção de Regime de Mercado (Market Regime)
-
-O sistema calcula métricas de eficiência em tempo real para adaptar o comportamento de negociação e saída:
-- **`er_session` e `er_recent`**: Razão de Eficiência de Kaufman ($ER = \frac{|\text{Deslocamento Líquido}|}{\sum |\text{Variação dos Candles}|}$). $1.0$ representa uma tendência limpa e direcional, enquanto $\approx 0.0$ indica consolidação.
-- **`or_flips`**: Conta rompimentos falsos fora do Opening Range que fecharam de volta para dentro.
-- **4 Regimes de Mercado**:
-  - **`trending`** ($ER \ge 0.35$): Desativa o TP fixo (`TrendTpDisabled = true`), permitindo que o Trailing SL e o Giveback Floor capturem todo o movimento da tendência.
-  - **`choppy`** (`or_flips \ge 5`): Alto risco de armadilhas de rompimento falso → Cycle Gate força `HOLD`.
-  - **`mixed`**: Disciplina padrão de negociação ($R:R \ge 1.5$).
-  - **`forming`**: Fase inicial de formação do range ($< 6$ candles).
-
-### Modelos de Entrada e Disciplina Quantitativa
-- **Modelo 1: Rompimento Direto por Momentum (Direct Breakout)**: Preço fecha decisivamente além do Opening Range dentro da janela de entrada ($\le 5$ candles) sem estar sobre-estendido ($\le 2.5\times$ ATR).
-- **Modelo 2: Reteste de Rompimento + TDI Bounce (Pullback Continuation)**: Quando o rompimento tem idade intermediária ($5 < \text{candles} \le 10$), a entrada só é permitida se ocorrer um **TDI Bounce** verificado (`tdi_bounce_bull` / `tdi_bounce_bear`), alinhado à EMA5 e sem sobre-extensão extrema.
-- **Regra ANTI-OVEREXTENSION**: NUNCA compre ou venda quando o preço já estiver excessivamente esticado ($> 2.5\times$ ATR, ou $> 1500$ pips no Ouro / $\$15.00$, $> 30,000$ pips no BTC, $> 1500$ pips em Índices, $> 50$ pips no Forex) da borda do OR.
-- **Exceção BIAS-FRESH**: Quando um cruzamento TDI acabou de ocorrer ($\le 1$ candle atrás), o impulso inicial de rompimento é tratado como o **início de uma nova onda de tendência**, e não como esticado → Favorece a entrada imediata.
-- **Regra ANTI-CHASE**: Quando o preço já rompeu há $\ge 4$ candles sob um viés antigo sem pullback/bounce válido, **NÃO persiga nos extremos** → Mantenha `HOLD` e aguarde uma retração estruturada.
-- **Portão Pós-TP (Post-TP Gate Anti-FOMO)**: Após atingir o TP ou fechar um grande lucro, a reentrada na mesma direção é bloqueada até ocorrer um pullback genuíno ($\ge 0.5\times$ ATR), toque no OR ou reversão de viés.
-- **Trava de Lucro e Giveback Floor**: Dá espaço para a posição respirar. Ao atingir lucro $\ge 0.8\times$ ATR, um giveback de $\ge 40\%$ do MFE máximo ou perda de momentum aciona o fechamento imediato para garantir os ganhos.
-
-### 🏹 Estratégia Asian Range Judas Sweep (ICT Smart Money Concepts)
-
-O **Asian Range Judas Sweep AI Bot** executa um modelo institucional de caçada de liquidez no **XAUUSD (Ouro M15)**:
-
-1. **Rastreamento da Sessão Asiática (`00:00 – 06:00 UTC`)**:
-   - Define os limites de liquidez: `Asian High` (Liquidez de Compra / BSL) e `Asian Low` (Liquidez de Venda / SSL).
-   - Valida se a amplitude do range asiático está nos padrões (`50` a `350` pips).
-2. **Killzones de Ouro (Golden Killzones)**:
-   - **London Open Killzone**: `07:00 – 10:00 UTC` (Janela máxima de caçada de liquidez).
-   - **New York Overlap Killzone**: `12:30 – 16:00 UTC` (Entrada do volume institucional americano).
-3. **Portão Pré-Filtro (Detecção de Judas Swing)**:
-   - **Gatilho de VENDA (`JUDAS_SWEEP_SELL`)**: Pavio ultrapassa `Asian High + sweepBufferPips (15 pips)` para capturar compradores e fecha de volta *dentro* do range asiático.
-   - **Gatilho de COMPRA (`JUDAS_SWEEP_BUY`)**: Pavio rompe abaixo de `Asian Low - sweepBufferPips (15 pips)` para capturar vendedores e fecha de volta *dentro* do range asiático.
-4. **Decisão Sniper do AI Agent**:
-   - Analisa Order Block (OB), Fair Value Gap (FVG), estrutura multi-timeframe (M15 + H1 + H4) e as últimas 50 barras OHLCV.
-   - Posiciona o Stop Loss atrás da máxima/mínima do pavio de varredura (piso mínimo de segurança `200 pips` / $2.00 USD no Ouro) e Take Profit na borda oposta da Ásia.
-### Regras de Entrada
-
-```
-IF TMS_ALTA AND ORB_BREAKOUT_UP AND DECISIVO:
-    → BUY
-    
-IF TMS_BAIXA AND ORB_BREAKOUT_DOWN AND DECISIVO:
-    → SELL
-    
-ELSE:
-    → HOLD
+```bash
+docker run -d \
+  --name cbot-demo-xauusd-newyork \
+  --restart unless-stopped \
+  --network host \
+  -v $(pwd):/workspace \
+  -v /root:/root \
+  ghcr.io/spotware/ctrader-console:latest \
+  run /workspace/cBot/AiAgentBot.algo \
+  --ctid=your_email@example.com \
+  --pwd-file=/root/ctrader_data/ctid_pwd \
+  --account=YOUR_ACCOUNT_ID \
+  --symbol=XAUUSD \
+  --period=m15 \
+  --full-access \
+  --BotId="cbot-demo-xauusd-newyork" \
+  --ApiUrl="http://127.0.0.1:8000/trade" \
+  --AccountLabel="demo" \
+  --OrbStartHour=13 \
+  --SessionEndHour=21 \
+  --SessionDstRule="US" \
+  --MinDecisiveBreakoutPips=200.0 \
+  --MinOrWidthPips=400.0 \
+  --OrbBufferPips=50.0 \
+  --BreakevenTriggerAtr=1.2 \
+  --BreakevenOffsetAtr=0.1 \
+  --TrailTriggerAtr=2.0 \
+  --TrailDistanceAtr=1.0 \
+  --PartialCloseRatio=0.5 \
+  --MinSlAtr=0.8 \
+  --MaxSlAtr=3.0 \
+  --MinTpAtr=1.0 \
+  --MaxTpAtr=6.0 \
+  --MaxGivebackAtr=1.0 \
+  --GivebackArmMinPips=150.0 \
+  --MinAdjustBeProfitPips=300.0 \
+  --EnablePostTpGate=true \
+  --PostTpPullbackAtr=0.5 \
+  --BounceTradeEnabled=true \
+  --BounceDistanceThreshold=10 \
+  --RiskPerTradePercent=0.2 \
+  --TrendTpDisabled=true
 ```
 
-### Regras de Saída
+Os presets em si ficam em [`app/cbot_presets.py`](app/cbot_presets.py), a única fonte da verdade; o README não os
+repete. Numa VPS configurada pelo instalador, troque `-v /root:/root` por `-v /home/forge/ctrader:/root`.
 
-| Condição | Ação |
-|----------|------|
-| Reversão TDI Confirmada (Cruzamento oposto à linha Vermelha / Reversão de Sobrecompra-Sobrevenda perdendo EMA) | CLOSE_ALL |
-| Viés reverte | Fechamento automático |
-| Sessão termina (EOD) | Fechamento automático total (Rede de segurança EOD Force-Flatten) |
-| Lucro $\ge 0.8\times$ ATR | Mover SL para breakeven (+0.1x ATR offset) |
-| Lucro $\ge 1.2\times$ ATR | Trail SL $0.7\times$ ATR |
-| Giveback $\ge 40\%$ do MFE de pico ou $\ge 0.6\times$ ATR | Fechamento automático (Trava de lucro e proteção de giveback) |
 ---
 
 ## ⚙️ Configuração
 
-### Parâmetros do cBot
-
-#### Configurações TMS (Multi-Timeframe)
-| Parâmetro | Padrão | Descrição |
-|-----------|--------|-----------|
-| TMS Timeframe (Macro) | Hour (H1) | Timeframe da tendência macro (H1, H4, M15, etc.) |
-| RSI Period | 6 | Período de cálculo RSI |
-| Red Period | 6 | Período da linha de sinal |
-
-#### Configurações Stochastic
-| Parâmetro | Padrão | Descrição |
-|-----------|--------|-----------|
-| %K Period | 6 | Stochastic rápido |
-| %D Period | 6 | Stochastic lento |
-| Slowing | 4 | Fator de suavização |
-
-#### Filtros de Entrada
-| Parâmetro | Padrão | Descrição |
-|-----------|--------|-----------|
-| Max Bars After Cross | 5 | Janela de entrada |
-| Min Angle Delta | 0.0 | Filtro de ângulo (0=off) |
-| Min Decisive Breakout | 10.0 pips | Força do breakout (ajustado por padrão para XAUUSD) |
-
-#### Gerenciamento de Saída
-| Parâmetro | Padrão | Descrição |
-|-----------|--------|-----------|
-| Flat Threshold | 0.01 | Nível de achatamento do TDI |
-| Breakeven Trigger | 0.8x ATR | Lucro em ATR para mover SL para o zero |
-| Breakeven Offset | 0.1x ATR | Lucro protegido no breakeven (ATR) |
-| Trail Trigger | 1.2x ATR | Lucro em ATR para ativar Trailing Stop |
-| Trail Distance | 0.7x ATR | Distância de trailing atrás do preço (ATR) |
-#### Sessão
-| Parâmetro | Padrão | Descrição |
-|-----------|--------|-----------|
-| Session Start Hour | 13 (UTC) | Abertura Nova York (UTC Inverno) |
-| Session End Hour | 21 (UTC) | Fechamento Nova York (EOD force-flatten) |
-| Opening Range | 15 min | Janela de cálculo OR |
-| Min OR Width | 20.0 pips | Largura mínima do OR |
-| ORB Buffer | 3.0 pips | Buffer contra falsos breakouts |
-| DST Rule | US | Ajuste automático de horário de verão |
-
-#### Gerenciamento de Risco (Dynamic Sizing & ATR)
-| Parâmetro | Padrão | Descrição |
-|-----------|--------|-----------|
-| Use ATR for SL/TP | true | Calcula SL/TP dinâmico baseado no ATR |
-| ATR Period | 14 | Período de cálculo do ATR |
-| ATR SL Multiplier | 1.5 | Multiplicador de distância de Stop Loss por ATR |
-| ATR TP Multiplier | 2.0 | Multiplicador de distância de Take Profit por ATR |
-| Risk per Trade (%) | 0.2 | Porcentagem do saldo em risco por operação |
-
-#### Guardrails
-| Parâmetro | Padrão | Descrição |
-|-----------|--------|-----------|
-| Min SL | 0.8x ATR | Multiplicador de Stop Loss mínimo |
-| Max SL | 3.0x ATR | Multiplicador de Stop Loss máximo |
-| Min TP | 1.0x ATR | Multiplicador de Take Profit mínimo |
-| Max TP | 6.0x ATR | Multiplicador de Take Profit máximo |
-| Max Giveback (ATR) | 0.6x ATR | Limite de giveback em ATR para forçar fechamento |
-| Max Giveback (% MFE) | 0.40 (40%) | Porcentagem máxima permitida de giveback do pico MFE |
-| Max Breakout Dist | 2.5x ATR | Distância máxima de rompimento para permitir entrada |
-| Max Dollar Risk | $12.00 | Limite máximo rígido de risco em dólares por trade |
-| Max Loss Streak | 3 | Bloquear após N perdas consecutivas |
-| Bias Flip Exit | true | Fechamento automático na mudança de viés |
-| Trend TP Disabled | true | Desativa TP fixo em regime de tendência |
-
-### Tabela de Parâmetros Asian Range Judas Sweep
-
-| Parâmetro | Padrão | Descrição |
-|:---|:---:|:---|
-| `UseDirectAiApi` | `false` | `false` = Hub de Servidor Local (`http://127.0.0.1:8000`), `true` = Cloud API Direta |
-| `UseAiGateMode` | `true` | Portão de 2 camadas: Judas Sweep direciona → AI Agent confirma entrada |
-| `enableIndicatorCloseInAiMode` | `false` | Desativa fechamento prematuro por cruzamento de EMA 9/21 no modo AI, delegando controle total da posição para TP/SL, Breakeven, Trailing SL e decisões da IA (`CLOSE_ALL` / `ADJUST`) |
-| `AiConfidenceThreshold` | `70.0%` | Pontuação mínima de confiança da IA para executar ordens BUY/SELL |
-| `AiSlMinFloorPips` | `200.0` | Piso de segurança de SL ($2.00 no Ouro) contra ruídos e spreads |
-| `asianStartHour` | `0` | Hora de início da sessão asiática (UTC) |
-| `asianEndHour` | `6` | Hora de término da sessão asiática (UTC) |
-| `minAsianRangePips` | `50.0` | Amplitude mínima do range asiático para setup válido |
-| `maxAsianRangePips` | `350.0` | Amplitude máxima do range asiático (ignora dias atípicos) |
-| `londonStartHour` | `7` | Hora de início do Killzone de Londres (UTC) |
-| `londonEndHour` | `10` | Hora de término do Killzone de Londres (UTC) |
-| `nyStartHour` | `12` | Hora de início do Killzone de Nova York (UTC) |
-| `nyEndHour` | `16` | Hora de término do Killzone de Nova York (UTC) |
-| `sweepBufferPips` | `15.0` | Penetração mínima do pavio além das máximas/mínimas asiáticas (pips) |
-| `enableNewsFilter` | `true` | Escudo de notícias de alto impacto do ForexFactory com correspondência automática de moedas (USD para Ouro/Índices/Cripto, EUR/USD/GBP/JPY para Forex) |
-| `pauseBeforeNewsMins` | `30` | Minutos para pausar detecção de sweep e novas entradas antes de notícias de alto impacto |
-| `pauseAfterNewsMins` | `30` | Minutos para pausar detecção de sweep e novas entradas após notícias de alto impacto |
-| `highImpactOnly` | `true` | Filtrar apenas eventos de notícias vermelhas (High Impact) |
-| `closePositionsBeforeNews` | `false` | Fechar posições abertas antes de notícias de alto impacto |
-| `riskFactor` | `1.0` | Fator de alocação de risco da conta por operação (%) (Recomendado: 0.5% – 1.0%) |
-| `enableBreakEvenPrice` | `true` | Move automaticamente o SL para o zero ao atingir a meta |
-| `breakEvenMode` | `Risk_Reward_Ratio` | Qual gatilho é lido: `Risk_Reward_Ratio` (padrão) ou `Fixed_Pips` |
-| `breakEvenRrTrigger` | `1.5 R` | Move o SL para o zero quando o lucro atinge 1.5x a distância inicial do SL — **é este o gatilho em vigor por padrão** |
-| `breakEvenTrigger` | `250.0 pips` | Gatilho em pips, lido **apenas** quando `breakEvenMode = Fixed_Pips`; ignorado no modo R:R padrão |
-### 🏹 Tabela de Parâmetros Recomendados para Asian Range Judas Sweep
-
-| Parâmetro | XAUUSD | GBPUSD | EURUSD | GBPJPY | EURJPY | BTCUSD | ETHUSD |
-| :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
-| **Timeframe Recomendado** | `M15` | `M15` | `M15` | `M15` | `M15` | `M15` | `M15` |
-| **Sessão Asiática (UTC)** | `00:00 - 06:00` | `00:00 - 06:00` | `00:00 - 06:00` | `00:00 - 06:00` | `00:00 - 06:00` | `00:00 - 06:00` | `00:00 - 06:00` |
-| **Killzones (UTC)** | `07-10h & 12:30-16h` | `07-10h & 12:30-16h` | `07-10h & 12:30-16h` | `07-10h & 12:30-16h` | `07-10h & 12:30-16h` | `07-10h & 12:30-16h` | `07-10h & 12:30-16h` |
-| **Range Asiático (Min/Max)** | `200.0 / 8000.0 pips` | `15.0 / 45.0 pips` | `15.0 / 45.0 pips` | `25.0 / 70.0 pips` | `25.0 / 70.0 pips` | `10000.0 / 400000.0 pips` | `800.0 / 35000.0 pips` |
-| **Profundidade do Pavio (Buffer)** | `500.0 pips` | `3.5 pips` | `3.5 pips` | `5.0 pips` | `5.0 pips` | `1500.0 pips` | `150.0 pips` |
-| **Piso de SL AI (Floor)** | `200.0 pips` | `15.0 pips` | `15.0 pips` | `25.0 pips` | `25.0 pips` | `20000.0 pips` | `1500.0 pips` |
-| **Stop Loss Padrão** | `200.0 pips` | `15.0 pips` | `15.0 pips` | `25.0 pips` | `25.0 pips` | `25000.0 pips` | `2000.0 pips` |
-| **Take Profit Padrão** | `450.0 pips` | `35.0 pips` | `35.0 pips` | `50.0 pips` | `50.0 pips` | `60000.0 pips` | `5000.0 pips` |
-| **Gatilho de Breakeven (R:R)** | `1.5 R` | `1.5 R` | `1.5 R` | `1.5 R` | `1.5 R` | `1.5 R` | `1.5 R` |
-| **Confiança Mínima da IA** | `70.0%` | `70.0%` | `70.0%` | `70.0%` | `70.0%` | `70.0%` | `70.0%` |
-| **Risco por Operação** | `1.0%` | `1.0%` | `1.0%` | `1.0%` | `1.0%` | `0.2%` | `0.2%` |
-
-### 📊 Presets Recomendados para TMS + ORB (Por Símbolo)
-#### Metals & Indices
-
-| Parameter | XAUUSD | US30 | USTEC | DE40 |
-| :--- | :--- | :--- | :--- | :--- |
-| **Trading Session** | New York | New York (Index) | New York (Index) | London |
-| **DST Rule** | `US` | `US` | `US` | `Europe` |
-| **Min Decisive Breakout** | `100.0 pips` | `100.0 pips` | `80.0 pips` | `70.0 pips` |
-| **Min OR Width** | `250.0 pips` | `300.0 pips` | `250.0 pips` | `200.0 pips` |
-| **ORB Buffer** | `30.0 pips` | `50.0 pips` | `40.0 pips` | `35.0 pips` |
-| **Breakeven Trigger** | `1.2x ATR` | `2.0x ATR` | `2.0x ATR` | `2.0x ATR` |
-| **Breakeven Offset** | `0.1x ATR` | `0.1x ATR` | `0.1x ATR` | `0.1x ATR` |
-| **Trail Trigger** | `2.0x ATR` | `3.0x ATR` | `3.0x ATR` | `3.0x ATR` |
-| **Trail Distance** | `1.0x ATR` | `1.5x ATR` | `1.5x ATR` | `1.5x ATR` |
-| **Min SL / Max SL** | `0.8x / 3.0x ATR` | `1.5x / 4.5x ATR` | `1.5x / 4.5x ATR` | `1.5x / 4.5x ATR` |
-| **Min TP / Max TP** | `1.0x / 6.0x ATR` | `2.0x / 8.0x ATR` | `2.0x / 8.0x ATR` | `2.0x / 8.0x ATR` |
-| **Max Giveback** | `1.0x ATR` | `1.5x ATR` | `1.5x ATR` | `1.5x ATR` |
-| **Recommended Timeframe** | `M15` | `M15` | `M15` | `M15` |
-| **EMA Period** | `5` | `5` | `5` | `5` |
-| **Post-TP Gate / Pullback** | `true` (`0.5x ATR`) | `true` (`0.5x ATR`) | `true` (`0.5x ATR`) | `true` (`0.5x ATR`) |
-| **TDI Bounce Trade** | `1.5` | `1.5` | `1.5` | `1.5` |
-| **Partial Close at BE** | `0.5 (50%)` | `0.5 (50%)` | `0.5 (50%)` | `0.5 (50%)` |
-| **Risk per Trade** | `0.2%` | `0.2%` | `0.2%` | `0.2%` |
-| **Use ATR for SL/TP** | `true` | `true` | `true` | `true` |
-| **ATR Period** | `14` | `14` | `14` | `14` |
-| **ATR SL Multiplier** | `1.5x ATR` | `2.5x ATR` | `2.5x ATR` | `2.5x ATR` |
-| **ATR TP Multiplier** | `2.0x ATR` | `3.5x ATR` | `3.5x ATR` | `3.5x ATR` |
-
-#### Forex Majors
-
-| Parameter | EURUSD | GBPUSD | USDJPY | USDCAD |
-| :--- | :--- | :--- | :--- | :--- |
-| **Trading Session** | London | London | Tokyo | New York |
-| **DST Rule** | `Europe` | `Europe` | `None` | `US` |
-| **Min Decisive Breakout** | `2.5 pips` | `3.5 pips` | `3.0 pips` | `3.5 pips` |
-| **Min OR Width** | `5.0 pips` | `7.0 pips` | `5.0 pips` | `7.0 pips` |
-| **ORB Buffer** | `1.0 pips` | `1.2 pips` | `1.0 pips` | `1.2 pips` |
-| **Breakeven Trigger** | `1.2x ATR` | `1.2x ATR` | `1.2x ATR` | `1.2x ATR` |
-| **Breakeven Offset** | `0.1x ATR` | `0.1x ATR` | `0.1x ATR` | `0.1x ATR` |
-| **Trail Trigger** | `2.0x ATR` | `2.0x ATR` | `2.0x ATR` | `2.0x ATR` |
-| **Trail Distance** | `1.0x ATR` | `1.0x ATR` | `1.0x ATR` | `1.0x ATR` |
-| **Min SL / Max SL** | `0.8x / 3.0x ATR` | `0.8x / 3.0x ATR` | `0.8x / 3.0x ATR` | `0.8x / 3.0x ATR` |
-| **Min TP / Max TP** | `1.0x / 6.0x ATR` | `1.0x / 6.0x ATR` | `1.0x / 6.0x ATR` | `1.0x / 6.0x ATR` |
-| **Max Giveback** | `1.0x ATR` | `1.0x ATR` | `1.0x ATR` | `1.0x ATR` |
-| **Recommended Timeframe** | `M15` | `M15` | `M15` | `M15` |
-| **EMA Period** | `5` | `5` | `5` | `5` |
-| **Post-TP Gate / Pullback** | `true` (`0.5x ATR`) | `true` (`0.5x ATR`) | `true` (`0.5x ATR`) | `true` (`0.5x ATR`) |
-| **TDI Bounce Trade** | `1.5` | `1.5` | `1.5` | `1.5` |
-| **Partial Close at BE** | `0.5 (50%)` | `0.5 (50%)` | `0.5 (50%)` | `0.5 (50%)` |
-| **Risk per Trade** | `0.2%` | `0.2%` | `0.2%` | `0.2%` |
-| **Use ATR for SL/TP** | `true` | `true` | `true` | `true` |
-| **ATR Period** | `14` | `14` | `14` | `14` |
-| **ATR SL Multiplier** | `1.5x ATR` | `1.5x ATR` | `1.5x ATR` | `1.5x ATR` |
-| **ATR TP Multiplier** | `2.0x ATR` | `2.0x ATR` | `2.0x ATR` | `2.0x ATR` |
-
-#### Forex Crosses
-
-| Parameter | GBPJPY | EURJPY | AUDJPY |
-| :--- | :--- | :--- | :--- |
-| **Trading Session** | London | London | Tokyo |
-| **DST Rule** | `Europe` | `Europe` | `None` |
-| **Min Decisive Breakout** | `5.0 pips` | `4.0 pips` | `3.0 pips` |
-| **Min OR Width** | `10.0 pips` | `8.0 pips` | `5.0 pips` |
-| **ORB Buffer** | `1.5 pips` | `1.2 pips` | `1.0 pips` |
-| **Breakeven Trigger** | `1.2x ATR` | `1.2x ATR` | `1.2x ATR` |
-| **Breakeven Offset** | `0.1x ATR` | `0.1x ATR` | `0.1x ATR` |
-| **Trail Trigger** | `2.0x ATR` | `2.0x ATR` | `2.0x ATR` |
-| **Trail Distance** | `1.0x ATR` | `1.0x ATR` | `1.0x ATR` |
-| **Min SL / Max SL** | `0.8x / 3.0x ATR` | `0.8x / 3.0x ATR` | `0.8x / 3.0x ATR` |
-| **Min TP / Max TP** | `1.0x / 6.0x ATR` | `1.0x / 6.0x ATR` | `1.0x / 6.0x ATR` |
-| **Max Giveback** | `1.0x ATR` | `1.0x ATR` | `1.0x ATR` |
-| **Recommended Timeframe** | `M15` | `M15` | `M15` |
-| **EMA Period** | `5` | `5` | `5` |
-| **Post-TP Gate / Pullback** | `true` (`0.5x ATR`) | `true` (`0.5x ATR`) | `true` (`0.5x ATR`) |
-| **TDI Bounce Trade** | `1.5` | `1.5` | `1.5` |
-| **Partial Close at BE** | `0.5 (50%)` | `0.5 (50%)` | `0.5 (50%)` |
-| **Risk per Trade** | `0.2%` | `0.2%` | `0.2%` |
-| **Use ATR for SL/TP** | `true` | `true` | `true` |
-| **ATR Period** | `14` | `14` | `14` |
-| **ATR SL Multiplier** | `1.5x ATR` | `1.5x ATR` | `1.5x ATR` |
-| **ATR TP Multiplier** | `2.0x ATR` | `2.0x ATR` | `2.0x ATR` |
-### Configurações do Portfolio Manager
-
-Editar `app/portfolio.py`:
-
-```python
-class PortfolioConfig:
-    MAX_POSITIONS = 4              # Máximo de posições abertas
-    MAX_CURRENCY_EXPOSURE = 2      # Máximo de posições por moeda
-    MAX_CORRELATED_POSITIONS = 2   # Máximo de posições correlacionadas
-    MAX_DAILY_LOSS = -200.0        # Limite de perda diária (USD)
-    MAX_MARGIN_USAGE_PCT = 50.0    # Uso máximo de margem
-```
+Todas as configurações do servidor vêm do `.env` — comece por [`.env.example`](.env.example). O mínimo é
+`LLM_PROVIDER` e a chave de API desse provedor. Todas as variáveis, o formato de `DASHBOARD_ACCOUNTS`, a escolha do
+banco de dados, os limites de risco e os parâmetros dos cBots que não fazem parte dos presets estão descritos em
+[docs/configuration.md](docs/configuration.md).
 
 ---
 
-## 📡 Documentação da API
+## 📚 Documentação
 
-### POST /trade
-
-Endpoint principal para decisões de negociação.
-
-**Request** (do cBot):
-```json
-{
-  "bot_id": "eurusd_bot",
-  "symbol": "EURUSD",
-  "timeframe": "M15",
-  "ask": 1.0850,
-  "bid": 1.0848,
-  "bars": [
-    {"ha_color": "Green", "tdi_green": 55.2, "tdi_red": 52.1, "stoch_k": 75.0, "stoch_d": 70.0},
-    {"ha_color": "Green", "tdi_green": 54.8, "tdi_red": 51.9, "stoch_k": 72.0, "stoch_d": 68.0},
-    {"ha_color": "Red", "tdi_green": 53.5, "tdi_red": 52.5, "stoch_k": 65.0, "stoch_d": 62.0}
-  ],
-  "tms": {
-    "bias": "BULLISH",
-    "bars_since_cross": 2,
-    "long_entry": true,
-    "short_entry": false,
-    "green_tf_value": 55.2,
-    "green_tf_slope": 0.4
-  },
-  "orb": {
-    "or_high": 1.0845,
-    "or_low": 1.0830,
-    "breakout_direction": "up",
-    "breakout_distance_pips": 5.0,
-    "is_decisive": true,
-    "bars_since_breakout": 1
-  },
-  "position": null,
-  "session": {
-    "phase": "active",
-    "minutes_to_end": 180
-  }
-}
-```
-
-**Response** (da IA):
-```json
-{
-  "action": "BUY",
-  "volume_lots": 0.01,
-  "sl_pips": 0,
-  "tp_pips": 0,
-  "reason": "Viés TMS ALTA confirmado, breakout ORB decisivo UP (+5.0p), momentum subindo"
-}
-```
-
-### POST /portfolio/report
-
-Reportar mudanças de posição para rastreamento de portfólio.
-
-```json
-{
-  "bot_id": "eurusd_bot",
-  "action": "open",
-  "symbol": "EURUSD",
-  "side": "BUY",
-  "volume": 0.01,
-  "entry_price": 1.0850,
-  "sl_pips": 10.0,
-  "tp_pips": 20.0
-}
-```
-
-
-### GET /portfolio/status
-
-Obter status atual do portfólio.
-
-```bash
-curl http://127.0.0.1:8000/portfolio/status
-```
+| Documento | Conteúdo |
+| :--- | :--- |
+| [docs/architecture.md](docs/architecture.md) | Componentes, fluxo das requisições, grupos de API, estrutura do projeto |
+| [docs/strategies.md](docs/strategies.md) | O que cada cBot faz e onde ficam as suas regras |
+| [docs/configuration.md](docs/configuration.md) | Variáveis do `.env`, limites de risco, parâmetros dos cBots |
+| [docs/deployment.md](docs/deployment.md) | Instalador de VPS, instalação manual, compilação dos cBots, serviço, backups, testes |
+| [docs/docker-instances.md](docs/docker-instances.md) | Os 50 comandos `docker run` dos presets |
+| `http://127.0.0.1:8000/docs` | Referência interativa da API gerada pelo FastAPI (também `/redoc`) |
+| [research/README.md](research/README.md) | Pesquisa offline de estratégias e as suas conclusões |
 
 ---
 
-## 🛠️ Desenvolvimento
+## 🔬 Situação da Pesquisa
 
-### Estrutura do Projeto
+Este README não publica números de desempenho. A pesquisa offline em [`research/`](research/README.md) concluiu que,
+em 2026-09-27, nenhuma das estratégias testadas — incluindo os bots TMS+ORB, Judas Sweep e FlowRSI em produção —
+mostra uma vantagem que sobreviva à correção para testes múltiplos e aos anos fora da amostra. A única exceção até
+agora é a operação Gotobi nos pares de JPY (`GotobiBot`), que passou no seu holdout pré-registrado; o
+`CryptoDonchianBot` falhou no holdout e roda apenas como forward test. Trate todos os bots como experimentais e rode-os
+primeiro numa conta demo.
 
-```
-AgentFxTrading/
-├── app/
-│   ├── llm_client.py      # Camada de abstração LLM
-│   ├── server.py          # Servidor FastAPI
-│   ├── portfolio.py       # Gestão de risco de portfólio
-│   └── db.py              # Camada de banco de dados (PostgreSQL / SQLite)
-├── cBot/
-│   ├── AiAgentBot.cs               # cBot estratégia TMS + ORB
-│   ├── AsianRangeJudasSweepBot.cs # cBot ICT Judas Sweep asiático
-│   └── FlowRsiBot.cs              # cBot Nested RSI & SMC Flow
-├── scripts/
-│   ├── backup_postgres.sh # Backup diário automático (03:00)
-│   └── migrate_sqlite_to_pg.py # Script de migração para PG
-├── .env.example           # Template de ambiente
-├── requirements.txt       # Dependências Python
-├── README.md              # Documentação (6 idiomas)
-└── portfolio.db           # Banco de dados SQLite (fallback / testes)
-```
-
-### Adicionar Novo LLM Provider
-
-1. Criar nova classe em `app/llm_client.py`:
-
-```python
-class NewProviderClient(LLMClient):
-    def __init__(self, api_key: str, model: str):
-        # Initialize client
-        pass
-    
-    async def chat(self, messages: List[Dict[str, str]], **kwargs) -> str:
-        # Implement chat logic
-        pass
-```
-
-2. Atualizar `create_llm_client()`:
-
-```python
-elif provider == "newprovider":
-    return NewProviderClient(
-        api_key=os.getenv("NEWPROVIDER_API_KEY"),
-        model=os.getenv("LLM_MODEL")
-    )
-```
-
-### Melhorar o Prompt
-
-Editar `SYSTEM_PROMPT` em `app/server.py` para ajustar lógica de negociação.
+> ⚠️ **Aviso**: operar produtos alavancados envolve alto risco de perda. Este software é fornecido para pesquisa e
+> educação, sem garantia de resultados.
 
 ---
 
-## 📊 Performance
+## ☕ Apoio & Corretora
 
-### Resultados de Backtest
-
-> ⚠️ **Aviso**: Performance passada não garante resultados futuros. Sempre teste com conta demo primeiro.
-
-| Métrica | Valor |
-|---------|-------|
-| Taxa de Acerto | ~55-65% |
-| Risco/Recompensa | 1:2 média |
-| Drawdown Máximo | ~15% |
-| Sharpe Ratio | ~1.2 |
-
-### Dicas de Negociação ao Vivo
-
-1. **Comece com Demo**: Sempre teste a estratégia primeiro
-2. **Tamanho de Posição Pequeno**: Comece com 0.01 lots
-3. **Monitore Diariamente**: Verifique status do portfólio regularmente
-4. **Ajuste Parâmetros**: Ajuste baseado nas condições de mercado
-5. **Gestão de Risco**: Nunca arrisque mais de 2% por negociação
-
----
-
-## ☕ Apoio & Corretora Recomendada
-
-Se o **AgentFxTrading** tem sido útil para suas negociações automatizadas, considere apoiar o projeto:
-
-- ☕ **Buy Me a Coffee**: Pague um café ao autor para ajudar nos custos de servidores e testes de modelos de IA: [buymeacoffee.com/kaz126](https://buymeacoffee.com/kaz126).
+- ☕ **Buy Me a Coffee**: apoie o desenvolvimento, os testes de modelos e a manutenção em [buymeacoffee.com/kaz126](https://buymeacoffee.com/kaz126).
 
   [![Buy Me A Coffee](https://img.buymeacoffee.com/button-api/?text=Buy%20me%20a%20coffee&emoji=&slug=kaz126&button_colour=FFDD00&font_colour=000000&font_family=Cookie&outline_colour=000000&coffee_colour=ffffff)](https://buymeacoffee.com/kaz126)
 
-- 📈 **Corretora cTrader Recomendada**:  
-  Precisa de uma corretora confiável para rodar seus cBots com execução ultrarrápida? Abra sua conta pelo link parceiro: **[Abrir Conta na IC Markets cTrader](https://ic.com/?camp=95400)**.  
-  *Vantagens: Spreads Raw a partir de 0.0 pips, liquidez institucional, latência ultrabaixa, totalmente otimizado para cTrader e estratégias automatizadas.*
+- 📈 **Corretora cTrader recomendada**: **[Abrir uma conta IC Markets cTrader](https://ic.com/?camp=95400)** (link de parceiro).
 
 ---
+
 ## 🤝 Contribuindo
 
-Contribuições são bem-vindas! Aqui está como você pode ajudar:
-
-### Maneiras de Contribuir
-
-1. **Star o repo** ⭐ - Mostra apoio
-2. **Reportar bugs** 🐛 - Abra uma issue
-3. **Sugerir features** 💡 - Abra um feature request
-4. **Enviar PRs** 🔧 - Contribuições de código
-5. **Melhorar docs** 📚 - Melhorias de documentação
-6. **Compartilhar resultados** 📈 - Compartilhe seus resultados de backtest/live
-
-### Diretrizes de Desenvolvimento
-
-- Siga o estilo de código existente
-- Escreva testes para novos recursos
-- Atualize a documentação
-- Mantenha os PRs focados e pequenos
-
-### Comunidade
-
-- 💬 [Discussões](https://github.com/kienphan/AgentFxTrading/discussions)
-- 🐛 [Issues](https://github.com/kienphan/AgentFxTrading/issues)
-- 📧 Email: senior1206@gmail.com
+Contribuições são bem-vindas: dê uma estrela ao repositório, reporte bugs ou sugira recursos em
+[Issues](https://github.com/kienphan/AgentFxTrading/issues), converse em
+[Discussions](https://github.com/kienphan/AgentFxTrading/discussions) ou abra um pull request focado, com testes.
+As convenções de agentes e de código estão em [AGENTS.md](AGENTS.md). Contato: senior1206@gmail.com.
 
 ---
 
 ## 📄 Licença
 
-Este projeto está licenciado sob a Licença MIT - veja o arquivo [LICENSE](LICENSE) para detalhes.
+Este projeto é licenciado sob a Licença MIT.
 
 ---
 
-## 🙏 Agradecimentos
-
-- **Estratégia TMS**: Baseado na metodologia profissional TMS
-- **cTrader**: Por fornecer excelente API
-- **Comunidade Open Source**: Por bibliotecas e ferramentas incríveis
-
----
-
-## 📈 Star History
+## 📈 Histórico de Estrelas
 
 [![Star History Chart](https://api.star-history.com/svg?repos=kienphan/AgentFxTrading&type=Date)](https://star-history.com/#kienphan/AgentFxTrading&Date)
-
----
-
-<div align="center">
-
-**Se você acha este projeto útil, considere dar uma ⭐ e [pagar um café ao autor](https://buymeacoffee.com/kaz126)!**
-
-[⬆ Voltar ao Topo](#-agentfxtrading---sistema-de-negociação-automatizado-com-ia)
-
-</div>
