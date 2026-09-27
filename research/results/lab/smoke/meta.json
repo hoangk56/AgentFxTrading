@@ -1,0 +1,41 @@
+{
+ "runs": [
+  {
+   "argv": {
+    "strategies": [
+     "BTC-S1",
+     "FLOWRSI",
+     "JUDAS",
+     "TMSORB",
+     "K1",
+     "TOM",
+     "WF1"
+    ],
+    "symbols": [
+     "EURUSD",
+     "US30",
+     "EURGBP",
+     "BTCUSD"
+    ],
+    "variants": [
+     "real",
+     "mirror"
+    ],
+    "years": [
+     2025
+    ],
+    "seeds": 2,
+    "workers": 3,
+    "run_dir": "research/results/lab/smoke",
+    "shuffle": 0,
+    "into": null
+   },
+   "jobs": 7,
+   "started": "2026-09-25T16:44:54.848826+00:00",
+   "git": "4fd870f",
+   "lab_sha": "b83140c99245",
+   "catalog": "03033d128929",
+   "finished": "2026-09-25T16:46:06.982831+00:00"
+  }
+ ]
+}

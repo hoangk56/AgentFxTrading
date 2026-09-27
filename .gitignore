@@ -74,11 +74,12 @@ backups/
 # Superpowers SDD scratch workspace
 .superpowers/
 
-# Local docs (specs/plans); screenshots stay tracked because README embeds them,
-# and the instance catalog because the READMEs link to it instead of listing the commands
-docs/*
-!docs/screenshots/
-!docs/docker-instances.md
-
-# Research outputs (research/data and research/.venv are already covered by data/ and .venv/)
-research/results/
+# Research outputs: reports (*.md), run metadata (*.json) and small summary CSVs are tracked;
+# bulky per-trade data, chunk parts and run logs are not.
+# (research/data and research/.venv are already covered by data/ and .venv/)
+!research/results/**/*.csv
+research/results/**/parts/
+research/results/**/*.gz
+research/results/**/*.log
+research/results/**/*trades*.csv
+research/results/**/control.csv
