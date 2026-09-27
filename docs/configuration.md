@@ -26,9 +26,10 @@ dashboard's account selector. Do that even for bots you start by hand. A cBot's 
 ...) decides which dashboard mode its trades belong to.
 
 The server logs every change of an account's balance (`account_balance_log`). The dashboard's **Ledger** view
-compares the broker's balance with opening balance + deposits − withdrawals + the bots' closed P&L, lists the
+starts from 0: it compares the broker's balance with deposits − withdrawals + the bots' closed P&L, lists the
 balance changes no closed trade explains, and lets you record each one as a deposit or a withdrawal (or enter one
-by hand).
+by hand). The first balance the server logged is listed as a change from 0, less the P&L of the closes booked before
+it: the money that was in the account before the log started.
 
 ### Database
 

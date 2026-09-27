@@ -41,7 +41,6 @@ def _accounts(scope: str):
 
 
 def _with_vn_times(entry: dict) -> dict:
-    entry["opening_at_vn"] = format_vn_time(entry["opening_at"])
     entry["broker_balance_at_vn"] = format_vn_time(entry["broker_balance_at"])
     for m in entry["movements"]:
         m["occurred_at_vn"] = format_vn_time(m["occurred_at"])

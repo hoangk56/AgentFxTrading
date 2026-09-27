@@ -1,5 +1,5 @@
-/* Ledger view: per account, the balance its closed trades and the recorded deposits / withdrawals explain,
- * against the broker's, and the balance changes nothing explains yet (app/ledger.py, /api/ledger).
+/* Ledger view: per account, the balance its closed trades and the recorded deposits / withdrawals explain (starting
+ * from 0), against the broker's, and the balance changes nothing explains yet (app/ledger.py, /api/ledger).
  *
  * Loaded with `defer`, after the dashboard script whose escapeHtml, formatMoney and selectedAccountId it uses.
  * The lg*Html functions are pure (data in, HTML out) so tests/app/test_ledger_ui.py can render them in node with
@@ -22,44 +22,53 @@ function lgAccountHtml(a, tolerance) {
     const head = `<div class="panel-header"><div class="panel-header-left">${badge}`
         + `<span class="panel-title">${escapeHtml(a.label || a.account_id)}</span>`
         + `<span class="td-dim">${id}</span></div></div>`;
-    if (a.opening_balance === null || a.opening_balance === undefined) {
-        return `<section class="panel lg-account">${head}<div class="panel-body td-dim">`
-            + `No balance received from this account yet: the ledger starts at the first balance a bot reports.</div></section>`;
-    }
-    const discCls = a.balanced ? 'kpi-value--profit' : 'kpi-value--warn';
+    const noBalance = a.broker_balance === null || a.broker_balance === undefined;
+    const discCls = noBalance ? '' : (a.balanced ? 'kpi-value--profit' : 'kpi-value--warn');
     const stats = '<div class="kpi-grid lg-stats">'
-        + lgStatHtml('Opening balance', lgMoney(a.opening_balance), '', `First balance seen: ${a.opening_at_vn || ''}`)
         + lgStatHtml('Deposits', lgMoney(a.deposits))
         + lgStatHtml('Withdrawals', lgMoney(a.withdrawals))
         + lgStatHtml(`Closed P&L (${Number(a.closed_trades) || 0})`, lgMoney(a.closed_pnl, true),
                      Number(a.closed_pnl) >= 0 ? 'kpi-value--profit' : 'kpi-value--loss')
-        + lgStatHtml('Expected balance', lgMoney(a.expected_balance), '', 'Opening + deposits - withdrawals + closed P&L')
-        + lgStatHtml('Broker balance', lgMoney(a.broker_balance), '', `Reported ${a.broker_balance_at_vn || ''}`)
+        + lgStatHtml('Expected balance', lgMoney(a.expected_balance), '', '0 + deposits - withdrawals + closed P&L')
+        + lgStatHtml('Broker balance', lgMoney(a.broker_balance), '',
+                     noBalance ? 'No balance received yet' : `Reported ${a.broker_balance_at_vn || ''}`)
         + lgStatHtml('Discrepancy', lgMoney(a.discrepancy, true), discCls,
                      `Broker - expected; within ±${tolerance} is rounding`)
-        + '</div>';
+        + '</div>'
+        + (noBalance ? '<p class="td-dim lg-hint">No balance received from this account yet: the broker balance and '
+                       + 'the discrepancy appear once a bot reports one.</p>' : '');
 
-    const unexplained = (a.unexplained || []).map(u => {
+    const unexplainedRows = a.unexplained || [];
+    const unexplained = unexplainedRows.map(u => {
         const kind = Number(u.delta) >= 0 ? 'deposit' : 'withdrawal';
-        const nearby = (u.nearby_closes || []).length ? u.nearby_closes.map(x => escapeHtml(x)).join(', ') : 'none';
+        const nearby = u.opening
+            ? `${Number(u.earlier_closes) || 0} earlier closes: ${lgMoney(u.earlier_pnl, true)}`
+            : ((u.nearby_closes || []).length ? u.nearby_closes.map(x => escapeHtml(x)).join(', ') : 'none');
+        const balance = u.opening ? `First balance seen: ${lgMoney(u.balance)}`
+            : `${lgMoney(u.balance_before)} → ${lgMoney(u.balance)}`;
         return `<tr><td class="td-mono">${escapeHtml(u.recorded_at_vn || u.recorded_at)}</td>`
-            + `<td class="td-mono">${lgMoney(u.balance_before)} → ${lgMoney(u.balance)}</td>`
+            + `<td class="td-mono">${balance}</td>`
             + `<td class="td-mono ${Number(u.delta) >= 0 ? 'pnl-positive' : 'pnl-negative'}">${lgMoney(u.delta, true)}</td>`
             + `<td class="td-dim">${nearby}</td>`
-            + `<td><button class="log-btn lg-confirm" data-account="${id}" data-log="${escapeHtml(u.log_id)}">`
-            + `Record as ${kind}</button></td></tr>`;
+            + `<td><button class="log-btn lg-confirm" data-account="${id}" data-log="${escapeHtml(u.log_id)}"`
+            + `${u.opening ? ' data-opening="1"' : ''}>Record as ${kind}</button></td></tr>`;
     }).join('');
+    const openingHint = unexplainedRows.some(u => u.opening)
+        ? '<p class="td-dim lg-hint">The ledger starts from 0. "First balance seen" is the money already in the account '
+          + 'when the server started logging its balance, less the P&amp;L of the closes booked before then: record it '
+          + 'as one deposit, or enter the real deposits and withdrawals by hand with their dates.</p>'
+        : '';
     const unexplainedHtml = '<h4 class="lg-subtitle">Balance changes no closed trade explains</h4>'
         + (unexplained
             ? '<div class="table-wrap"><table class="data-table"><thead><tr><th>Time (GMT+7)</th><th>Balance</th>'
               + '<th>Change</th><th>Closes nearby</th><th></th></tr></thead><tbody>' + unexplained + '</tbody></table></div>'
               + '<p class="td-dim lg-hint">A deposit or a withdrawal: record it. Otherwise a trade whose report was lost: check the bot\'s log.</p>'
+              + openingHint
             : '<p class="td-dim lg-hint">None.</p>');
 
     const movements = (a.movements || []).map(m => {
         const source = m.balance_log_id !== null && m.balance_log_id !== undefined ? 'confirmed' : 'manual';
-        return `<tr${m.counted ? '' : ' class="lg-uncounted" title="Before the opening balance: already inside it"'}>`
-            + `<td class="td-mono">${escapeHtml(m.occurred_at_vn || m.occurred_at)}</td>`
+        return `<tr><td class="td-mono">${escapeHtml(m.occurred_at_vn || m.occurred_at)}</td>`
             + `<td class="td-mono ${Number(m.amount) >= 0 ? 'pnl-positive' : 'pnl-negative'}">${lgMoney(m.amount, true)}</td>`
             + `<td>${escapeHtml(m.note || '')}</td><td class="td-dim">${source}</td>`
             + `<td><button class="log-btn lg-delete" data-id="${escapeHtml(m.id)}" title="Delete this entry">✕</button></td></tr>`;
@@ -139,7 +148,8 @@ document.addEventListener('DOMContentLoaded', () => {
         if (confirmBtn) {
             confirmBtn.disabled = true;
             await lgPost({account_id: confirmBtn.dataset.account, balance_log_id: Number(confirmBtn.dataset.log),
-                          note: 'Confirmed from a balance change'}, null);
+                          note: confirmBtn.dataset.opening ? 'In the account before the balance log started'
+                                                           : 'Confirmed from a balance change'}, null);
             confirmBtn.disabled = false;
             return;
         }

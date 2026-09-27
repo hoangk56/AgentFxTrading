@@ -1,7 +1,8 @@
 """Account ledger (app/ledger.py, /api/ledger): expected balance, discrepancy, and deposits / withdrawals.
 
-expected = opening balance + cash movements + P&L closed since the opening; discrepancy = broker - expected. A
-balance change that no close explains is listed until the user records it as a deposit or a withdrawal.
+The ledger starts from 0: expected = cash movements + P&L of every closed position; discrepancy = broker - expected.
+A balance change that no close explains is listed until the user records it as a deposit or a withdrawal; the first
+balance the server saw is a change from 0, of which the closes booked before it explain a part.
 """
 import pytest
 from fastapi.testclient import TestClient
@@ -51,49 +52,81 @@ def _seed(conn):
     _log(conn, 4, "2026-09-20 03:00:04", 1512.5, 1502.5)               # two bots closing at the same minute
 
 
-def test_unrecorded_deposit_shows_as_discrepancy_and_as_a_suggestion(db):
+def test_the_ledger_starts_from_zero(db):
     _seed(db)
     e = ledger.account_ledger(db, ACCOUNT)
-    assert (e["opening_balance"], e["closed_pnl"], e["closed_trades"]) == (1000.0, 2.5, 3)
-    assert (e["expected_balance"], e["broker_balance"], e["discrepancy"]) == (1002.5, 1502.5, 500.0)
+    assert (e["deposits"], e["closed_pnl"], e["closed_trades"]) == (0.0, 2.5, 3)
+    assert (e["expected_balance"], e["broker_balance"], e["discrepancy"]) == (2.5, 1502.5, 1500.0)
     assert e["balanced"] is False
-    assert [(u["log_id"], u["delta"]) for u in e["unexplained"]] == [(3, 500.0)]
+    # the first balance (money deposited before the server logged it) and a deposit nobody recorded yet
+    assert [(u["log_id"], u["delta"], u["opening"]) for u in e["unexplained"]] == [(1, 1000.0, True), (3, 500.0, False)]
+    assert e["unexplained"][0]["balance_before"] == 0.0
 
 
-def test_confirming_the_suggestion_balances_the_ledger(db):
+def test_confirming_the_suggestions_balances_the_ledger(db):
     _seed(db)
+    opening_id = ledger.add_movement(db, "demo-1", None, balance_log_id=1)
     movement_id = ledger.add_movement(db, "demo-1", None, balance_log_id=3, note="Nạp")
     e = ledger.account_ledger(db, ACCOUNT)
-    assert (e["deposits"], e["withdrawals"], e["discrepancy"], e["balanced"]) == (500.0, 0.0, 0.0, True)
+    assert (e["deposits"], e["withdrawals"], e["discrepancy"], e["balanced"]) == (1500.0, 0.0, 0.0, True)
     assert e["unexplained"] == []
-    assert [(m["id"], m["amount"], m["balance_log_id"], m["counted"]) for m in e["movements"]] == [
-        (movement_id, 500.0, 3, True)]
+    assert [(m["id"], m["amount"], m["balance_log_id"]) for m in e["movements"]] == [
+        (opening_id, 1000.0, 1), (movement_id, 500.0, 3)]
     with pytest.raises(ledger.LedgerError, match="already recorded"):
         ledger.add_movement(db, "demo-1", None, balance_log_id=3)
+
+
+def test_closes_booked_before_the_first_balance_explain_part_of_it(db):
+    _close(db, 10, "2026-09-18 10:00:00", 60.0)
+    _close(db, 11, "2026-09-19 10:00:00", -20.0)
+    _log(db, 1, "2026-09-20 00:00:00", None, 1040.0)
+    _close(db, 12, "2026-09-20 00:01:00", 5.0)                           # after it: the next change's
+    _log(db, 2, "2026-09-20 00:01:05", 1040.0, 1045.0)
+    e = ledger.account_ledger(db, ACCOUNT)
+    assert (e["closed_pnl"], e["closed_trades"], e["discrepancy"]) == (45.0, 3, 1000.0)
+    [opening] = e["unexplained"]
+    assert (opening["log_id"], opening["delta"], opening["earlier_closes"], opening["earlier_pnl"]) == (1, 1000.0, 2, 40.0)
+    ledger.add_movement(db, "demo-1", None, balance_log_id=1)
+    e = ledger.account_ledger(db, ACCOUNT)
+    assert (e["deposits"], e["expected_balance"], e["discrepancy"], e["unexplained"]) == (1000.0, 1045.0, 0.0, [])
+
+
+def test_a_first_balance_the_earlier_closes_explain_is_not_listed(db):
+    _close(db, 10, "2026-09-18 10:00:00", 25.0)
+    _log(db, 1, "2026-09-20 00:00:00", None, 25.0)
+    e = ledger.account_ledger(db, ACCOUNT)
+    assert (e["unexplained"], e["balanced"]) == ([], True)
+    with pytest.raises(ledger.LedgerError, match="closed trades explain"):
+        ledger.add_movement(db, "demo-1", None, balance_log_id=1)
 
 
 def test_a_manual_withdrawal_counts_and_can_be_deleted(db):
     _log(db, 1, "2026-09-20 00:00:00", None, 1000.0)
     _log(db, 2, "2026-09-20 05:00:00", 1000.0, 800.0)
+    ledger.add_movement(db, "demo-1", 1000, "2026-09-01T00:00:00Z", "Nạp ban đầu")
     movement_id = ledger.add_movement(db, "demo-1", -200, "2026-09-20T05:00:00Z", "Rút")
     e = ledger.account_ledger(db, ACCOUNT)
-    assert (e["withdrawals"], e["expected_balance"], e["discrepancy"]) == (200.0, 800.0, 0.0)
-    assert [u["log_id"] for u in e["unexplained"]] == [2]      # typed by hand, so the change stays listed
+    assert (e["deposits"], e["withdrawals"], e["expected_balance"], e["discrepancy"]) == (1000.0, 200.0, 800.0, 0.0)
+    assert [u["log_id"] for u in e["unexplained"]] == [1, 2]      # typed by hand, so the changes stay listed
     assert ledger.delete_movement(db, movement_id) is True
     assert ledger.delete_movement(db, movement_id) is False
     assert ledger.account_ledger(db, ACCOUNT)["discrepancy"] == -200.0
 
 
-def test_movements_before_the_opening_balance_are_not_counted(db):
+def test_movements_before_the_first_balance_count(db):
     _log(db, 1, "2026-09-20 00:00:00", None, 1000.0)
-    ledger.add_movement(db, "demo-1", 300, "2026-09-19T12:00:00Z")
+    ledger.add_movement(db, "demo-1", 1000, "2026-09-19T12:00:00Z")
     e = ledger.account_ledger(db, ACCOUNT)
-    assert e["deposits"] == 0.0 and e["movements"][0]["counted"] is False and e["balanced"] is True
+    assert (e["deposits"], e["expected_balance"], e["balanced"]) == (1000.0, 1000.0, True)
 
 
-def test_an_account_with_no_balance_yet_has_no_figures(db):
+def test_an_account_with_no_balance_yet_has_no_broker_figures(db):
+    _close(db, 10, "2026-09-18 10:00:00", 12.0)
+    ledger.add_movement(db, "demo-1", 500, "2026-09-17T00:00:00Z")
     e = ledger.account_ledger(db, ACCOUNT)
-    assert e["opening_balance"] is None and e["discrepancy"] is None and e["unexplained"] == []
+    assert (e["deposits"], e["closed_pnl"], e["expected_balance"]) == (500.0, 12.0, 512.0)
+    assert e["broker_balance"] is None and e["discrepancy"] is None and e["balanced"] is None
+    assert e["unexplained"] == []
 
 
 @pytest.mark.parametrize("amount, when, note, message", [
@@ -110,12 +143,12 @@ def test_invalid_movements_are_refused(db, amount, when, note, message):
         ledger.add_movement(db, "demo-1", amount, when, note)
 
 
-def test_a_balance_change_of_another_account_or_the_opening_cannot_be_confirmed(db):
+def test_a_balance_change_of_another_account_or_one_a_close_explains_cannot_be_confirmed(db):
     _seed(db)
     with pytest.raises(ledger.LedgerError, match="does not belong"):
         ledger.add_movement(db, "live-2", None, balance_log_id=3)
-    with pytest.raises(ledger.LedgerError, match="opening balance"):
-        ledger.add_movement(db, "demo-1", None, balance_log_id=1)
+    with pytest.raises(ledger.LedgerError, match="closed trades explain"):
+        ledger.add_movement(db, "demo-1", None, balance_log_id=2)
 
 
 def test_parse_utc_reads_every_stored_format():
@@ -146,18 +179,19 @@ def _entry(scope, account_id):
                 if e["account_id"] == account_id)
 
 
-def test_api_lists_the_ledger_per_mode_and_confirms_a_suggestion(api_account):
+def test_api_lists_the_ledger_per_mode_and_confirms_the_suggestions(api_account):
     assert all(e["account_type"] == "demo" for e in client.get("/api/ledger?account_id=demo").json()["accounts"])
     e = _entry("live", api_account)
-    assert (e["discrepancy"], e["balanced"]) == (250.0, False)
-    suggestion = e["unexplained"][0]
+    assert (e["discrepancy"], e["balanced"]) == (2250.0, False)
+    opening, suggestion = e["unexplained"]
+    assert (opening["opening"], opening["delta"]) == (True, 2000.0)
     assert suggestion["delta"] == 250.0 and suggestion["recorded_at_vn"]
 
-    res = client.post("/api/ledger/movements", json={"account_id": api_account,
-                                                     "balance_log_id": suggestion["log_id"]})
-    assert res.status_code == 201, res.text
+    for u in (opening, suggestion):
+        res = client.post("/api/ledger/movements", json={"account_id": api_account, "balance_log_id": u["log_id"]})
+        assert res.status_code == 201, res.text
     e = _entry(api_account, api_account)
-    assert (e["deposits"], e["discrepancy"], e["unexplained"]) == (250.0, 0.0, [])
+    assert (e["deposits"], e["discrepancy"], e["unexplained"]) == (2250.0, 0.0, [])
     assert e["movements"][0]["occurred_at_vn"]
 
     assert client.delete(f"/api/ledger/movements/{res.json()['id']}").json() == {"success": True}

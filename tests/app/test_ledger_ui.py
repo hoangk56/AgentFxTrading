@@ -46,12 +46,16 @@ def test_ledger_renderers_escape_external_strings():
     script = f"""{helpers}
 {renderers}
 const H = {json.dumps(HOSTILE)};
-const full = {{account_id: H, label: H, account_type: 'demo', opening_balance: 1000, opening_at_vn: H,
-    deposits: 500, withdrawals: 0, closed_pnl: -2.5, closed_trades: 3, expected_balance: 1497.5,
-    broker_balance: 1502.5, broker_balance_at_vn: H, discrepancy: 5, balanced: false,
-    unexplained: [{{log_id: H, recorded_at_vn: H, balance_before: 1497.5, balance: 1502.5, delta: 5, nearby_closes: [H]}}],
-    movements: [{{id: H, occurred_at_vn: H, amount: 500, note: H, balance_log_id: 3, counted: true}}]}};
-const empty = {{account_id: H, label: H, account_type: 'live', opening_balance: null, movements: [], unexplained: []}};
+const full = {{account_id: H, label: H, account_type: 'demo',
+    deposits: 500, withdrawals: 0, closed_pnl: -2.5, closed_trades: 3, expected_balance: 497.5,
+    broker_balance: 1502.5, broker_balance_at_vn: H, discrepancy: 1005, balanced: false,
+    unexplained: [{{log_id: H, recorded_at_vn: H, balance_before: 0, balance: 1040, delta: 1000, nearby_closes: [],
+                    opening: true, earlier_closes: 2, earlier_pnl: 40}},
+                  {{log_id: H, recorded_at_vn: H, balance_before: 1497.5, balance: 1502.5, delta: 5, nearby_closes: [H],
+                    opening: false}}],
+    movements: [{{id: H, occurred_at_vn: H, amount: 500, note: H, balance_log_id: 3}}]}};
+const empty = {{account_id: H, label: H, account_type: 'live', deposits: 0, withdrawals: 0, closed_pnl: 0,
+    closed_trades: 0, expected_balance: 0, broker_balance: null, discrepancy: null, movements: [], unexplained: []}};
 console.log(JSON.stringify({{full: lgPageHtml({{accounts: [full], tolerance: 0.05}}),
                              empty: lgPageHtml({{accounts: [empty]}}), none: lgPageHtml({{accounts: []}})}}));
 """
@@ -62,4 +66,6 @@ console.log(JSON.stringify({{full: lgPageHtml({{accounts: [full], tolerance: 0.0
         assert "<img" not in out[name].lower(), name
         assert "evil&lt;img" in out[name], name
     assert "Record as deposit" in out["full"] and "+$5.00" in out["full"] and "kpi-value--warn" in out["full"]
+    assert "First balance seen: $1040.00" in out["full"] and "2 earlier closes: +$40.00" in out["full"]
+    assert 'data-opening="1"' in out["full"] and "Opening balance" not in out["full"]
     assert "No balance received" in out["empty"] and "Setup Instances" in out["none"]

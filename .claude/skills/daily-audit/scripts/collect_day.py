@@ -263,10 +263,11 @@ def trades(conn, start, end, now):
 
 
 def ledger(conn, start, end, all_rows):
-    """The accounts' ledgers (app/ledger.py, the dashboard's Ledger view): opening balance + recorded deposits /
+    """The accounts' ledgers (app/ledger.py, the dashboard's Ledger view), starting from 0: recorded deposits /
     withdrawals + closed P&L against the broker's balance. A balance change inside the window that no close
     explains and nobody recorded is money moved in or out, or a trade whose report was lost; the container logs
-    tell the two apart (OPEN_NOT_IN_DB / REPORT_FAILED). Returns {account_id: unexplained total in the window}.
+    tell the two apart (OPEN_NOT_IN_DB / REPORT_FAILED). The first balance an account logged is a change from 0 that
+    the earlier closes explain in part. Returns {account_id: unexplained total in the window}.
     """
     section("LEDGER (app/ledger.py; the same figures as the dashboard's Ledger view)")
     try:
@@ -281,19 +282,24 @@ def ledger(conn, start, end, all_rows):
         except Exception as ex:
             print(f"ledger unavailable ({ex!r})")
             return {}
-        if e["opening_balance"] is None:
+        if e.get("broker_balance") is None:
             print(f"{a['account_id']}: no balance logged yet")
             continue
-        print(f"{e['account_id']}: opening {e['opening_balance']} ({vn(ts(e['opening_at']))} VN) + deposits {e['deposits']} "
-              f"- withdrawals {e['withdrawals']} + closed pnl {e['closed_pnl']} ({e['closed_trades']} trades) = expected "
-              f"{e['expected_balance']} | broker {e['broker_balance']} | discrepancy {e['discrepancy']:+.2f}")
+        print(f"{e['account_id']}: deposits {e['deposits']} - withdrawals {e['withdrawals']} + closed pnl "
+              f"{e['closed_pnl']} ({e['closed_trades']} trades) = expected {e['expected_balance']} | broker "
+              f"{e['broker_balance']} | discrepancy {e['discrepancy']:+.2f}")
         for m in e["movements"]:
             t = ts(m["occurred_at"])
             if t and start <= t < end:
-                print(f"  cash movement in window: {vn(t)} VN {m['amount']:+.2f} ({m['note'] or ''})"
-                      + ("" if m["counted"] else " [before the opening balance, not counted]"))
+                print(f"  cash movement in window: {vn(t)} VN {m['amount']:+.2f} ({m['note'] or ''})")
         inside = [u for u in e["unexplained"] if start <= ts(u["recorded_at"]) < end]
         for u in inside:
+            if u.get("opening"):
+                flag("BALANCE_UNEXPLAINED", f"{e['account_id']} {vn(ts(u['recorded_at']))} VN: first balance logged "
+                                            f"{u['balance']}; the {u['earlier_closes']} closes booked before it explain "
+                                            f"{u['earlier_pnl']:+.2f}, so {u['delta']:+.2f} was deposited before the "
+                                            f"log started and is not recorded on the Ledger view")
+                continue
             flag("BALANCE_UNEXPLAINED", f"{e['account_id']} {vn(ts(u['recorded_at']))} VN: balance {u['balance_before']} -> "
                                         f"{u['balance']} ({u['delta']:+.2f}) matches no close booked around it and is not "
                                         f"recorded as a deposit/withdrawal (nearby closes: {u['nearby_closes'] or 'none'})")
@@ -302,7 +308,8 @@ def ledger(conn, start, end, all_rows):
         if not e["balanced"] and not e["unexplained"]:
             print(f"  discrepancy with no unexplained balance change: a close whose pnl differs from what the broker "
                   f"booked, or a balance update the log missed")
-        unexplained[e["account_id"]] = round(sum(u["delta"] for u in inside), 2)
+        # compared with the P&L of lost trade reports; the first balance is money from before the log, not a trade
+        unexplained[e["account_id"]] = round(sum(u["delta"] for u in inside if not u.get("opening")), 2)
     return unexplained
 
 

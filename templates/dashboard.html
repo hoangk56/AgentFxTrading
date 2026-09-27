@@ -8,7 +8,7 @@
     <script src="https://unpkg.com/lucide@latest"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="/static/js/backtest.js?v=20260927_2bots" defer></script>
-    <script src="/static/js/ledger.js?v=20260927_ledger" defer></script>
+    <script src="/static/js/ledger.js?v=20260927_ledger0" defer></script>
     <link rel="icon" type="image/png" href="/static/favicon.png">
 </head>
 <body class="app-shell">
@@ -693,7 +693,7 @@
                         <button id="lg-refresh-btn" class="log-btn" style="margin-left:auto;"><i data-lucide="refresh-cw" class="btn-icon"></i> Refresh</button>
                     </div>
                     <div class="panel-body">
-                        <p class="td-dim lg-hint">Expected balance = opening balance + deposits − withdrawals + P&amp;L of the bots' closed trades. A discrepancy is money the ledger cannot explain: record deposits and withdrawals here, from the list of unexplained balance changes or by hand.</p>
+                        <p class="td-dim lg-hint">The ledger starts from 0: expected balance = deposits − withdrawals + P&amp;L of the bots' closed trades. A discrepancy is money the ledger cannot explain: record deposits and withdrawals here, from the list of unexplained balance changes or by hand.</p>
                     </div>
                 </section>
                 <div id="lg-body"><p class="td-dim">Loading...</p></div>

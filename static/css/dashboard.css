@@ -1122,7 +1122,6 @@ body.bt-modal-open{overflow:hidden}
 .lg-stats{grid-template-columns:repeat(auto-fit,minmax(130px,1fr))}
 .lg-subtitle{margin:14px 0 6px;font-size:0.8rem;color:var(--accent-bright)}
 .lg-hint{margin:4px 0 0;font-size:0.74rem;line-height:1.5}
-.lg-uncounted{opacity:0.5}
 .lg-form{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-top:12px}
 .lg-form .lg-amount{width:190px}.lg-form .lg-note{flex:1;min-width:160px}
 .lg-msg{font-size:0.74rem;color:var(--loss)}
