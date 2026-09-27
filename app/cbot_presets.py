@@ -1,10 +1,12 @@
 """
 Strategy × symbol presets for the dashboard's "Setup Instances" screen.
 
-Every strategy has a cell on every symbol (15 × 3 = 45). 22 cells are tuned
-per symbol; the other 23 are derived from the nearest tuned cell, scaled by
-pip size (index 0.1, XAU/BTC/ETH/JPY 0.01, forex 0.0001) — see README
-"Derived presets". All 45 are written out as `docker run` commands in
+The three AI-gated strategies have a cell on every symbol (15 × 3 = 45). 22 of
+those are tuned per symbol; the other 23 are derived from the nearest tuned cell,
+scaled by pip size (index 0.1, XAU/BTC/ETH/JPY 0.01, forex 0.0001) — see README
+"Derived presets". Gotobi (GotobiBot) trades only the three JPY pairs the research
+validated (research/results/portfolio/swing_lab_v2_2026-09-27.md), so the grid has
+48 cells. All 48 are written out as `docker run` commands in
 docs/docker-instances.md, which tests/test_cbot_presets.py keeps in sync
 with this module. `params` holds only the strategy-tuned flags.
 Infrastructure flags (credentials, symbol, period, BotId, ApiUrl,
@@ -21,6 +23,7 @@ STRATEGIES: Dict[str, Dict[str, str]] = {
     "tms_orb": {"label": "TMS+ORB",     "algo": "AiAgentBot.algo",              "suffix": ""},
     "judas":   {"label": "Judas Sweep", "algo": "AsianRangeJudasSweepBot.algo", "suffix": "-judas"},
     "flowrsi": {"label": "FlowRSI",     "algo": "FlowRsiBot.algo",              "suffix": "-flowrsi"},
+    "gotobi":  {"label": "Gotobi Fix",  "algo": "GotobiBot.algo",               "suffix": "-gotobi"},
 }
 
 # Row order of the setup grid (the spec's matrix order).
@@ -130,10 +133,15 @@ def _flowrsi(fvg_min=None, max_spread=None, trail=None, be_extra=None, min_sl=No
 
 
 _JUDAS_SESSION = "London + NY killzones"
+_GOTOBI_SESSION = "Tokyo fix"
+
+
+def _gotobi(max_spread: float, risk: float = 50.0) -> dict:
+    return {"RiskPerTradeMoney": risk, "MaxSpreadPips": max_spread}
 _JUDAS_MAJOR = (15.0, 45.0, 3.5, 15.0, 20.0, 15.0, 35.0)    # EURUSD/GBPUSD README block
 _JUDAS_CROSS = (25.0, 70.0, 5.0, 25.0, 30.0, 25.0, 50.0)    # GBPJPY/EURJPY README block
 
-# (strategy, SYMBOL) -> {"period", "session", "params"}; 15 symbols × 3 strategies = 45 cells.
+# (strategy, SYMBOL) -> {"period", "session", "params"}; 15 symbols × 3 strategies = 45 cells, + 3 gotobi.
 PRESETS: Dict[Tuple[str, str], Dict] = {
     # TMS+ORB (AiAgentBot) — README blocks
     ("tms_orb", "XAUUSD"): _cell("m15", "New York", _tms(_XAU_SESSION, 200.0, 400.0, 50.0, 10, atr=_XAU_ATR)),
@@ -190,6 +198,11 @@ PRESETS: Dict[Tuple[str, str], Dict] = {
     ("flowrsi", "UK100"):  _cell("m15", "All sessions", _flowrsi(30.0, 30.0, 350.0, 5.0)),           # 3 / 3 / 35 / 0.5 pt
     ("flowrsi", "BTCUSD"): _cell("m15", "All sessions", _flowrsi(5000.0, 5000.0, 30000.0, 1000.0)),  # $50 / $50 / $300 / $10
     ("flowrsi", "ETHUSD"): _cell("m15", "All sessions", _flowrsi(300.0, 500.0, 2000.0, 100.0)),      # $3 / $5 / $20 / $1
+    # Gotobi (GotobiBot) — research C3: the schedule and the 3 x ATR20(H1) stop are the cBot's defaults; a cell
+    # sets the default $ risk per trade (never a share of equity) and the entry spread cap (GBPJPY quotes wider).
+    ("gotobi", "USDJPY"): _cell("m15", _GOTOBI_SESSION, _gotobi(max_spread=3.0)),
+    ("gotobi", "EURJPY"): _cell("m15", _GOTOBI_SESSION, _gotobi(max_spread=3.0)),
+    ("gotobi", "GBPJPY"): _cell("m15", _GOTOBI_SESSION, _gotobi(max_spread=4.0)),
 }
 
 
@@ -210,6 +223,7 @@ SESSION_SLUGS: Dict[str, str] = {
     "New York": "newyork",
     _JUDAS_SESSION: "KZ-london-ny",
     "All sessions": "all",
+    _GOTOBI_SESSION: "fix",
 }
 
 

@@ -34,8 +34,9 @@ STRATEGY_BY_ALGO = {
     "FlowRsiBot.algo": "flowrsi",
     "AsianRangeJudasSweepBot.algo": "judas",
     "AiAgentBot.algo": "tms_orb",
+    "GotobiBot.algo": "gotobi",
 }
-SUPPORTED_STRATEGIES = {"flowrsi"}
+SUPPORTED_STRATEGIES = {"flowrsi", "gotobi"}
 UNSUPPORTED_REASON = "Judas/TMS+ORB enter only through the AI; backtest mode not implemented yet"
 DATA_MODES = ("ticks", "m1")
 
@@ -55,11 +56,18 @@ LOCKED_PARAMS: Dict[str, Dict[str, str]] = {
         "SendChartScreenshot": "false",
         "SendAiAdjustAlerts": "false",
     },
+    # GotobiBot only talks to the server in RealTime; locked anyway so a backtest can never reach production.
+    "gotobi": {
+        "ApiUrl": DISABLED_URL,
+        "TelemetryUrl": DISABLED_URL,
+        "ReportUrl": DISABLED_URL,
+        "CommandPollMs": "0",
+    },
 }
 # Never passed to a backtest container, whatever the bot's command says.
 DROPPED_PARAMS = {"TelegramBotToken", "TelegramChatId"}
 # Metadata groups the form does not show; their unlocked parameters keep the bot's value.
-HIDDEN_GROUPS = {"AI Agent Integration", "News Filter", "Telegram Integration"}
+HIDDEN_GROUPS = {"AI Agent Integration", "News Filter", "Telegram Integration", "Server"}
 
 
 class SourceError(ValueError):

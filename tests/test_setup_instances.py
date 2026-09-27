@@ -63,10 +63,11 @@ def test_presets_endpoint_shape():
     res = client.get("/api/setup/presets")
     assert res.status_code == 200
     data = res.json()
-    assert set(data["strategies"]) == {"tms_orb", "judas", "flowrsi"}
+    assert set(data["strategies"]) == {"tms_orb", "judas", "flowrsi", "gotobi"}
     assert data["strategies"]["judas"]["label"] == "Judas Sweep"
     assert len(data["symbols"]) == 15
-    assert len(data["cells"]) == 45
+    assert len(data["cells"]) == 48       # 15 x 3 AI-gated + gotobi on USDJPY/EURJPY/GBPJPY
+    assert {c["symbol"] for c in data["cells"] if c["strategy"] == "gotobi"} == {"USDJPY", "EURJPY", "GBPJPY"}
     assert all(set(c) == {"symbol", "strategy", "period", "session"} for c in data["cells"])
 
 

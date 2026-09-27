@@ -272,6 +272,14 @@ python app/server.py
    docker run --rm -v $(pwd):/workspace -v /root:/root \
      ghcr.io/spotware/ctrader-console:latest build /root/cAlgo/Sources/Robots/FlowRsiBot/FlowRsiBot/FlowRsiBot.csproj
    cp /root/cAlgo/Sources/Robots/FlowRsiBot.algo cBot/FlowRsiBot.algo
+
+   # 4. GotobiBot (Gotobi Fix)
+   docker run --rm -v $(pwd):/workspace -v /root:/root \
+     ghcr.io/spotware/ctrader-console:latest create cbot GotobiBot
+   cp cBot/GotobiBot.cs /root/cAlgo/Sources/Robots/GotobiBot/GotobiBot/GotobiBot.cs
+   docker run --rm -v $(pwd):/workspace -v /root:/root \
+     ghcr.io/spotware/ctrader-console:latest build /root/cAlgo/Sources/Robots/GotobiBot/GotobiBot/GotobiBot.csproj
+   cp /root/cAlgo/Sources/Robots/GotobiBot.algo cBot/GotobiBot.algo
    ```
 3. **Рекомендации по Развертыванию Нескольких Счетов (Одновременный Запуск Demo и Live)**:
 

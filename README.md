@@ -196,7 +196,7 @@ On a fresh VPS, as root, run:
 curl -fsSL https://raw.githubusercontent.com/kienphan/AgentFxTrading/main/scripts/install.sh | sudo bash
 ```
 
-It asks for one thing — the SSH public key that will log in as the `forge` user — and then creates a swap file (2×RAM under 2 GiB, =RAM up to 8 GiB, RAM/2 above), installs PostgreSQL 17, Docker, the FastAPI server as a systemd service (`agentfx.service`, user `forge`, bound to `127.0.0.1:8000`), compiles the three cBot `.algo` packages, and enables a daily database backup. Password SSH login is disabled.
+It asks for one thing — the SSH public key that will log in as the `forge` user — and then creates a swap file (2×RAM under 2 GiB, =RAM up to 8 GiB, RAM/2 above), installs PostgreSQL 17, Docker, the FastAPI server as a systemd service (`agentfx.service`, user `forge`, bound to `127.0.0.1:8000`), compiles the four cBot `.algo` packages, and enables a daily database backup. Password SSH login is disabled.
 
 **Before closing your root session**, confirm the key works from another terminal: `ssh forge@YOUR_VPS_IP 'sudo -n true && echo LOGIN_OK'`. Password login (including root) is disabled once the installer finishes.
 
@@ -303,6 +303,14 @@ You can run the cBot either via **cTrader Desktop GUI** or **Headless Docker CLI
    docker run --rm -v $(pwd):/workspace -v /root:/root \
      ghcr.io/spotware/ctrader-console:latest build /root/cAlgo/Sources/Robots/FlowRsiBot/FlowRsiBot/FlowRsiBot.csproj
    cp /root/cAlgo/Sources/Robots/FlowRsiBot.algo cBot/FlowRsiBot.algo
+
+   # 4. GotobiBot (Gotobi Fix)
+   docker run --rm -v $(pwd):/workspace -v /root:/root \
+     ghcr.io/spotware/ctrader-console:latest create cbot GotobiBot
+   cp cBot/GotobiBot.cs /root/cAlgo/Sources/Robots/GotobiBot/GotobiBot/GotobiBot.cs
+   docker run --rm -v $(pwd):/workspace -v /root:/root \
+     ghcr.io/spotware/ctrader-console:latest build /root/cAlgo/Sources/Robots/GotobiBot/GotobiBot/GotobiBot.csproj
+   cp /root/cAlgo/Sources/Robots/GotobiBot.algo cBot/GotobiBot.algo
    ```
 3. **Multi-Account Deployment Guidelines (Running Demo &amp; Live Simultaneously)**:
 

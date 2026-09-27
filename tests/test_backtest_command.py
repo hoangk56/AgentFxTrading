@@ -123,6 +123,30 @@ def test_describe_flowrsi_source_is_supported(homes):
                    "period": "m15", "account_label": "demo", "supported": True, "reason": ""}
 
 
+def test_describe_gotobi_source_is_supported(homes):
+    project, ctrader = homes
+    (project / "cBot" / "GotobiBot.algo").write_bytes(b"algo")
+    name = "cbot-demo-demo-usdjpy-fix-gotobi"
+    row = bc.describe_source(name, preset("gotobi", "USDJPY"), project, ctrader)
+    assert row == {"name": name, "strategy": "gotobi", "symbol": "USDJPY", "period": "m15",
+                   "account_label": "demo", "supported": True, "reason": ""}
+
+
+def test_gotobi_backtest_never_reaches_the_server(homes):
+    project, ctrader = homes
+    (project / "cBot" / "GotobiBot.algo").write_bytes(b"algo")
+    src = bc.parse_run_command("cbot-demo-demo-usdjpy-fix-gotobi", preset("gotobi", "USDJPY"))
+    job = make_job(strategy="gotobi", algo="GotobiBot.algo", symbol="USDJPY", params=dict(src.params))
+    command = bc.build_container_spec(job, project, ctrader)["command"]
+    locked = bc.locked_params("gotobi", 7)
+    assert command[-len(locked):] == [f"--{k}={v}" for k, v in locked.items()]
+    for key in ("ApiUrl", "TelemetryUrl", "ReportUrl"):
+        assert f"--{key}={bc.DISABLED_URL}" in command
+    assert "--CommandPollMs=0" in command
+    assert "--ApiUrl=http://127.0.0.1:8000/trade" not in command
+    assert "--RiskPerTradeMoney=50.0" in command
+
+
 @pytest.mark.parametrize("strategy", ["judas", "tms_orb"])
 def test_describe_ai_only_bots_as_unsupported(homes, strategy):
     row = bc.describe_source("x", preset(strategy), *homes)

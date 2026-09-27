@@ -48,6 +48,7 @@ HANDLERS = [
     ("FlowRsiBot.cs", "private void OnPositionClosed(PositionClosedEventArgs args)"),
     ("AiAgentBot.cs", "private void OnPositionClosed(PositionClosedEventArgs args)"),
     ("AsianRangeJudasSweepBot.cs", "private void OnPositionsClosed(PositionClosedEventArgs args)"),
+    ("GotobiBot.cs", "private void OnPositionClosed(PositionClosedEventArgs args)"),
 ]
 BOTS = [h[0] for h in HANDLERS]
 HELPER = "private double? FinalClosingPrice(Position pos)"

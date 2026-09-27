@@ -1,15 +1,16 @@
-# 🐳 Docker Instance Catalog — all 45 presets
+# 🐳 Docker Instance Catalog — all 48 presets
 
-Every instance AgentFxTrading ships: **15 symbols × 3 strategies = 45 `docker run` commands**, written out in full.
+Every instance AgentFxTrading ships: **15 symbols × 3 strategies = 45 `docker run` commands**, plus the Gotobi Fix bot on
+its three JPY pairs = **48**, written out in full.
 
 This file is the long form of the dashboard's **Docker Bot Management → Setup Instances** grid. Ticking a cell there
 runs exactly the command printed here. Both come from [`app/cbot_presets.py`](../app/cbot_presets.py), which is the
 single source of truth for strategy flags — `tests/test_cbot_presets.py` fails the build if this file and that module
 drift apart.
 
-> **Prerequisites live in the README.** Install the server, write the cTID password file and build the three `.algo`
+> **Prerequisites live in the README.** Install the server, write the cTID password file and build the four `.algo`
 > packages first: [Quick Start → Setup & Run cBot](../README.md#4-setup--run-cbot). Come back here once
-> `cBot/AiAgentBot.algo`, `cBot/AsianRangeJudasSweepBot.algo` and `cBot/FlowRsiBot.algo` exist.
+> `cBot/AiAgentBot.algo`, `cBot/AsianRangeJudasSweepBot.algo`, `cBot/FlowRsiBot.algo` and `cBot/GotobiBot.algo` exist.
 
 ---
 
@@ -17,10 +18,11 @@ drift apart.
 
 - [Adapting a block](#-adapting-a-block)
 - [Container naming](#-container-naming)
-- [The 45-cell grid](#-the-45-cell-grid)
+- [The 48-cell grid](#-the-48-cell-grid)
 - [TMS + ORB — `AiAgentBot.algo`](#-tms--orb--aiagentbotalgo)
 - [Asian Range Judas Sweep — `AsianRangeJudasSweepBot.algo`](#-asian-range-judas-sweep--asianrangejudassweepbotalgo)
 - [FlowRSI — `FlowRsiBot.algo`](#-flowrsi--flowrsibotalgo)
+- [Gotobi Fix — `GotobiBot.algo`](#-gotobi-fix--gotobibotalgo)
 - [Running demo and live side by side](#-running-demo-and-live-side-by-side)
 
 ---
@@ -41,7 +43,8 @@ underneath them are the preset and should be copied as-is.
 Two flags are worth a second look before you go live:
 
 - **`--RiskPerTradePercent`** (TMS+ORB) / **`--riskFactor`** (Judas) / **`--RiskPercentage`** + **`--MaxRiskPerTradeMoney`**
-  (FlowRSI) — the presets are sized for a demo balance. Cut them to `0.1`–`0.2` on real capital.
+  (FlowRSI) — the presets are sized for a demo balance. Cut them to `0.1`–`0.2` on real capital. **`--RiskPerTradeMoney`**
+  (Gotobi Fix) is dollars per trade, not a percentage: set it to what one trade may lose on that account.
 - **`--network host`** assumes the API server runs on the same machine as the container. On a split setup, drop it and
   point `--ApiUrl` / `--DashboardServerUrl` at the server's reachable address instead.
 
@@ -57,34 +60,36 @@ same scheme with `demo` as the slug:
 | TMS + ORB | `cbot-<slug>-<symbol>-<session>` | `cbot-demo-xauusd-newyork` |
 | Judas Sweep | `cbot-<slug>-<symbol>-KZ-london-ny-judas` | `cbot-demo-xauusd-KZ-london-ny-judas` |
 | FlowRSI | `cbot-<slug>-<symbol>-all-flowrsi` | `cbot-demo-xauusd-all-flowrsi` |
+| Gotobi Fix | `cbot-<slug>-<symbol>-fix-gotobi` | `cbot-demo-usdjpy-fix-gotobi` |
 
 The name doubles as `--BotId`, so `docker ps` tells you the account, symbol, session and strategy of every bot without
 opening its flags — and the dashboard can match a running container back to its config row.
 
 ---
 
-## 🗺️ The 45-cell grid
+## 🗺️ The 48-cell grid
 
 `period` · session for each cell. ✅ = a block the READMEs spelled out verbatim; 🧮 = derived from the nearest block,
-scaled by pip size (indices `0.1`, XAU / BTC / ETH / JPY `0.01`, forex `0.0001`).
+scaled by pip size (indices `0.1`, XAU / BTC / ETH / JPY `0.01`, forex `0.0001`); 🔬 = validated by the research, only
+on the JPY pairs.
 
-| Symbol | TMS + ORB | Judas Sweep | FlowRSI |
-| :--- | :--- | :--- | :--- |
-| **XAUUSD** | ✅ `m15` · New York | ✅ `m15` · London + NY killzones | 🧮 `m15` · All sessions |
-| **EURUSD** | ✅ `m15` · London | ✅ `m15` · London + NY killzones | ✅ `m15` · All sessions |
-| **GBPUSD** | ✅ `m15` · London | ✅ `m15` · London + NY killzones | 🧮 `m15` · All sessions |
-| **USDJPY** | ✅ `m15` · Tokyo | 🧮 `m15` · London + NY killzones | 🧮 `m15` · All sessions |
-| **GBPJPY** | ✅ `m15` · London | ✅ `m15` · London + NY killzones | 🧮 `m15` · All sessions |
-| **EURJPY** | ✅ `m15` · London | ✅ `m15` · London + NY killzones | 🧮 `m15` · All sessions |
-| **USDCAD** | ✅ `m15` · New York | 🧮 `m15` · London + NY killzones | 🧮 `m15` · All sessions |
-| **AUDUSD** | ✅ `m15` · Tokyo | 🧮 `m15` · London + NY killzones | 🧮 `m15` · All sessions |
-| **AUDJPY** | ✅ `m15` · Tokyo | 🧮 `m15` · London + NY killzones | 🧮 `m15` · All sessions |
-| **US30** | ✅ `m15` · New York | 🧮 `m15` · London + NY killzones | 🧮 `m15` · All sessions |
-| **USTEC** | ✅ `m5` · New York | 🧮 `m15` · London + NY killzones | 🧮 `m15` · All sessions |
-| **DE40** | ✅ `m15` · London | 🧮 `m15` · London + NY killzones | 🧮 `m15` · All sessions |
-| **UK100** | ✅ `m15` · London | ✅ `m15` · London + NY killzones | 🧮 `m15` · All sessions |
-| **BTCUSD** | 🧮 `m15` · New York | ✅ `m15` · London + NY killzones | 🧮 `m15` · All sessions |
-| **ETHUSD** | 🧮 `m15` · New York | ✅ `m15` · London + NY killzones | 🧮 `m15` · All sessions |
+| Symbol | TMS + ORB | Judas Sweep | FlowRSI | Gotobi Fix |
+| :--- | :--- | :--- | :--- | :--- |
+| **XAUUSD** | ✅ `m15` · New York | ✅ `m15` · London + NY killzones | 🧮 `m15` · All sessions | – |
+| **EURUSD** | ✅ `m15` · London | ✅ `m15` · London + NY killzones | ✅ `m15` · All sessions | – |
+| **GBPUSD** | ✅ `m15` · London | ✅ `m15` · London + NY killzones | 🧮 `m15` · All sessions | – |
+| **USDJPY** | ✅ `m15` · Tokyo | 🧮 `m15` · London + NY killzones | 🧮 `m15` · All sessions | 🔬 `m15` · Tokyo fix |
+| **GBPJPY** | ✅ `m15` · London | ✅ `m15` · London + NY killzones | 🧮 `m15` · All sessions | 🔬 `m15` · Tokyo fix |
+| **EURJPY** | ✅ `m15` · London | ✅ `m15` · London + NY killzones | 🧮 `m15` · All sessions | 🔬 `m15` · Tokyo fix |
+| **USDCAD** | ✅ `m15` · New York | 🧮 `m15` · London + NY killzones | 🧮 `m15` · All sessions | – |
+| **AUDUSD** | ✅ `m15` · Tokyo | 🧮 `m15` · London + NY killzones | 🧮 `m15` · All sessions | – |
+| **AUDJPY** | ✅ `m15` · Tokyo | 🧮 `m15` · London + NY killzones | 🧮 `m15` · All sessions | – |
+| **US30** | ✅ `m15` · New York | 🧮 `m15` · London + NY killzones | 🧮 `m15` · All sessions | – |
+| **USTEC** | ✅ `m5` · New York | 🧮 `m15` · London + NY killzones | 🧮 `m15` · All sessions | – |
+| **DE40** | ✅ `m15` · London | 🧮 `m15` · London + NY killzones | 🧮 `m15` · All sessions | – |
+| **UK100** | ✅ `m15` · London | ✅ `m15` · London + NY killzones | 🧮 `m15` · All sessions | – |
+| **BTCUSD** | 🧮 `m15` · New York | ✅ `m15` · London + NY killzones | 🧮 `m15` · All sessions | – |
+| **ETHUSD** | 🧮 `m15` · New York | ✅ `m15` · London + NY killzones | 🧮 `m15` · All sessions | – |
 
 ---
 
@@ -2049,6 +2054,109 @@ docker run -d \
   --MaxSpreadPips=500.0 \
   --TrailingStopDistancePips=2000.0 \
   --BreakEvenExtraPips=100.0
+```
+
+---
+
+## 🗾 Gotobi Fix — `GotobiBot.algo`
+
+The research's validated algorithm (C3 in
+[`research/results/portfolio/swing_lab_v2_2026-09-27.md`](../research/results/portfolio/swing_lab_v2_2026-09-27.md)):
+on gotobi days (the 5th, 10th, 15th, 20th, 25th and the month's last day, a weekend one moved to the Friday before)
+it buys at 18:00 UTC the evening before, closes at the 09:55 Tokyo fix (00:55 UTC), sells at the fix and closes at
+11:55 Tokyo (02:55 UTC). No AI gate, no `/trade` calls: it reports its trades, sends telemetry and obeys the
+dashboard's pause and close commands like the other bots. It only exists for the three JPY pairs the research
+validated.
+
+Every trade risks `--RiskPerTradeMoney` (dollars, never a share of equity) at a stop of 3 x ATR20(H1), so the lot
+follows volatility around that default. The schedule, the stop and the one-position-at-a-time rule are the cBot's
+defaults and are the same on every pair; a cell only sets the risk and the entry spread cap. Server-side daily loss
+limits are enforced on `/trade` and so do not gate this bot: its own exposure is one position of one default risk,
+two legs a day, eight gotobi days a month. Japanese public holidays have no Tokyo fix; list them in
+`--SkipDates="yyyy-MM-dd,..."` to sit them out.
+
+### USDJPY — Gotobi Fix
+
+`m15` · Tokyo fix
+
+The pair the flow is about: importers buy USD against yen at the fix.
+
+```bash
+docker run -d \
+  --name cbot-demo-usdjpy-fix-gotobi \
+  --restart unless-stopped \
+  --network host \
+  -v $(pwd):/workspace \
+  -v /root:/root \
+  ghcr.io/spotware/ctrader-console:latest \
+  run /workspace/cBot/GotobiBot.algo \
+  --ctid=your_email@example.com \
+  --pwd-file=/root/ctrader_data/ctid_pwd \
+  --account=YOUR_ACCOUNT_ID \
+  --symbol=USDJPY \
+  --period=m15 \
+  --full-access \
+  --BotId="cbot-demo-usdjpy-fix-gotobi" \
+  --ApiUrl="http://127.0.0.1:8000/trade" \
+  --AccountLabel="demo" \
+  --RiskPerTradeMoney=50.0 \
+  --MaxSpreadPips=3.0
+```
+
+### EURJPY — Gotobi Fix
+
+`m15` · Tokyo fix
+
+Same flow through the yen leg; the research found it on EURJPY too (holdout R +0.057).
+
+```bash
+docker run -d \
+  --name cbot-demo-eurjpy-fix-gotobi \
+  --restart unless-stopped \
+  --network host \
+  -v $(pwd):/workspace \
+  -v /root:/root \
+  ghcr.io/spotware/ctrader-console:latest \
+  run /workspace/cBot/GotobiBot.algo \
+  --ctid=your_email@example.com \
+  --pwd-file=/root/ctrader_data/ctid_pwd \
+  --account=YOUR_ACCOUNT_ID \
+  --symbol=EURJPY \
+  --period=m15 \
+  --full-access \
+  --BotId="cbot-demo-eurjpy-fix-gotobi" \
+  --ApiUrl="http://127.0.0.1:8000/trade" \
+  --AccountLabel="demo" \
+  --RiskPerTradeMoney=50.0 \
+  --MaxSpreadPips=3.0
+```
+
+### GBPJPY — Gotobi Fix
+
+`m15` · Tokyo fix
+
+Same flow; GBPJPY quotes wider, so its entry spread cap is 4 pips instead of 3.
+
+```bash
+docker run -d \
+  --name cbot-demo-gbpjpy-fix-gotobi \
+  --restart unless-stopped \
+  --network host \
+  -v $(pwd):/workspace \
+  -v /root:/root \
+  ghcr.io/spotware/ctrader-console:latest \
+  run /workspace/cBot/GotobiBot.algo \
+  --ctid=your_email@example.com \
+  --pwd-file=/root/ctrader_data/ctid_pwd \
+  --account=YOUR_ACCOUNT_ID \
+  --symbol=GBPJPY \
+  --period=m15 \
+  --full-access \
+  --BotId="cbot-demo-gbpjpy-fix-gotobi" \
+  --ApiUrl="http://127.0.0.1:8000/trade" \
+  --AccountLabel="demo" \
+  --RiskPerTradeMoney=50.0 \
+  --MaxSpreadPips=4.0
 ```
 
 ---
