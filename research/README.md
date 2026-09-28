@@ -42,6 +42,7 @@ Git keeps the reports and summary tables in `results/portfolio/`; bulky outputs 
 | `results/portfolio/flow_search_2026-09-27.md`, `prereg_month_end_usd_2026-09-27.md` | round 3: ~40 flow / premium / liquidity hypotheses and scans; M1 registered and failed |
 | `results/portfolio/flow_search_round4_2026-09-27.md` | round 4: benchmark-time scan and public external data (COT, funding, GEX/DIX, VIX, auctions); no candidate |
 | `results/portfolio/sizing_round5_2026-09-27.md` | round 5: capital-based lots with a 60 % drawdown limit; equity premium and martingale rejected, C3 compounding and stress |
+| `results/portfolio/c3_sizing_and_trade_management_2026-09-28.md` | C3 compounding vs fixed $ risk, one pair vs the basket; averaging down, pyramiding and holding losing legs rejected |
 | `results/portfolio/swing_lab_2026-09-27.md`, `full_run_2026-09-27.md`, `baseline_report.md`, `sweep_*.csv` | swing lab v1 (superseded by v2; its code was removed with the lab) |
 
 ## Trying a new strategy

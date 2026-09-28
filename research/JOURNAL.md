@@ -6,13 +6,19 @@ detail. The numbers are copied from those files, and the file wins if the two ev
 When you write a new result file, add a row to that day's entry (or start a new entry) and link the file. Don't
 repeat its tables here.
 
-## 2026-09-28: C1 position cap. C1 keeps cap 3
+## 2026-09-28: C3 sizing and trade management, C1 position cap. No rule improves C3; C1 keeps cap 3
+
+Questions asked while planning a compounding version of GotobiBot. Sizing re-weights the existing C3 trade lists (as
+round 5 did); the trade-management rules ran on IS/VAL only, so the holdout is still unseen for them.
 
 | tested | verdict | detail |
 |---|---|---|
+| C3 at 3 % per trade: risk as a share of the current balance (compounding) vs of the starting balance (fixed $); one pair at a time vs the three-pair basket | sizing changes the $ path, not the edge: over 2016-2026 compounding makes CAGR +60 % / DD 34 % vs +20 % / DD 16 % fixed (research engine), much closer over the 21-month holdout. The pairs' R correlate +0.68..+0.84, so 3 % per pair is ~9 % per gotobi event; one pair at 3 % does no better than the basket at 1 % per pair, and the best pair changes between eras | [c3_sizing_and_trade_management_2026-09-28.md](results/portfolio/c3_sizing_and_trade_management_2026-09-28.md) (sections 1-2) |
+| C3 trade management on IS/VAL: averaging down (1 or 2 adds, 1-2-4), pyramiding into winners, holding losing legs to break-even with and without the stop | **rejected**, all of them. An add has mean R about 0 either way (day-clustered \|t\| <= 1.2); averaging down raises DD to 48-59 % at 3 % compounding and 1-2-4 multiplies it by 6-10 at a fixed risk. Holding losers lifts the win rate to 67-81 % but not mean R, skips 20-24 % of legs, and without a stop loses up to 7.7 R on one leg. C3's edge is in its fixed entry and exit times | same (sections 3-4) |
 | C1 (CryptoDonchianBot) with MaxPositions 1, 2, 4, 5 and no cap instead of 3, pre-planned verdict rule; return / mark-to-market DD on IS/VAL, t clustered by stacking episode, 4 bar phases | **keep 3**. Cap 1 had the best IS/VAL return / DD (8.40 / 4.82 vs 6.92 / 4.02) but beat cap 3 at only 2 of 4 bar phases, and the 2nd-3rd stacked units earn about what the first does (IS+VAL +0.27 / +0.27 / +0.21 R). The cap scales $, drawdown and peak risk together (cap 1: about half the $ and DD, peak risk 400 vs 1,175 $); caps above 3 are worse. HOLD mean R -0.044..+0.008 at every cap | [crypto_donchian_max_positions_2026-09-28.md](results/portfolio/crypto_donchian_max_positions_2026-09-28.md) |
 
-Standing: C1 keeps MaxPositions 3; a lower cap is a way to run its forward test with less risk, not a better rule.
+Standing: unchanged. C3 runs as specified, one leg per pair at a time, and the choice left is its risk per trade.
+C1 keeps MaxPositions 3; a lower cap is a way to run its forward test with less risk, not a better rule.
 
 ## 2026-09-27: swing lab on 26 symbols, 2016-2026. C3 Gotobi JPY basket passes its holdout
 
@@ -37,7 +43,9 @@ held 5 days at most, and a bot holds 3 positions at most. Eras: IS 2016-21, VAL 
 | Round 5: lots may depend on capital, max drawdown 60 % (other rules unchanged). Tested the swap-free equity premium with vol-managed capital-based exposure, a 1-2-4 averaging-down martingale on 26 symbols, and C3 compounded at f % risk per trade | no new algorithm: the equity premium is beta (vol timing beats shuffled leverage 20-53 % in IS, VAL Sharpe 0.2-0.3); the martingale has 73-85 % winners but t <= 1.4 and cycles losing 18-47 ATR units. C3 at 1-4 % risk: CAGR +19..+81 %, max DD 12-43 % (research engine); if its edge were half the estimate, DD stays under 60 % only up to about 3 % risk | [sizing_round5_2026-09-27.md](results/portfolio/sizing_round5_2026-09-27.md) |
 
 Standing at the end of the day: C3 is the only algorithm that survived both out-of-sample years and a pre-registered
-holdout. It is now a cBot, and the next step is the demo account. C1 runs as a forward test only.
+holdout. It is now a cBot, running on USDJPY/EURJPY/GBPJPY at $50 risk per trade on both the demo account and a live
+account (VPS containers started 2026-09-27). C1 runs as a forward test on the demo account only ($100 risk per trade).
+No other strategy is waiting for a demo.
 
 ## Before 2026-09-27: the strategy lab (removed)
 
