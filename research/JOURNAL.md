@@ -6,6 +6,14 @@ detail. The numbers are copied from those files, and the file wins if the two ev
 When you write a new result file, add a row to that day's entry (or start a new entry) and link the file. Don't
 repeat its tables here.
 
+## 2026-09-28: C1 position cap. C1 keeps cap 3
+
+| tested | verdict | detail |
+|---|---|---|
+| C1 (CryptoDonchianBot) with MaxPositions 1, 2, 4, 5 and no cap instead of 3, pre-planned verdict rule; return / mark-to-market DD on IS/VAL, t clustered by stacking episode, 4 bar phases | **keep 3**. Cap 1 had the best IS/VAL return / DD (8.40 / 4.82 vs 6.92 / 4.02) but beat cap 3 at only 2 of 4 bar phases, and the 2nd-3rd stacked units earn about what the first does (IS+VAL +0.27 / +0.27 / +0.21 R). The cap scales $, drawdown and peak risk together (cap 1: about half the $ and DD, peak risk 400 vs 1,175 $); caps above 3 are worse. HOLD mean R -0.044..+0.008 at every cap | [crypto_donchian_max_positions_2026-09-28.md](results/portfolio/crypto_donchian_max_positions_2026-09-28.md) |
+
+Standing: C1 keeps MaxPositions 3; a lower cap is a way to run its forward test with less risk, not a better rule.
+
 ## 2026-09-27: swing lab on 26 symbols, 2016-2026. C3 Gotobi JPY basket passes its holdout
 
 Constraints for every test this day: a lot never depends on account capital (default $ risk x 0.5-2x), a position is
