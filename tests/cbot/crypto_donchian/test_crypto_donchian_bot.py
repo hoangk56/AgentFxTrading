@@ -131,10 +131,10 @@ def test_at_most_three_positions_and_one_attempt_per_signal_bar():
     assert body.index("EntryAlreadyTraded(p.Tag)") < order
     assert body.index("if (!Symbol.MarketHours.IsOpened()) return;") < order
     assert body.index("if (now > p.Deadline)") < order
-    assert "ExecuteMarketOrder(tradeType, SymbolName, volume, BotId, stopPips, null, comment)" in body
+    assert "ExecuteMarketOrder(tradeType, SymbolName, volume, _label, stopPips, null, Seal(comment))" in body
     assert SRC.count("ExecuteMarketOrder(") == 1
     traded = _body("private bool EntryAlreadyTraded(string tag)")
-    assert "History.Any(h => h.Label == BotId && h.SymbolName == SymbolName" in traded
+    assert "History.Any(h => IsOwnLabel(h.Label) && h.SymbolName == SymbolName" in traded
 
 
 def test_exits_caught_after_a_restart():

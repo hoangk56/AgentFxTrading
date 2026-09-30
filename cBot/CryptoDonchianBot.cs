@@ -46,6 +46,11 @@ namespace cAlgo.Robots
         [Parameter("Show Detailed Logs", Group = "General", DefaultValue = true)]
         public bool ShowLogs { get; set; }
 
+        // Secret that hides the strategy from the broker (see "Trade tags"). Live and demo bots only; a backtest keeps
+        // the plain tags. A missing file also keeps them, so the bot trades either way.
+        [Parameter("Tag Key File (empty = plain tags)", Group = "General", DefaultValue = "/root/ctrader_data/trade_tag_key")]
+        public string TagKeyFile { get; set; }
+
         [Parameter("Entry Channel (H4 bars)", Group = "Strategy (H4)", DefaultValue = 55, MinValue = 5, MaxValue = 500)]
         public int EntryPeriod { get; set; }
 
@@ -192,6 +197,7 @@ namespace cAlgo.Robots
         #region Lifecycle
         protected override void OnStart()
         {
+            InitTradeTags();
             Print($"[Donchian] Starting '{BotId}' on {SymbolName}: H4 close beyond the prior {EntryPeriod}-bar channel " +
                   $"(shorts {(TradeShorts ? "on" : "off")}), exit beyond the prior {ExitPeriod}-bar channel, stop {StopAtrMultiplier} x ATR{AtrPeriod}(H4), " +
                   $"max {MaxHoldHours} h, cap {MaxPositions}, risk ${RiskPerTradeMoney:F2}{(ScaleByStrength ? " x breakout strength" : "")}");
@@ -574,7 +580,7 @@ namespace cAlgo.Robots
             var tradeType = p.Side > 0 ? TradeType.Buy : TradeType.Sell;
             double bookedRisk = volume * stopPips * Symbol.PipValue;
             string comment = $"{p.Tag} risk={bookedRisk.ToString("F2", CultureInfo.InvariantCulture)}";
-            var result = ExecuteMarketOrder(tradeType, SymbolName, volume, BotId, stopPips, null, comment);
+            var result = ExecuteMarketOrder(tradeType, SymbolName, volume, _label, stopPips, null, Seal(comment));
             if (result != null && result.IsSuccessful && result.Position != null)
             {
                 _entriesDone.Add(p.Tag);
@@ -596,9 +602,13 @@ namespace cAlgo.Robots
         private bool EntryAlreadyTraded(string tag)
         {
             string prefix = tag + " ";
-            if (GetBotPositions().Any(pos => pos.Comment != null && (pos.Comment == tag || pos.Comment.StartsWith(prefix)))) return true;
-            return History.Any(h => h.Label == BotId && h.SymbolName == SymbolName && h.Comment != null
-                                    && (h.Comment == tag || h.Comment.StartsWith(prefix)));
+            bool IsTag(string comment)
+            {
+                string plain = Unseal(comment);
+                return plain != null && (plain == tag || plain.StartsWith(prefix));
+            }
+            if (GetBotPositions().Any(pos => IsTag(pos.Comment))) return true;
+            return History.Any(h => IsOwnLabel(h.Label) && h.SymbolName == SymbolName && IsTag(h.Comment));
         }
 
         /// <summary>Units risking `riskMoney` at `stopPips`, rounded down to the volume step and capped at
@@ -625,8 +635,8 @@ namespace cAlgo.Robots
             if (KillSwitchTrades > 0)
             {
                 var rs = new List<double>();
-                foreach (var h in History.Where(h => h.Label == BotId && h.SymbolName == SymbolName).OrderBy(h => h.ClosingTime))
-                    if (TryParseComment(h.Comment, out _, out double risk) && risk > 0)
+                foreach (var h in History.Where(h => IsOwnLabel(h.Label) && h.SymbolName == SymbolName).OrderBy(h => h.ClosingTime))
+                    if (TryParseComment(Unseal(h.Comment), out _, out double risk) && risk > 0)
                         rs.Add(h.NetProfit / risk);
                 if (rs.Count >= KillSwitchTrades)
                 {
@@ -639,15 +649,123 @@ namespace cAlgo.Robots
             _killed = killed;
         }
 
+        /// <summary>This bot's positions on its symbol, under the label it trades with and, once the key file is on,
+        /// under the plain BotId it used before.</summary>
         private List<Position> GetBotPositions()
         {
-            return Positions.FindAll(BotId, SymbolName).ToList();
+            var own = Positions.FindAll(_label, SymbolName).ToList();
+            if (_label != BotId) own.AddRange(Positions.FindAll(BotId, SymbolName));
+            return own;
         }
 
         private TradeResult CloseWithReason(Position pos, string reason)
         {
             _closeReasons[pos.Id] = reason;
             return ClosePosition(pos);
+        }
+        #endregion
+
+        #region Trade tags
+        // What the broker sees of an order besides price and size: its Label and Comment. Plain, they name the bot
+        // and the strategy (the BotId is the container name, the comment the leg or signal bar). With the key file,
+        // on a live or demo run, the Label becomes an opaque id derived from BotId and the Comment is encrypted,
+        // so the broker learns neither; the bot decrypts its own comments to run exactly as before. Without the
+        // key (a backtest, or no file on the host) both stay plain. Keep the key once bots trade with it: another
+        // key gives other labels, and positions opened under the old one are no longer this bot's.
+        private byte[] _tagKey;              // null = plain tags
+        private string _label;               // the Label this bot's orders carry
+
+        private void InitTradeTags()
+        {
+            _tagKey = null;
+            _label = BotId;
+            if (RunningMode != RunningMode.RealTime || string.IsNullOrWhiteSpace(TagKeyFile)) return;
+            try
+            {
+                if (!System.IO.File.Exists(TagKeyFile))
+                {
+                    Print($"[Tags] No key file {TagKeyFile}: orders carry the plain BotId and strategy tag");
+                    return;
+                }
+                string secret = System.IO.File.ReadAllText(TagKeyFile).Trim();
+                if (secret.Length < 16)
+                {
+                    Print($"[Tags] Key in {TagKeyFile} is shorter than 16 characters: orders carry the plain BotId and strategy tag");
+                    return;
+                }
+                _tagKey = Encoding.UTF8.GetBytes(secret);
+                _label = "t" + Convert.ToHexString(TagMac(Encoding.UTF8.GetBytes("label|" + BotId)), 0, 6).ToLowerInvariant();
+                Print($"[Tags] Orders labelled {_label}, comments encrypted");
+            }
+            catch (Exception ex)
+            {
+                _tagKey = null;
+                _label = BotId;
+                Print($"[Tags] Could not read {TagKeyFile} ({ex.Message}): orders carry the plain BotId and strategy tag");
+            }
+        }
+
+        /// <summary>True for a Label this bot trades under: its current one, or the plain BotId of before the key.</summary>
+        private bool IsOwnLabel(string label) => label == _label || label == BotId;
+
+        private byte[] TagMac(byte[] data)
+        {
+            using (var hmac = new System.Security.Cryptography.HMACSHA256(_tagKey))
+                return hmac.ComputeHash(data);
+        }
+
+        /// <summary>HMAC-SHA256(key, nonce || counter) blocks: the keystream that XORs a comment.</summary>
+        private byte[] TagKeystream(byte[] nonce, int length)
+        {
+            var stream = new byte[length];
+            var block = new byte[nonce.Length + 4];
+            Buffer.BlockCopy(nonce, 0, block, 0, nonce.Length);
+            for (int offset = 0, counter = 0; offset < length; offset += 32, counter++)
+            {
+                BitConverter.GetBytes(counter).CopyTo(block, nonce.Length);
+                var mac = TagMac(block);
+                Buffer.BlockCopy(mac, 0, stream, offset, Math.Min(32, length - offset));
+            }
+            return stream;
+        }
+
+        private const int TagNonceBytes = 8;
+
+        /// <summary>The comment an order carries: `tag` encrypted (base64url of nonce + ciphertext), or `tag` itself
+        /// without a key.</summary>
+        private string Seal(string tag)
+        {
+            if (_tagKey == null || string.IsNullOrEmpty(tag)) return tag;
+            var plain = Encoding.UTF8.GetBytes(tag);
+            var bytes = new byte[TagNonceBytes + plain.Length];
+            System.Security.Cryptography.RandomNumberGenerator.Fill(new Span<byte>(bytes, 0, TagNonceBytes));
+            var nonce = bytes.Take(TagNonceBytes).ToArray();
+            var stream = TagKeystream(nonce, plain.Length);
+            for (int i = 0; i < plain.Length; i++) bytes[TagNonceBytes + i] = (byte)(plain[i] ^ stream[i]);
+            return Convert.ToBase64String(bytes).TrimEnd('=').Replace('+', '-').Replace('/', '_');
+        }
+
+        /// <summary>The tag behind an order's comment. A plain comment (one opened before the key, or a backtest's)
+        /// comes back unchanged; the tag parsers reject anything that is neither.</summary>
+        private string Unseal(string comment)
+        {
+            if (_tagKey == null || string.IsNullOrEmpty(comment) || comment.IndexOf(' ') >= 0) return comment;
+            try
+            {
+                string b64 = comment.Replace('-', '+').Replace('_', '/');
+                b64 = b64.PadRight(b64.Length + (4 - b64.Length % 4) % 4, '=');
+                var bytes = Convert.FromBase64String(b64);
+                if (bytes.Length <= TagNonceBytes) return comment;
+                var nonce = bytes.Take(TagNonceBytes).ToArray();
+                var stream = TagKeystream(nonce, bytes.Length - TagNonceBytes);
+                var plain = new byte[stream.Length];
+                for (int i = 0; i < plain.Length; i++) plain[i] = (byte)(bytes[TagNonceBytes + i] ^ stream[i]);
+                return Encoding.UTF8.GetString(plain);
+            }
+            catch (FormatException)
+            {
+                return comment;
+            }
         }
         #endregion
 
@@ -907,7 +1025,7 @@ namespace cAlgo.Robots
                 try
                 {
                     var pos = args.Position;
-                    if (pos == null || pos.Label != BotId || pos.SymbolName != SymbolName) return;
+                    if (pos == null || !IsOwnLabel(pos.Label) || pos.SymbolName != SymbolName) return;
 
                     double exitPrice = pos.TradeType == TradeType.Buy ? Symbol.Bid : Symbol.Ask;
                     if (args.Reason == PositionCloseReason.TakeProfit && pos.TakeProfit.HasValue)
@@ -930,7 +1048,7 @@ namespace cAlgo.Robots
                     else
                         reason = args.Reason.ToString();
 
-                    Print($"[Donchian] Closed #{pos.Id} {pos.TradeType} {pos.Comment}: {reason}, net {pos.NetProfit:F2}");
+                    Print($"[Donchian] Closed #{pos.Id} {pos.TradeType} {Unseal(pos.Comment)}: {reason}, net {pos.NetProfit:F2}");
                     ReportPositionClosed(pos, pos.NetProfit, reason, exitPrice, pos.Pips);
                     SendLiveTickTelemetry(force: true);
                     RefreshKillSwitch();
@@ -966,7 +1084,7 @@ namespace cAlgo.Robots
                     reason,
                     entry_indicators = JsonSerializer.Serialize(new
                     {
-                        signal = position.Comment,
+                        signal = Unseal(position.Comment),
                         channel_edge = signal.Level,
                         atr_h4 = Math.Round(signal.Atr, 5),
                         strength_atr = Math.Round(signal.Strength, 3),

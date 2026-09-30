@@ -6,6 +6,12 @@ detail. The numbers are copied from those files, and the file wins if the two ev
 When you write a new result file, add a row to that day's entry (or start a new entry) and link the file. Don't
 repeat its tables here.
 
+## 2026-09-30: cost of camouflaging GotobiBot from the broker
+
+| tested | verdict | detail |
+|---|---|---|
+| GotobiBot cTrader backtest 2024-01..2026-09, 3 pairs, $200 risk: decoy legs on plain weekdays (2 per real leg, half at the real lot and half at 0.01 lot, 0.5 x ATR virtual stop), a broker stop at 0.8-1.0x or 0.6-1.0x the real stop, and the long entry jittered by ±60 min | **decoys at the real lot cost ~all the edge**: -$7.8 per decoy, basket net $11,738 → $1,991 (0.8-1.0x). Broker-visible win rate 55.7 % → 38.6 %; summed max DD $2,403 → $4,288. Small-lot decoys cost -$0.20 each. The tighter broker stop takes -5.9 % (0.8-1.0x) or -12.0 % (0.6-1.0x) of the real legs' net. **Chosen: 0.8-1.0x stop + jitter + all decoys at 0.01 lot**: net $10,526 (-10.3 %), visible win rate 38.6 %, summed max DD $2,580 (+7 %) | [gotobi_camouflage_2026-09-30.md](results/portfolio/gotobi_camouflage_2026-09-30.md) (Vietnamese) |
+
 ## 2026-09-28: C3 sizing and trade management, C1 position cap. No rule improves C3; C1 keeps cap 3
 
 Questions asked while planning a compounding version of GotobiBot. Sizing re-weights the existing C3 trade lists (as

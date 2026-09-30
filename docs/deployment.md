@@ -114,11 +114,27 @@ with the `ApiUrl` pointing at your server.
    chmod 600 /root/ctrader_data/ctid_pwd
    ```
 
-2. **Start containers** from the dashboard (**Docker Bot Management → Setup Instances**) or with the commands in
+2. **Trade tag key** (optional, recommended before going live). Without it every order carries the container name
+   as its Label (`cbot-live-usdjpy-fix-gotobi`) and the strategy's leg or signal bar as its Comment
+   (`GOTOBI-L 2026-10-05`), all of which the broker can read. With the key, live and demo bots label orders with an
+   opaque id derived from the BotId and encrypt the comment; backtests keep the plain tags. Every bot reads the
+   same file at start (`--TagKeyFile`, default `/root/ctrader_data/trade_tag_key`) and logs `[Tags] Orders labelled …`:
+
+   ```bash
+   python3 scripts/trade_tags.py new-key > /root/ctrader_data/trade_tag_key
+   chmod 600 /root/ctrader_data/trade_tag_key
+   ```
+
+   Positions opened before the key are still recognised, so adding it only takes a `docker restart`. Once bots trade
+   with a key, **keep it and back it up**: a changed or missing key gives other labels, so the bots stop managing
+   positions opened under the old one. To read a label or comment in cTrader by hand, run
+   `scripts/trade_tags.py label <BotId>` or `scripts/trade_tags.py unseal <comment>`.
+
+3. **Start containers** from the dashboard (**Docker Bot Management → Setup Instances**) or with the commands in
    [docker-instances.md](docker-instances.md), which also covers container naming, the placeholders to replace and
    running demo and live accounts side by side.
 
-3. **Check** a bot with `docker logs --tail 20 <container>`; the dashboard's Bots view shows watchdog health.
+4. **Check** a bot with `docker logs --tail 20 <container>`; the dashboard's Bots view shows watchdog health.
 
 ## Operations
 
