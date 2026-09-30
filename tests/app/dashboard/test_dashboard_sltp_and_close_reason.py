@@ -158,6 +158,7 @@ def test_dashboard_renders_the_new_columns():
 @pytest.mark.parametrize("cs_name", ["GotobiBot.cs", "CryptoDonchianBot.cs"])
 def test_tick_and_close_carry_levels_and_the_reason(cs_name):
     src = (CBOT_DIR / cs_name).read_text(encoding="utf-8")
-    assert "sl_pnl = p.StopLoss.HasValue" in src
-    assert "sl_price = position.StopLoss," in src
+    # GotobiBot reports its virtual stop (StopPriceOf) where it keeps the real stop from the broker
+    assert "sl_pnl = p.StopLoss.HasValue" in src or "sl_pnl = StopPriceOf(p) is double stop" in src
+    assert "sl_price = position.StopLoss," in src or "sl_price = StopPriceOf(position)," in src
     assert 'reason = string.IsNullOrWhiteSpace(reason) ? "Closed" : reason,' in src

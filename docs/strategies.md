@@ -24,6 +24,15 @@ move to the Friday before) Japanese importers buy USD at the 09:55 Tokyo fixing.
 (02:55 UTC). One position at a time per instance. Each trade risks `RiskPerTradeMoney` dollars at a stop of
 3 × ATR20 (H1). Result file: `research/results/portfolio/swing_lab_v2_2026-09-27.md`.
 
+**Camouflage.** So the broker cannot read the strategy off its orders, a live or demo bot with the trade tag key
+([deployment.md](deployment.md#running-bots)) sends a random 0.8-1.0 × fraction of the stop to the broker (a dead
+bot loses at most 1 R), opens each long at its own time within ±60 min of 18:00 UTC, and trades about two decoy
+legs per real one on plain weekdays: same hours, 0.01 lot, a 0.5 × ATR stop the bot closes itself. The broker sees
+a ~39 % win rate instead of ~56 %. On 2024-01..2026-09 at $200 risk this cost 10 % of the net; decoys at the real lot
+would have cost 83 % (`research/results/portfolio/gotobi_camouflage_2026-09-30.md`). Without the key, or with
+`--VirtualStop=false`, the bot trades as before; set `--DecoyLegProbability=0` and `--LongEntryJitterMinutes=0` to
+backtest the plain strategy.
+
 ## Crypto Donchian (`cBot/CryptoDonchianBot.cs`)
 
 Research candidate C1, **forward test only**. On a UTC-aligned H4 close above the prior 55-bar high it buys (below

@@ -70,7 +70,7 @@ def test_short_is_not_chased_after_the_fix():
 
 
 def test_lot_size_never_reads_the_account():
-    for sig in ("private double VolumeForRisk(double stopPips)", "private void TryOpenLeg(Leg leg, DateTime day)"):
+    for sig in ("private double VolumeForRisk(double stopPips)", "private void TryOpenLeg(Leg leg, DateTime day, bool decoy)"):
         body = _body(sig)
         assert "Account." not in body, f"{sig} reads the account: lots must not depend on capital"
     sizing = _body("private double VolumeForRisk(double stopPips)")
@@ -81,21 +81,21 @@ def test_lot_size_never_reads_the_account():
 def test_no_position_outlives_its_leg_or_five_days():
     assert _default("MaxHoldHours") <= 24 and _max_value("MaxHoldHours") <= 5 * 24
     body = _body("private void CloseDueLegs(DateTime now)")
-    assert "now >= FixTime(day)" in body and "now >= ShortExitTime(day)" in body
+    assert "now >= FixTime(info.Day)" in body and "now >= ShortExitTime(info.Day)" in body
     assert "TimeSpan.FromHours(MaxHoldHours)" in body
     assert "CloseDueLegs(now);" in _body("private void Evaluate()")
 
 
 def test_one_position_at_a_time_and_one_attempt_per_leg():
-    body = _body("private void TryOpenLeg(Leg leg, DateTime day)")
+    body = _body("private void TryOpenLeg(Leg leg, DateTime day, bool decoy)")
     order = body.index("ExecuteMarketOrder(")
     assert body.index("if (GetBotPositions().Count > 0) return;") < order
     assert body.index("LegAlreadyTraded(tag)") < order
     assert body.index("if (!Symbol.MarketHours.IsOpened()) return;") < order   # no fill on a stale weekend quote
-    assert "ExecuteMarketOrder(tradeType, SymbolName, volume, BotId, stopPips, null, tag)" in body
+    assert "ExecuteMarketOrder(tradeType, SymbolName, volume, _label, orderStopPips, null, Seal(comment))" in body
     assert SRC.count("ExecuteMarketOrder(") == 1
     traded = _body("private bool LegAlreadyTraded(string tag)")
-    assert "History.Any(h => h.Label == BotId && h.SymbolName == SymbolName && h.Comment == tag)" in traded
+    assert "History.Any(h => IsOwnLabel(h.Label) && h.SymbolName == SymbolName && ParseLeg(Unseal(h.Comment))?.Tag == tag)" in traded
 
 
 def test_nothing_trades_on_a_stale_quote():
@@ -128,3 +128,50 @@ def test_backtests_never_reach_the_server():
 
 def test_runs_in_utc():
     assert "[Robot(TimeZone = TimeZones.UTC, AccessRights = AccessRights.FullAccess)]" in SRC
+
+
+# --- camouflage: the broker must not read the strategy off the orders (virtual stop, decoys, jittered entries) ---
+
+def test_camouflage_needs_the_tag_key_on_a_live_run():
+    # without the key the comment is plain, and would show the real stop and which legs are decoys
+    assert "private bool Camouflaged => VirtualStop && (RunningMode != RunningMode.RealTime || _tagKey != null);" in SRC
+    body = _body("private void TryOpenLeg(Leg leg, DateTime day, bool decoy)")
+    assert "double orderStopPips = stopPips;" in body and "if (Camouflaged)" in body
+    assert "if (!Camouflaged || DecoyLegProbability <= 0) return false;" in _body("private bool PlanLeg(Leg leg, DateTime day, out bool decoy)")
+
+
+def test_broker_stop_is_never_wider_than_the_real_one():
+    # a bot or VPS that dies loses at most 1 R a position
+    for prop in ("EmergencyStopMin", "EmergencyStopMax"):
+        assert _default(prop) <= 1.0 and _max_value(prop) <= 1.0
+    body = _body("private void TryOpenLeg(Leg leg, DateTime day, bool decoy)")
+    assert "orderStopPips = stopPips * (EmergencyStopMin + _random.NextDouble() * Math.Max(0, EmergencyStopMax - EmergencyStopMin));" in body
+
+
+def test_virtual_stop_closes_after_the_leg_exits_are_checked():
+    body = _body("private void CloseDueLegs(DateTime now)")
+    assert body.index("now >= FixTime(info.Day)") < body.index("VirtualStopHit(pos, info)")
+    hit = _body("private bool VirtualStopHit(Position pos, LegInfo info)")
+    assert "Symbol.Bid <= stop.Value" in hit and "Symbol.Ask >= stop.Value" in hit
+
+
+def test_decoys_only_on_plain_weekdays_with_the_real_lot():
+    plan = _body("private bool PlanLeg(Leg leg, DateTime day, out bool decoy)")
+    assert plan.index("if (IsTradingDay(day)) return true;") < plan.index("Draw(")
+    assert "IsGotobi(day) || _skipDates.Contains(day.Date)" in plan
+    assert "DayOfWeek.Saturday" in plan and "DayOfWeek.Sunday" in plan
+    body = _body("private void TryOpenLeg(Leg leg, DateTime day, bool decoy)")
+    assert "double volume = VolumeForRisk(stopPips);" in body          # the real leg's lot, not the decoy stop's
+    assert body.count("VolumeForRisk(") == 1
+    # a share of the decoys trades a small lot, drawn per leg; a real leg never does
+    assert "if (decoy && Draw(tag, \"size\") < DecoySmallShare)" in body
+
+
+def test_long_entry_jitter_stays_in_the_researched_window():
+    # swing_lab_v2: the long leg's start hardly matters between 17:00 and 21:00 UTC
+    centre = _default("LongEntryHourUtc") * 60 + _default("LongEntryMinuteUtc")
+    jitter = _default("LongEntryJitterMinutes")
+    assert 17 * 60 <= centre - jitter and centre + jitter <= 21 * 60
+    assert "now >= JitteredLongEntry(tomorrow)" in _body("private void Evaluate()")
+    # the fix is the edge: the short still opens at the fix, within the grace minutes
+    assert "now >= FixTime(today)" in _body("private void Evaluate()")
