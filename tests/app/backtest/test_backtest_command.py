@@ -55,7 +55,7 @@ def test_parses_a_preset_gotobi_command():
     assert (src.ctid, src.account, src.symbol, src.period) == ("trader@example.com", "10115236", "USDJPY", "m15")
     assert src.pwd_file == "/root/ctrader_data/ctid_demo-demo_pwd"
     assert src.params["BotId"] == "cbot-demo-demo-usdjpy-fix-gotobi"      # quotes stripped
-    assert src.params["RiskPerTradeMoney"] == "50.0"
+    assert src.params["RiskPerTradeMoney"] == "100.0"
     assert src.params["MaxSpreadPips"] == "3.0"
     assert "full-access" not in src.params and "ctid" not in src.params
 
@@ -131,7 +131,7 @@ def test_gotobi_backtest_never_reaches_the_server(homes):
         assert f"--{key}={bc.DISABLED_URL}" in command
     assert "--CommandPollMs=0" in command
     assert "--ApiUrl=http://127.0.0.1:8000/trade" not in command
-    assert "--RiskPerTradeMoney=50.0" in command
+    assert "--RiskPerTradeMoney=100.0" in command
 
 
 def test_donchian_backtest_is_supported_and_never_reaches_the_server(homes):

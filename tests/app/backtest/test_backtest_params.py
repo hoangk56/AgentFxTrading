@@ -9,7 +9,7 @@ import pytest
 
 from app import backtest_params as bp
 from app.backtest_command import parse_run_command
-from app.cbot_presets import build_run_command
+from app.cbot_presets import GOTOBI_SKIP_DATES, build_run_command
 from tests._paths import FIXTURES_DIR
 
 META_TEXT = (FIXTURES_DIR / "backtest" / "gotobi_metadata.json").read_text()
@@ -75,11 +75,11 @@ def test_param_view_shows_bot_values_over_canonical_defaults():
     view = bp.param_view(META, source(StopAtrMultiplier="2.5"))
     params = {p["key"]: p for g in view["groups"] for p in g["params"]}
     assert (params["StopAtrMultiplier"]["default"], params["StopAtrMultiplier"]["bot_value"]) == ("3.0", "2.5")
-    assert params["RiskPerTradeMoney"]["bot_value"] == "50.0"
+    assert params["RiskPerTradeMoney"]["bot_value"] == "100.0"
     assert params["MaxSpreadPips"]["bot_value"] == "3.0"
     assert params["AtrPeriod"]["bot_value"] == "20"
     assert params["TradeLong"]["bot_value"] == "true"
-    assert params["SkipDates"]["bot_value"] == "2026-12-25"
+    assert params["SkipDates"]["bot_value"] == GOTOBI_SKIP_DATES
     assert (params["FixMinuteUtc"]["min"], params["FixMinuteUtc"]["max"]) == (0, 59)
     assert params["StopAtrMultiplier"]["label"] == "Stop (x ATR of H1)"
     assert params["TradeLong"]["enum_values"] is None
@@ -89,7 +89,7 @@ def test_param_view_shows_bot_values_over_canonical_defaults():
 
 def test_overrides_are_canonical_and_no_ops_are_dropped():
     changes = bp.validate_overrides(META, source(), {
-        "StopAtrMultiplier": 2, "AtrPeriod": "20", "TradeShort": False, "RiskPerTradeMoney": 50,
+        "StopAtrMultiplier": 2, "AtrPeriod": "20", "TradeShort": False, "RiskPerTradeMoney": 100,
     })
     assert changes == {
         "StopAtrMultiplier": {"from": "3.0", "to": "2.0"},
@@ -133,6 +133,6 @@ def test_enum_and_timeframe_parameters_take_names():
 
 def test_job_params_drop_locked_keys_and_apply_overrides():
     params = bp.job_params(source(), {"StopAtrMultiplier": {"from": "3.0", "to": "2.0"}})
-    assert params["StopAtrMultiplier"] == "2.0" and params["RiskPerTradeMoney"] == "50.0"
+    assert params["StopAtrMultiplier"] == "2.0" and params["RiskPerTradeMoney"] == "100.0"
     for key in ("ApiUrl", "BotId", "AccountLabel", "CommandPollMs"):
         assert key not in params, key
