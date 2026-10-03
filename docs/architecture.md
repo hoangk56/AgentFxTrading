@@ -57,7 +57,7 @@ FastAPI generates the full, current reference: open **`http://127.0.0.1:8000/doc
 | Backtests | `/api/backtests/*` | `app/backtest_api.py` |
 
 Most dashboard data routes accept `account_id=demo|live|all|<id>`; see `/docs` for parameters. New endpoints go in
-an `APIRouter` module, not in `app/server.py` (see [AGENTS.md](../AGENTS.md)).
+an `APIRouter` module, not in `app/server.py` (see [CLAUDE.md](../CLAUDE.md)).
 
 ## Background tasks
 

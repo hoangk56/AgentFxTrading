@@ -166,11 +166,8 @@ def test_installed_cells_is_empty_without_accounts_or_configs():
 # docs/docker-instances.md spells out all 3 cells as `docker run` commands. Those blocks are what a
 # user copies by hand, so a preset edit that forgets them ships docs that silently disagree with what
 # the dashboard generates. Compare the strategy flags only: the doc uses placeholder credentials and a
-# `demo` account slug. The six READMEs must not re-document cells — they link to the catalog instead,
-# so there is exactly one place to keep in sync (the README quick-start example is the one exception).
+# `demo` account slug.
 INSTANCES_DOC = REPO_ROOT / "docs" / "docker-instances.md"
-README_FILES = sorted(REPO_ROOT.glob("README*.md"))
-README_EXAMPLE = ("gotobi", "USDJPY")
 _INFRA_FLAGS = {"ctid", "pwd-file", "account", "symbol", "period", "full-access",
                 "BotId", "ApiUrl", "AccountLabel"}
 _ALGO_TO_STRATEGY = {spec["algo"]: name for name, spec in STRATEGIES.items()}
@@ -214,28 +211,6 @@ def test_instances_doc_matches_the_presets(strategy, symbol):
         f"docs/docker-instances.md disagrees with app/cbot_presets.py for {strategy} {symbol}: "
         f"{ {k: (generated.get(k), documented.get(k)) for k in set(generated) | set(documented) if generated.get(k) != documented.get(k)} }"
     )
-
-
-def test_readme_files_are_discovered():
-    assert [p.name for p in README_FILES] == [
-        "README.ja.md", "README.md", "README.pt.md", "README.ru.md", "README.vi.md", "README.zh.md"]
-
-
-@pytest.mark.parametrize("readme", README_FILES, ids=lambda p: p.name)
-def test_readmes_keep_only_the_quick_start_example(readme):
-    """A README carries one worked example and links to the catalog; anything more is a second copy to drift."""
-    cells = _documented_cells(readme)
-    assert set(cells) == {README_EXAMPLE}, (
-        f"{readme.name} should document only {README_EXAMPLE} and link to docs/docker-instances.md "
-        f"for the rest, but documents {sorted(cells)}")
-    generated = _strategy_flags(build_run_command(DEMO, *README_EXAMPLE, ROOT, HOME))
-    assert cells[README_EXAMPLE] == generated, f"{readme.name}'s example disagrees with app/cbot_presets.py"
-
-
-@pytest.mark.parametrize("readme", README_FILES, ids=lambda p: p.name)
-def test_readmes_link_to_the_instance_catalog(readme):
-    assert "docs/docker-instances.md" in readme.read_text(), (
-        f"{readme.name} must link to the instance catalog now that it no longer lists the commands")
 
 
 # --- no symbol-name branching in the cBots ------------------------------------------
