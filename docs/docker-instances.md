@@ -90,10 +90,15 @@ validated.
 
 Every trade risks `--RiskPerTradeMoney` (dollars, never a share of equity) at a stop of 3 x ATR20(H1), so the lot
 follows volatility around that default. The schedule, the stop and the one-position-at-a-time rule are the cBot's
-defaults and are the same on every pair; a cell only sets the risk and the entry spread cap. Its exposure is one
-position of one default risk, two legs a day, eight gotobi days a month. Japanese public holidays have no Tokyo fix; list them in
-`--SkipDates="yyyy-MM-dd,..."` to sit them out. The default skips 2026-12-25 (a Friday gotobi day while the broker
-is closed for Christmas). A `--SkipDates` value replaces that default, so include 2026-12-25 in it.
+defaults and are the same on every pair; a cell only sets the risk, the entry spread cap and the days to sit out. Its
+exposure is one position of one default risk, two legs a day, six gotobi days a month.
+
+Japanese public holidays and the 31/12 bank holiday have no Tokyo fix, and on the 45 such gotobi days of 2016-2026
+the basket lost money
+([`gotobi_jp_holidays_2026-09-29.md`](../research/results/portfolio/gotobi_jp_holidays_2026-09-29.md)). The presets
+list the coming ones in `--SkipDates`, together with 2026-12-25 (a Friday gotobi day while the broker is closed for
+Christmas): that one is the cBot's own default, and a `--SkipDates` value replaces it. The list runs to the end of
+2027; `python -m research.tools.gotobi_holidays --upcoming 2028-01-01:2028-12-31` prints the next year's dates.
 
 ### USDJPY — Gotobi Fix
 
@@ -119,8 +124,9 @@ docker run -d \
   --BotId="cbot-demo-usdjpy-fix-gotobi" \
   --ApiUrl="http://127.0.0.1:8000/trade" \
   --AccountLabel="demo" \
-  --RiskPerTradeMoney=50.0 \
-  --MaxSpreadPips=3.0
+  --RiskPerTradeMoney=100.0 \
+  --MaxSpreadPips=3.0 \
+  --SkipDates="2026-12-25,2026-12-31,2027-05-05,2027-09-20,2027-12-31"
 ```
 
 ### EURJPY — Gotobi Fix
@@ -147,8 +153,9 @@ docker run -d \
   --BotId="cbot-demo-eurjpy-fix-gotobi" \
   --ApiUrl="http://127.0.0.1:8000/trade" \
   --AccountLabel="demo" \
-  --RiskPerTradeMoney=50.0 \
-  --MaxSpreadPips=3.0
+  --RiskPerTradeMoney=100.0 \
+  --MaxSpreadPips=3.0 \
+  --SkipDates="2026-12-25,2026-12-31,2027-05-05,2027-09-20,2027-12-31"
 ```
 
 ### GBPJPY — Gotobi Fix
@@ -175,8 +182,9 @@ docker run -d \
   --BotId="cbot-demo-gbpjpy-fix-gotobi" \
   --ApiUrl="http://127.0.0.1:8000/trade" \
   --AccountLabel="demo" \
-  --RiskPerTradeMoney=50.0 \
-  --MaxSpreadPips=4.0
+  --RiskPerTradeMoney=100.0 \
+  --MaxSpreadPips=4.0 \
+  --SkipDates="2026-12-25,2026-12-31,2027-05-05,2027-09-20,2027-12-31"
 ```
 
 ## 🪙 Crypto Donchian — `CryptoDonchianBot.algo`

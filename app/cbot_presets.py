@@ -26,9 +26,15 @@ SYMBOLS: List[str] = ["USDJPY", "EURJPY", "GBPJPY", "BTCUSD", "ETHUSD"]
 _GOTOBI_SESSION = "Tokyo fix"
 _DONCHIAN_SESSION = "H4 breakout"
 
+# Gotobi days the bot sits out. Japanese public holidays and the 31/12 bank holiday have no Tokyo fix, and on the 45
+# such days of 2016-2026 the basket lost (R -0.066, t -3.4; research/results/portfolio/gotobi_jp_holidays_2026-09-29.md).
+# 2026-12-25 is the cBot's own default (the broker is closed at the fix), which a value passed in replaces. Extend the
+# list each year with `python -m research.tools.gotobi_holidays --upcoming`.
+GOTOBI_SKIP_DATES = "2026-12-25,2026-12-31,2027-05-05,2027-09-20,2027-12-31"
 
-def _gotobi(max_spread: float, risk: float = 50.0) -> dict:
-    return {"RiskPerTradeMoney": risk, "MaxSpreadPips": max_spread}
+
+def _gotobi(max_spread: float, risk: float = 100.0) -> dict:
+    return {"RiskPerTradeMoney": risk, "MaxSpreadPips": max_spread, "SkipDates": GOTOBI_SKIP_DATES}
 
 
 def _cell(period: str, session: str, params: dict) -> dict:
@@ -38,7 +44,8 @@ def _cell(period: str, session: str, params: dict) -> dict:
 # (strategy, SYMBOL) -> {"period", "session", "params"}; 3 gotobi + 2 donchian cells.
 PRESETS: Dict[Tuple[str, str], Dict] = {
     # Gotobi (GotobiBot) — research C3: the schedule and the 3 x ATR20(H1) stop are the cBot's defaults; a cell
-    # sets the default $ risk per trade (never a share of equity) and the entry spread cap (GBPJPY quotes wider).
+    # sets the default $ risk per trade (never a share of equity; $100 is the research's), the entry spread cap
+    # (GBPJPY quotes wider) and the days with no Tokyo fix.
     ("gotobi", "USDJPY"): _cell("m15", _GOTOBI_SESSION, _gotobi(max_spread=3.0)),
     ("gotobi", "EURJPY"): _cell("m15", _GOTOBI_SESSION, _gotobi(max_spread=3.0)),
     ("gotobi", "GBPJPY"): _cell("m15", _GOTOBI_SESSION, _gotobi(max_spread=4.0)),

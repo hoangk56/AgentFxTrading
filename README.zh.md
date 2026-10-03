@@ -143,8 +143,9 @@ docker run -d \
   --BotId="cbot-demo-usdjpy-fix-gotobi" \
   --ApiUrl="http://127.0.0.1:8000/trade" \
   --AccountLabel="demo" \
-  --RiskPerTradeMoney=50.0 \
-  --MaxSpreadPips=3.0
+  --RiskPerTradeMoney=100.0 \
+  --MaxSpreadPips=3.0 \
+  --SkipDates="2026-12-25,2026-12-31,2027-05-05,2027-09-20,2027-12-31"
 ```
 
 预设本身位于唯一的事实来源 [`app/cbot_presets.py`](app/cbot_presets.py)，README 不再重复。在用安装脚本部署的 VPS 上，

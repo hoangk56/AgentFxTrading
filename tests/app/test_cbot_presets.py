@@ -1,11 +1,13 @@
+import calendar
 import re
 import shlex
+from datetime import date, timedelta
 from pathlib import Path
 
 import pytest
 
 from app.cbot_presets import (
-    DEFAULT_IMAGE, PRESETS, SESSION_SLUGS, STRATEGIES, SYMBOLS,
+    DEFAULT_IMAGE, GOTOBI_SKIP_DATES, PRESETS, SESSION_SLUGS, STRATEGIES, SYMBOLS,
     build_run_command, container_name, describe_cell, installed_cells, presets_payload,
 )
 from tests._paths import REPO_ROOT, CBOT_DIR
@@ -53,14 +55,40 @@ def test_gotobi_golden_command():
         "--ctid=me@example.com --pwd-file=/root/ctrader_data/ctid_demo-main_pwd --account=10101649 "
         "--symbol=GBPJPY --period=m15 --full-access "
         '--BotId="cbot-demo-main-gbpjpy-fix-gotobi" --ApiUrl="http://127.0.0.1:8000/trade" --AccountLabel="Demo Main" '
-        "--RiskPerTradeMoney=50.0 --MaxSpreadPips=4.0"
+        '--RiskPerTradeMoney=100.0 --MaxSpreadPips=4.0 '
+        '--SkipDates="2026-12-25,2026-12-31,2027-05-05,2027-09-20,2027-12-31"'
     )
 
 
-def test_gotobi_cells_carry_only_risk_and_spread():
+def test_gotobi_cells_carry_only_risk_spread_and_skip_dates():
     """The schedule and the stop are the research's (cBot defaults); a cell must not re-tune them per symbol."""
     for sym in GOTOBI_SYMBOLS:
-        assert set(PRESETS[("gotobi", sym)]["params"]) == {"RiskPerTradeMoney", "MaxSpreadPips"}, sym
+        assert set(PRESETS[("gotobi", sym)]["params"]) == {"RiskPerTradeMoney", "MaxSpreadPips", "SkipDates"}, sym
+        assert PRESETS[("gotobi", sym)]["params"]["SkipDates"] == GOTOBI_SKIP_DATES, sym
+
+
+def _is_gotobi(d: date) -> bool:
+    """GotobiBot.IsGotobi: the 5th/10th/15th/20th/25th or the month's last day, a weekend one moved to the Friday before."""
+    last = calendar.monthrange(d.year, d.month)[1]
+    for day in (5, 10, 15, 20, 25, last):
+        moved = date(d.year, d.month, day)
+        while moved.weekday() >= 5:
+            moved -= timedelta(days=1)
+        if moved == d:
+            return True
+    return False
+
+
+def test_gotobi_skip_dates_are_gotobi_days_the_bot_parses():
+    # A date that is not a gotobi day, or not yyyy-MM-dd, would be skipped silently (the cBot only logs it), so the
+    # holiday it was meant for would be traded.
+    dates = GOTOBI_SKIP_DATES.split(",")
+    assert dates == sorted(set(dates))
+    for text in dates:
+        assert re.fullmatch(r"\d{4}-\d{2}-\d{2}", text), text
+        assert _is_gotobi(date.fromisoformat(text)), f"{text} is not a gotobi day"
+    # The cBot's default, which a --SkipDates value replaces (broker closed at the fix on Christmas 2026).
+    assert "2026-12-25" in dates
 
 
 def test_donchian_golden_command():

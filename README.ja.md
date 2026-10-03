@@ -146,8 +146,9 @@ docker run -d \
   --BotId="cbot-demo-usdjpy-fix-gotobi" \
   --ApiUrl="http://127.0.0.1:8000/trade" \
   --AccountLabel="demo" \
-  --RiskPerTradeMoney=50.0 \
-  --MaxSpreadPips=3.0
+  --RiskPerTradeMoney=100.0 \
+  --MaxSpreadPips=3.0 \
+  --SkipDates="2026-12-25,2026-12-31,2027-05-05,2027-09-20,2027-12-31"
 ```
 
 プリセット本体は唯一の情報源である [`app/cbot_presets.py`](app/cbot_presets.py) にあり、README では繰り返しません。
