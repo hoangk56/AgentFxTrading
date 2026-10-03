@@ -50,7 +50,7 @@ PRESETS: Dict[Tuple[str, str], Dict] = {
 
 
 def _fmt(value) -> str:
-    """Render a param value the way the README writes it: true/false, bare numbers, "quoted strings"."""
+    """Render a param value the way docs/docker-instances.md writes it: true/false, bare numbers, "quoted strings"."""
     if isinstance(value, bool):
         return "true" if value else "false"
     if isinstance(value, (int, float)):

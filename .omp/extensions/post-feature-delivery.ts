@@ -1,7 +1,7 @@
 /**
  * Oh My Pi Hook / Extension: Post-Feature Delivery Reminder
  * At agent_end, lists uncommitted changes so the final report can mention them.
- * Per AGENTS.md, the agent must NOT commit or push on its own — this is only a reminder.
+ * Per CLAUDE.md, the agent must NOT commit or push on its own — this is only a reminder.
  */
 
 interface ExtensionContext {
@@ -23,7 +23,7 @@ export default function postFeatureDeliveryHook(pi: ExtensionContext): void {
         pi.logger.info(
           "[HOOK post-feature-delivery] Uncommitted changes:\n" +
           uncommitted +
-          "\n-> Report them and the test result; commit/push only when the user asks (AGENTS.md)." +
+          "\n-> Report them and the test result; commit/push only when the user asks (CLAUDE.md)." +
           " After deploy: restart agentfx.service (app/templates/static) or the affected cbot container (cBot/*.cs)."
         );
       }

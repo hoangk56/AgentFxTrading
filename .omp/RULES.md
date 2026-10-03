@@ -1,6 +1,6 @@
 # AgentFxTrading — OMP sticky rules
 
-The delivery rules live in `../AGENTS.md` and are the only source of truth. In short:
+The delivery rules live in `../CLAUDE.md` and are the only source of truth. In short:
 
 1. Run the tests (`pytest` from the repo root; research changes also need
    `research/.venv/bin/python -m pytest research/tests`).
