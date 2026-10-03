@@ -52,7 +52,8 @@ def test_schedule_is_the_researched_one():
 def test_stop_is_the_researched_one():
     assert _default("StopAtrMultiplier") == _research_default("slk")
     assert re.search(r"def _h1_atr_on\(b, symbol, n=(\d+)\)", RESEARCH).group(1) == str(int(_default("AtrPeriod")))
-    assert "Indicators.AverageTrueRange(MarketData.GetBars(TimeFrame.Hour), AtrPeriod, MovingAverageType.Simple)" in SRC
+    assert "_h1 = MarketData.GetBars(TimeFrame.Hour);" in SRC
+    assert "Indicators.AverageTrueRange(_h1, AtrPeriod, MovingAverageType.Simple)" in SRC
     assert "_atr.Result.Last(1)" in _body("private void TryOpenLeg(")       # last closed H1 bar, as the research
 
 
@@ -92,10 +93,10 @@ def test_one_position_at_a_time_and_one_attempt_per_leg():
     assert body.index("if (GetBotPositions().Count > 0) return;") < order
     assert body.index("LegAlreadyTraded(tag)") < order
     assert body.index("if (!Symbol.MarketHours.IsOpened()) return;") < order   # no fill on a stale weekend quote
-    assert "ExecuteMarketOrder(tradeType, SymbolName, volume, _label, orderStopPips, null, Seal(comment))" in body
     assert SRC.count("ExecuteMarketOrder(") == 1
     traded = _body("private bool LegAlreadyTraded(string tag)")
-    assert "History.Any(h => IsOwnLabel(h.Label) && h.SymbolName == SymbolName && ParseLeg(Unseal(h.Comment))?.Tag == tag)" in traded
+    assert "GetBotPositions().Any(p => LegOf(p)?.Tag == tag)" in traded
+    assert "History.Any(h => h.SymbolName == SymbolName && InferLeg(h.TradeType, h.EntryTime)?.Tag == tag)" in traded
 
 
 def test_nothing_trades_on_a_stale_quote():
@@ -132,9 +133,9 @@ def test_runs_in_utc():
 
 # --- camouflage: the broker must not read the strategy off the orders (virtual stop, decoys, jittered entries) ---
 
-def test_camouflage_needs_the_tag_key_on_a_live_run():
-    # without the key the comment is plain, and would show the real stop and which legs are decoys
-    assert "private bool Camouflaged => VirtualStop && (RunningMode != RunningMode.RealTime || _tagKey != null);" in SRC
+def test_camouflage_needs_no_key():
+    # nothing on the order says where the real stop is or which leg is a decoy, so no key is needed to hide it
+    assert "private bool Camouflaged => VirtualStop;" in SRC
     body = _body("private void TryOpenLeg(Leg leg, DateTime day, bool decoy)")
     assert "double orderStopPips = stopPips;" in body and "if (Camouflaged)" in body
     assert "if (!Camouflaged || DecoyLegProbability <= 0) return false;" in _body("private bool PlanLeg(Leg leg, DateTime day, out bool decoy)")
@@ -175,3 +176,46 @@ def test_long_entry_jitter_stays_in_the_researched_window():
     assert "now >= JitteredLongEntry(tomorrow)" in _body("private void Evaluate()")
     # the fix is the edge: the short still opens at the fix, within the grace minutes
     assert "now >= FixTime(today)" in _body("private void Evaluate()")
+
+
+# --- plain orders: no Label, no Comment, like a trade placed by hand -------------------------------------------------
+# One bot trades each symbol of an account and nothing is traded there by hand, so the symbol identifies the bot's
+# positions; the leg, its day, decoy or not and the virtual stop are read back off the side, the entry time and the
+# H1 ATR at the entry, so a restart needs no state.
+
+def test_orders_carry_no_label_and_no_comment():
+    body = _body("private void TryOpenLeg(Leg leg, DateTime day, bool decoy)")
+    assert "ExecuteMarketOrder(tradeType, SymbolName, volume, null, orderStopPips, null, null)" in body
+    for gone in ("TagKeyFile", "Seal(", "Unseal(", "_tagKey", "IsOwnLabel", "ParseLeg", ".Comment", ".Label"):
+        assert gone not in SRC, gone
+    assert not re.search(r"\b_label\b", SRC)
+    assert "#region Trade tags" not in SRC
+
+
+def test_the_bot_owns_every_position_on_its_symbol():
+    assert "private List<Position> GetBotPositions() => Positions.Where(p => p.SymbolName == SymbolName).ToList();" in SRC
+    closed = _body("private void OnPositionClosed(PositionClosedEventArgs args)")
+    assert "if (pos == null || pos.SymbolName != SymbolName) return;" in closed
+
+
+def test_a_leg_is_read_off_its_side_and_entry_time():
+    body = _body("private LegInfo InferLeg(TradeType side, DateTime entry)")
+    # a buy is the long of the next day, opened from the earliest jittered entry to the latest one
+    assert "var day = side == TradeType.Buy ? entry.Date.AddDays(1) : entry.Date;" in body
+    assert "LongEntryTime(day).AddMinutes(-LongEntryJitterMinutes)" in body and "LongEntryLatest(day)" in body
+    # a sell is the short of its own day, opened at the fix within the grace minutes
+    assert "FixTime(day)" in body and "FixTime(day).AddMinutes(ShortEntryGraceMinutes" in body
+    # the bot trades a plain weekday only as a decoy
+    assert "Decoy = !IsTradingDay(day)" in body
+    # outside both windows it is no leg: only Max hold and its broker stop apply
+    assert body.count("return null;") >= 1
+
+
+def test_the_virtual_stop_is_rebuilt_from_the_atr_at_the_entry():
+    leg = _body("private LegInfo LegOf(Position pos)")
+    assert "InferLeg(pos.TradeType, pos.EntryTime)" in leg
+    assert "(info.Decoy ? DecoyStopAtrMultiplier : StopAtrMultiplier) * atr.Value / Symbol.PipSize" in leg
+    atr = _body("private double? EntryAtr(DateTime entry)")
+    # TryOpenLeg sizes on _atr.Result.Last(1): the last closed H1 bar before the entry
+    assert "_atr.Result.Last(1)" in _body("private void TryOpenLeg(Leg leg, DateTime day, bool decoy)")
+    assert "int i = _h1.OpenTimes.GetIndexByTime(entry);" in atr and "_atr.Result[i - 1]" in atr
