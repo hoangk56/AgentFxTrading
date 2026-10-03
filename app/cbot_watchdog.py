@@ -252,7 +252,7 @@ class CbotWatchdog:
 
     def bar_allowance_seconds(self, run_command: Optional[str]) -> int:
         """How long a bot may stream ticks without handling a bar. stale_feed_seconds is sized for an M15 chart;
-        a slower chart gets one of its own bars plus the same slack (Crypto Donchian on H1: 60 + 25 min), so a
+        a slower chart gets one of its own bars plus the same slack (an H1 chart: 60 + 25 min), so a
         bot is never called stalled while it simply waits for its next bar."""
         bar = parse_bar_seconds(run_command)
         return max(self.stale_feed_seconds, bar + self.stale_feed_seconds - M15_SECONDS)

@@ -20,29 +20,26 @@ LIVE = {"id": 2, "slug": "live-ic", "ctid_email": "me@example.com", "account_num
         "account_type": "live", "label": "IC", "pwd_file": "/root/ctrader_data/ctid_live-ic_pwd"}
 
 # The matrix: Gotobi on the three JPY pairs the research validated
-# (research/results/portfolio/swing_lab_v2_2026-09-27.md) and Crypto Donchian (research C1, forward test)
-# on BTCUSD/ETHUSD = 5 cells.
+# (research/results/portfolio/swing_lab_v2_2026-09-27.md) = 3 cells.
 GOTOBI_SYMBOLS = ("USDJPY", "EURJPY", "GBPJPY")
-DONCHIAN_SYMBOLS = ("BTCUSD", "ETHUSD")
-EXPECTED_MATRIX = {**{sym: {"gotobi"} for sym in GOTOBI_SYMBOLS}, **{sym: {"donchian"} for sym in DONCHIAN_SYMBOLS}}
+EXPECTED_MATRIX = {sym: {"gotobi"} for sym in GOTOBI_SYMBOLS}
 
 
 def test_matrix_covers_every_strategy_on_its_symbols():
-    assert len(PRESETS) == 5
+    assert len(PRESETS) == 3
     actual = {}
     for strategy, symbol in PRESETS:
         actual.setdefault(symbol, set()).add(strategy)
     assert actual == EXPECTED_MATRIX
-    assert SYMBOLS == ["USDJPY", "EURJPY", "GBPJPY", "BTCUSD", "ETHUSD"]
+    assert SYMBOLS == ["USDJPY", "EURJPY", "GBPJPY"]
 
 
 def test_every_cell_is_well_formed():
-    assert set(STRATEGIES) == {"gotobi", "donchian"}
+    assert set(STRATEGIES) == {"gotobi"}
     for (strategy, symbol), cell in PRESETS.items():
         assert strategy in STRATEGIES
         assert symbol == symbol.upper()
-        # Crypto Donchian decides on UTC H4 closes it builds from H1 bars, so its chart is H1.
-        assert cell["period"] == ("h1" if strategy == "donchian" else "m15"), (strategy, symbol)
+        assert cell["period"] == "m15", (strategy, symbol)
         assert cell["session"], (strategy, symbol)
         assert cell["params"], (strategy, symbol)
 
@@ -91,28 +88,9 @@ def test_gotobi_skip_dates_are_gotobi_days_the_bot_parses():
     assert "2026-12-25" in dates
 
 
-def test_donchian_golden_command():
-    cmd = build_run_command(DEMO, "donchian", "BTCUSD", ROOT, HOME)
-    assert cmd == (
-        "docker run -d --name cbot-demo-main-btcusd-h4-donchian --restart unless-stopped --network host "
-        f"-v {ROOT}:/workspace -v {HOME}:/root {DEFAULT_IMAGE} run /workspace/cBot/CryptoDonchianBot.algo "
-        "--ctid=me@example.com --pwd-file=/root/ctrader_data/ctid_demo-main_pwd --account=10101649 "
-        "--symbol=BTCUSD --period=h1 --full-access "
-        '--BotId="cbot-demo-main-btcusd-h4-donchian" --ApiUrl="http://127.0.0.1:8000/trade" --AccountLabel="Demo Main" '
-        "--RiskPerTradeMoney=100.0"
-    )
-
-
-def test_donchian_cells_carry_only_the_risk():
-    """Channels, stop, scaling and the spread cap are the research's (cBot defaults); a cell must not re-tune them."""
-    for sym in DONCHIAN_SYMBOLS:
-        assert set(PRESETS[("donchian", sym)]["params"]) == {"RiskPerTradeMoney"}, sym
-
-
 def test_container_name_carries_the_session():
     assert container_name("demo-main", "gotobi", "USDJPY") == "cbot-demo-main-usdjpy-fix-gotobi"
     assert container_name("live-ic", "gotobi", "GBPJPY") == "cbot-live-ic-gbpjpy-fix-gotobi"
-    assert container_name("demo-main", "donchian", "ETHUSD") == "cbot-demo-main-ethusd-h4-donchian"
 
 
 def test_every_preset_session_has_a_slug_in_its_name():
@@ -148,16 +126,15 @@ def test_custom_image_and_describe_cell():
     cmd = build_run_command(DEMO, "gotobi", "EURJPY", ROOT, HOME, image="ghcr.io/spotware/ctrader-console:1.2")
     assert " ghcr.io/spotware/ctrader-console:1.2 run " in cmd
     assert describe_cell("gotobi", "EURJPY", "Demo Main") == "Gotobi Fix EURJPY m15 — Demo Main"
-    assert describe_cell("donchian", "BTCUSD", "IC") == "Crypto Donchian BTCUSD h1 — IC"
 
 
 def test_presets_payload_shape():
     payload = presets_payload()
     assert payload["strategies"] == STRATEGIES
     assert payload["symbols"] == SYMBOLS
-    assert len(payload["cells"]) == 5
-    cell = next(c for c in payload["cells"] if c["symbol"] == "BTCUSD" and c["strategy"] == "donchian")
-    assert cell == {"symbol": "BTCUSD", "strategy": "donchian", "period": "h1", "session": "H4 breakout"}
+    assert len(payload["cells"]) == 3
+    cell = next(c for c in payload["cells"] if c["symbol"] == "GBPJPY")
+    assert cell == {"symbol": "GBPJPY", "strategy": "gotobi", "period": "m15", "session": "Tokyo fix"}
     for c in payload["cells"]:
         assert set(c) == {"symbol", "strategy", "period", "session"}
         assert "params" not in c
@@ -167,7 +144,7 @@ def test_installed_cells_maps_config_names_back_to_cell_and_account():
     names = {
         "cbot-demo-main-usdjpy-fix-gotobi",       # DEMO gotobi USDJPY
         "cbot-live-ic-usdjpy-fix-gotobi",         # LIVE gotobi USDJPY (same cell, second account)
-        "cbot-live-ic-ethusd-h4-donchian",        # LIVE donchian ETHUSD
+        "cbot-live-ic-ethusd-h4-donchian",        # the removed Crypto Donchian: not a preset name, ignored
         "cbot-live-ic-xauusd-newyork",            # a removed strategy's name: not a preset name, ignored
         "cbot-manual-thing",                      # hand-made config: not a preset name, ignored
     }
@@ -176,8 +153,6 @@ def test_installed_cells_maps_config_names_back_to_cell_and_account():
         {"symbol": "USDJPY", "strategy": "gotobi", "name": "cbot-demo-main-usdjpy-fix-gotobi",
          "account_id": 1, "account_label": "Demo Main", "account_type": "demo"},
         {"symbol": "USDJPY", "strategy": "gotobi", "name": "cbot-live-ic-usdjpy-fix-gotobi",
-         "account_id": 2, "account_label": "IC", "account_type": "live"},
-        {"symbol": "ETHUSD", "strategy": "donchian", "name": "cbot-live-ic-ethusd-h4-donchian",
          "account_id": 2, "account_label": "IC", "account_type": "live"},
     ]
 
@@ -188,7 +163,7 @@ def test_installed_cells_is_empty_without_accounts_or_configs():
 
 
 # --- docs ↔ preset drift guard ---------------------------------------------------
-# docs/docker-instances.md spells out all 5 cells as `docker run` commands. Those blocks are what a
+# docs/docker-instances.md spells out all 3 cells as `docker run` commands. Those blocks are what a
 # user copies by hand, so a preset edit that forgets them ships docs that silently disagree with what
 # the dashboard generates. Compare the strategy flags only: the doc uses placeholder credentials and a
 # `demo` account slug. The six READMEs must not re-document cells — they link to the catalog instead,
@@ -228,7 +203,7 @@ def test_instances_doc_exists():
 
 def test_instances_doc_covers_every_cell():
     assert set(_documented_cells(INSTANCES_DOC)) == set(PRESETS), (
-        "docs/docker-instances.md must document all 5 preset cells, no more and no fewer")
+        "docs/docker-instances.md must document all 3 preset cells, no more and no fewer")
 
 
 @pytest.mark.parametrize(("strategy", "symbol"), sorted(PRESETS), ids=lambda v: v)
@@ -270,7 +245,7 @@ _SYMBOL_BRANCH = re.compile(
     r'Contains\("(XAU|GOLD|XAG|SILVER|JPY|US30|DJ30|USTEC|NAS100|DE40|GER40|UK100|GB100|BTC|ETH)"\)')
 
 
-@pytest.mark.parametrize("cs_name", ["GotobiBot.cs", "CryptoDonchianBot.cs"])
+@pytest.mark.parametrize("cs_name", ["GotobiBot.cs"])
 def test_cbots_do_not_branch_on_the_symbol_name(cs_name):
     src = (CBOT_DIR / cs_name).read_text(encoding="utf-8")
     hits = [m.group(0) for m in _SYMBOL_BRANCH.finditer(src)]

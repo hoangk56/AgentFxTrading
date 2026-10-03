@@ -41,7 +41,6 @@ def _body(cs_name: str, signature: str) -> str:
 
 HANDLERS = [
     ("GotobiBot.cs", "private void OnPositionClosed(PositionClosedEventArgs args)"),
-    ("CryptoDonchianBot.cs", "private void OnPositionClosed(PositionClosedEventArgs args)"),
 ]
 BOTS = [h[0] for h in HANDLERS]
 HELPER = "private double? FinalClosingPrice(Position pos)"

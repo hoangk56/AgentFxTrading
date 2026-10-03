@@ -87,15 +87,14 @@ def norm(text):
 def strategy_of(bot_id):
     """The strategy a container name carries (app/cbot_presets.py suffixes), or None."""
     b = (bot_id or "").lower()
-    return "gotobi" if "gotobi" in b else "donchian" if "donchian" in b else None
+    return "gotobi" if "gotobi" in b else None
 
 
-# Longest a position of each strategy may stay open: GotobiBot's MaxHoldHours default, and the 5-day hold of
-# CryptoDonchianBot (a deadline inside the weekend break closes at the reopen, hence the slack).
-MAX_HOLD_H = {"gotobi": 12, "donchian": 5 * 24 + 60}
-# A container's default $ risk per trade may grow by this much: Crypto Donchian scales it up to 2x by breakout
-# strength; both bots take a minimum lot of at most MaxMinLotRiskMultiple (1.5) x the risk.
-RISK_SCALE = {"gotobi": 1.5, "donchian": 2 * 1.5}
+# Longest a position of each strategy may stay open: GotobiBot's MaxHoldHours default.
+MAX_HOLD_H = {"gotobi": 12}
+# A container's default $ risk per trade may grow by this much: the bot takes a minimum lot of at most
+# MaxMinLotRiskMultiple (1.5) x the risk.
+RISK_SCALE = {"gotobi": 1.5}
 
 
 def section(title):
@@ -472,7 +471,7 @@ def containers(start, end, all_rows, restarts, unexplained):
     line_re = re.compile(r"^(\d\d/\d\d/\d{4} \d\d:\d\d:\d\d)\.\d+ \| (\w+) \| (.*)$")
     problem_re = re.compile(r"error|exception|fail|refused|timeout|timed out|invalid|not found|denied|crash|"
                             r"not enough|insufficient", re.I)
-    decision_re = re.compile(r"^(\[Gotobi\]|\[Donchian\]|\[Portfolio Hub\] Reported)")
+    decision_re = re.compile(r"^(\[Gotobi\]|\[Portfolio Hub\] Reported)")
     groups, bot_flags, missing_pnl = {}, {}, []
     db_by_bot = defaultdict(list)
     for r in all_rows:

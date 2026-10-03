@@ -49,7 +49,7 @@ def _broadcast_failed(kind: str, e: Exception) -> None:
 @router.post("/api/telemetry_tick")
 async def handle_telemetry_tick(request: dict):
     """
-    Direct tick telemetry endpoint from cBots (Gotobi or Crypto Donchian).
+    Direct tick telemetry endpoint from cBots (Gotobi).
     Updates account equity/balance and live market prices in portfolio manager.
     """
     try:

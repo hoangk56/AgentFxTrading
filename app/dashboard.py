@@ -163,7 +163,7 @@ def tick_levels(payload: Any) -> Optional[Dict]:
 def _no_live_tp(levels: Dict) -> bool:
     """A bot's live levels hold a stop but no target: the broker has no TP on the position.
 
-    Gotobi and Crypto Donchian open without a TP and exit on their own rules or at the stop.
+    Gotobi opens without a TP and exits on its own rules or at the stop.
     Bots send SL and TP as a pair, so a report without a stop says nothing about the TP.
     """
     return bool(levels.get("sl_price")) and not levels.get("tp_price")

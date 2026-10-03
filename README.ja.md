@@ -47,14 +47,13 @@ AgentFxTrading は取引戦略を **cTrader cBot**（C#）として実行し、�
 サーバーはそれを **PostgreSQL**（ローカルでは SQLite にフォールバック）に保存し、監視・bot 管理・バックテスト用の
 **Web ダッシュボード**を提供します。
 
-現在 2 つの cBot があります：
+現在 1 つの cBot があります：
 
 | cBot | 戦略 |
 | :--- | :--- |
 | `cBot/GotobiBot.cs` | USDJPY / EURJPY / GBPJPY の五十日（ゴトウビ）東京仲値トレード |
-| `cBot/CryptoDonchianBot.cs` | BTCUSD / ETHUSD の H4 ドンチャン・ブレイクアウト（フォワードテスト） |
 
-各 bot の内容は [docs/strategies.md](docs/strategies.md) を参照してください。
+bot の内容は [docs/strategies.md](docs/strategies.md) を参照してください。
 
 ---
 
@@ -93,7 +92,7 @@ curl -fsSL https://raw.githubusercontent.com/kienphan/AgentFxTrading/main/script
 ```
 
 スクリプトは `forge` ユーザーの SSH 公開鍵を尋ね、その後 PostgreSQL 17、Docker、systemd サービス `agentfx`
-としてのサーバー（`127.0.0.1:8000` で待ち受け）をインストールし、2 つの cBot `.algo` パッケージをビルドして、
+としてのサーバー（`127.0.0.1:8000` で待ち受け）をインストールし、cBot の `.algo` パッケージをビルドして、
 データベースの日次バックアップを有効にします。**SSH のパスワードログインは無効化される**ため、root セッションを
 閉じる前に別のターミナルで鍵によるログインを確認してください。詳細・オプション・アップグレード：
 [docs/deployment.md](docs/deployment.md)。
@@ -182,8 +181,7 @@ docker run -d \
 
 この README はパフォーマンスの数値を掲載しません。[`research/`](research/README.md) のオフライン研究では、
 2026-09-27 時点で、検証した戦略のうち事前登録したホールドアウトを通過したのは JPY ペアの五十日トレード
-（`GotobiBot`）だけです。`CryptoDonchianBot` はホールドアウトで不合格となり、フォワードテストとしてのみ稼働して
-います。どちらの bot も実験的なものとして扱い、まずデモ口座で動かしてください。
+（`GotobiBot`）だけです。bot は実験的なものとして扱い、まずデモ口座で動かしてください。
 
 > ⚠️ **免責事項**：レバレッジ商品の取引には大きな損失リスクがあります。本ソフトウェアは研究・教育目的で提供され、
 > 結果を保証するものではありません。

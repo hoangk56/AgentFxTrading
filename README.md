@@ -45,14 +45,13 @@ account. The bots trade on their own rules and report positions and telemetry to
 which stores them in **PostgreSQL** (SQLite as a local fallback) and serves a **web dashboard** for monitoring, bot
 management and backtests.
 
-Two cBots ship today:
+One cBot ships today:
 
 | cBot | Strategy |
 | :--- | :--- |
 | `cBot/GotobiBot.cs` | Gotobi Tokyo-fix trade on USDJPY / EURJPY / GBPJPY |
-| `cBot/CryptoDonchianBot.cs` | H4 Donchian breakout on BTCUSD / ETHUSD (forward test) |
 
-See [docs/strategies.md](docs/strategies.md) for what each bot does.
+See [docs/strategies.md](docs/strategies.md) for what it does.
 
 ---
 
@@ -91,7 +90,7 @@ curl -fsSL https://raw.githubusercontent.com/kienphan/AgentFxTrading/main/script
 ```
 
 It asks for the SSH public key of the `forge` user, then installs PostgreSQL 17, Docker, the server as the
-`agentfx` systemd service (bound to `127.0.0.1:8000`), builds the two cBot `.algo` packages and enables a daily
+`agentfx` systemd service (bound to `127.0.0.1:8000`), builds the cBot `.algo` package and enables a daily
 database backup. **Password SSH login is disabled**, so check that your key works from a second terminal before
 closing the root session. Details, overrides and upgrades: [docs/deployment.md](docs/deployment.md).
 
@@ -116,7 +115,7 @@ Without `DATABASE_URL` pointing at a reachable PostgreSQL, the server falls back
 
 ## 🤖 Running the cBots
 
-1. **Build the `.algo` packages** — the installer does this; for a manual build see
+1. **Build the `.algo` package** — the installer does this; for a manual build see
    [docs/deployment.md → Building the cBots](docs/deployment.md#building-the-cbots). You can also paste a
    `cBot/*.cs` file into cTrader Desktop (**Automate → New cBot → Build**) and attach it to a chart.
 2. **Create instances** — on the dashboard, **Docker Bot Management → Setup Instances**: pick or add a cTrader
@@ -179,8 +178,7 @@ described in [docs/configuration.md](docs/configuration.md).
 
 This README publishes no performance figures. The offline research in [`research/`](research/README.md) found that,
 as of 2026-09-27, the Gotobi JPY trade (`GotobiBot`) is the one strategy tested that passed its pre-registered
-holdout; `CryptoDonchianBot` failed its holdout and runs as a forward test only. Treat both bots as experimental and
-run them on a demo account first.
+holdout. Treat the bot as experimental and run it on a demo account first.
 
 > ⚠️ **Disclaimer**: trading leveraged products carries a high risk of loss. This software is provided for
 > research and education, with no guarantee of results.

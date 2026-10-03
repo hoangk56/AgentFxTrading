@@ -65,7 +65,7 @@ Started from the FastAPI lifespan in `app/server.py`:
 
 - **cBot watchdog** (`app/cbot_watchdog.py`): every 60 s checks container logs for login failures and broker
   disconnects, and restarts a bot whose ticks keep flowing while the last bar it handled stops advancing: 40 min
-  on an M15 chart, one bar plus 25 min on a slower one (85 min for Crypto Donchian on H1). Restarts are
+  on an M15 chart, one bar plus 25 min on a slower one (85 min on H1). Restarts are
   rate-limited with backoff. Status: `GET /api/watchdog/status`.
 - **Backtest worker** (`app/backtest_worker.py`): runs queued Backtest-page jobs in `bt-<id>` containers, several
   at once (setting on the page, else `BACKTEST_MAX_PARALLEL`). Reports are kept in `webui_data/backtests/`.
@@ -112,8 +112,7 @@ AgentFxTrading/
 │   ├── bot_commands.py, bot_controls.py   dashboard → cBot commands, per-bot pause
 │   └── db.py                    PostgreSQL / SQLite layer
 ├── cBot/                        cTrader cBots (C#), one file per bot
-│   ├── GotobiBot.cs             Gotobi Tokyo fix
-│   └── CryptoDonchianBot.cs     Crypto Donchian H4
+│   └── GotobiBot.cs             Gotobi Tokyo fix
 ├── templates/dashboard.html     dashboard page
 ├── static/                      dashboard JS (js/), CSS (css/), favicon
 ├── scripts/                     VPS installer, PostgreSQL backup, SQLite → PostgreSQL migration

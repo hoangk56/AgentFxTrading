@@ -47,14 +47,13 @@ là một container Docker. Các bot giao dịch theo luật của riêng chúng
 FastAPI** (Python); máy chủ lưu vào **PostgreSQL** (SQLite làm dự phòng khi chạy local) và phục vụ **dashboard web**
 để giám sát, quản lý bot và backtest.
 
-Hiện có hai cBot:
+Hiện có một cBot:
 
 | cBot | Chiến lược |
 | :--- | :--- |
 | `cBot/GotobiBot.cs` | Giao dịch Gotobi quanh giờ fix Tokyo trên USDJPY / EURJPY / GBPJPY |
-| `cBot/CryptoDonchianBot.cs` | Breakout Donchian H4 trên BTCUSD / ETHUSD (forward test) |
 
-Xem [docs/strategies.md](docs/strategies.md) để biết từng bot làm gì.
+Xem [docs/strategies.md](docs/strategies.md) để biết bot làm gì.
 
 ---
 
@@ -93,7 +92,7 @@ curl -fsSL https://raw.githubusercontent.com/kienphan/AgentFxTrading/main/script
 ```
 
 Script hỏi SSH public key cho user `forge`, rồi cài PostgreSQL 17, Docker, máy chủ dưới dạng service systemd
-`agentfx` (lắng nghe `127.0.0.1:8000`), build hai gói `.algo` của cBot và bật backup cơ sở dữ liệu hằng ngày.
+`agentfx` (lắng nghe `127.0.0.1:8000`), build gói `.algo` của cBot và bật backup cơ sở dữ liệu hằng ngày.
 **Đăng nhập SSH bằng mật khẩu bị tắt**, nên hãy kiểm tra key từ một terminal khác trước khi đóng phiên root. Chi tiết,
 tuỳ chọn và cách nâng cấp: [docs/deployment.md](docs/deployment.md).
 
@@ -118,7 +117,7 @@ Nếu `DATABASE_URL` không trỏ tới một PostgreSQL kết nối được, m
 
 ## 🤖 Chạy cBot
 
-1. **Build các gói `.algo`** — script cài đặt đã làm việc này; muốn build thủ công xem
+1. **Build gói `.algo`** — script cài đặt đã làm việc này; muốn build thủ công xem
    [docs/deployment.md → Building the cBots](docs/deployment.md#building-the-cbots). Cũng có thể dán một file
    `cBot/*.cs` vào cTrader Desktop (**Automate → New cBot → Build**) rồi gắn vào chart.
 2. **Tạo instance** — trên dashboard, **Docker Bot Management → Setup Instances**: chọn hoặc thêm tài khoản cTrader,
@@ -180,8 +179,7 @@ preset được mô tả trong [docs/configuration.md](docs/configuration.md).
 
 README này không công bố số liệu hiệu suất nào. Nghiên cứu offline trong [`research/`](research/README.md) cho thấy,
 tính đến 2026-09-27, giao dịch Gotobi trên các cặp JPY (`GotobiBot`) là chiến lược duy nhất được kiểm tra đã vượt
-holdout đăng ký trước; `CryptoDonchianBot` trượt holdout và chỉ chạy forward test. Hãy coi cả hai bot là thử nghiệm
-và chạy trên tài khoản demo trước.
+holdout đăng ký trước. Hãy coi bot là thử nghiệm và chạy trên tài khoản demo trước.
 
 > ⚠️ **Tuyên bố miễn trừ**: giao dịch sản phẩm đòn bẩy có rủi ro thua lỗ cao. Phần mềm này phục vụ nghiên cứu và học
 > tập, không đảm bảo kết quả.

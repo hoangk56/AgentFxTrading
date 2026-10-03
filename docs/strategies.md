@@ -1,20 +1,19 @@
 # Strategies
 
-What each cBot does, in outline. The code is the specification: the rules live in `cBot/<Name>.cs` and the values per
+What the cBot does, in outline. The code is the specification: the rules live in `cBot/<Name>.cs` and the values per
 symbol in [`app/cbot_presets.py`](../app/cbot_presets.py) (written out in [docker-instances.md](docker-instances.md)).
 Defaults quoted below are the cBot's own parameter defaults.
 
 > **Evidence.** None of these descriptions is a claim that the strategy makes money. The offline research
 > ([research/README.md](../research/README.md), dated conclusions in [research/JOURNAL.md](../research/JOURNAL.md))
-> found that Gotobi passed its pre-registered holdout; Crypto Donchian failed its holdout and runs as a forward test.
+> found that Gotobi passed its pre-registered holdout.
 
-Both bots are rule-based: they never ask the server for a decision. They report positions and telemetry to it and
-poll it for dashboard commands.
+The bot is rule-based: it never asks the server for a decision. It reports positions and telemetry to the server and
+polls it for dashboard commands.
 
 | cBot | Symbols in the presets | Timeframe |
 | :--- | :--- | :--- |
 | `GotobiBot` | USDJPY, EURJPY, GBPJPY | M15 chart, fixed UTC schedule |
-| `CryptoDonchianBot` | BTCUSD, ETHUSD | H1 chart, H4 bars built in the bot |
 
 ## Gotobi Fix (`cBot/GotobiBot.cs`)
 
@@ -33,11 +32,8 @@ would have cost 83 % (`research/results/portfolio/gotobi_camouflage_2026-09-30.m
 `--VirtualStop=false`, the bot trades as before; set `--DecoyLegProbability=0` and `--LongEntryJitterMinutes=0` to
 backtest the plain strategy.
 
-## Crypto Donchian (`cBot/CryptoDonchianBot.cs`)
+## Removed bots
 
-Research candidate C1, **forward test only**. On a UTC-aligned H4 close above the prior 55-bar high it buys (below
-the prior 55-bar low it sells), stacking up to 3 positions on a continuing breakout. A position exits on an H4 close
-through the prior 20-bar opposite extreme, at its 3 × ATR20 (H4) stop, or after 5 days. Risk per trade is
-`RiskPerTradeMoney` scaled 0.5×-2× by breakout strength; a kill switch can stop the bot after a number of trades if
-its mean R falls below a floor. It passed its in-sample and validation years but failed the 2025-2026 holdout, so
-run it small and on demo first. Result file: `research/results/portfolio/crypto_donchian_cbot_2026-09-27.md`.
+Crypto Donchian (`CryptoDonchianBot`, research C1: an H4 Donchian breakout on BTCUSD and ETHUSD) failed its
+2025-2026 holdout, ran as a forward test and was removed on 2026-10-03. Its research stays in
+`research/results/portfolio/crypto_donchian_cbot_2026-09-27.md`; the cBot source is in git history before that date.

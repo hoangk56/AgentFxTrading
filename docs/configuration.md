@@ -97,9 +97,8 @@ database to a throwaway SQLite file.
 ## Risk controls
 
 The server takes no part in trading decisions, so it enforces no risk limit. Each bot controls its own risk with
-cBot parameters: `RiskPerTradeMoney` (dollars per trade), `MaxSpreadPips` / the spread cap, the max hold time, and
-the Crypto Donchian kill switch. A bot paused on the dashboard (Bots tab) takes no new entries until Resume; it keeps
-managing its open positions.
+cBot parameters: `RiskPerTradeMoney` (dollars per trade), `MaxSpreadPips` / the spread cap and the max hold time. A
+bot paused on the dashboard (Bots tab) takes no new entries until Resume; it keeps managing its open positions.
 
 ## cBot parameters
 

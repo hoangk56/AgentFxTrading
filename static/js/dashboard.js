@@ -547,9 +547,8 @@ const DASHBOARD_BOOTSTRAP = window.DASHBOARD_BOOTSTRAP || {};
             if(!b)return '<span class="bot-badge bot-badge--default"><span class="bot-dot"></span>N/A</span>';
             const bl=String(b).toLowerCase();
             const isG=bl.includes('gotobi');
-            const isD=bl.includes('donchian');
-            const badgeCls = isG ? 'bot-badge--gotobi' : (isD ? 'bot-badge--donchian' : 'bot-badge--default');
-            const badgeText = isG ? 'Gotobi' : (isD ? 'Donchian' : 'cBot');
+            const badgeCls = isG ? 'bot-badge--gotobi' : 'bot-badge--default';
+            const badgeText = isG ? 'Gotobi' : 'cBot';
             const safe=escapeHtml(b);
             return `<div class="bot-cell">
                 <span class="bot-badge ${badgeCls}"><span class="bot-dot"></span>${badgeText}</span>
