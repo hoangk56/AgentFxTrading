@@ -22,7 +22,7 @@ user, then:
 6. clones the repo into `/home/forge/AgentFxTrading`, creates `.venv` and installs `requirements.txt`;
 7. writes `.env` from `.env.example` with `DATABASE_URL` and `CTRADER_HOME=/home/forge/ctrader` (an existing
    `.env` is kept, missing keys appended) and checks that the database accepts the URL;
-8. builds the two cBot `.algo` packages (see [Building the cBots](#building-the-cbots));
+8. builds the cBot `.algo` package (see [Building the cBots](#building-the-cbots));
 9. installs the `agentfx` systemd service and a daily 03:00 backup cron job (`/etc/cron.d/agentfx-backup`);
 10. enables ufw with only the SSH port open.
 
@@ -82,8 +82,8 @@ exposing the port.
 
 ## Building the cBots
 
-Headless bots run the compiled `cBot/<Name>.algo`, which git does not track. The installer builds both; to do
-it by hand, run once per bot with `<Name>` = `GotobiBot`, `CryptoDonchianBot` (from the repo root, with `CTRADER_HOME` = the host directory mounted as `/root`, e.g. `/root`
+Headless bots run the compiled `cBot/<Name>.algo`, which git does not track. The installer builds it; to do
+it by hand, run with `<Name>` = `GotobiBot` (from the repo root, with `CTRADER_HOME` = the host directory mounted as `/root`, e.g. `/root`
 or `/home/forge/ctrader`):
 
 ```bash

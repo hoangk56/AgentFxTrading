@@ -57,21 +57,20 @@ def test_presets_endpoint_shape():
     res = client.get("/api/setup/presets")
     assert res.status_code == 200
     data = res.json()
-    assert set(data["strategies"]) == {"gotobi", "donchian"}
+    assert set(data["strategies"]) == {"gotobi"}
     assert data["strategies"]["gotobi"]["label"] == "Gotobi Fix"
-    assert data["symbols"] == ["USDJPY", "EURJPY", "GBPJPY", "BTCUSD", "ETHUSD"]
-    assert len(data["cells"]) == 5        # gotobi on 3 JPY pairs + donchian on BTC/ETH
+    assert data["symbols"] == ["USDJPY", "EURJPY", "GBPJPY"]
+    assert len(data["cells"]) == 3        # gotobi on 3 JPY pairs
     assert {c["symbol"] for c in data["cells"] if c["strategy"] == "gotobi"} == {"USDJPY", "EURJPY", "GBPJPY"}
-    assert {c["symbol"] for c in data["cells"] if c["strategy"] == "donchian"} == {"BTCUSD", "ETHUSD"}
     assert all(set(c) == {"symbol", "strategy", "period", "session"} for c in data["cells"])
 
 
 def test_start_saves_config_and_starts_each_new_selection(account, fake_docker, tmp_path):
-    res = _post(account["id"], [{"symbol": "USDJPY", "strategy": "gotobi"}, {"symbol": "BTCUSD", "strategy": "donchian"}])
+    res = _post(account["id"], [{"symbol": "USDJPY", "strategy": "gotobi"}, {"symbol": "GBPJPY", "strategy": "gotobi"}])
     assert res.status_code == 200, res.text
     results = res.json()["results"]
     assert [r["status"] for r in results] == ["started", "started"]
-    assert [r["name"] for r in results] == ["cbot-demo-setup-usdjpy-fix-gotobi", "cbot-demo-setup-btcusd-h4-donchian"]
+    assert [r["name"] for r in results] == ["cbot-demo-setup-usdjpy-fix-gotobi", "cbot-demo-setup-gbpjpy-fix-gotobi"]
     assert results[0]["message"] == "ok"
 
     row = get_account_registry().get_ctrader_account(account["id"])
@@ -85,7 +84,7 @@ def test_start_saves_config_and_starts_each_new_selection(account, fake_docker, 
     assert cfg["description"] == "Gotobi Fix USDJPY m15 — Setup"
     assert f"-v {tmp_path}:/root" in expected                       # CTRADER_HOME from env
     assert "--pwd-file=/root/ctrader_data/ctid_demo-setup_pwd" in expected
-    assert pm.get_cbot_config("cbot-demo-setup-btcusd-h4-donchian")["description"] == "Crypto Donchian BTCUSD h1 — Setup"
+    assert pm.get_cbot_config("cbot-demo-setup-gbpjpy-fix-gotobi")["description"] == "Gotobi Fix GBPJPY m15 — Setup"
 
 
 def test_save_only_never_calls_docker(account, fake_docker):
@@ -109,23 +108,24 @@ def test_existing_name_is_reported_and_not_started(account, fake_docker):
 def test_unknown_pair_is_error_and_batch_continues(account, fake_docker):
     res = _post(account["id"], [
         {"symbol": "EURUSD", "strategy": "gotobi"},        # symbol not in the matrix
-        {"symbol": "ethusd", "strategy": "donchian"},       # symbol case-normalised
+        {"symbol": "eurjpy", "strategy": "gotobi"},         # symbol case-normalised
         {"symbol": "USDJPY", "strategy": "nope"},
+        {"symbol": "BTCUSD", "strategy": "donchian"},       # the removed Crypto Donchian
     ])
     results = res.json()["results"]
     assert results[0]["status"] == "error" and "preset" in results[0]["message"] and results[0]["name"] == ""
-    assert results[1]["status"] == "started" and results[1]["symbol"] == "ETHUSD"
-    assert results[2]["status"] == "error"
+    assert results[1]["status"] == "started" and results[1]["symbol"] == "EURJPY"
+    assert results[2]["status"] == "error" and results[3]["status"] == "error"
     assert len(fake_docker.calls) == 1
 
 
 def test_docker_failure_keeps_config_for_retry(account, monkeypatch):
     fake = FakeDocker(success=False)
     monkeypatch.setattr(dashboard_module, "docker_manager", fake)
-    res = _post(account["id"], [{"symbol": "BTCUSD", "strategy": "donchian"}])
+    res = _post(account["id"], [{"symbol": "EURJPY", "strategy": "gotobi"}])
     result = res.json()["results"][0]
     assert result["status"] == "error" and result["message"] == "boom"
-    assert get_portfolio_manager().get_cbot_config("cbot-demo-setup-btcusd-h4-donchian") is not None
+    assert get_portfolio_manager().get_cbot_config("cbot-demo-setup-eurjpy-fix-gotobi") is not None
 
 
 def test_unknown_account_is_404(fake_docker):
@@ -142,14 +142,14 @@ def test_empty_selection_is_ok(account, fake_docker):
 
 def test_installed_lists_each_saved_cell_with_its_account(account, fake_docker):
     assert client.get("/api/setup/installed").json() == {"installed": []}
-    _post(account["id"], [{"symbol": "USDJPY", "strategy": "gotobi"}, {"symbol": "ETHUSD", "strategy": "donchian"}],
+    _post(account["id"], [{"symbol": "USDJPY", "strategy": "gotobi"}, {"symbol": "EURJPY", "strategy": "gotobi"}],
           start=False)
     res = client.get("/api/setup/installed")
     assert res.status_code == 200
     assert res.json()["installed"] == [
         {"symbol": "USDJPY", "strategy": "gotobi", "name": "cbot-demo-setup-usdjpy-fix-gotobi",
          "account_id": account["id"], "account_label": "Setup", "account_type": "demo"},
-        {"symbol": "ETHUSD", "strategy": "donchian", "name": "cbot-demo-setup-ethusd-h4-donchian",
+        {"symbol": "EURJPY", "strategy": "gotobi", "name": "cbot-demo-setup-eurjpy-fix-gotobi",
          "account_id": account["id"], "account_label": "Setup", "account_type": "demo"},
     ]
     assert fake_docker.calls == []   # a listing never touches Docker

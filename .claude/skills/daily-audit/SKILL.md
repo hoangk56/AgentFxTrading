@@ -69,7 +69,7 @@ a finding.
   and "Close position ignored" can all be one lost report.
 
 **4. Read past the flags.** Several things raise no FLAG, so look at them in the digest:
-- Bot entries (`[Gotobi]`, `[Donchian]` lines in the container logs) compared with `Position registered`.
+- Bot entries (`[Gotobi]` lines in the container logs) compared with `Position registered`.
 - WARNING+ groups in the agent log.
 - uvicorn errors and HTTP ≥400 in the journal.
 - Service restarts (`Portfolio database initialized`) and whether a trade was open during one.
@@ -96,7 +96,7 @@ window, trade counts and P&L, the issues by severity, and the file link.
 | `docker logs --since` | It reads forward and stops **silently** at a corrupt record (the NUL block from a hard reset). Use the collector, `docker logs --tail N`, or `sudo -n cat $(docker inspect -f '{{.LogPath}}' c)`. |
 | `journalctl -u agentfx` | Needs `sudo -n`. Without it the output is empty and looks clean. |
 | DB peek without `DATABASE_URL` | `get_db_connection` falls back to the local SQLite without a word. Use the header in reference.md. |
-| Container list | The app is at `/home/forge/AgentFxTrading`. Containers are named `cbot-<account slug>-<sym>-fix-gotobi` or `cbot-<account slug>-<sym>-h4-donchian`; list them with `docker ps`. Containers of the removed TMS+ORB / Judas / FlowRSI bots may still exist on the VPS until they are removed by hand. |
+| Container list | The app is at `/home/forge/AgentFxTrading`. Containers are named `cbot-<account slug>-<sym>-fix-gotobi`; list them with `docker ps`. Containers of the removed TMS+ORB / Judas / FlowRSI / Crypto Donchian bots may still exist on the VPS until they are removed by hand. |
 | Time zones | Log files and the window use GMT+7. DB, docker and journal timestamps are UTC. |
 | Deposits and withdrawals | The app logs every balance change (`account_balance_log`) and the user records deposits / withdrawals on the dashboard's **Ledger** view (`account_cash_movements`). A change that matches no close and is not recorded is BALANCE_UNEXPLAINED: money moved in or out, or a lost trade report. Say which, with the evidence; an unrecorded deposit is not a bug, the fix is to record it on the Ledger view. |
 | STALE_ALGO, bots/watchdog, SYSTEM | These describe now, not the audited day. Label them "(hiện tại)". |

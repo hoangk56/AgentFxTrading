@@ -1,5 +1,5 @@
-"""The broker must not read the bot or the strategy off an order: with the tag key both cBots label their orders with
-an opaque id and encrypt the comment ("Trade tags" region), and still recognise what they opened before the key.
+"""The broker must not read the bot or the strategy off an order: with the tag key the cBot labels their orders with
+an opaque id and encrypts the comment ("Trade tags" region), and still recognises what they opened before the key.
 
 The Mac has no dotnet, so like the other cBot tests these read the C# source; scripts/trade_tags.py is the same scheme
 in Python and is tested directly. The build itself is checked on the VPS with ctrader-console.
@@ -11,7 +11,7 @@ import pytest
 from scripts.trade_tags import label, seal, unseal
 from tests._paths import CBOT_DIR
 
-BOTS = ["GotobiBot.cs", "CryptoDonchianBot.cs"]
+BOTS = ["GotobiBot.cs"]
 KEY = b"0123456789abcdef-test-key"
 
 
@@ -21,10 +21,6 @@ def _src(name):
 
 def _region(src):
     return src[src.index("        #region Trade tags"):src.index("        #region Dashboard commands")]
-
-
-def test_both_bots_carry_the_same_tag_code():
-    assert _region(_src(BOTS[0])) == _region(_src(BOTS[1]))
 
 
 @pytest.mark.parametrize("bot", BOTS)

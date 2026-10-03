@@ -117,7 +117,7 @@ def test_tick_levels_parses_both_payload_shapes():
     # Flat tick fields: sl / tp / sl_pnl / tp_pnl
     assert tick_levels({"sl": 2490.0, "tp": None, "sl_pnl": -101.234, "tp_pnl": None}) == {
         "sl_price": 2490.0, "tp_price": None, "sl_pnl": -101.23, "tp_pnl": None, "no_tp": True}
-    # A `positions` entry (Gotobi, Crypto Donchian): sl_price / tp_price
+    # A `positions` entry (Gotobi): sl_price / tp_price
     assert tick_levels({"sl_price": 1.1, "tp_price": 1.2, "sl_pnl": -5, "tp_pnl": 10})["tp_price"] == 1.2
     # A bot build without levels -> None, so the cached levels are left alone
     assert tick_levels({"pnl": 1.0, "pips": 2.0}) is None
@@ -155,7 +155,7 @@ def test_dashboard_renders_the_new_columns():
 
 # --- cBots ----------------------------------------------------------------------------------
 
-@pytest.mark.parametrize("cs_name", ["GotobiBot.cs", "CryptoDonchianBot.cs"])
+@pytest.mark.parametrize("cs_name", ["GotobiBot.cs"])
 def test_tick_and_close_carry_levels_and_the_reason(cs_name):
     src = (CBOT_DIR / cs_name).read_text(encoding="utf-8")
     # GotobiBot reports its virtual stop (StopPriceOf) where it keeps the real stop from the broker

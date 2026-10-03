@@ -47,14 +47,13 @@ símbolo × conta. Os bots operam pelas próprias regras e reportam posições e
 (Python), que as guarda no **PostgreSQL** (SQLite como alternativa local) e serve um **painel web** para
 monitoramento, gestão de bots e backtests.
 
-Hoje há dois cBots:
+Hoje há um cBot:
 
 | cBot | Estratégia |
 | :--- | :--- |
 | `cBot/GotobiBot.cs` | Operação Gotobi no fixing de Tóquio em USDJPY / EURJPY / GBPJPY |
-| `cBot/CryptoDonchianBot.cs` | Rompimento de Donchian H4 em BTCUSD / ETHUSD (forward test) |
 
-Veja [docs/strategies.md](docs/strategies.md) para o que cada bot faz.
+Veja [docs/strategies.md](docs/strategies.md) para o que o bot faz.
 
 ---
 
@@ -93,7 +92,7 @@ curl -fsSL https://raw.githubusercontent.com/kienphan/AgentFxTrading/main/script
 ```
 
 O script pede a chave pública SSH do usuário `forge` e depois instala o PostgreSQL 17, o Docker, o servidor como o
-serviço systemd `agentfx` (escutando em `127.0.0.1:8000`), compila os dois pacotes `.algo` dos cBots e ativa um
+serviço systemd `agentfx` (escutando em `127.0.0.1:8000`), compila o pacote `.algo` do cBot e ativa um
 backup diário do banco de dados. **O login SSH por senha é desativado**, então confirme que a chave funciona a partir
 de outro terminal antes de fechar a sessão root. Detalhes, opções e atualizações: [docs/deployment.md](docs/deployment.md).
 
@@ -118,7 +117,7 @@ Se `DATABASE_URL` não apontar para um PostgreSQL acessível, o servidor usa o a
 
 ## 🤖 Executando os cBots
 
-1. **Compile os pacotes `.algo`** — o instalador faz isso; para compilar manualmente veja
+1. **Compile o pacote `.algo`** — o instalador faz isso; para compilar manualmente veja
    [docs/deployment.md → Building the cBots](docs/deployment.md#building-the-cbots). Também é possível colar um arquivo
    `cBot/*.cs` no cTrader Desktop (**Automate → New cBot → Build**) e anexá-lo a um gráfico.
 2. **Crie instâncias** — no painel, **Docker Bot Management → Setup Instances**: escolha ou adicione uma conta cTrader,
@@ -180,8 +179,7 @@ dos cBots que não fazem parte dos presets estão descritos em [docs/configurati
 
 Este README não publica números de desempenho. A pesquisa offline em [`research/`](research/README.md) concluiu que,
 em 2026-09-27, a operação Gotobi nos pares de JPY (`GotobiBot`) é a única estratégia testada que passou no seu holdout
-pré-registrado; o `CryptoDonchianBot` foi reprovado no holdout e roda apenas como forward test. Trate os dois bots
-como experimentais e rode-os primeiro numa conta demo.
+pré-registrado. Trate o bot como experimental e rode-o primeiro numa conta demo.
 
 > ⚠️ **Aviso**: operar produtos alavancados envolve alto risco de perda. Este software é fornecido para pesquisa e
 > educação, sem garantia de resultados.

@@ -1,8 +1,8 @@
 """Active Positions for a position with no take-profit at the broker.
 
-Gotobi and Crypto Donchian open without a TP: they exit on their own rule (the fix time, the
-channel, the max hold) or at the stop. A TP price left over in the DB row, or a bare "—", would not
-say that the position exits only at its stop. (First seen on AUDJPY #675464477, 2026-09-24, with a
+Gotobi opens without a TP: it exits on its own rule (the fix time, the max hold) or at the stop.
+A TP price left over in the DB row, or a bare "—", would not say that the position exits only at
+its stop. (First seen on AUDJPY #675464477, 2026-09-24, with a
 bot since removed that took its TP off while trailing.)
 """
 import json

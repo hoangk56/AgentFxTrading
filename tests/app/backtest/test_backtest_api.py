@@ -22,7 +22,7 @@ client = TestClient(server.app)
 ACCOUNT = {"slug": "bttest", "ctid_email": "trader@example.com", "account_number": "10115236",
            "label": "demo", "pwd_file": "/root/ctrader_data/ctid_bttest_pwd"}
 GOTOBI = container_name("bttest", "gotobi", "USDJPY")
-OTHER = "cbot-bttest-other"      # an installed bot that is not Gotobi or Crypto Donchian
+OTHER = "cbot-bttest-other"      # an installed bot that is not Gotobi
 
 
 class FakeCache:

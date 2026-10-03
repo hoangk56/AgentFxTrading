@@ -31,10 +31,9 @@ DISABLED_URL = "http://127.0.0.1:9/disabled"
 
 STRATEGY_BY_ALGO = {
     "GotobiBot.algo": "gotobi",
-    "CryptoDonchianBot.algo": "donchian",
 }
 SUPPORTED_STRATEGIES = set(STRATEGY_BY_ALGO.values())
-UNSUPPORTED_REASON = "Only GotobiBot and CryptoDonchianBot can be backtested"
+UNSUPPORTED_REASON = "Only GotobiBot can be backtested"
 DATA_MODES = ("ticks", "m1")
 
 # cTrader CLI options that sit next to the cBot parameters in a `run` command.
@@ -44,13 +43,6 @@ CLI_OPTIONS = {"ctid", "pwd-file", "password", "account", "broker", "symbol", "p
 LOCKED_PARAMS: Dict[str, Dict[str, str]] = {
     # GotobiBot only talks to the server in RealTime; locked anyway so a backtest can never reach production.
     "gotobi": {
-        "ApiUrl": DISABLED_URL,
-        "TelemetryUrl": DISABLED_URL,
-        "ReportUrl": DISABLED_URL,
-        "CommandPollMs": "0",
-    },
-    # CryptoDonchianBot: same reporting code as GotobiBot, locked the same way.
-    "donchian": {
         "ApiUrl": DISABLED_URL,
         "TelemetryUrl": DISABLED_URL,
         "ReportUrl": DISABLED_URL,
@@ -71,7 +63,7 @@ class SourceError(ValueError):
 class BotSource:
     name: str
     algo: str                    # "GotobiBot.algo"
-    strategy: Optional[str]      # "gotobi" | "donchian" | None
+    strategy: Optional[str]      # "gotobi" | None
     ctid: str
     account: str
     symbol: str

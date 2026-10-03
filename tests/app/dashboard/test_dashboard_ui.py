@@ -56,11 +56,11 @@ def test_ui_endpoints():
         assert gone not in html_demo, gone
 
 
-def test_bot_badges_name_the_two_strategies():
+def test_bot_badges_name_the_strategy():
     page = dashboard_page(client)
-    for badge in ("bot-badge--gotobi", "bot-badge--donchian", "'Gotobi'", "'Donchian'"):
+    for badge in ("bot-badge--gotobi", "'Gotobi'"):
         assert badge in page, badge
-    for gone in ("bot-badge--flowrsi", "bot-badge--judas", "bot-badge--tms", "TMS+ORB", "FlowRSI"):
+    for gone in ("bot-badge--donchian", "'Donchian'", "bot-badge--flowrsi", "bot-badge--judas", "bot-badge--tms", "TMS+ORB", "FlowRSI"):
         assert gone not in page, gone
 
 

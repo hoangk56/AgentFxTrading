@@ -434,7 +434,7 @@ build_algos() {
   step "Building cBot .algo packages (this pulls ${CTRADER_IMAGE})"
   docker pull -q "$CTRADER_IMAGE"
   local name
-  for name in GotobiBot CryptoDonchianBot; do
+  for name in GotobiBot; do
     build_algo "$name"
   done
   # The console container runs as root, so hand everything back to forge.
@@ -493,7 +493,7 @@ print_summary() {
  Project      : ${REPO_DIR}
  Service      : systemctl status ${SERVICE_NAME}
  Database     : postgresql://${DB_USER}:***@127.0.0.1:5432/${DB_NAME}  (full URL in .env)
- cBots built  : ${REPO_DIR}/cBot/{GotobiBot,CryptoDonchianBot}.algo
+ cBots built  : ${REPO_DIR}/cBot/GotobiBot.algo
  cTrader home : ${CTRADER_HOME}  (mounted as /root inside cBot containers)
  Swap         : ${swap:-none}
 

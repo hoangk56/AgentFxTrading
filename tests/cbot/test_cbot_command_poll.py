@@ -13,7 +13,6 @@ CBOT = CBOT_DIR
 # bot file -> how its command executor finds its own positions (never another bot's)
 OWN_POSITIONS = {
     "GotobiBot.cs": "var own = GetBotPositions();",
-    "CryptoDonchianBot.cs": "var own = GetBotPositions();",
 }
 BOTS = list(OWN_POSITIONS)
 

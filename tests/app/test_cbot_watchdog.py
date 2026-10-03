@@ -286,19 +286,19 @@ def test_status_exposes_the_bar_heartbeat():
 
 
 # ---------------------------------------------------------------------------
-# The allowance follows the bot's chart: Crypto Donchian runs on H1, so a bar arrives once an hour and the
-# M15 allowance (40 min) would call it stalled between minutes 40 and 60 of every hour.
+# The allowance follows the bot's chart: a bot on H1 (as the removed Crypto Donchian was) gets a bar once an hour,
+# and the M15 allowance (40 min) would call it stalled between minutes 40 and 60 of every hour.
 # ---------------------------------------------------------------------------
 
-DONCHIAN_BOT = "cbot-demo-main-btcusd-h4-donchian"
-DONCHIAN_RUN_COMMAND = (
-    f"docker run -d --name {DONCHIAN_BOT} --network host run /workspace/cBot/CryptoDonchianBot.algo "
-    f"--symbol=BTCUSD --period=h1 --full-access --BotId=\"{DONCHIAN_BOT}\" --RiskPerTradeMoney=100.0"
+H1_BOT = "cbot-demo-main-usdjpy-h1-gotobi"
+H1_RUN_COMMAND = (
+    f"docker run -d --name {H1_BOT} --network host run /workspace/cBot/GotobiBot.algo "
+    f"--symbol=USDJPY --period=h1 --full-access --BotId=\"{H1_BOT}\" --RiskPerTradeMoney=100.0"
 )
 
 
 @pytest.mark.parametrize("command, seconds", [
-    (DONCHIAN_RUN_COMMAND, 3600),
+    (H1_RUN_COMMAND, 3600),
     ("run x.algo --period=m15 --BotId=a", 900),
     ('run x.algo --period="m5" --BotId=a', 300),
     ("run x.algo --period=h4 --BotId=a", 14400),
@@ -315,7 +315,7 @@ def test_bar_allowance_keeps_the_m15_value_and_gives_slower_charts_one_bar_plus_
     watchdog = CbotWatchdog(stale_feed_seconds=2400)
     assert watchdog.bar_allowance_seconds(GOTOBI_RUN_COMMAND) == 2400            # m15 by default
     assert watchdog.bar_allowance_seconds("run x.algo --period=m5") == 2400      # faster charts keep the floor
-    assert watchdog.bar_allowance_seconds(DONCHIAN_RUN_COMMAND) == 3600 + 1500   # one H1 bar + 25 min
+    assert watchdog.bar_allowance_seconds(H1_RUN_COMMAND) == 3600 + 1500   # one H1 bar + 25 min
 
 
 def test_h1_bot_whose_bars_advance_hourly_is_never_called_stalled():
@@ -324,24 +324,24 @@ def test_h1_bot_whose_bars_advance_hourly_is_never_called_stalled():
     start = NOW - timedelta(hours=3)
     t = start
     while t <= NOW:
-        wd.record_bot_tick(DONCHIAN_BOT, hourly(t), now=t.timestamp())
-        assert watchdog._bar_stall_reason(DONCHIAN_BOT, DONCHIAN_RUN_COMMAND, t) is None, t
+        wd.record_bot_tick(H1_BOT, hourly(t), now=t.timestamp())
+        assert watchdog._bar_stall_reason(H1_BOT, H1_RUN_COMMAND, t) is None, t
         t += timedelta(minutes=5)
 
 
 def test_h1_bot_is_restarted_once_it_misses_a_whole_bar():
     watchdog = CbotWatchdog(stale_feed_seconds=2400)
-    _stream(DONCHIAN_BOT, "2026-09-24T08:00:00", NOW - timedelta(minutes=80), NOW)
-    assert watchdog._bar_stall_reason(DONCHIAN_BOT, DONCHIAN_RUN_COMMAND, NOW) is None       # 80 min < 85
+    _stream(H1_BOT, "2026-09-24T08:00:00", NOW - timedelta(minutes=80), NOW)
+    assert watchdog._bar_stall_reason(H1_BOT, H1_RUN_COMMAND, NOW) is None       # 80 min < 85
     later = NOW + timedelta(minutes=10)
-    _stream(DONCHIAN_BOT, "2026-09-24T08:00:00", NOW, later)
-    reason = watchdog._bar_stall_reason(DONCHIAN_BOT, DONCHIAN_RUN_COMMAND, later)
+    _stream(H1_BOT, "2026-09-24T08:00:00", NOW, later)
+    reason = watchdog._bar_stall_reason(H1_BOT, H1_RUN_COMMAND, later)
     assert reason is not None and "90 min" in reason and "bar cycle is H1" in reason
 
 
 def test_status_exposes_each_bots_allowance():
     now = datetime.now(timezone.utc)
-    _stream(DONCHIAN_BOT, "2026-09-24T08:00:00", now - timedelta(minutes=4), now)
+    _stream(H1_BOT, "2026-09-24T08:00:00", now - timedelta(minutes=4), now)
     watchdog = CbotWatchdog(stale_feed_seconds=2400)
-    watchdog._bar_stall_reason(DONCHIAN_BOT, DONCHIAN_RUN_COMMAND)
-    assert watchdog.get_status()["bar_telemetry"][DONCHIAN_BOT]["allowance"] == 5100
+    watchdog._bar_stall_reason(H1_BOT, H1_RUN_COMMAND)
+    assert watchdog.get_status()["bar_telemetry"][H1_BOT]["allowance"] == 5100

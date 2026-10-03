@@ -46,14 +46,13 @@ AgentFxTrading 以 **cTrader cBot**（C#）的形式运行交易策略，每个 
 bot 按各自的规则交易，并把持仓和遥测数据报告给 **FastAPI 服务器**（Python）；服务器将其存入 **PostgreSQL**
 （本地运行时回退到 SQLite），并提供用于监控、bot 管理和回测的 **Web 仪表盘**。
 
-目前有两个 cBot：
+目前有一个 cBot：
 
 | cBot | 策略 |
 | :--- | :--- |
 | `cBot/GotobiBot.cs` | USDJPY / EURJPY / GBPJPY 的五十日（Gotobi）东京定盘交易 |
-| `cBot/CryptoDonchianBot.cs` | BTCUSD / ETHUSD 的 H4 唐奇安通道突破（前向测试） |
 
-各 bot 的具体做法见 [docs/strategies.md](docs/strategies.md)。
+bot 的具体做法见 [docs/strategies.md](docs/strategies.md)。
 
 ---
 
@@ -92,7 +91,7 @@ curl -fsSL https://raw.githubusercontent.com/kienphan/AgentFxTrading/main/script
 ```
 
 脚本会询问 `forge` 用户的 SSH 公钥，然后安装 PostgreSQL 17、Docker、以 systemd 服务 `agentfx` 运行的服务器
-（监听 `127.0.0.1:8000`），编译两个 cBot 的 `.algo` 包，并启用每日数据库备份。**SSH 密码登录会被禁用**，
+（监听 `127.0.0.1:8000`），编译 cBot 的 `.algo` 包，并启用每日数据库备份。**SSH 密码登录会被禁用**，
 因此在关闭 root 会话之前，请先在另一个终端确认密钥可以登录。详细说明、可选参数与升级方法：
 [docs/deployment.md](docs/deployment.md)。
 
@@ -177,8 +176,7 @@ docker run -d \
 ## 🔬 研究现状
 
 本 README 不公布任何绩效数字。[`research/`](research/README.md) 中的离线研究发现，截至 2026-09-27，JPY 货币对上的
-五十日交易（`GotobiBot`）是所测试策略中唯一通过预先登记的留出集检验的；`CryptoDonchianBot` 未通过留出集检验，
-仅作为前向测试运行。请把两个 bot 都视为实验性质，并先在模拟账户上运行。
+五十日交易（`GotobiBot`）是所测试策略中唯一通过预先登记的留出集检验的。请把该 bot 视为实验性质，并先在模拟账户上运行。
 
 > ⚠️ **免责声明**：交易杠杆产品存在较高的亏损风险。本软件仅供研究和学习使用，不保证任何结果。
 

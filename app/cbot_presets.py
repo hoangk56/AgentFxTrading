@@ -2,9 +2,8 @@
 Strategy × symbol presets for the dashboard's "Setup Instances" screen.
 
 Gotobi (GotobiBot) trades only the three JPY pairs the research validated
-(research/results/portfolio/swing_lab_v2_2026-09-27.md) and Crypto Donchian (CryptoDonchianBot, research C1,
-forward test) only BTCUSD and ETHUSD, so the grid has 5 cells. All 5 are written out as `docker run` commands
-in docs/docker-instances.md, which tests/app/test_cbot_presets.py keeps in sync with this module. `params`
+(research/results/portfolio/swing_lab_v2_2026-09-27.md), so the grid has 3 cells. All 3 are written out as
+`docker run` commands in docs/docker-instances.md, which tests/app/test_cbot_presets.py keeps in sync with this module. `params`
 holds only the strategy-tuned flags. Infrastructure flags (credentials, symbol, period, BotId, ApiUrl,
 AccountLabel) are emitted by `build_run_command`, so a preset never knows which account runs it.
 """
@@ -17,14 +16,12 @@ API_URL = "http://127.0.0.1:8000/trade"
 
 STRATEGIES: Dict[str, Dict[str, str]] = {
     "gotobi":  {"label": "Gotobi Fix",  "algo": "GotobiBot.algo",               "suffix": "-gotobi"},
-    "donchian": {"label": "Crypto Donchian", "algo": "CryptoDonchianBot.algo",   "suffix": "-donchian"},
 }
 
 # Row order of the setup grid.
-SYMBOLS: List[str] = ["USDJPY", "EURJPY", "GBPJPY", "BTCUSD", "ETHUSD"]
+SYMBOLS: List[str] = ["USDJPY", "EURJPY", "GBPJPY"]
 
 _GOTOBI_SESSION = "Tokyo fix"
-_DONCHIAN_SESSION = "H4 breakout"
 
 # Gotobi days the bot sits out. Japanese public holidays and the 31/12 bank holiday have no Tokyo fix, and on the 45
 # such days of 2016-2026 the basket lost (R -0.066, t -3.4; research/results/portfolio/gotobi_jp_holidays_2026-09-29.md).
@@ -41,7 +38,7 @@ def _cell(period: str, session: str, params: dict) -> dict:
     return {"period": period, "session": session, "params": params}
 
 
-# (strategy, SYMBOL) -> {"period", "session", "params"}; 3 gotobi + 2 donchian cells.
+# (strategy, SYMBOL) -> {"period", "session", "params"}; the 3 gotobi cells.
 PRESETS: Dict[Tuple[str, str], Dict] = {
     # Gotobi (GotobiBot) — research C3: the schedule and the 3 x ATR20(H1) stop are the cBot's defaults; a cell
     # sets the default $ risk per trade (never a share of equity; $100 is the research's), the entry spread cap
@@ -49,13 +46,6 @@ PRESETS: Dict[Tuple[str, str], Dict] = {
     ("gotobi", "USDJPY"): _cell("m15", _GOTOBI_SESSION, _gotobi(max_spread=3.0)),
     ("gotobi", "EURJPY"): _cell("m15", _GOTOBI_SESSION, _gotobi(max_spread=3.0)),
     ("gotobi", "GBPJPY"): _cell("m15", _GOTOBI_SESSION, _gotobi(max_spread=4.0)),
-    # Crypto Donchian (CryptoDonchianBot) — research C1, which failed its 2025-26 holdout: a small forward-test bot.
-    # Channels, stop, lot scaling and the spread cap (a share of the stop, so no pips) are the cBot's defaults; a
-    # cell sets only the default $ risk per trade (x0.5..2 by breakout strength, never a share of equity). $100 is the
-    # research's; much less does not size BTCUSD: its minimum 0.01 BTC already risks ~$30-40 at a 3 x ATR(H4) stop.
-    # The chart is H1: the bot builds UTC-aligned H4 bars from H1 (the broker's H4 bars start at its 21/22:00 UTC day).
-    ("donchian", "BTCUSD"): _cell("h1", _DONCHIAN_SESSION, {"RiskPerTradeMoney": 100.0}),
-    ("donchian", "ETHUSD"): _cell("h1", _DONCHIAN_SESSION, {"RiskPerTradeMoney": 100.0}),
 }
 
 
@@ -72,7 +62,6 @@ def _fmt(value) -> str:
 # which session a bot trades without reading its --SessionName flag.
 SESSION_SLUGS: Dict[str, str] = {
     _GOTOBI_SESSION: "fix",
-    _DONCHIAN_SESSION: "h4",
 }
 
 
