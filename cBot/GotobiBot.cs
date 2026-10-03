@@ -41,11 +41,6 @@ namespace cAlgo.Robots
         [Parameter("Show Detailed Logs", Group = "General", DefaultValue = true)]
         public bool ShowLogs { get; set; }
 
-        // Secret that hides the strategy from the broker (see "Trade tags"). Live and demo bots only; a backtest keeps
-        // the plain tags. A missing file also keeps them, so the bot trades either way.
-        [Parameter("Tag Key File (empty = plain tags)", Group = "General", DefaultValue = "/root/ctrader_data/trade_tag_key")]
-        public string TagKeyFile { get; set; }
-
         [Parameter("Trade the Long Leg (into the fix)", Group = "Schedule (UTC)", DefaultValue = true)]
         public bool TradeLong { get; set; }
 
@@ -119,8 +114,7 @@ namespace cAlgo.Robots
         [Parameter("Max Hold (hours)", Group = "Risk", DefaultValue = 12, MinValue = 1, MaxValue = 120)]
         public int MaxHoldHours { get; set; }
 
-        // Camouflage: what the broker must not learn from the orders (see the "Camouflage" region). Off on a live or
-        // demo run without the tag key, whose plain comments would give the stop and the decoys away.
+        // Camouflage: what the broker must not learn from the orders (see the "Camouflage" region).
         [Parameter("Camouflage (virtual stop, decoys)", Group = "Camouflage", DefaultValue = true)]
         public bool VirtualStop { get; set; }
 
@@ -172,7 +166,10 @@ namespace cAlgo.Robots
         private const string ShortTag = "GOTOBI-S";
         private const string ManualCloseReason = "Manual close (dashboard)";
 
+        private Bars _h1;
         private AverageTrueRange _atr;
+        // Each own position's leg: set when the bot opens it, read back off the position after a restart (LegOf).
+        private readonly Dictionary<int, LegInfo> _legs = new Dictionary<int, LegInfo>();
         private readonly HashSet<DateTime> _skipDates = new HashSet<DateTime>();
         private readonly HashSet<string> _legsDone = new HashSet<string>();
         private readonly Dictionary<string, DateTime> _lastAttemptAt = new Dictionary<string, DateTime>();
@@ -201,11 +198,11 @@ namespace cAlgo.Robots
         #region Lifecycle
         protected override void OnStart()
         {
-            InitTradeTags();
             Print($"[Gotobi] Starting '{BotId}' on {SymbolName}: long {LongEntryHourUtc:00}:{LongEntryMinuteUtc:00} -> fix {FixHourUtc:00}:{FixMinuteUtc:00} UTC, " +
                   $"short -> {ShortExitHourUtc:00}:{ShortExitMinuteUtc:00} UTC, risk ${RiskPerTradeMoney:F2} at {StopAtrMultiplier} x ATR{AtrPeriod}(H1)");
 
-            _atr = Indicators.AverageTrueRange(MarketData.GetBars(TimeFrame.Hour), AtrPeriod, MovingAverageType.Simple);
+            _h1 = MarketData.GetBars(TimeFrame.Hour);
+            _atr = Indicators.AverageTrueRange(_h1, AtrPeriod, MovingAverageType.Simple);
 
             foreach (var part in (SkipDates ?? "").Split(new[] { ',', ';', ' ' }, StringSplitOptions.RemoveEmptyEntries))
             {
@@ -215,9 +212,7 @@ namespace cAlgo.Robots
                     Print($"[Gotobi] Skip date '{part}' is not yyyy-MM-dd; ignored");
             }
 
-            if (VirtualStop && !Camouflaged)
-                Print("[Gotobi] No tag key: virtual stop and decoys off, orders carry the stop");
-            else if (Camouflaged)
+            if (Camouflaged)
                 Print($"[Gotobi] Camouflage: virtual stop, broker stop {EmergencyStopMin}-{EmergencyStopMax} x, " +
                       $"decoys p={DecoyLegProbability} at {DecoyStopAtrMultiplier} x ATR, entry +/-{LongEntryJitterMinutes} min");
 
@@ -288,8 +283,8 @@ namespace cAlgo.Robots
         /// <summary>A leg's identity, "GOTOBI-L 2026-10-05": one attempt per tag.</summary>
         private static string LegTag(Leg leg, DateTime day) => $"{(leg == Leg.Long ? LongTag : ShortTag)} {day:yyyy-MM-dd}";
 
-        /// <summary>A position's comment (before Seal): the tag, then with the virtual stop "slp=&lt;stop pips&gt;" and
-        /// "decoy" for a decoy, e.g. "GOTOBI-S 2026-10-06 slp=7.4 decoy". A plain tag is a leg with a broker stop.</summary>
+        /// <summary>What the bot knows of an own position: its leg and gotobi day, its virtual stop (null = the broker's
+        /// stop is the stop) and whether it is a decoy.</summary>
         private class LegInfo
         {
             public Leg Leg;
@@ -299,29 +294,50 @@ namespace cAlgo.Robots
             public bool Decoy;
         }
 
-        private static LegInfo ParseLeg(string comment)
+        // Orders carry no label or comment, and the position's entry time comes from the fill, so the windows below
+        // allow a few minutes past the latest time an order can be sent.
+        private const int EntrySlackMinutes = 5;
+
+        /// <summary>The leg a buy or sell entered at `entry` was opened as. A buy entered in a long window (the earliest
+        /// jittered entry to the latest one, the evening before) is the long of the next day; a sell entered at a fix,
+        /// within the grace minutes, the short of that day. The bot trades a day that is not a trading day only as a
+        /// decoy. Null outside both windows: then only Max hold and the broker's stop apply.</summary>
+        private LegInfo InferLeg(TradeType side, DateTime entry)
         {
-            if (string.IsNullOrEmpty(comment)) return null;
-            var parts = comment.Split(' ');
-            if (parts.Length < 2) return null;
-            var info = new LegInfo();
-            if (parts[0] == LongTag) info.Leg = Leg.Long;
-            else if (parts[0] == ShortTag) info.Leg = Leg.Short;
-            else return null;
-            if (!DateTime.TryParseExact(parts[1], "yyyy-MM-dd", CultureInfo.InvariantCulture, DateTimeStyles.None, out info.Day))
-                return null;
-            info.Tag = parts[0] + " " + parts[1];
-            for (int i = 2; i < parts.Length; i++)
+            var leg = side == TradeType.Buy ? Leg.Long : Leg.Short;
+            var day = side == TradeType.Buy ? entry.Date.AddDays(1) : entry.Date;
+            bool inWindow = leg == Leg.Long
+                ? entry >= LongEntryTime(day).AddMinutes(-LongEntryJitterMinutes) && entry <= LongEntryLatest(day).AddMinutes(EntrySlackMinutes)
+                : entry >= FixTime(day) && entry <= FixTime(day).AddMinutes(ShortEntryGraceMinutes + EntrySlackMinutes);
+            if (!inWindow) return null;
+            return new LegInfo { Leg = leg, Day = day, Tag = LegTag(leg, day), Decoy = !IsTradingDay(day) };
+        }
+
+        /// <summary>An own position's leg: the one TryOpenLeg recorded, or after a restart InferLeg plus, with
+        /// camouflage, the virtual stop rebuilt from the H1 ATR at the entry the way TryOpenLeg set it.</summary>
+        private LegInfo LegOf(Position pos)
+        {
+            if (_legs.TryGetValue(pos.Id, out var known)) return known;
+            var info = InferLeg(pos.TradeType, pos.EntryTime);
+            if (info != null && Camouflaged)
             {
-                if (parts[i] == "decoy") info.Decoy = true;
-                else if (parts[i].StartsWith("slp=")
-                         && double.TryParse(parts[i].Substring(4), NumberStyles.Float, CultureInfo.InvariantCulture, out double slp) && slp > 0)
-                    info.StopPips = slp;
+                double? atr = EntryAtr(pos.EntryTime);
+                if (!atr.HasValue) return info;   // no H1 history yet: the broker's stop stands in until the next call
+                info.StopPips = (info.Decoy ? DecoyStopAtrMultiplier : StopAtrMultiplier) * atr.Value / Symbol.PipSize;
             }
+            _legs[pos.Id] = info;
             return info;
         }
 
-        private LegInfo LegOf(Position pos) => ParseLeg(Unseal(pos.Comment));
+        /// <summary>The ATR TryOpenLeg sized a position entered at `entry` on (_atr.Result.Last(1) then: the H1 bar
+        /// before the one the entry fell in), or null without that history.</summary>
+        private double? EntryAtr(DateTime entry)
+        {
+            int i = _h1.OpenTimes.GetIndexByTime(entry);
+            if (i < 1) return null;
+            double atr = _atr.Result[i - 1];
+            return double.IsNaN(atr) || atr <= 0 ? (double?)null : atr;
+        }
         #endregion
 
         #region Strategy
@@ -436,21 +452,21 @@ namespace cAlgo.Robots
 
             var tradeType = leg == Leg.Long ? TradeType.Buy : TradeType.Sell;
             if (DashboardPauseBlocks($"{tag} entry")) return;
-            // With camouflage the broker gets a random fraction of the real stop (never wider); a decoy's tighter
-            // virtual stop, which only the sealed comment carries, is closed by the bot.
+            // With camouflage the broker gets a random fraction of the real stop (never wider); the real one, or a
+            // decoy's tighter one, is a virtual stop the bot closes. The order carries no label and no comment, as one
+            // placed by hand: the bot reads its legs back off the positions (LegOf).
             double orderStopPips = stopPips;
-            string comment = tag;
             double? virtualPips = null;
             if (Camouflaged)
             {
                 virtualPips = decoy ? DecoyStopAtrMultiplier * atr / Symbol.PipSize : stopPips;
                 orderStopPips = stopPips * (EmergencyStopMin + _random.NextDouble() * Math.Max(0, EmergencyStopMax - EmergencyStopMin));
-                comment = $"{tag} slp={virtualPips.Value.ToString("F1", CultureInfo.InvariantCulture)}{(decoy ? " decoy" : "")}";
             }
-            var result = ExecuteMarketOrder(tradeType, SymbolName, volume, _label, orderStopPips, null, Seal(comment));
+            var result = ExecuteMarketOrder(tradeType, SymbolName, volume, null, orderStopPips, null, null);
             if (result != null && result.IsSuccessful && result.Position != null)
             {
                 _legsDone.Add(tag);
+                _legs[result.Position.Id] = new LegInfo { Leg = leg, Day = day, Tag = tag, StopPips = virtualPips, Decoy = decoy };
                 double reportedStop = virtualPips ?? stopPips;
                 _initialSlPips[result.Position.Id] = reportedStop;
                 string reason = leg == Leg.Long ? "Gotobi long into the 09:55 Tokyo fix" : "Gotobi short after the 09:55 Tokyo fix";
@@ -465,11 +481,12 @@ namespace cAlgo.Robots
             }
         }
 
-        /// <summary>True when this bot already opened `tag` on this symbol: still open, or closed (History).</summary>
+        /// <summary>True when this bot already opened `tag` on this symbol: still open, or closed (History, read off
+        /// each trade's side and entry time like an open position).</summary>
         private bool LegAlreadyTraded(string tag)
         {
-            if (GetBotPositions().Any(p => ParseLeg(Unseal(p.Comment))?.Tag == tag)) return true;
-            return History.Any(h => IsOwnLabel(h.Label) && h.SymbolName == SymbolName && ParseLeg(Unseal(h.Comment))?.Tag == tag);
+            if (GetBotPositions().Any(p => LegOf(p)?.Tag == tag)) return true;
+            return History.Any(h => h.SymbolName == SymbolName && InferLeg(h.TradeType, h.EntryTime)?.Tag == tag);
         }
 
         /// <summary>Units risking RiskPerTradeMoney at `stopPips`, rounded down to the volume step and capped at
@@ -488,14 +505,9 @@ namespace cAlgo.Robots
             return units;
         }
 
-        /// <summary>This bot's positions on its symbol, under the label it trades with and, once the key file is on,
-        /// under the plain BotId it used before.</summary>
-        private List<Position> GetBotPositions()
-        {
-            var own = Positions.FindAll(_label, SymbolName).ToList();
-            if (_label != BotId) own.AddRange(Positions.FindAll(BotId, SymbolName));
-            return own;
-        }
+        /// <summary>This bot's positions: every position on its symbol. One bot trades each symbol of an account and
+        /// nothing is traded there by hand, so the orders need no label to tell them apart.</summary>
+        private List<Position> GetBotPositions() => Positions.Where(p => p.SymbolName == SymbolName).ToList();
 
         private TradeResult CloseWithReason(Position pos, string reason)
         {
@@ -509,18 +521,17 @@ namespace cAlgo.Robots
         // gotobi days only, three pairs opening on the same second, a steady win rate. The bot therefore sends a
         // random 0.8-1 x fraction of the stop to the broker, opens each long at its own jittered time, and trades
         // ~2 decoy legs per real one on plain weekdays: same hours, a small lot (DecoySmallShare), broker stop drawn
-        // the same way, but a tight virtual stop the bot closes, so most decoys lose a little. Decoys and the virtual stop need the sealed comment (Trade tags), which says which leg
-        // is a decoy and where its stop is; a live or demo run without the tag key keeps the plain behaviour.
+        // the same way, but a tight virtual stop the bot closes, so most decoys lose a little. Nothing on the order
+        // says which leg is a decoy or where its stop is: the bot works both out from the position (LegOf).
         private readonly Random _random = new Random();
 
-        private bool Camouflaged => VirtualStop && (RunningMode != RunningMode.RealTime || _tagKey != null);
+        private bool Camouflaged => VirtualStop;
 
-        /// <summary>Uniform [0, 1) drawn from the bot, symbol, leg and purpose, so a restart makes the same choice.
-        /// Keyed with the tag key when there is one, so the broker cannot predict it.</summary>
+        /// <summary>Uniform [0, 1) drawn from the bot, symbol, leg and purpose, so a restart makes the same choice. The
+        /// broker sees neither the BotId nor the code, so it cannot predict it.</summary>
         private double Draw(string tag, string purpose)
         {
-            var data = Encoding.UTF8.GetBytes($"{BotId}|{SymbolName}|{tag}|{purpose}");
-            var hash = _tagKey != null ? TagMac(data) : System.Security.Cryptography.SHA256.HashData(data);
+            var hash = System.Security.Cryptography.SHA256.HashData(Encoding.UTF8.GetBytes($"{BotId}|{SymbolName}|{tag}|{purpose}"));
             return BitConverter.ToUInt32(hash, 0) / 4294967296.0;
         }
 
@@ -563,110 +574,6 @@ namespace cAlgo.Robots
 
         /// <summary>The stop the bot works to: the virtual one, else the broker's.</summary>
         private double? StopPriceOf(Position pos) => VirtualStopPrice(pos, LegOf(pos)) ?? pos.StopLoss;
-        #endregion
-
-        #region Trade tags
-        // What the broker sees of an order besides price and size: its Label and Comment. Plain, they name the bot
-        // and the strategy (the BotId is the container name, the comment the leg or signal bar). With the key file,
-        // on a live or demo run, the Label becomes an opaque id derived from BotId and the Comment is encrypted,
-        // so the broker learns neither; the bot decrypts its own comments to run exactly as before. Without the
-        // key (a backtest, or no file on the host) both stay plain. Keep the key once bots trade with it: another
-        // key gives other labels, and positions opened under the old one are no longer this bot's.
-        private byte[] _tagKey;              // null = plain tags
-        private string _label;               // the Label this bot's orders carry
-
-        private void InitTradeTags()
-        {
-            _tagKey = null;
-            _label = BotId;
-            if (RunningMode != RunningMode.RealTime || string.IsNullOrWhiteSpace(TagKeyFile)) return;
-            try
-            {
-                if (!System.IO.File.Exists(TagKeyFile))
-                {
-                    Print($"[Tags] No key file {TagKeyFile}: orders carry the plain BotId and strategy tag");
-                    return;
-                }
-                string secret = System.IO.File.ReadAllText(TagKeyFile).Trim();
-                if (secret.Length < 16)
-                {
-                    Print($"[Tags] Key in {TagKeyFile} is shorter than 16 characters: orders carry the plain BotId and strategy tag");
-                    return;
-                }
-                _tagKey = Encoding.UTF8.GetBytes(secret);
-                _label = "t" + Convert.ToHexString(TagMac(Encoding.UTF8.GetBytes("label|" + BotId)), 0, 6).ToLowerInvariant();
-                Print($"[Tags] Orders labelled {_label}, comments encrypted");
-            }
-            catch (Exception ex)
-            {
-                _tagKey = null;
-                _label = BotId;
-                Print($"[Tags] Could not read {TagKeyFile} ({ex.Message}): orders carry the plain BotId and strategy tag");
-            }
-        }
-
-        /// <summary>True for a Label this bot trades under: its current one, or the plain BotId of before the key.</summary>
-        private bool IsOwnLabel(string label) => label == _label || label == BotId;
-
-        private byte[] TagMac(byte[] data)
-        {
-            using (var hmac = new System.Security.Cryptography.HMACSHA256(_tagKey))
-                return hmac.ComputeHash(data);
-        }
-
-        /// <summary>HMAC-SHA256(key, nonce || counter) blocks: the keystream that XORs a comment.</summary>
-        private byte[] TagKeystream(byte[] nonce, int length)
-        {
-            var stream = new byte[length];
-            var block = new byte[nonce.Length + 4];
-            Buffer.BlockCopy(nonce, 0, block, 0, nonce.Length);
-            for (int offset = 0, counter = 0; offset < length; offset += 32, counter++)
-            {
-                BitConverter.GetBytes(counter).CopyTo(block, nonce.Length);
-                var mac = TagMac(block);
-                Buffer.BlockCopy(mac, 0, stream, offset, Math.Min(32, length - offset));
-            }
-            return stream;
-        }
-
-        private const int TagNonceBytes = 8;
-
-        /// <summary>The comment an order carries: `tag` encrypted (base64url of nonce + ciphertext), or `tag` itself
-        /// without a key.</summary>
-        private string Seal(string tag)
-        {
-            if (_tagKey == null || string.IsNullOrEmpty(tag)) return tag;
-            var plain = Encoding.UTF8.GetBytes(tag);
-            var bytes = new byte[TagNonceBytes + plain.Length];
-            System.Security.Cryptography.RandomNumberGenerator.Fill(new Span<byte>(bytes, 0, TagNonceBytes));
-            var nonce = bytes.Take(TagNonceBytes).ToArray();
-            var stream = TagKeystream(nonce, plain.Length);
-            for (int i = 0; i < plain.Length; i++) bytes[TagNonceBytes + i] = (byte)(plain[i] ^ stream[i]);
-            return Convert.ToBase64String(bytes).TrimEnd('=').Replace('+', '-').Replace('/', '_');
-        }
-
-        /// <summary>The tag behind an order's comment. A plain comment (one opened before the key, or a backtest's)
-        /// comes back unchanged; the tag parsers reject anything that is neither.</summary>
-        private string Unseal(string comment)
-        {
-            if (_tagKey == null || string.IsNullOrEmpty(comment) || comment.IndexOf(' ') >= 0) return comment;
-            try
-            {
-                string b64 = comment.Replace('-', '+').Replace('_', '/');
-                b64 = b64.PadRight(b64.Length + (4 - b64.Length % 4) % 4, '=');
-                var bytes = Convert.FromBase64String(b64);
-                if (bytes.Length <= TagNonceBytes) return comment;
-                var nonce = bytes.Take(TagNonceBytes).ToArray();
-                var stream = TagKeystream(nonce, bytes.Length - TagNonceBytes);
-                var plain = new byte[stream.Length];
-                for (int i = 0; i < plain.Length; i++) plain[i] = (byte)(bytes[TagNonceBytes + i] ^ stream[i]);
-                return Encoding.UTF8.GetString(plain);
-            }
-            catch (FormatException)
-            {
-                return comment;
-            }
-        }
         #endregion
 
         #region Dashboard commands
@@ -866,8 +773,7 @@ namespace cAlgo.Robots
                         sl_price = StopPriceOf(p),
                         tp_price = p.TakeProfit,
                         sl_pnl = StopPriceOf(p) is double stop ? (double?)Math.Round(EstimatedNetProfitAt(p, stop), 2) : null,
-                        tp_pnl = (double?)null,
-                        label = p.Label
+                        tp_pnl = (double?)null
                     });
                 }
 
@@ -925,7 +831,7 @@ namespace cAlgo.Robots
                 try
                 {
                     var pos = args.Position;
-                    if (pos == null || !IsOwnLabel(pos.Label) || pos.SymbolName != SymbolName) return;
+                    if (pos == null || pos.SymbolName != SymbolName) return;
 
                     double exitPrice = pos.TradeType == TradeType.Buy ? Symbol.Bid : Symbol.Ask;
                     if (args.Reason == PositionCloseReason.TakeProfit && pos.TakeProfit.HasValue)
@@ -949,7 +855,8 @@ namespace cAlgo.Robots
                     else
                         reason = args.Reason.ToString();
 
-                    Print($"[Gotobi] Closed #{pos.Id} {pos.TradeType} {Unseal(pos.Comment)}: {reason}, net {pos.NetProfit:F2}");
+                    _legs.Remove(pos.Id);
+                    Print($"[Gotobi] Closed #{pos.Id} {pos.TradeType} {info?.Tag ?? "(no leg)"}{(info != null && info.Decoy ? " decoy" : "")}: {reason}, net {pos.NetProfit:F2}");
                     if (info != null && info.StopPips.HasValue && !_initialSlPips.ContainsKey(pos.Id))
                         _initialSlPips[pos.Id] = info.StopPips.Value;       // opened before a restart
                     ReportPositionClosed(pos, pos.NetProfit, reason, exitPrice, pos.Pips);
