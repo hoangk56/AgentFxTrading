@@ -6,6 +6,15 @@ detail. The numbers are copied from those files, and the file wins if the two ev
 When you write a new result file, add a row to that day's entry (or start a new entry) and link the file. Don't
 repeat its tables here.
 
+## 2026-10-05: round 8, how the symbols affect each other. No candidate
+
+| tested | verdict | detail |
+|---|---|---|
+| Four streams on one M1 panel of the 26 symbols (2016-2024, HOLD cut out). L: intraday lead-lag (26 x 26 at 1-60 min, 10 named economic leads, dynamic leads). S: shock spillover (large fast moves -> linked markets, beta-gap catch-up, safe havens, 08:30 New York data). R: relative value (return-spread pairs, Avellaneda-Lee PCA residuals, currency strength meter, commodity-currency fair value, index dispersion). X: literature map (38 papers), cross-session and risk-regime spillovers, crypto -> indices, weekly oil -> equities | **none reached a pre-registration, HOLD not opened**. The lead-lag structure is real (robust matrix: 1,248 cells with \|t\| >= 4 vs ~2 by chance, IS/VAL t corr 0.41) but sits inside the first minute: after a 1-minute delay it is 0.01-0.2 bp per sd against 0.7-7 bp of cost. Shocks diffuse slowly into JP225/HK50/BTC/ETH (1-7 bp vs 2.5-8 bp). FX residual reversal is real in 2004-15, IS and VAL (+1.2..+2.7 bp vs 1.2-1.5 bp). Pairs outside FX pay two legs (4-120 bp) for less. Best cell: US30 continuing after 08:30 New York data, power 2.6 / 1.4 (bar 3), side post hoc. Weekly oil -> US500 fade (Driesprong et al. 2008) is -54 bp per sd in VAL (t -3.2), but its IS t -2.8 came from dropping weeks without quotes; with proper fills IS is -18 (t -1.2) | [round8_inter_symbol_2026-10-05.md](results/portfolio/round8_inter_symbol_2026-10-05.md), [round8_hypotheses/](results/portfolio/round8_hypotheses/) |
+
+Standing: unchanged. What the symbols do to each other is real but either priced within a minute or smaller than
+IC's spread, which is widest exactly where quotes lag. C3 remains the only algorithm that has passed.
+
 ## 2026-09-30: cost of camouflaging GotobiBot from the broker
 
 | tested | verdict | detail |
