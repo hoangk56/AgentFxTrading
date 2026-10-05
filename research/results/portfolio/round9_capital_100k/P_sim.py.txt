@@ -1,0 +1,270 @@
+"""Stream P, step 3: a prop-firm evaluation + 12-month funded stage driven by C3 gotobi events.
+
+Everything is in fractions of the initial balance B0 = $100,000 (bal = 0 at the start of each phase).
+Risk r = $ risk per leg / B0 (fixed $, like GotobiBot's RiskPerTradeMoney). See HYPOTHESES_P.md (M1-M10).
+"""
+import numpy as np
+
+import features as F
+
+B0 = 100_000.0
+SLIP = 1.1  # worst case of a stopped leg in R (stop + slippage) used by the guards
+
+
+def bootstrap_idx(E, N, T, block=10, seed=0):
+    rng = np.random.default_rng(seed)
+    nb = -(-T // block)
+    starts = rng.integers(0, E, size=(N, nb))
+    idx = (starts[:, :, None] + np.arange(block)[None, None, :]) % E
+    return idx.reshape(N, nb * block)[:, :T]
+
+
+def historical_idx(E, T):
+    return (np.arange(E)[:, None] + np.arange(T)[None, :]) % E
+
+
+def floor_of(hwm, ml):
+    """Max-loss floor (fraction of B0) for a static or trailing rule."""
+    kind, pct, lock = ml["type"], ml["pct"], ml.get("lock", True)
+    if kind == "static":
+        return np.full_like(hwm, -pct)
+    f = hwm - pct
+    if lock:
+        f = np.minimum(f, 0.0)  # trailing stops at the initial balance
+    return np.maximum(f, -pct)
+
+
+def simulate(plan, ev, idx, r_eval, r_funded, guard=False, eval_cap_days=1095, funded_days=365, slip=SLIP,
+             kill=None, rcap=True):
+    """guard: skip the short legs when the day's room or the max-loss room is under 3 x slip x r, and size down so
+    one event cannot reach the max-loss floor; rcap (with guard): r <= daily limit / (3 x slip); kill: an equity
+    kill switch that closes everything `kill` (fraction of B0) before the daily or max-loss limit (the event's P/L
+    is then the loss at the switch; fills at the switch level, so gaps through it are not modelled)."""
+    """Run every path in idx (N x T event indices). r_eval: list per phase. Returns a dict of per-path arrays."""
+    N, T = idx.shape
+    phases = plan["phases"]
+    S = len(phases)
+    stage = np.zeros(N, dtype=int)  # 0..S-1 eval phases, S funded, S+1 finished funded year, -1 failed eval
+    bal = np.zeros(N)
+    hwm = np.zeros(N)
+    elapsed = np.zeros(N)  # days in the current stage, up to the current event
+    pend = np.zeros(N)  # days from the previous event to this one
+    eval_days = np.zeros(N)  # days from the start to the end of the evaluation
+    tdays = np.zeros(N)
+    pass_phase = np.zeros((N, max(S, 1)), dtype=bool)
+    fail_cause = np.zeros(N, dtype=int)  # 1 daily, 2 max, 3 time, 4 eval cap (unfinished)
+    f_breach = np.zeros(N, dtype=int)  # funded breach: 1 daily, 2 max
+    paid = np.zeros(N)
+    n_pay = np.zeros(N, dtype=int)
+    next_pay = np.full(N, np.inf)
+    best_day = np.zeros(N)  # best day's (event's) profit since the phase start / last payout
+    pos_sum = np.zeros(N)  # sum of positive days' profit over the same window
+    prof_days = np.zeros(N)  # days (events) with profit >= the phase's profitable-day threshold
+    first_pay_day = np.full(N, np.nan)
+    shorts_skipped = np.zeros(N, dtype=int)
+    floor_ovr = np.full(N, -np.inf)  # E8 Pro: the max-loss floor moves to the initial balance after a payout
+    kills = np.zeros(N, dtype=int)
+    fund = plan["funded"]
+    if S == 0:
+        stage[:] = 0  # instant funding: funded from the start
+        next_pay[:] = fund["first_days"]
+
+    def rules(st):
+        if S > 0 and st < S:
+            return plan.get("daily_eval", plan["daily"]), plan.get("maxloss_eval", plan["maxloss"])
+        return fund.get("daily", plan["daily"]), fund.get("maxloss", plan["maxloss"])
+
+    for t in range(T):
+        live = (stage >= 0) & (stage <= S) if S > 0 else (stage == 0)
+        if S == 0:
+            in_fund = live
+        else:
+            in_fund = live & (stage == S)
+        if not live.any():
+            break
+        e = idx[:, t]
+        elapsed = np.where(live, elapsed + pend, elapsed)
+        r = np.zeros(N)
+        for p in range(S):
+            r[stage == p] = r_eval[p]
+        r[in_fund] = r_funded
+        r[~live] = 0.0
+        # the funded rules may differ from the evaluation's; evaluate both and pick per path
+        res = {}
+        for which in (["eval", "fund"] if S > 0 else ["fund"]):
+            daily, ml = rules(0 if which == "eval" else S)
+            rr = r.copy()
+            dpct = daily["pct"]
+            if guard and rcap:
+                rr = np.minimum(rr, dpct / (3 * slip))  # 3 stopped legs can never take the whole daily limit
+            fl0 = np.maximum(floor_of(hwm, ml), floor_ovr)
+            if guard:
+                room = bal - fl0
+                rr = np.minimum(rr, np.maximum(room, 0) / (6 * slip))  # one event cannot reach the floor
+            A_min, A_end, A_max = ev["A_min"][e] * rr, ev["A_end"][e] * rr, ev["A_max"][e] * rr
+            # firm-day D-1: flat at the reset before, so the reference is the balance
+            lim_A = dpct * (1 + (bal if daily["of"] == "sod" else 0))
+            br_d = -A_min > lim_A + 1e-12
+            br_m = bal + A_min < fl0 - 1e-12
+            hw1 = np.maximum(hwm, bal + A_max) if ml["type"] == "trail_eq" else hwm
+            fl1 = np.maximum(floor_of(hw1, ml), floor_ovr)
+            refB = bal + (np.maximum(0, A_end) if daily["basis"] == "maxbe" else 0.0)
+            lim_B = dpct * (1 + (refB if daily["of"] == "sod" else 0))
+            FL = ev["F_L"][e] * rr
+            skip = np.zeros(N, dtype=bool)
+            if guard:
+                room_d = lim_B - (refB - (bal + FL))
+                room_m = bal + FL - fl1
+                skip = (room_d < 3 * slip * rr) | (room_m < 3 * slip * rr)
+            Bmin = np.where(skip, ev["BL_min"][e], ev["B_min"][e]) * rr
+            Bmax = np.where(skip, ev["BL_max"][e], ev["B_max"][e]) * rr
+            Fv = np.where(skip, ev["F_L"][e], ev["F"][e]) * rr
+            br_d |= refB - (bal + Bmin) > lim_B + 1e-12
+            br_m |= bal + Bmin < fl1 - 1e-12
+            if kill is not None:
+                kA = np.maximum(bal - lim_A + kill, fl0 + kill)  # equity level that trips the switch on D-1
+                killA = bal + A_min <= kA
+                kB = np.maximum(refB - lim_B + kill, fl1 + kill)
+                killB = ~killA & (bal + Bmin <= kB)
+                Fv = np.where(killA, kA - bal, np.where(killB, kB - bal, Fv))
+                Bmax = np.where(killA, 0.0, Bmax)
+                br_d &= ~(killA | killB)
+                br_m &= ~(killA | killB)
+            if ml["type"] == "trail_eq":
+                hw2 = np.maximum(hw1, bal + Bmax)
+            elif ml["type"] == "trail_bal":
+                hw2 = np.maximum(hwm, bal + Fv)
+            else:
+                hw2 = hwm
+            ol = plan.get("open_loss")  # breach when the open positions' floating loss reaches ol x B0
+            if ol is not None:
+                omin = np.minimum(np.minimum(ev["A_min"][e], np.where(skip, ev["BL_min"][e], np.minimum(ev["BL_min"][e], ev["S_min"][e]))), 0) * rr
+                br_m |= omin <= -ol
+            cap_d = plan.get("day_profit_cap")  # profit above it on one firm day is removed
+            if cap_d is not None:
+                Fv = np.minimum(Fv, cap_d)
+            res[which] = (br_d, br_m, Fv, hw2, skip)
+        if S > 0:
+            pick = lambda a, b: np.where(in_fund, b, a)  # noqa: E731
+            br_d = pick(res["eval"][0], res["fund"][0])
+            br_m = pick(res["eval"][1], res["fund"][1])
+            Fv = pick(res["eval"][2], res["fund"][2])
+            hw2 = pick(res["eval"][3], res["fund"][3])
+            skip = pick(res["eval"][4], res["fund"][4])
+        else:
+            br_d, br_m, Fv, hw2, skip = res["fund"]
+        br_d &= live
+        br_m &= live & ~br_d
+        breach = br_d | br_m
+        shorts_skipped += (skip & live)
+        ok = live & ~breach
+        bal = np.where(ok, bal + Fv, bal)
+        hwm = np.where(ok, hw2, hwm)
+        best_day = np.where(ok, np.maximum(best_day, Fv), best_day)
+        pos_sum = np.where(ok, pos_sum + np.maximum(Fv, 0.0), pos_sum)
+        thr = np.array([phases[p].get("prof_day_thr", np.inf) for p in range(S)]
+                       + [fund.get("prof_day_thr", np.inf), np.inf])[np.clip(stage, 0, S + 1)]
+        prof_days = np.where(ok & (Fv >= thr - 1e-12), prof_days + 1, prof_days)
+        tdays = np.where(ok, tdays + ev["tdays"][e], tdays)
+        pend = np.where(live, ev["gap"][e], pend)
+        # evaluation breaches / passes
+        ev_live = live & ~in_fund
+        fail = ev_live & breach
+        fail_cause[fail & br_d] = 1
+        fail_cause[fail & br_m] = 2
+        stage[fail] = -1
+        # funded breaches end the funded account
+        fb = in_fund & breach
+        f_breach[fb & br_d] = 1
+        f_breach[fb & br_m] = 2
+        stage[fb] = S + 1
+        for p in range(S):
+            at = ok & (stage == p)
+            hit = at & (bal >= phases[p]["target"] - 1e-12)
+            hit &= prof_days >= phases[p].get("min_prof_days", 0)
+            bd = phases[p].get("best_day")  # e.g. 0.5: best day <= 50 % of positive days' profit to pass
+            if bd is not None:
+                hit &= best_day <= bd * pos_sum + 1e-12
+            # min trading days: if short, finish them with minimum-size trades (~1.4 calendar days each)
+            short = np.maximum(phases[p].get("min_days", 0) - tdays, 0)
+            extra = np.where(hit, short * 1.4, 0.0)
+            elapsed = elapsed + extra
+            lim = phases[p].get("limit_days") or np.inf
+            timeout = at & ~hit & (elapsed >= lim)
+            hit &= elapsed <= lim
+            fail_cause[timeout] = 3
+            stage[timeout] = -1
+            cap = at & ~hit & ~timeout & (eval_days + elapsed >= eval_cap_days)
+            fail_cause[cap] = 4
+            stage[cap] = -1
+            pass_phase[hit, p] = True
+            eval_days = np.where(hit, eval_days + elapsed, eval_days)
+            stage[hit] = p + 1
+            bal[hit] = 0.0
+            hwm[hit] = 0.0
+            tdays[hit] = 0
+            elapsed[hit] = 0.0
+            best_day[hit] = 0.0
+            pos_sum[hit] = 0.0
+            prof_days[hit] = 0
+            if p == S - 1:
+                next_pay[hit] = fund["first_days"]
+        # funded payouts
+        if in_fund.any():
+            f_live = in_fund & ~breach
+            due = f_live & (elapsed >= next_pay)
+            cons = fund.get("consistency")
+            # consistency: best day <= cons x positive days' profit since the last payout (FTMO 1-Step Best Day)
+            okc = np.ones(N, dtype=bool) if cons is None else (best_day <= cons * pos_sum + 1e-12)
+            okd = prof_days >= fund.get("min_prof_days", 0)
+            avail = np.maximum(bal - fund.get("keep", 0.0), 0.0) * fund.get("payout_frac", 1.0)
+            pay = due & (bal >= max(fund.get("min_payout", 0.0), 1e-9)) & okc & okd & (avail > 1e-9)
+            pcap = np.where(n_pay < fund.get("first_n_capped", 0), fund.get("first_cap", np.inf), fund.get("pay_cap", np.inf))
+            gross = np.minimum(avail, pcap / fund["split"])  # a payout cap leaves the rest on the account
+            amt = fund["split"] * gross * (1 - fund.get("processing_fee", 0.0))
+            paid = np.where(pay, paid + amt, paid)
+            first_pay_day = np.where(pay & (n_pay == 0), elapsed, first_pay_day)
+            n_pay = np.where(pay, n_pay + 1, n_pay)
+            bal = np.where(pay, bal - gross, bal)
+            if fund.get("reset_hwm_on_payout", True):
+                hwm = np.where(pay, np.minimum(hwm, bal), hwm)
+            best_day = np.where(pay, 0.0, best_day)
+            pos_sum = np.where(pay, 0.0, pos_sum)
+            prof_days = np.where(pay, 0, prof_days)
+            if fund.get("floor_after_payout") is not None:
+                floor_ovr = np.where(pay, np.maximum(floor_ovr, fund["floor_after_payout"]), floor_ovr)
+            next_pay = np.where(pay, elapsed + fund["cadence"], next_pay)
+            done = f_live & (elapsed >= funded_days)
+            stage[done] = S + 1
+    funded_reached = (stage >= S) if S > 0 else np.ones(N, dtype=bool)
+    unpaid_end = np.where((stage == S + 1) & (f_breach == 0), np.maximum(bal, 0) * fund["split"], 0.0)
+    return {"pass": pass_phase, "funded": funded_reached, "fail_cause": fail_cause, "eval_days": eval_days,
+            "f_breach": f_breach, "paid": paid, "n_pay": n_pay, "first_pay_day": first_pay_day,
+            "unpaid_end": unpaid_end, "shorts_skipped": shorts_skipped, "S": S}
+
+
+def summarise(plan, out):
+    S = out["S"]
+    fee = plan["fee"]
+    refund = plan["funded"].get("refund", False)
+    paid_usd = out["paid"] * B0
+    got_refund = (out["n_pay"] >= plan["funded"].get("refund_after", 1)) & refund
+    payoff = paid_usd + np.where(got_refund, fee * plan["funded"].get("refund_frac", 1.0), 0.0)
+    fc = out["fail_cause"]
+    d = {
+        "p_ph1": out["pass"][:, 0].mean() if S > 0 else 1.0,
+        "p_pass": out["funded"].mean(),
+        "med_days": float(np.median(out["eval_days"][out["funded"]])) if S > 0 and out["funded"].any() else 0.0,
+        "p90_days": float(np.percentile(out["eval_days"][out["funded"]], 90)) if S > 0 and out["funded"].any() else 0.0,
+        "fail_daily": (fc == 1).mean(), "fail_max": (fc == 2).mean(), "fail_time": (fc == 3).mean(),
+        "unfinished": (fc == 4).mean(),
+        "p_paid": (out["n_pay"] > 0).mean(),
+        "f_breach_daily": ((out["f_breach"] == 1) & out["funded"]).mean(),
+        "f_breach_max": ((out["f_breach"] == 2) & out["funded"]).mean(),
+        "e_payout": paid_usd.mean(),
+        "e_payout_if_funded": paid_usd[out["funded"]].mean() if out["funded"].any() else 0.0,
+        "ev": payoff.mean() - fee,
+    }
+    d["ev_per_fee"] = d["ev"] / fee
+    d["unpaid_end"] = out["unpaid_end"].mean() * B0
+    return d

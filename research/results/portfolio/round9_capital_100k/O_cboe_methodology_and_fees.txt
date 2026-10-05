@@ -1,0 +1,42 @@
+Stream O, round 9. Index methodology facts (from the CBOE methodology PDFs in docs/, fetched 2026-10-05
+from cdn.cboe.com/api/global/us_indices/governance/). All SPX legs are AM-settled standard monthlies unless said.
+
+PUT   (Cboe S&P 500 PutWrite). Sells 1-month ATM SPX put on roll day = 3rd Friday (holiday -> previous business
+      day); strike = listed strike closest to but not above SPX before 11:00 ET (CBOE text "struck at-the-money").
+      Collateral: T-bill account (1- and 3-month bills) = strike, i.e. fully cash-secured, no leverage.
+      Expiring put settles vs SOQ (special opening quotation). New put sold at VWAP of trades 11:30-12:00 ET
+      (spread/late/cancel trades excluded; no trade -> last bid). Daily marks: bid/ask mid before 16:00.
+      CDN file: daily only from 2007 (a few scattered earlier rows). Yahoo ^PUT gives daily from 1996-08.
+PWT   same as PUT but sold at TWAP of trades 11:30-12:00 (not a bid measure; not usable as a spread proxy).
+PUTY  2% OTM PutWrite: first strike below 98% of SPX before 11:00 ET, monthly 3rd Friday, sold at VWAP 11:30-12:00,
+      collateral = strike in 4-week bills. Daily from 1986-06.
+WPUT  One-Week PutWrite: every Friday, first strike below SPX SOQ, sold at the FIRST BID after the open (so the
+      index already pays the half-spread at the open), collateral = strike in 4-week bills. Daily from 2006-01.
+PUTD  Cboe Validus Dynamic PutWrite: basket of SPX monthly puts, strikes from a proprietary rule on front-month
+      25-delta call IV (Cboe Hanweck). Rule designed by Validus (hindsight risk) -> reference only.
+PUTVM Volatility Managed PutWrite: regime by VIX percentile (17th / 95th of lognormal VIX history; 13 / 32 in
+      2019, recomputed every 3 y with FULL history -> look-ahead); low vol regime holds SPX instead. Reference only.
+BXM   BuyWrite: long SPX + short 1-month ATM call, roll 3rd Friday, call sold at VWAP 11:30-12:00. CDN from 2002.
+BXMD  30-delta BuyWrite: same, call with delta closest to 0.30 (Black). From 1986-06.
+BXY   2% OTM BuyWrite. From 1988-06.
+CMBO  Covered Combo: long SPX, short 2% OTM call + short ATM put (VWAP 11:30-12:00). From 1986.
+RXM   Risk Reversal: long SPX? (index text: buys 25-delta call, writes 25-delta put, VWAP; holds bills). From 1986.
+CNDR  Iron Condor: sells 20-delta put and call, buys 5-delta put and call (Black deltas, inputs before 11:00 ET),
+      all priced at bid/ask MID before 11:00 ET (so NO spread is paid in the index). T-bill account = 10 x the
+      max possible loss of the condor, so the worst monthly settlement loss is ~10 % of the account. From 1986-06.
+BFLY  Iron Butterfly: sells ATM put and call, buys 5% OTM put and call, mid prices before 11:00 ET, T-bill account
+      = 10 x max loss (worst monthly loss ~10 %). From 1986-06.
+CLL   95-110 collar (quarterly 5% OTM put, monthly 10% OTM call). CLLZ zero-cost put spread collar.
+PPUT  long SPX + long monthly 5% OTM put (VWAP). VXTH: SPX + 30-delta VIX calls (weight by VIX level).
+VIX   30-day SPX variance-swap implied vol (since 1990). VIX3M (2009-09 in CDN), VIX9D (2011), VIX1D (2022-05),
+      VIX6M (2008), VIX1Y (2007), SKEW (1990), VVIX (2006).
+
+Fees found (Cboe Exchange fee schedule dated October 1, 2026, docs/Cboe_FeeSchedule.pdf):
+  SPX (incl SPXW) customer transaction fee: $0.36 / contract if premium < $1, $0.45 if premium >= $1.
+  Execution surcharge (applies to customer capacity C): SPX standard AM $0.21, SPXW electronic $0.14.
+  XSP customer: $0.07 / contract for orders >= 10 contracts; ($0.30) i.e. a rebate for < 10 contracts.
+IBKR commissions (IBKR Pro, from memory of the published schedule; IBKR site not reachable from this sandbox):
+  $0.65 / contract (premium >= $0.10), $1.00 minimum per order; tiered adds exchange fees; plus OCC clearing
+  ~$0.02-0.025, ORF ~$0.02-0.03 / contract, FINRA TAF on sales ~$0.003 / contract, SEC fee on sale proceeds
+  ($27.80 per $1M was the FY2024 rate). Used: SPX all-in $1.45 / contract + SEC fee; XSP all-in $0.80 / contract
+  + SEC fee. These are < 0.2 % of premium for any strategy here: the bid-ask haircut dominates.
