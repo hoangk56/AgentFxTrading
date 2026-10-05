@@ -6,6 +6,18 @@ detail. The numbers are copied from those files, and the file wins if the two ev
 When you write a new result file, add a row to that day's entry (or start a new entry) and link the file. Don't
 repeat its tables here.
 
+## 2026-10-05: round 9, what a $100k account changes. No new algorithm; C3 sizing at $100k and at a prop firm
+
+| tested | verdict | detail |
+|---|---|---|
+| I: the IC cTrader account at $100k with relaxed limits (hold weeks-months, many positions, capital-based lots). I-A: C3 at size (lots, spreads at its minutes, slippage, mark-to-market DD, bootstrap). I-B: macro fair value (gold vs TIPS, USDJPY vs rate spread, commodity FX), COT contrarian, buying the S&P 500 after a drawdown or VIX > 30, carry on IC's net swap, a multi-strategy book | **C3 scales cleanly**: 1 % per leg = 1.4-2.5 lots, ordinary spreads at 18:00 / 00:55 / 02:55 UTC, floating losses add ~10 % to the DD. Risk per leg for a 10 / 20 / 30 % DD tolerance (rule fixed before computing, halved edge): 0.375 / 0.75 / 1.5 %; at 0.75 % ~+15-17 %/yr, MTM max DD 5.3 %. **I-B: none passes** (~237 cells, max \|t\| 2.84 = chance); closest is VIX > 30 (net > 0 in every era, NW t <= 1.91, DD 47 %) | [round9_capital_100k_2026-10-05.md](results/portfolio/round9_capital_100k_2026-10-05.md) (I), [round9_capital_100k/](results/portfolio/round9_capital_100k/) |
+| O: S&P 500 index options, the volatility risk premium (16 CBOE strategy indices 1988-2024, retail XSP/SPX costs, 24 timing overlays, put spreads, sizing) | **the premium is real, the alpha is not**: VIX exceeds next-30-day realised vol by 4.1 points (t 15), but PUT's alpha over SPX is +1.5 %/yr (t 1.3) and -3.3 %/yr in 2016-21; every short-vol index lost alpha after 2015 (WPUT -7.2, t -3.1); no overlay survives the checks; real-price put spreads have negative alpha. One XSP put a month = about 35 % SPX + 65 % T-bills | same (O) |
+| P: a $100k prop-firm account on cTrader running C3 (rules of 7+ firms, bootstrap of the evaluation and 12 funded months, an account-level daily-loss guard, a no-edge baseline) | **positive EV on paper**: FTMO 2-Step Swing, 1 % per leg with the guard: P(pass) 0.97, median 238 days, E payouts $16.4k in year 1 for a €540 fee (no edge $1.1k, half edge P 0.72 / EV $7.0k). Without the guard, the daily-loss limit fails 20 % of evaluations at 1 %. Firm credit risk is the main risk; Vietnam eligibility for FTMO/The5ers unchecked | same (P) |
+
+Standing: unchanged. C3 remains the only algorithm that has passed. A $100k account would change C3's size and
+where it can run, not the search; running it on own capital and on a prop account would be the same bet twice. The
+$100k is a research premise (the user: research only, not a real account), so nothing was deployed.
+
 ## 2026-10-05: round 8, how the symbols affect each other. No candidate
 
 | tested | verdict | detail |

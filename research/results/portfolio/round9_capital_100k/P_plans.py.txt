@@ -1,0 +1,86 @@
+"""Prop-firm $100k plans on cTrader, as surveyed 2026-10-05 (survey/*.md hold every rule with its URL).
+
+Units: fractions of the $100k initial balance. fee in USD (EUR prices at 1.17). Unknowns are set to the
+conservative reading and flagged in `note`.
+"""
+EUR = 1.17
+
+PLANS = {
+    "FTMO 2-Step (Swing)": {
+        "fee": 540 * EUR, "comm": 5.0, "reset": "CET",
+        "phases": [{"target": 0.10, "min_days": 4}, {"target": 0.05, "min_days": 4}],
+        "daily": {"pct": 0.05, "basis": "balance", "of": "initial"},
+        "maxloss": {"type": "static", "pct": 0.10},
+        "funded": {"split": 0.8, "first_days": 14, "cadence": 14, "refund": True, "min_payout": 0.0002},
+        "note": "Swing type: 1:30, no news/weekend limits (Standard funded bans opening within 2 min of FOMC "
+                "14:00 ET = the 18:00 UTC entry in summer). Daily ref = balance at midnight Prague.",
+    },
+    "FTMO 1-Step": {
+        "fee": 499 * EUR, "comm": 5.0, "reset": "CET",
+        "phases": [{"target": 0.10, "min_days": 4, "best_day": 0.5}],
+        "daily": {"pct": 0.03, "basis": "balance", "of": "initial"},
+        "maxloss": {"type": "trail_bal", "pct": 0.10, "lock": True},
+        "funded": {"split": 0.9, "first_days": 14, "cadence": 14, "refund": False, "consistency": 0.5,
+                   "min_payout": 0.0002},
+        "note": "Best day <= 50 % of positive days' profit to pass and for every reward. Trailing EOD max loss "
+                "locks at $100k; assumed to restart below the post-payout balance (not documented).",
+    },
+    "The5ers High Stakes 10/5": {
+        "fee": 491.0 + 10.0, "comm": 4.0, "reset": "EET",
+        "phases": [{"target": 0.10, "min_prof_days": 3, "prof_day_thr": 0.005},
+                   {"target": 0.05, "min_prof_days": 3, "prof_day_thr": 0.005}],
+        "daily": {"pct": 0.05, "basis": "maxbe", "of": "sod"},
+        "maxloss": {"type": "static", "pct": 0.10},
+        "funded": {"split": 0.8, "first_days": 14, "cadence": 14, "refund": True, "refund_frac": 0.7,
+                   "min_payout": 0.005, "pay_cap": 0.04},
+        "note": "Fee $491 (3P; New 10/5) + $10 cTrader. Daily 5 % of max(prev close balance, equity) at server "
+                "midnight (GMT+2/+3 assumed). 3 profitable days >= 0.5 % per step. Payout cap $4k, min P&L $500. "
+                "Refund 70 % with 1st payout. News +/-2 min ban (18:00 UTC = FOMC in summer).",
+    },
+    "The5ers High Stakes 8/5": {
+        "fee": 545.0 + 10.0, "comm": 4.0, "reset": "EET",
+        "phases": [{"target": 0.08, "min_prof_days": 3, "prof_day_thr": 0.005},
+                   {"target": 0.05, "min_prof_days": 3, "prof_day_thr": 0.005}],
+        "daily": {"pct": 0.05, "basis": "maxbe", "of": "sod"},
+        "maxloss": {"type": "static", "pct": 0.10},
+        "funded": {"split": 0.8, "first_days": 14, "cadence": 14, "refund": True, "refund_frac": 0.7,
+                   "min_payout": 0.005, "pay_cap": 0.04},
+        "note": "Classic variant, $545 (official 'normally $545').",
+    },
+}
+
+PLANS.update({
+    "E8 One (6% DD)": {
+        "fee": 488.0, "comm": 5.0, "reset": "EET",
+        "phases": [{"target": 0.09}],
+        "daily": {"pct": 0.04, "basis": "balance", "of": "initial"},
+        "maxloss": {"type": "trail_bal", "pct": 0.06, "lock": True},
+        "funded": {"split": 0.8, "first_days": 3, "cadence": 1, "refund": False, "consistency": 0.4,
+                   "min_payout": 0.02, "keep": 0.03, "reset_hwm_on_payout": False},
+        "note": "Dynamic DD on closed balance locks at $100k and does not reset after payouts, so a 3 % buffer is "
+                "kept. Best day <= 40 % for payouts; payout needs > 2 % profit. Funded news ban +/-5 min. "
+                "Commission $5/lot raw (3P, RT assumed). No refund.",
+    },
+    "E8 Pro": {
+        "fee": 488.0, "comm": 5.0, "reset": "EET", "day_profit_cap": 0.02,
+        "phases": [{"target": 0.08}],
+        "daily": {"pct": 0.025, "basis": "balance", "of": "initial"},
+        "maxloss": {"type": "static", "pct": 0.08},
+        "funded": {"split": 0.8, "first_days": 1, "cadence": 1, "refund": False, "payout_frac": 0.5,
+                   "min_payout": 0.01, "floor_after_payout": 0.0},
+        "note": "2 % daily profit cap (excess deleted). Only 50 % of profit requestable; floor moves to $100k "
+                "after the first payout. No refund.",
+    },
+    "Goat Instant GOAT": {
+        "fee": 767.0, "comm": 5.0, "reset": "NY17", "open_loss": 0.02,
+        "phases": [],
+        "daily": {"pct": 0.03, "basis": "maxbe", "of": "sod"},
+        "maxloss": {"type": "trail_eq", "pct": 0.06, "lock": False},
+        "funded": {"split": 0.8, "first_days": 14, "cadence": 14, "refund": True, "refund_after": 4,
+                   "consistency": 0.15, "min_prof_days": 5, "prof_day_thr": 0.005, "min_payout": 0.001,
+                   "first_n_capped": 2, "first_cap": 0.06, "processing_fee": 0.03},
+        "note": "Instant: floating loss < -2 % closes permanently; best day < 15 %; 5 days >= 0.5 % per payout; "
+                "first two payouts capped 6 %; 3 % processing fee; refund with 4th payout (conflicting). "
+                "Fee third-party.",
+    },
+})

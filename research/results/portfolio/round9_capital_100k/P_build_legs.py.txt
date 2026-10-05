@@ -1,0 +1,135 @@
+"""Stream P, step 1: C3 legs with their intraday paths in R units (2016-2024), plus the closed-trade list 2016-2026.
+
+R_true per leg = signed price move / stop distance, the stop rebuilt as 3 x ATR20 of bid H1 bars (last bar closed
+before the entry) from IC M1. IC M1 is cut at ts < 2025-01-01 on load (BRIEF.md). The C3 trade CSV is used in full
+(allowed: C3 already passed its holdout; used here for rule modelling only). JP holiday gotobi days are dropped.
+
+Run from the repo root with the stream venv:
+  PYTHONPATH=. <P>/.venv/bin/python <P>/build_legs.py
+Writes <P>/out/legs.pkl
+"""
+import csv
+import datetime as dt
+import pickle
+import sys
+from pathlib import Path
+
+import numpy as np
+
+REPO = Path("/Users/hoangbk/00.code_base/105.AgentFxTrading")
+P = Path(__file__).resolve().parent
+sys.path.insert(0, str(REPO))
+from research.tools.gotobi_holidays import no_fix_days  # noqa: E402
+
+CUT = 1735689600000  # 2025-01-01 00:00 UTC
+SYMS = ["USDJPY", "EURJPY", "GBPJPY"]
+MIN = 60_000
+HOUR = 3_600_000
+
+
+def load_m1(sym):
+    z = np.load(REPO / "research/data/m1" / f"{sym}.npz")
+    ts = z["ts"]
+    k = int(np.searchsorted(ts, CUT))  # cut right at load, before anything else
+    return {key: np.array(z[key][:k]) for key in ["ts", "h", "l", "c", "ca", "smean"]}
+
+
+def h1_atr(m, n=20):
+    """(hour start ms, ATR20 simple of bid H1 bars) built from M1."""
+    hk = m["ts"] // HOUR
+    s = np.flatnonzero(np.r_[True, hk[1:] != hk[:-1]])
+    e = np.r_[s[1:], len(hk)]
+    hh = np.maximum.reduceat(m["h"], s)
+    ll = np.minimum.reduceat(m["l"], s)
+    cc = m["c"][e - 1]
+    pc = np.r_[np.nan, cc[:-1]]
+    tr = np.nanmax(np.c_[hh - ll, np.abs(hh - pc), np.abs(ll - pc)], axis=1)
+    tr[0] = hh[0] - ll[0]
+    cs = np.cumsum(np.r_[0.0, tr])
+    atr = np.full(len(tr), np.nan)
+    atr[n - 1:] = (cs[n:] - cs[:-n]) / n
+    return hk[s] * HOUR, atr
+
+
+def parse_ts(s):
+    return int(dt.datetime.fromisoformat(s).replace(tzinfo=dt.timezone.utc).timestamp() * 1000)
+
+
+def main():
+    rows = list(csv.DictReader(open(REPO / "research/results/portfolio/gotobi_cbot_trades.csv")))
+    days = sorted({dt.date.fromisoformat(r["leg"].split()[1]) for r in rows})
+    nofix = no_fix_days(range(days[0].year, days[-1].year + 1))
+    rows = [r for r in rows if dt.date.fromisoformat(r["leg"].split()[1]) not in nofix]
+    # 25 Dec gotobi days: the broker is (nearly) closed at the fix and the live presets skip them (SkipDates
+    # default 2026-12-25; gotobi_backtest_366-374 report): drop them like the holidays
+    rows = [r for r in rows if r["leg"].split()[1][5:] != "12-25"]
+
+    m1 = {s: load_m1(s) for s in SYMS}
+    atr = {s: h1_atr(m1[s]) for s in SYMS}
+    uj = m1["USDJPY"]
+
+    legs = []
+    for r in rows:
+        day = dt.date.fromisoformat(r["leg"].split()[1])
+        sym, side = r["symbol"], (1 if r["direction"] == "buy" else -1)
+        e_ts, c_ts = parse_ts(r["entry_utc"]), parse_ts(r["close_utc"])
+        entry, close, lots = float(r["entry"]), float(r["close"]), float(r["lots"])
+        leg = {"day": day, "sym": sym, "side": side, "leg": "L" if side == 1 else "S", "entry_ts": e_ts,
+               "close_ts": c_ts, "entry": entry, "close": close, "lots": lots, "gross": float(r["gross"]),
+               "comm": float(r["commissions"]), "swaps": float(r["swaps"]), "net": float(r["net"]),
+               "R50": float(r["net"]) / 50.0, "path": None}
+        if c_ts < CUT:
+            m = m1[sym]
+            hs, a = atr[sym]
+            k = int(np.searchsorted(hs + HOUR, e_ts, side="right")) - 1  # last H1 bar closed at or before entry
+            stop = 3.0 * a[k]
+            ju = int(np.searchsorted(uj["ts"], e_ts, side="right")) - 1
+            usdjpy = uj["c"][ju]
+            em, cm = e_ts // MIN * MIN, c_ts // MIN * MIN
+            grid = np.arange(em, cm + MIN, MIN)  # entry minute .. close minute
+            i = np.searchsorted(m["ts"], grid)
+            have = (i < len(m["ts"])) & (m["ts"][np.minimum(i, len(m["ts"]) - 1)] == grid)
+            # forward-filled close for minutes with no tick
+            idx = np.where(have, i, -1)
+            idx = np.maximum.accumulate(np.where(idx >= 0, idx, -1))
+            if side == 1:
+                clo = m["c"][np.maximum(idx, 0)] - entry
+                wor = np.where(have, m["l"][np.minimum(i, len(m["ts"]) - 1)] - entry, clo)
+                bes = np.where(have, m["h"][np.minimum(i, len(m["ts"]) - 1)] - entry, clo)
+            else:
+                ii = np.minimum(i, len(m["ts"]) - 1)
+                clo = entry - m["ca"][np.maximum(idx, 0)]
+                wor = np.where(have, entry - (m["h"][ii] + m["smean"][ii]), clo)
+                bes = np.where(have, entry - (m["l"][ii] + m["smean"][ii]), clo)
+            pre = idx < 0  # minutes before any bar (entry minute without bar): use 0 move
+            clo[pre] = 0.0; wor[pre] = np.minimum(wor[pre], 0.0); bes[pre] = np.maximum(bes[pre], 0.0)
+            # entry minute: its extremes may precede the fill (Sunday open, Christmas spreads); use its close only
+            wor[0] = min(0.0, clo[0]); bes[0] = max(0.0, clo[0])
+            # spike filter: a minute extreme more than 0.5 R beyond every close around it (t-1, t, t+1) is a bad
+            # tick / quote spike (Sunday-open lows of -30 R, Christmas spreads); clamp it to that band
+            cp, cn = np.r_[clo[0], clo[:-1]], np.r_[clo[1:], clo[-1]]
+            lo_band = np.minimum(np.minimum(cp, clo), cn) - 0.5 * stop
+            hi_band = np.maximum(np.maximum(cp, clo), cn) + 0.5 * stop
+            leg["spikes"] = int((wor < lo_band).sum() + (bes > hi_band).sum())
+            wor = np.maximum(wor, lo_band); bes = np.minimum(bes, hi_band)
+            fin = side * (close - entry)
+            # close minute: the leg's final value (a stop is the worst level reached by construction)
+            clo[-1] = wor[-1] = bes[-1] = fin
+            leg.update({"stop": stop, "usdjpy": usdjpy, "grid0": em,
+                        "path": (wor / stop, bes / stop, clo / stop), "Rg": fin / stop,
+                        # $ per R per lot = 1e5 * stop / usdjpy ; commission $/lot RT -> R
+                        "comm_per_dollar_lot": usdjpy / (1e5 * stop),
+                        "swapR": float(r["swaps"]) / (lots * 1e5 * stop / usdjpy),
+                        "commR_ic": -float(r["commissions"]) / (lots * 1e5 * stop / usdjpy),
+                        "pip_R": 0.01 / stop})
+        legs.append(leg)
+    out = P / "out"
+    out.mkdir(exist_ok=True)
+    with open(out / "legs.pkl", "wb") as fh:
+        pickle.dump(legs, fh)
+    n_path = sum(l["path"] is not None for l in legs)
+    print(f"legs kept (holidays dropped): {len(legs)}; with M1 path (2016-24): {n_path}")
+
+
+if __name__ == "__main__":
+    main()
