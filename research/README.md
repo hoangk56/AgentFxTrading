@@ -2,14 +2,15 @@
 
 Offline strategy research on the cTrader backtest tick cache. Nothing here runs in production.
 
-**Where things stand (2026-09-27):** one algorithm has passed out-of-sample years and a pre-registered holdout:
-C3, the gotobi Tokyo-fix trade on USDJPY/EURJPY/GBPJPY (`cBot/GotobiBot.cs`). C1 (crypto Donchian H4,
-`cBot/CryptoDonchianBot.cs`) failed its holdout and runs only as a forward test. The day-by-day verdicts, each linked
-to its result file, are in [JOURNAL.md](JOURNAL.md). Read it and
-[results/portfolio/swing_lab_v2_2026-09-27.md](results/portfolio/swing_lab_v2_2026-09-27.md) ("What was tried")
-before you propose a strategy, so that nothing gets tested twice. A third round (flows at fixes and settlement dates,
-premia, liquidity provision; [results/portfolio/flow_search_2026-09-27.md](results/portfolio/flow_search_2026-09-27.md))
-found nothing new: its one registered candidate, M1 (month-end USD), failed its holdout. The older strategy lab
+**Where things stand (2026-10-05):** one algorithm has passed out-of-sample years and a pre-registered holdout, and
+it is the only one running: C3, the gotobi Tokyo-fix trade on USDJPY/EURJPY/GBPJPY (`cBot/GotobiBot.cs`). It also
+passes an older era nobody had used, Dukascopy 2004-2015 (round 7). C1 (crypto Donchian H4) failed its holdout; its
+cBot was removed from the repo and the VPS on 2026-10-03 (the research code and reports stay). Rounds 3-8 (flows at
+fixes and settlements, premia, liquidity provision, public external data, new symbols and eras, multi-week premia,
+interactions between symbols) found no new candidate: the effects that exist are about the size of IC's costs, or too
+rare for the 21-month holdout. The day-by-day verdicts, each linked to its result file, are in [JOURNAL.md](JOURNAL.md).
+Read it and [results/portfolio/swing_lab_v2_2026-09-27.md](results/portfolio/swing_lab_v2_2026-09-27.md)
+("What was tried") before you propose a strategy, so that nothing gets tested twice. The older strategy lab
 (TMS+ORB, Judas Sweep, FlowRSI and the 62-strategy baseline) was removed on 2026-09-27; see the last entry of the
 journal.
 
@@ -38,7 +39,7 @@ Git keeps the reports and summary tables in `results/portfolio/`; bulky outputs 
 |---|---|
 | `results/portfolio/swing_lab_v2_2026-09-27.md`, `prereg_swing_v2.md`, `prereg_swing_v2_code/` | swing lab v2: pre-registration, verdicts of C1/C3/C4 and the R-series, and the registered sources |
 | `results/portfolio/gotobi_*.md` | GotobiBot cTrader backtests |
-| `results/portfolio/crypto_donchian_*.md` | CryptoDonchianBot cTrader backtest, C1 vs the weekend closure, C1's MaxPositions (keep 3) |
+| `results/portfolio/crypto_donchian_*.md` | CryptoDonchianBot cTrader backtest (the cBot was removed on 2026-10-03), C1 vs the weekend closure, C1's MaxPositions (keep 3) |
 | `results/portfolio/flow_search_2026-09-27.md`, `prereg_month_end_usd_2026-09-27.md` | round 3: ~40 flow / premium / liquidity hypotheses and scans; M1 registered and failed |
 | `results/portfolio/flow_search_round4_2026-09-27.md` | round 4: benchmark-time scan and public external data (COT, funding, GEX/DIX, VIX, auctions); no candidate |
 | `results/portfolio/sizing_round5_2026-09-27.md` | round 5: capital-based lots with a 60 % drawdown limit; equity premium and martingale rejected, C3 compounding and stress |
