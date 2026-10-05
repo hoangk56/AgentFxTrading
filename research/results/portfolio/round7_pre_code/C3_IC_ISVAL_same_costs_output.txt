@@ -1,0 +1,18 @@
+C3 on IC 2016-2024 (IS+VAL) with the PRE cost settings (IC bid + IC 2016-17 profile, 0.6 bp, FRED-1% swaps)
+IS 2016-21               n  2568 ( 428 d)  R +0.0468  sd 0.402  t +5.90  day-cl t +3.81  win 56.5%  net $  +12,029  yrs>0 6/6  maxDD $1,270
+  USDJPY                 n   856 ( 428 d)  R +0.0733  sd 0.441  t +4.87  day-cl t +4.85  win 59.1%  net $   +6,273  yrs>0 6/6  maxDD $566
+  EURJPY                 n   856 ( 428 d)  R +0.0418  sd 0.373  t +3.27  day-cl t +3.27  win 57.0%  net $   +3,574  yrs>0 6/6  maxDD $442
+  GBPJPY                 n   856 ( 428 d)  R +0.0255  sd 0.389  t +1.92  day-cl t +1.94  win 53.5%  net $   +2,182  yrs>0 5/6  maxDD $562
+  long                   n  1284 ( 428 d)  R +0.0615  sd 0.479  t +4.60  day-cl t +3.01  win 58.2%  net $   +7,896  yrs>0 6/6  maxDD $1,149
+  short                  n  1284 ( 428 d)  R +0.0322  sd 0.306  t +3.77  day-cl t +2.33  win 54.9%  net $   +4,133  yrs>0 6/6  maxDD $701
+VAL 2022-24              n  1284 ( 214 d)  R +0.0483  sd 0.394  t +4.39  day-cl t +2.56  win 56.2%  net $   +6,205  yrs>0 3/3  maxDD $1,035
+  USDJPY                 n   428 ( 214 d)  R +0.0607  sd 0.424  t +2.96  day-cl t +2.82  win 58.2%  net $   +2,596  yrs>0 3/3  maxDD $376
+  EURJPY                 n   428 ( 214 d)  R +0.0492  sd 0.392  t +2.59  day-cl t +2.44  win 56.1%  net $   +2,104  yrs>0 3/3  maxDD $381
+  GBPJPY                 n   428 ( 214 d)  R +0.0352  sd 0.364  t +2.00  day-cl t +1.93  win 54.2%  net $   +1,505  yrs>0 3/3  maxDD $393
+  long                   n   642 ( 214 d)  R +0.0526  sd 0.406  t +3.28  day-cl t +2.05  win 57.3%  net $   +3,377  yrs>0 3/3  maxDD $977
+  short                  n   642 ( 214 d)  R +0.0440  sd 0.382  t +2.92  day-cl t +1.76  win 55.0%  net $   +2,828  yrs>0 3/3  maxDD $686
+  years $: 2016:+3,222  2017:+2,288  2018:+1,155  2019:+1,795  2020:+1,093  2021:+2,476  2022:+2,616  2023:+1,263  2024:+2,326
+IS raw/eng               n  2568 ( 428 d)  R +0.0435  sd 0.404  t +5.46  day-cl t +3.55  win 56.3%  net $  +11,163  yrs>0 6/6  maxDD $1,255
+VAL raw/eng              n  1284 ( 214 d)  R +0.0413  sd 0.393  t +3.77  day-cl t +2.20  win 56.2%  net $   +5,301  yrs>0 3/3  maxDD $1,094
+IS gross                 n  2568 ( 428 d)  R +0.0864  sd 0.403  t +10.86  day-cl t +7.03  win 62.0%  net $  +22,180  yrs>0 6/6  maxDD $921
+VAL gross                n  1284 ( 214 d)  R +0.0689  sd 0.397  t +6.21  day-cl t +3.64  win 60.0%  net $   +8,843  yrs>0 3/3  maxDD $870

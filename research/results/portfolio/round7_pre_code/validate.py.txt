@@ -1,0 +1,96 @@
+"""Task 1: Dukascopy M1 vs IC M1 on 2016 overlap days (USDJPY, EURUSD).
+
+IC: research/data/m1/<SYM>.npz cut to ts < 2017-01-01 at load (HOLD rule). Dukascopy: cache via duka.py.
+Prints per day: minutes in each source, overlap, best time shift (minutes) by mean |mid diff|, mid-close diff in bp
+(median, mean |.|, p95 |.|), spread at the minute close (Duka ask close - bid close vs IC ca - c) in pips, and
+H1 file vs M1 aggregate consistency.
+"""
+import datetime
+import sys
+from pathlib import Path
+
+import numpy as np
+
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+import duka  # noqa: E402
+
+REPO = Path("/Users/hoangbk/00.code_base/105.AgentFxTrading/research")
+DAYS = ["2016-01-05", "2016-02-10", "2016-03-15", "2016-03-29", "2016-04-20", "2016-06-24", "2016-07-05",
+        "2016-08-10", "2016-10-20", "2016-11-02", "2016-11-09", "2016-12-15"]
+CUT = int(datetime.datetime(2017, 1, 1, tzinfo=datetime.timezone.utc).timestamp() * 1000)
+
+
+def ic(sym):
+    z = np.load(REPO / "data" / "m1" / f"{sym}.npz")
+    ts = z["ts"]
+    sel = ts < CUT
+    return {k: z[k][sel] for k in ("ts", "o", "h", "l", "c", "ca", "n")}
+
+
+def main():
+    for sym in ("USDJPY", "EURUSD"):
+        pip = 0.01 if sym.endswith("JPY") else 1e-4
+        m = ic(sym)
+        print(f"\n== {sym} (pip {pip})")
+        print("day        | IC min | Duka min | both | best shift | mid diff bp: med  mean|.| p95|.| | "
+              "spread pips IC med / Duka med (both minutes) | IC p90 / Duka p90 | ret corr")
+        allspr = []
+        for ds in DAYS:
+            d = datetime.date.fromisoformat(ds)
+            x = duka.load_m1_day(sym, d)
+            a0 = duka._ms(d)
+            sel = (m["ts"] >= a0) & (m["ts"] < a0 + 86_400_000)
+            it, imid = m["ts"][sel], (m["c"][sel] + m["ca"][sel]) / 2
+            ispr = (m["ca"][sel] - m["c"][sel]) / pip
+            dt, dmid = x["ts"], (x["c"] + x["ac"]) / 2
+            dspr = (x["ac"] - x["c"]) / pip
+            best = None
+            for sh in range(-180, 181):
+                common, ia, ib = np.intersect1d(it, dt + sh * 60_000, return_indices=True)
+                if len(common) < 200:
+                    continue
+                e = np.mean(np.abs(imid[ia] - dmid[ib]) / imid[ia] * 1e4)
+                if best is None or e < best[1]:
+                    best = (sh, e)
+            common, ia, ib = np.intersect1d(it, dt, return_indices=True)
+            diff = (dmid[ib] - imid[ia]) / imid[ia] * 1e4
+            ri, rd = np.diff(np.log(imid[ia])), np.diff(np.log(dmid[ib]))
+            corr = np.corrcoef(ri, rd)[0, 1]
+            allspr.append((ispr[ia], dspr[ib], it[ia]))
+            print(f"{ds} | {len(it):6d} | {len(dt):8d} | {len(common):4d} | {best[0]:+4d} min | "
+                  f"{np.median(diff):+.2f} {np.mean(np.abs(diff)):.2f} {np.percentile(np.abs(diff), 95):.2f} | "
+                  f"{np.median(ispr[ia]):.2f} / {np.median(dspr[ib]):.2f} | "
+                  f"{np.percentile(ispr[ia], 90):.2f} / {np.percentile(dspr[ib], 90):.2f} | {corr:.3f}")
+        isp = np.concatenate([a for a, _, _ in allspr])
+        dsp = np.concatenate([b for _, b, _ in allspr])
+        tt = np.concatenate([t for _, _, t in allspr])
+        hr = (tt // 3_600_000) % 24
+        print("spread by UTC hour (median pips, IC / Duka):",
+              " ".join(f"{h:02d}:{np.median(isp[hr == h]):.1f}/{np.median(dsp[hr == h]):.1f}" for h in range(24)
+                       if (hr == h).any()))
+        # H1 file vs M1 aggregate (Duka internal consistency)
+        for (y, mo) in ((2016, 3), (2016, 11)):
+            h1 = duka.load_h1_month(sym, y, mo)
+            bad = tot = 0
+            for ds in DAYS:
+                d = datetime.date.fromisoformat(ds)
+                if (d.year, d.month) != (y, mo):
+                    continue
+                x = duka.load_m1_day(sym, d)
+                hh = x["ts"] // 3_600_000
+                for k in np.unique(hh):
+                    s = hh == k
+                    j = np.flatnonzero(h1["ts"] == k * 3_600_000)
+                    if not len(j):
+                        bad += 1
+                        continue
+                    j = j[0]
+                    agg = (x["o"][s][0], x["h"][s].max(), x["l"][s].min(), x["c"][s][-1], x["ac"][s][-1])
+                    ref = (h1["o"][j], h1["h"][j], h1["l"][j], h1["c"][j], h1["ac"][j])
+                    tot += 1
+                    bad += not np.allclose(agg, ref, atol=1e-9)
+            print(f"H1 {y}-{mo:02d} vs M1 aggregate: {tot - bad}/{tot} hours identical (bid OHLC + ask close)")
+
+
+if __name__ == "__main__":
+    main()

@@ -1,0 +1,50 @@
+"""Task 4: Dukascopy H1 bid/ask months 2003-12..2015-12 -> data/h1/<SYM>.npz (one tidy file per symbol).
+
+Keys: ts (int64 ms UTC, hour start), o/h/l/c (bid), ao/ah/al/ac (ask), vb/va (Dukascopy volume); hours with zero
+volume on both sides dropped. Caveat (see the report): early ask quotes are not realistic costs (USDJPY 2004 often
+bid == ask, crosses quoted at fixed wide spreads), so use bid prices + a separate cost model.
+
+    python build_h1.py EURUSD USDJPY ...
+"""
+import sys
+from pathlib import Path
+
+import numpy as np
+
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+import duka  # noqa: E402
+
+SYMS = ["EURUSD", "USDJPY", "GBPUSD", "AUDUSD", "USDCAD", "USDCHF", "NZDUSD", "EURJPY", "GBPJPY", "AUDJPY", "XAUUSD"]
+OUT = duka.HERE / "data" / "h1"
+
+
+def from_m1(sym):
+    """H1 bars aggregated from the converted M1 npz (identical to Dukascopy's H1 files, checked on 2016 days)."""
+    z = np.load(duka.HERE / "data" / "m1" / f"{sym}.npz")
+    ts = z["ts"]
+    hb = ts // 3_600_000
+    s = np.flatnonzero(np.r_[True, hb[1:] != hb[:-1]])
+    e = np.r_[s[1:], len(ts)] - 1
+    return dict(ts=hb[s] * 3_600_000, o=z["o"][s], h=np.maximum.reduceat(z["h"], s), l=np.minimum.reduceat(z["l"], s),
+                c=z["c"][e], ao=z["ao"][s], ah=np.maximum.reduceat(z["ah"], s), al=np.minimum.reduceat(z["al"], s),
+                ac=z["ca"][e], vb=np.add.reduceat(z["vb"], s), va=np.add.reduceat(z["va"], s))
+
+
+def build(sym):
+    if (duka.HERE / "data" / "m1" / f"{sym}.npz").exists():
+        x, missing = from_m1(sym), "none (built from M1)"
+    else:
+        x = duka.load_h1(sym, (2003, 12), (2015, 12))
+        missing = x.pop("missing")
+    OUT.mkdir(parents=True, exist_ok=True)
+    np.savez(OUT / f"{sym}.npz", **x)
+    yr = (x["ts"] // 1000).astype("datetime64[s]").astype("datetime64[Y]").astype(int) + 1970
+    spr = x["ac"] - x["c"]
+    pip = 0.01 if sym.endswith("JPY") else (0.01 if sym == "XAUUSD" else 1e-4)
+    per = " ".join(f"{y}:{(yr == y).sum()}h/{np.median(spr[yr == y]) / pip:.1f}" for y in np.unique(yr))
+    print(f"{sym}: {len(x['ts'])} hours, missing months {missing}; year:hours/median close spread pips  {per}")
+
+
+if __name__ == "__main__":
+    for s in sys.argv[1:] or SYMS:
+        build(s)
