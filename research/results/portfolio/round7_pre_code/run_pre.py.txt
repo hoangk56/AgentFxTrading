@@ -1,0 +1,413 @@
+"""Run the repo's swing engine (research/swing/swing.py, swing_rules.py, unchanged) on Dukascopy PRE data.
+
+Substitutions, all made here by patching module attributes (no repo file is edited):
+  data        S.m1 / SR.m1 -> Dukascopy npz (A_duka/data/m1, built by convert.py) or the IC cache cut to [lo, hi)
+  commission  0.6 bp of the entry price per round trip ($30 per $1M per side), applied per trade after the run
+              (the engine's constant is IC's 2026 USD conversion: 0.0095 JPY/unit on USDJPY, ~1.5x too high at
+              2004-2015 prices); --comm engine keeps the engine constant
+  swaps       rates_pre.swap_frac_at (FRED 2003-2024, fixed 1 %/yr markup per side), triple Wednesday; the engine's
+              own model fits IC's markups with 2025-26 prices/rates (HOLD), so it is not used
+Eras: trades are kept when t_in is in [lo, hi).
+
+    python run_pre.py check1617          # engine on IC vs Dukascopy, 2016-2017, C3 pairs (data-source check)
+    python run_pre.py c3                 # registered C3 run on PRE 2004-2015 (run once)
+    python run_pre.py m1                 # registered M1 month-end run on PRE 2004-2015 (run once)
+"""
+import csv
+import datetime
+import math
+import sys
+from functools import lru_cache
+from pathlib import Path
+
+import numpy as np
+
+HERE = Path(__file__).resolve().parent
+REPO = Path("/Users/hoangbk/00.code_base/105.AgentFxTrading")
+sys.path[:0] = [str(REPO), str(HERE), str(HERE / "pylib")]
+
+from research.swing import swing as S  # noqa: E402
+from research.swing import swing_rules as SR  # noqa: E402
+import rates_pre  # noqa: E402
+
+DAY = 86_400_000
+H12 = 43_200_000
+COMM_BP = 6e-5
+PRE_LO, PRE_HI = S._ms(2004), S._ms(2016)
+C3_PAIRS = ["USDJPY", "EURJPY", "GBPJPY"]
+M1_PAIRS = ["USDJPY", "USDCHF", "EURUSD"]
+M1_PARAMS = dict(bd=3, start_utc=10 * 60, end_utc=13 * 60, slk=3.0)
+_ORIG = dict(comm_price=S.comm_price, swap_frac_at=S.swap_frac_at, gotobi_days=SR.gotobi_days)
+STATE = {"comm": "bp", "swap": "pre"}
+
+
+# constant synthetic spreads (pips) = IC's mean 2016-2017 spread at the minutes before the strategy's fills
+SPREAD_C3 = {"USDJPY": 0.34, "EURJPY": 0.66, "GBPJPY": 1.46}
+SPREAD_M1 = {"USDJPY": 0.28, "USDCHF": 0.55, "EURUSD": 0.09}
+
+
+GAP_MS = 60 * 60_000
+
+
+def _since_open(ts):
+    """Minutes since the last reopen after a gap >= 60 min (weekly open, holidays); large when none."""
+    gap = np.r_[True, np.diff(ts) >= GAP_MS]
+    start = np.maximum.accumulate(np.where(gap, np.arange(len(ts)), 0))
+    return (ts - ts[start]) // 60_000
+
+
+@lru_cache(maxsize=None)
+def spread_profile(sym):
+    """IC's mean spread (pips) 2016-2017: by minute after a reopen (0..59) and by UTC minute-of-day otherwise."""
+    z = np.load(REPO / "research" / "data" / "m1" / f"{sym}.npz")
+    ts = z["ts"]
+    sel = (ts >= S._ms(2016)) & (ts < S._ms(2018))
+    ts = ts[sel]
+    pip = 0.01 if sym.endswith("JPY") else 1e-4
+    spr = (z["ca"][sel] - z["c"][sel]) / pip
+    so = _since_open(ts)
+    op = so < 60
+    prof_open = np.array([spr[op & (so == k)].mean() for k in range(60)])
+    mod = (ts // 60_000) % 1440
+    prof_mod = np.bincount(mod[~op], spr[~op], 1440) / np.maximum(np.bincount(mod[~op], None, 1440), 1)
+    return prof_open, prof_mod
+
+
+def profile_ask(sym, ts, c):
+    po, pm = spread_profile(sym)
+    so = _since_open(ts)
+    pip = 0.01 if sym.endswith("JPY") else 1e-4
+    sp = np.where(so < 60, po[np.minimum(so, 59)], pm[(ts // 60_000) % 1440])
+    return c + sp * pip
+
+
+def use(source: str, lo: int, hi: int, comm: str = "bp", swap: str = "pre", spread="raw", path=None):
+    """Point the engine at a data source, cut to [lo, hi) at load time.
+    source: "duka" (A_duka/data/m1 or `path`) or "ic" (research/data/m1); spread: "raw" (the source's own ask),
+    "zero" (ask = bid) or {sym: pips} (ask = bid + constant); comm: "bp" | "engine" | "none"; swap: "pre" | "none"."""
+    @lru_cache(maxsize=None)
+    def loader(sym):
+        if source == "duka":
+            z = np.load((path or HERE / "data" / "m1") / f"{sym}.npz")
+        else:
+            z = np.load(REPO / "research" / "data" / "m1" / f"{sym}.npz")
+        ts = z["ts"]
+        sel = (ts >= lo) & (ts < hi)
+        out = {k: z[k][sel] for k in ("ts", "o", "h", "l", "c", "ca", "smin", "smean", "n")}
+        pip = 0.01 if sym.endswith("JPY") else 1e-4
+        if spread == "zero":
+            out["ca"] = out["c"].copy()
+        elif spread == "profile":
+            out["ca"] = profile_ask(sym, out["ts"], out["c"])
+        elif isinstance(spread, dict):
+            out["ca"] = out["c"] + spread[sym] * pip
+        return out
+
+    assert hi <= S._ms(2025), "HOLD is closed"
+    S.m1 = loader
+    SR.m1 = loader
+    S.bars.cache_clear()
+    S.comm_price = _ORIG["comm_price"] if comm == "engine" else (lambda sym: 0.0)
+    S.swap_frac = lambda sym: (float("nan"), float("nan"), 2)          # only `tri` is used with SWAP_MODEL rates
+    S.swap_frac_at = rates_pre.swap_frac_at if swap == "pre" else (lambda *a: 0.0)
+    STATE.update(comm=comm, swap=swap, source=source, spread=spread)
+
+
+def post(trades, lo, hi):
+    out = [t for t in trades if lo <= t.t_in < hi]
+    if STATE["comm"] == "bp":
+        for t in out:
+            t.r -= COMM_BP * t.entry / t.risk
+    return out
+
+
+def run_c3(lo=PRE_LO, hi=PRE_HI, pairs=C3_PAIRS, spread_mult=1.0, **p):
+    return post(S.run_bot(SR.gotobi, list(pairs), (5, 0), cap=3, spread_mult=spread_mult, **p), lo, hi)
+
+
+def run_m1(lo=PRE_LO, hi=PRE_HI, pairs=M1_PAIRS, spread_mult=1.0, **over):
+    p = dict(M1_PARAMS, **over)
+    return post(S.run_bot(SR.month_end_usd, list(pairs), (5, 0), cap=3, per_symbol=1, spread_mult=spread_mult, **p),
+                lo, hi)
+
+
+# ---------------------------------------------------------------- stats
+def date_of(ms):
+    return datetime.datetime.fromtimestamp(ms / 1000, datetime.timezone.utc).date()
+
+
+def gday(t):
+    """Gotobi day of a leg: long 18:00 d-1 (or Sunday open) -> d; short 00:55 d -> d."""
+    return (t.t_in + H12) // DAY
+
+
+def tstat(x):
+    x = np.asarray(x, float)
+    n = len(x)
+    if n < 2:
+        return n, (float(x[0]) if n else 0.0), 0.0
+    sd = x.std(ddof=1)
+    return n, float(x.mean()), float(x.mean() / (sd / math.sqrt(n))) if sd > 0 else 0.0
+
+
+def clustered(trades, key):
+    d = {}
+    for t in trades:
+        d[key(t)] = d.get(key(t), 0.0) + t.r
+    return tstat(list(d.values()))
+
+
+def max_dd(trades):
+    c = np.cumsum([t.usd for t in sorted(trades, key=lambda t: t.t_out)])
+    return float(np.max(np.maximum.accumulate(np.r_[0.0, c]) - np.r_[0.0, c])) if len(c) else 0.0
+
+
+def by_year(trades):
+    y = {}
+    for t in trades:
+        y[date_of(t.t_in + H12).year] = y.get(date_of(t.t_in + H12).year, 0.0) + t.usd
+    return dict(sorted(y.items()))
+
+
+def line(trades, label, key=gday):
+    n, mu, t = tstat([x.r for x in trades])
+    nd, mud, td = clustered(trades, key)
+    yrs = by_year(trades)
+    sd = np.std([x.r for x in trades], ddof=1) if n > 1 else float("nan")
+    return (f"{label:24s} n {n:5d} ({nd:4d} d)  R {mu:+.4f}  sd {sd:.3f}  t {t:+5.2f}  day-cl t {td:+5.2f}  "
+            f"win {100 * np.mean([x.r > 0 for x in trades]) if n else 0:4.1f}%  net ${sum(x.usd for x in trades):+9,.0f}"
+            f"  yrs>0 {sum(v > 0 for v in yrs.values())}/{len(yrs)}  maxDD ${max_dd(trades):,.0f}")
+
+
+def years_line(trades):
+    return "  ".join(f"{y}:{v:+,.0f}" for y, v in by_year(trades).items())
+
+
+def write_trades(trades, path):
+    fmt = lambda ms: datetime.datetime.fromtimestamp(ms / 1000, datetime.timezone.utc).strftime("%Y-%m-%d %H:%M")
+    with open(path, "w", newline="") as fh:
+        w = csv.writer(fh)
+        w.writerow(["symbol", "side", "gday", "t_in_utc", "t_out_utc", "entry", "exit", "stop_dist", "r",
+                    "usd_at_100_risk", "exit_reason"])
+        for t in sorted(trades, key=lambda t: (t.t_in, t.symbol)):
+            w.writerow([t.symbol, t.side, date_of(gday(t) * DAY), fmt(t.t_in), fmt(t.t_out), f"{t.entry:.5f}",
+                        f"{t.exit:.5f}", f"{t.risk:.5f}", f"{t.r:.5f}", f"{t.usd:.2f}", t.why])
+
+
+# ---------------------------------------------------------------- JP holidays (as research/tools/gotobi_holidays.py)
+def no_fix_days(years):
+    import holidays
+    out = dict(holidays.Japan(years=list(years), language="en_US"))
+    for y in years:
+        for (m, d) in ((12, 31), (1, 2), (1, 3)):
+            out.setdefault(datetime.date(y, m, d), "Bank holiday")
+    return out
+
+
+# ---------------------------------------------------------------- tasks
+def check1617(pairs=C3_PAIRS):
+    """Engine on 2016-2017 (IS): IC as is vs Dukascopy, C3 pairs; trade-by-trade differences."""
+    lo, hi, lo0 = S._ms(2016), S._ms(2018), S._ms(2015, 12)
+    p1617 = HERE / "data" / "m1_1617"
+    variants = [("IC raw spread (engine as used in IS)", "ic", "raw"), ("IC bid + IC profile", "ic", "profile"),
+                ("Duka bid + IC profile", "duka", "profile"), ("IC bid + const spread", "ic", SPREAD_C3),
+                ("Duka bid + const spread", "duka", SPREAD_C3), ("Duka raw spread", "duka", "raw"),
+                ("IC gross", "ic", "zero"), ("Duka gross", "duka", "zero")]
+    res = {}
+    for name, src, spr in variants:
+        gross = spr == "zero"
+        use(src, lo0, hi, spread=spr, path=p1617, comm="none" if gross else "bp", swap="none" if gross else "pre")
+        res[name] = run_c3(lo, hi, pairs=pairs)
+        print(line(res[name], name[:24]), " | " + "  ".join(
+            f"{p} {np.mean([t.r for t in res[name] if t.symbol == p]):+.4f}" for p in pairs))
+        print("    years:", years_line(res[name]))
+    for ref, oth in (("IC raw spread (engine as used in IS)", "Duka raw spread"),
+                     ("IC bid + const spread", "Duka bid + const spread"), ("IC gross", "Duka gross"),
+                     ("IC raw spread (engine as used in IS)", "Duka bid + const spread"),
+                ("IC raw spread (engine as used in IS)", "Duka bid + IC profile"),
+                ("IC raw spread (engine as used in IS)", "IC bid + IC profile")):
+        a = {(t.symbol, t.side, gday(t)): t for t in res[ref]}
+        b = {(t.symbol, t.side, gday(t)): t for t in res[oth]}
+        common = sorted(set(a) & set(b))
+        print(f"-- {oth} vs {ref}: legs {len(b)} vs {len(a)}, matched {len(common)}")
+        for k in sorted(set(a) ^ set(b))[:6]:
+            t = a.get(k) or b.get(k)
+            print("   unmatched", k[0], k[1], date_of(k[2] * DAY), "IC" if k in a else "Duka", t.why)
+        dr = np.array([b[k].r - a[k].r for k in common])
+        de = np.array([(b[k].entry - a[k].entry) / a[k].entry * 1e4 for k in common])
+        dx = np.array([(b[k].exit - a[k].exit) / a[k].exit * 1e4 for k in common])
+        drisk = np.array([b[k].risk / a[k].risk - 1 for k in common])
+        same_t = np.mean([a[k].t_in == b[k].t_in and a[k].t_out == b[k].t_out for k in common])
+        print(f"   R diff mean {dr.mean():+.4f} median {np.median(dr):+.4f} sd {dr.std():.4f}; corr "
+              f"{np.corrcoef([a[k].r for k in common], [b[k].r for k in common])[0, 1]:.4f}; entry diff bp med "
+              f"{np.median(de):+.2f} mean|.| {np.mean(np.abs(de)):.2f}; exit diff bp med {np.median(dx):+.2f} mean|.| "
+              f"{np.mean(np.abs(dx)):.2f}; stop ratio-1 med {np.median(drisk):+.3f}; same minutes {100 * same_t:.1f}%; "
+              f"sl exits {sum(a[k].why == 'sl' for k in common)}/{sum(b[k].why == 'sl' for k in common)}")
+        for side, nm in ((1, "long"), (-1, "short")):
+            ks = [k for k in common if k[1] == side]
+            print(f"   {nm}: ref R {np.mean([a[k].r for k in ks]):+.4f}  other R {np.mean([b[k].r for k in ks]):+.4f}")
+
+
+LO0 = S._ms(2003, 12)
+
+
+def c3():
+    use("duka", LO0, PRE_HI, spread="profile")
+    base = run_c3()
+    write_trades(base, HERE / "trades_C3_PRE.csv")
+    print("C3 Gotobi JPY basket on PRE 2004-2015 (Dukascopy bid + IC 2016-17 spread profile; engine unchanged; comm 0.6 bp; "
+          "swaps FRED-1%)")
+    print(line(base, "C3 all"))
+    for p in C3_PAIRS:
+        tp = [t for t in base if t.symbol == p]
+        print(line(tp, "  " + p))
+        print(line([t for t in tp if t.side > 0], "    long"))
+        print(line([t for t in tp if t.side < 0], "    short"))
+    print(line([t for t in base if t.side > 0], "  all long"))
+    print(line([t for t in base if t.side < 0], "  all short"))
+    print("  years $:", years_line(base))
+    yr = {}
+    for t in base:
+        yr.setdefault(date_of(t.t_in + H12).year, []).append(t.r)
+    print("  years mean R:", "  ".join(f"{y}:{np.mean(v):+.3f}" for y, v in sorted(yr.items())))
+    for p in C3_PAIRS:
+        print(f"  {p} years $:", years_line([t for t in base if t.symbol == p]))
+    nf = no_fix_days(range(2003, 2017))
+    keep = [t for t in base if date_of(gday(t) * DAY) not in nf]
+    hol = [t for t in base if date_of(gday(t) * DAY) in nf]
+    print("-- Japanese holidays skipped (public + 12/31, 1/2, 1/3), as the live bots")
+    print(line(keep, "C3 no-holiday"))
+    for p in C3_PAIRS:
+        print(line([t for t in keep if t.symbol == p], "  " + p))
+    print(line([t for t in keep if t.side > 0], "  long"))
+    print(line([t for t in keep if t.side < 0], "  short"))
+    print("  years $:", years_line(keep))
+    print(line(hol, "holiday days only"))
+    print(line([t for t in hol if t.side > 0], "  holiday long"))
+    print(line([t for t in hol if t.side < 0], "  holiday short"))
+    print("-- by nominal gotobi day (reported only)")
+    lab = SR.gotobi_nominal(datetime.date(2003, 12, 1), datetime.date(2016, 1, 31))
+    for L in ("5", "10", "15", "20", "25", "last"):
+        sub = [t for t in base if lab.get(date_of(gday(t) * DAY)) == L]
+        print(line(sub, f"  day {L}"))
+    print(line([t for t in base if date_of(gday(t) * DAY).strftime("%m-%d") != "12-25"], "C3 without 25 Dec"))
+    print("-- sub-periods")
+    for a, b in ((2004, 2007), (2008, 2011), (2012, 2015)):
+        print(line([t for t in base if S._ms(a) <= t.t_in + H12 < S._ms(b + 1)], f"  {a}-{b}"))
+    print("-- cost / swap variants")
+    wide = run_c3(spread_mult=1.5)
+    print(line(wide, "spread x1.5"))
+    print(line([t for t in wide if date_of(gday(t) * DAY) not in nf], "spread x1.5 no-holiday"))
+    rates_pre.MARKUP[0] = 0.02
+    print(line(run_c3(), "swap markup 2%"))
+    rates_pre.MARKUP[0] = 0.01
+    use("duka", LO0, PRE_HI, spread="profile", swap="none")
+    nos = run_c3()
+    print(line(nos, "no swap"))
+    print(line([t for t in nos if t.side > 0], "  no swap long"))
+    use("duka", LO0, PRE_HI, spread="profile", comm="engine")
+    print(line(run_c3(), "engine 2026 comm const"))
+    use("duka", LO0, PRE_HI, spread=SPREAD_C3)
+    print(line(run_c3(), "const IC spread"))
+    use("duka", LO0, PRE_HI, spread="raw")
+    raw = run_c3()
+    print(line(raw, "Duka raw spread"))
+    for p in C3_PAIRS:
+        print(line([t for t in raw if t.symbol == p], "  " + p))
+    print("  years $:", years_line(raw))
+    use("duka", LO0, PRE_HI, spread="zero", comm="none", swap="none")
+    gross = run_c3()
+    print(line(gross, "GROSS (no cost, no swap)"))
+    for p in C3_PAIRS:
+        print(line([t for t in gross if t.symbol == p], "  " + p))
+    print(line([t for t in gross if t.side > 0], "  long"))
+    print(line([t for t in gross if t.side < 0], "  short"))
+    use("duka", LO0, PRE_HI, spread="profile")
+    print("-- placebo: same legs on non-gotobi weekdays")
+    SR.gotobi_days = _non_gotobi_days
+    pl = run_c3()
+    SR.gotobi_days = _ORIG["gotobi_days"]
+    print(line(pl, "placebo all"))
+    for p in C3_PAIRS:
+        print(line([t for t in pl if t.symbol == p], "  " + p))
+    print(line([t for t in pl if t.side > 0], "  long"))
+    print(line([t for t in pl if t.side < 0], "  short"))
+    print("-- timing: the fix at 00:55 vs the same legs pivoting at 01:05 / 01:55 UTC")
+    for fx in (65, 115):
+        tr = run_c3(fix_utc=fx)
+        print(line([t for t in tr if t.side > 0], f"  long ending {fx // 60:02d}:{fx % 60:02d}"),)
+        print(line([t for t in tr if t.side < 0], f"  short from {fx // 60:02d}:{fx % 60:02d}"))
+
+
+def _non_gotobi_days(first, last):
+    real = set(_ORIG["gotobi_days"](first, last))
+    out, d = [], first
+    while d <= last:
+        if d.weekday() < 5 and d not in real:
+            out.append(d)
+        d += datetime.timedelta(days=1)
+    return out
+
+
+def m1():
+    use("duka", LO0, PRE_HI, spread="profile")
+    base = run_m1()
+    write_trades(base, HERE / "trades_M1_PRE.csv")
+    key = lambda t: t.t_in // DAY
+    print("M1 month-end value-date USD on PRE 2004-2015 (Dukascopy bid + IC 2016-17 spread profile; engine "
+          "unchanged; comm 0.6 bp)")
+    print(line(base, "M1 PRE", key) )
+    wide = run_m1(spread_mult=1.5)
+    print(line(wide, "  x1.5 spread", key))
+    for p in M1_PAIRS:
+        print(line([t for t in base if t.symbol == p], "  " + p, key))
+    print("  years $:", years_line(base))
+    yr = {}
+    for t in base:
+        yr.setdefault(date_of(t.t_in).year, []).append(t.r)
+    print("  years mean R:", "  ".join(f"{y}:{np.mean(v):+.3f}" for y, v in sorted(yr.items())))
+    for a, b in ((2004, 2007), (2008, 2011), (2012, 2015)):
+        print(line([t for t in base if S._ms(a) <= t.t_in < S._ms(b + 1)], f"  {a}-{b}", key))
+    qe = [t for t in base if date_of(t.t_in).month in (3, 6, 9, 12)]
+    print(line(qe, "  quarter-end months", key))
+    print(line([t for t in base if date_of(t.t_in).month not in (3, 6, 9, 12)], "  other months", key))
+    # random-day control as research/swing/month_end_usd.random_day_control (500 seeds, rng 7)
+    every = run_m1(bd=None)
+    per_day = {}
+    for t in every:
+        per_day[t.t_in // DAY] = per_day.get(t.t_in // DAY, 0.0) + t.r
+    real = sum(t.r for t in base)
+    k_of = SR.weekdays_from_month_end(datetime.date(2004, 1, 1), datetime.date(2015, 12, 31))
+    day0 = datetime.date(1970, 1, 1)
+    by_month = {}
+    for d, r in per_day.items():
+        date = day0 + datetime.timedelta(days=int(d))
+        if k_of.get(date) != M1_PARAMS["bd"]:
+            by_month.setdefault((date.year, date.month), []).append(r)
+    rng = np.random.default_rng(7)
+    ctrl = np.array([sum(rng.choice(v) for v in by_month.values()) for _ in range(500)])
+    print(f"  random-day control: real summed R {real:+.1f}, control {ctrl.mean():+.1f} +/- {ctrl.std():.1f}, "
+          f"real beats {np.mean(real > ctrl):.1%} of 500 seeds")
+    n, mu, tt = tstat([t.r for t in every if k_of.get(date_of(t.t_in)) != 3])
+    print(f"  all other weekdays, same window: n {n}, mean R {mu:+.4f}, t {tt:+.2f}")
+    print("  placebo, k-th last weekday (day-clustered t; mean R):")
+    for k in range(1, 11):
+        tr = run_m1(bd=k)
+        nd, mud, td = clustered(tr, key)
+        print(f"    k={k:2d} n {len(tr):4d} R {np.mean([t.r for t in tr]):+.4f} day-cl t {td:+.2f}")
+    use("duka", LO0, PRE_HI, spread=SPREAD_M1)
+    print(line(run_m1(), "const IC spread", key))
+    use("duka", LO0, PRE_HI, spread="raw")
+    print(line(run_m1(), "Duka raw spread", key))
+    use("duka", LO0, PRE_HI, spread="zero", comm="none", swap="none")
+    g = run_m1()
+    print(line(g, "GROSS (no cost)", key))
+    for p in M1_PAIRS:
+        print(line([t for t in g if t.symbol == p], "  " + p, key))
+
+
+if __name__ == "__main__":
+    if sys.argv[1] == "check1617":
+        check1617(sys.argv[2:] or C3_PAIRS)
+    else:
+        {"c3": c3, "m1": m1}[sys.argv[1]]()

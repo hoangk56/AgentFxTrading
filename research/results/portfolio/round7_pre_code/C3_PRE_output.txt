@@ -1,0 +1,72 @@
+C3 Gotobi JPY basket on PRE 2004-2015 (Dukascopy bid + IC 2016-17 spread profile; engine unchanged; comm 0.6 bp; swaps FRED-1%)
+C3 all                   n  5184 ( 864 d)  R +0.0380  sd 0.350  t +7.82  day-cl t +4.79  win 55.9%  net $  +19,722  yrs>0 10/12  maxDD $1,617
+  USDJPY                 n  1728 ( 864 d)  R +0.0677  sd 0.373  t +7.55  day-cl t +7.35  win 59.2%  net $  +11,700  yrs>0 12/12  maxDD $448
+    long                 n   864 ( 864 d)  R +0.0659  sd 0.433  t +4.47  day-cl t +4.47  win 57.8%  net $   +5,695  yrs>0 10/12  maxDD $615
+    short                n   864 ( 864 d)  R +0.0695  sd 0.300  t +6.80  day-cl t +6.80  win 60.6%  net $   +6,005  yrs>0 12/12  maxDD $281
+  EURJPY                 n  1728 ( 864 d)  R +0.0193  sd 0.346  t +2.31  day-cl t +2.25  win 54.4%  net $   +3,327  yrs>0 8/12  maxDD $1,084
+    long                 n   864 ( 864 d)  R +0.0134  sd 0.407  t +0.97  day-cl t +0.97  win 54.3%  net $   +1,160  yrs>0 7/12  maxDD $1,881
+    short                n   864 ( 864 d)  R +0.0251  sd 0.271  t +2.72  day-cl t +2.72  win 54.5%  net $   +2,167  yrs>0 10/12  maxDD $627
+  GBPJPY                 n  1728 ( 864 d)  R +0.0272  sd 0.330  t +3.42  day-cl t +3.29  win 54.1%  net $   +4,695  yrs>0 10/12  maxDD $676
+    long                 n   864 ( 864 d)  R +0.0313  sd 0.390  t +2.36  day-cl t +2.36  win 54.2%  net $   +2,703  yrs>0 9/12  maxDD $1,105
+    short                n   864 ( 864 d)  R +0.0231  sd 0.257  t +2.64  day-cl t +2.64  win 53.9%  net $   +1,992  yrs>0 11/12  maxDD $528
+  all long               n  2592 ( 864 d)  R +0.0369  sd 0.411  t +4.57  day-cl t +2.92  win 55.4%  net $   +9,557  yrs>0 8/12  maxDD $3,245
+  all short              n  2592 ( 864 d)  R +0.0392  sd 0.277  t +7.20  day-cl t +4.51  win 56.4%  net $  +10,165  yrs>0 11/12  maxDD $1,131
+  years $: 2004:+2,138  2005:+3,339  2006:+1,938  2007:-36  2008:+329  2009:+218  2010:+1,926  2011:+4,524  2012:-245  2013:+3,903  2014:+889  2015:+798
+  years mean R: 2004:+0.049  2005:+0.077  2006:+0.045  2007:-0.001  2008:+0.008  2009:+0.005  2010:+0.045  2011:+0.105  2012:-0.006  2013:+0.090  2014:+0.021  2015:+0.018
+  USDJPY years $: 2004:+1,084  2005:+1,449  2006:+1,012  2007:+344  2008:+597  2009:+324  2010:+1,622  2011:+2,243  2012:+330  2013:+1,987  2014:+596  2015:+113
+  EURJPY years $: 2004:+553  2005:+975  2006:+484  2007:-263  2008:-294  2009:-170  2010:+14  2011:+1,224  2012:-288  2013:+986  2014:+7  2015:+99
+  GBPJPY years $: 2004:+502  2005:+915  2006:+443  2007:-117  2008:+26  2009:+64  2010:+290  2011:+1,058  2012:-287  2013:+930  2014:+285  2015:+585
+-- Japanese holidays skipped (public + 12/31, 1/2, 1/3), as the live bots
+C3 no-holiday            n  4896 ( 816 d)  R +0.0396  sd 0.354  t +7.84  day-cl t +4.79  win 56.4%  net $  +19,406  yrs>0 10/12  maxDD $1,761
+  USDJPY                 n  1632 ( 816 d)  R +0.0704  sd 0.375  t +7.59  day-cl t +7.39  win 59.6%  net $  +11,489  yrs>0 12/12  maxDD $448
+  EURJPY                 n  1632 ( 816 d)  R +0.0198  sd 0.350  t +2.28  day-cl t +2.22  win 55.0%  net $   +3,227  yrs>0 7/12  maxDD $1,280
+  GBPJPY                 n  1632 ( 816 d)  R +0.0287  sd 0.334  t +3.48  day-cl t +3.33  win 54.5%  net $   +4,689  yrs>0 9/12  maxDD $706
+  long                   n  2448 ( 816 d)  R +0.0419  sd 0.416  t +4.98  day-cl t +3.18  win 56.4%  net $  +10,256  yrs>0 9/12  maxDD $3,508
+  short                  n  2448 ( 816 d)  R +0.0374  sd 0.278  t +6.65  day-cl t +4.16  win 56.4%  net $   +9,150  yrs>0 11/12  maxDD $1,130
+  years $: 2004:+2,234  2005:+3,493  2006:+1,990  2007:-543  2008:+100  2009:+158  2010:+1,936  2011:+4,574  2012:-171  2013:+4,121  2014:+609  2015:+906
+holiday days only        n   288 (  48 d)  R +0.0110  sd 0.287  t +0.65  day-cl t +0.43  win 47.6%  net $     +316  yrs>0 4/12  maxDD $513
+  holiday long           n   144 (  48 d)  R -0.0485  sd 0.294  t -1.98  day-cl t -1.34  win 38.9%  net $     -699  yrs>0 4/12  maxDD $849
+  holiday short          n   144 (  48 d)  R +0.0705  sd 0.269  t +3.14  day-cl t +2.00  win 56.2%  net $   +1,015  yrs>0 8/12  maxDD $230
+-- by nominal gotobi day (reported only)
+  day 5                  n   864 ( 144 d)  R +0.0216  sd 0.334  t +1.90  day-cl t +1.18  win 53.2%  net $   +1,870  yrs>0 7/12  maxDD $1,404
+  day 10                 n   864 ( 144 d)  R +0.0446  sd 0.342  t +3.83  day-cl t +2.33  win 59.0%  net $   +3,853  yrs>0 9/12  maxDD $731
+  day 15                 n   864 ( 144 d)  R +0.0708  sd 0.352  t +5.91  day-cl t +3.38  win 58.4%  net $   +6,115  yrs>0 9/12  maxDD $897
+  day 20                 n   864 ( 144 d)  R +0.0537  sd 0.368  t +4.29  day-cl t +2.64  win 58.1%  net $   +4,642  yrs>0 9/12  maxDD $817
+  day 25                 n   864 ( 144 d)  R +0.0029  sd 0.333  t +0.25  day-cl t +0.16  win 50.6%  net $     +247  yrs>0 5/12  maxDD $1,224
+  day last               n   864 ( 144 d)  R +0.0347  sd 0.368  t +2.77  day-cl t +1.74  win 55.9%  net $   +2,994  yrs>0 9/12  maxDD $712
+C3 without 25 Dec        n  5136 ( 856 d)  R +0.0401  sd 0.350  t +8.20  day-cl t +5.03  win 56.1%  net $  +20,579  yrs>0 11/12  maxDD $1,531
+-- sub-periods
+  2004-2007              n  1728 ( 288 d)  R +0.0427  sd 0.328  t +5.41  day-cl t +3.27  win 57.8%  net $   +7,380  yrs>0 3/4  maxDD $1,441
+  2008-2011              n  1728 ( 288 d)  R +0.0405  sd 0.362  t +4.65  day-cl t +2.79  win 56.1%  net $   +6,998  yrs>0 4/4  maxDD $1,617
+  2012-2015              n  1728 ( 288 d)  R +0.0309  sd 0.360  t +3.57  day-cl t +2.26  win 53.7%  net $   +5,344  yrs>0 3/4  maxDD $1,318
+-- cost / swap variants
+spread x1.5              n  5184 ( 864 d)  R +0.0302  sd 0.352  t +6.18  day-cl t +3.79  win 54.7%  net $  +15,642  yrs>0 10/12  maxDD $1,723
+spread x1.5 no-holiday   n  4896 ( 816 d)  R +0.0320  sd 0.355  t +6.31  day-cl t +3.85  win 55.2%  net $  +15,663  yrs>0 8/12  maxDD $1,859
+swap markup 2%           n  5184 ( 864 d)  R +0.0351  sd 0.350  t +7.22  day-cl t +4.43  win 55.5%  net $  +18,217  yrs>0 10/12  maxDD $1,668
+no swap                  n  5184 ( 864 d)  R +0.0369  sd 0.351  t +7.58  day-cl t +4.65  win 55.7%  net $  +19,154  yrs>0 10/12  maxDD $1,673
+  no swap long           n  2592 ( 864 d)  R +0.0347  sd 0.411  t +4.29  day-cl t +2.75  win 55.0%  net $   +8,989  yrs>0 8/12  maxDD $3,839
+engine 2026 comm const   n  5184 ( 864 d)  R +0.0335  sd 0.350  t +6.89  day-cl t +4.22  win 55.2%  net $  +17,367  yrs>0 10/12  maxDD $1,681
+const IC spread          n  5184 ( 864 d)  R +0.0435  sd 0.349  t +8.97  day-cl t +5.51  win 56.7%  net $  +22,560  yrs>0 12/12  maxDD $1,550
+Duka raw spread          n  5184 ( 864 d)  R +0.0266  sd 0.349  t +5.48  day-cl t +3.36  win 54.4%  net $  +13,765  yrs>0 8/12  maxDD $1,994
+  USDJPY                 n  1728 ( 864 d)  R +0.0561  sd 0.371  t +6.29  day-cl t +6.12  win 58.1%  net $   +9,696  yrs>0 12/12  maxDD $482
+  EURJPY                 n  1728 ( 864 d)  R +0.0077  sd 0.344  t +0.92  day-cl t +0.90  win 52.5%  net $   +1,323  yrs>0 7/12  maxDD $1,882
+  GBPJPY                 n  1728 ( 864 d)  R +0.0159  sd 0.328  t +2.01  day-cl t +1.93  win 52.5%  net $   +2,746  yrs>0 8/12  maxDD $1,169
+  years $: 2004:+1,942  2005:+2,350  2006:+1,064  2007:-753  2008:-241  2009:-332  2010:+1,417  2011:+3,825  2012:-699  2013:+3,676  2014:+912  2015:+603
+GROSS (no cost, no swap) n  5184 ( 864 d)  R +0.0635  sd 0.350  t +13.07  day-cl t +8.03  win 59.5%  net $  +32,942  yrs>0 12/12  maxDD $1,374
+  USDJPY                 n  1728 ( 864 d)  R +0.0896  sd 0.373  t +9.98  day-cl t +9.72  win 61.8%  net $  +15,486  yrs>0 12/12  maxDD $430
+  EURJPY                 n  1728 ( 864 d)  R +0.0446  sd 0.345  t +5.38  day-cl t +5.24  win 58.0%  net $   +7,713  yrs>0 11/12  maxDD $745
+  GBPJPY                 n  1728 ( 864 d)  R +0.0564  sd 0.329  t +7.13  day-cl t +6.86  win 58.7%  net $   +9,743  yrs>0 12/12  maxDD $567
+  long                   n  2592 ( 864 d)  R +0.0668  sd 0.410  t +8.31  day-cl t +5.32  win 59.3%  net $  +17,325  yrs>0 9/12  maxDD $2,428
+  short                  n  2592 ( 864 d)  R +0.0602  sd 0.278  t +11.05  day-cl t +6.92  win 59.8%  net $  +15,616  yrs>0 11/12  maxDD $793
+-- placebo: same legs on non-gotobi weekdays
+placebo all              n 13580 (2264 d)  R -0.0105  sd 0.351  t -3.49  day-cl t -2.21  win 48.9%  net $  -14,310  yrs>0 2/12  maxDD $16,269
+  USDJPY                 n  4526 (2263 d)  R +0.0109  sd 0.382  t +1.92  day-cl t +1.90  win 51.6%  net $   +4,935  yrs>0 9/12  maxDD $1,745
+  EURJPY                 n  4527 (2264 d)  R -0.0206  sd 0.345  t -4.02  day-cl t -3.90  win 47.7%  net $   -9,334  yrs>0 2/12  maxDD $9,686
+  GBPJPY                 n  4527 (2264 d)  R -0.0219  sd 0.324  t -4.54  day-cl t -4.36  win 47.3%  net $   -9,911  yrs>0 0/12  maxDD $10,300
+  long                   n  6789 (2263 d)  R -0.0201  sd 0.404  t -4.10  day-cl t -2.70  win 49.0%  net $  -13,662  yrs>0 3/12  maxDD $16,400
+  short                  n  6791 (2264 d)  R -0.0010  sd 0.289  t -0.27  day-cl t -0.17  win 48.7%  net $     -648  yrs>0 6/12  maxDD $4,737
+-- timing: the fix at 00:55 vs the same legs pivoting at 01:05 / 01:55 UTC
+  long ending 01:05      n  2592 ( 864 d)  R +0.0101  sd 0.410  t +1.26  day-cl t +0.80  win 52.0%  net $   +2,622  yrs>0 8/12  maxDD $5,713
+  short from 01:05       n  2592 ( 864 d)  R +0.0117  sd 0.253  t +2.36  day-cl t +1.48  win 52.7%  net $   +3,043  yrs>0 9/12  maxDD $1,311
+  long ending 01:55      n  2592 ( 864 d)  R -0.0007  sd 0.571  t -0.06  day-cl t -0.04  win 49.5%  net $     -178  yrs>0 5/12  maxDD $8,197
+  short from 01:55       n  2592 ( 864 d)  R -0.0091  sd 0.171  t -2.70  day-cl t -1.71  win 47.3%  net $   -2,350  yrs>0 3/12  maxDD $3,082

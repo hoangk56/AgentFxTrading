@@ -1,0 +1,65 @@
+"""Dukascopy M1 day files (cache/) -> one npz per symbol in the IC M1 cache format (research/m1.py), PRE era.
+
+    python convert.py USDJPY EURJPY ...        # -> data/m1/<SYM>.npz, 2003-12-01 .. 2015-12-31
+
+Keys as research.m1.load gives them: ts (int64 ms UTC, minute start), o/h/l/c (bid), ca (ask close), smin/smean
+(here both = ca - c: Dukascopy candles carry no intra-minute spread stats), n (1 per kept minute: no tick count).
+Extra keys: ao/ah/al (ask open/high/low), vb/va (Dukascopy volumes, millions). Minutes with zero volume on both
+sides are dropped (flat filler candles). Prints a per-year quality summary (minutes, missing/empty day files,
+negative or zero spreads, median spread, largest 1-minute bid jumps).
+"""
+import datetime
+import sys
+from pathlib import Path
+
+import numpy as np
+
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+import duka  # noqa: E402
+
+OUT = duka.HERE / "data" / "m1"
+FIRST, LAST = datetime.date(2003, 12, 1), datetime.date(2015, 12, 31)
+
+
+def days(first=FIRST, last=LAST):
+    d = first
+    while d <= last:
+        if d.weekday() != 5:
+            yield d
+        d += datetime.timedelta(days=1)
+
+
+def build(sym: str, first=FIRST, last=LAST, out_dir=OUT, tag=""):
+    parts, missing, empty = [], [], []
+    for d in days(first, last):
+        x = duka.load_m1_day(sym, d)
+        if x is None:
+            missing.append(d) if not all((duka.CACHE / duka.rel_path(sym, "m1", d, s)).exists()
+                                         for s in duka.SIDES) else empty.append(d)
+            continue
+        if len(x["ts"]):
+            parts.append(x)
+    m = {k: np.concatenate([p[k] for p in parts]) for k in parts[0]}
+    assert np.all(np.diff(m["ts"]) > 0)
+    spr = m["ac"] - m["c"]
+    out = dict(ts=m["ts"].astype(np.int64), o=m["o"], h=m["h"], l=m["l"], c=m["c"], ca=m["ac"], smin=spr, smean=spr,
+               n=np.ones(len(spr), np.int64), ao=m["ao"], ah=m["ah"], al=m["al"], vb=m["vb"], va=m["va"])
+    out_dir.mkdir(parents=True, exist_ok=True)
+    np.savez(out_dir / f"{sym}{tag}.npz", **out)
+    pip = 0.01 if sym.endswith("JPY") else 1e-4
+    yr = (out["ts"] // 1000).astype("datetime64[s]").astype("datetime64[Y]").astype(int) + 1970
+    print(f"{sym}: {len(spr)} minutes, {len(missing)} day files missing (not fetched), {len(empty)} empty days"
+          + (f" e.g. {[str(e) for e in empty[:6]]}" if empty else ""))
+    print("  year  minutes  med spr pips  p90  spr<0 %  spr=0 %  max|1m bid jump| %")
+    for y in np.unique(yr):
+        s = yr == y
+        c = out["c"][s]
+        jump = np.max(np.abs(np.diff(np.log(c)))) * 100 if s.sum() > 1 else 0
+        print(f"  {y}  {s.sum():7d}  {np.median(spr[s]) / pip:6.2f}  {np.percentile(spr[s], 90) / pip:6.2f}  "
+              f"{100 * np.mean(spr[s] < 0):6.3f}  {100 * np.mean(spr[s] == 0):6.3f}  {jump:6.3f}")
+    return missing
+
+
+if __name__ == "__main__":
+    for s in sys.argv[1:]:
+        build(s)

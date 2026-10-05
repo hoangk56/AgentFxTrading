@@ -1,0 +1,32 @@
+M1 month-end value-date USD on PRE 2004-2015 (Dukascopy bid + IC 2016-17 spread profile; engine unchanged; comm 0.6 bp)
+M1 PRE                   n   432 ( 144 d)  R +0.0204  sd 0.468  t +0.91  day-cl t +0.64  win 54.6%  net $     +883  yrs>0 8/12  maxDD $1,912
+  x1.5 spread            n   432 ( 144 d)  R +0.0173  sd 0.467  t +0.77  day-cl t +0.54  win 53.9%  net $     +748  yrs>0 8/12  maxDD $1,941
+  USDJPY                 n   144 ( 144 d)  R +0.0334  sd 0.440  t +0.91  day-cl t +0.91  win 55.6%  net $     +481  yrs>0 6/12  maxDD $343
+  USDCHF                 n   144 ( 144 d)  R -0.0012  sd 0.485  t -0.03  day-cl t -0.03  win 52.8%  net $      -17  yrs>0 6/12  maxDD $858
+  EURUSD                 n   144 ( 144 d)  R +0.0291  sd 0.479  t +0.73  day-cl t +0.73  win 55.6%  net $     +419  yrs>0 6/12  maxDD $740
+  years $: 2004:-587  2005:-392  2006:-130  2007:+38  2008:+624  2009:+66  2010:+19  2011:+236  2012:+450  2013:-226  2014:+189  2015:+596
+  years mean R: 2004:-0.163  2005:-0.109  2006:-0.036  2007:+0.011  2008:+0.173  2009:+0.018  2010:+0.005  2011:+0.066  2012:+0.125  2013:-0.063  2014:+0.053  2015:+0.166
+  2004-2007              n   144 (  48 d)  R -0.0744  sd 0.454  t -1.97  day-cl t -1.27  win 52.1%  net $   -1,071  yrs>0 1/4  maxDD $1,912
+  2008-2011              n   144 (  48 d)  R +0.0656  sd 0.427  t +1.84  day-cl t +1.41  win 53.5%  net $     +945  yrs>0 4/4  maxDD $275
+  2012-2015              n   144 (  48 d)  R +0.0701  sd 0.508  t +1.66  day-cl t +1.18  win 58.3%  net $   +1,009  yrs>0 3/4  maxDD $505
+  quarter-end months     n   144 (  48 d)  R +0.0051  sd 0.475  t +0.13  day-cl t +0.09  win 52.8%  net $      +73  yrs>0 6/12  maxDD $826
+  other months           n   288 (  96 d)  R +0.0281  sd 0.465  t +1.03  day-cl t +0.70  win 55.6%  net $     +810  yrs>0 6/12  maxDD $1,303
+  random-day control: real summed R +8.8, control +3.5 +/- 15.1, real beats 64.4% of 500 seeds
+  all other weekdays, same window: n 8938, mean R +0.0075, t +1.40
+  placebo, k-th last weekday (day-clustered t; mean R):
+    k= 1 n  432 R -0.0756 day-cl t -2.18
+    k= 2 n  432 R -0.0236 day-cl t -0.72
+    k= 3 n  432 R +0.0204 day-cl t +0.64
+    k= 4 n  432 R -0.0390 day-cl t -1.37
+    k= 5 n  423 R -0.0064 day-cl t -0.22
+    k= 6 n  432 R +0.0353 day-cl t +1.02
+    k= 7 n  432 R +0.0149 day-cl t +0.41
+    k= 8 n  432 R +0.0753 day-cl t +2.24
+    k= 9 n  432 R +0.0234 day-cl t +0.68
+    k=10 n  432 R +0.0377 day-cl t +1.46
+const IC spread          n   432 ( 144 d)  R +0.0205  sd 0.468  t +0.91  day-cl t +0.64  win 54.6%  net $     +884  yrs>0 8/12  maxDD $1,912
+Duka raw spread          n   432 ( 144 d)  R +0.0050  sd 0.468  t +0.22  day-cl t +0.16  win 52.1%  net $     +215  yrs>0 6/12  maxDD $2,235
+GROSS (no cost)          n   432 ( 144 d)  R +0.0418  sd 0.466  t +1.86  day-cl t +1.31  win 56.7%  net $   +1,804  yrs>0 8/12  maxDD $1,670
+  USDJPY                 n   144 ( 144 d)  R +0.0555  sd 0.436  t +1.53  day-cl t +1.53  win 56.9%  net $     +800  yrs>0 8/12  maxDD $333
+  USDCHF                 n   144 ( 144 d)  R +0.0251  sd 0.484  t +0.62  day-cl t +0.62  win 56.2%  net $     +361  yrs>0 6/12  maxDD $749
+  EURUSD                 n   144 ( 144 d)  R +0.0446  sd 0.480  t +1.12  day-cl t +1.12  win 56.9%  net $     +643  yrs>0 7/12  maxDD $677

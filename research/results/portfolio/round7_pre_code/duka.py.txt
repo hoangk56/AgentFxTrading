@@ -1,0 +1,262 @@
+"""Dukascopy free datafeed: resume-safe fetcher of raw .bi5 candle files + decoder (stream A, round 7).
+
+URLs (MM0 = month - 1, zero-based):
+  M1 day   https://datafeed.dukascopy.com/datafeed/{SYM}/{YYYY}/{MM0:02d}/{DD:02d}/{BID|ASK}_candles_min_1.bi5
+  H1 month https://datafeed.dukascopy.com/datafeed/{SYM}/{YYYY}/{MM0:02d}/{BID|ASK}_candles_hour_1.bi5
+Files are LZMA; each record is big-endian '>5if' = seconds after the file start, OPEN, CLOSE, LOW, HIGH (integer
+price x scale), volume (float). An empty body = no data. Minutes/hours with no trading come as flat candles with
+volume 0; `load_*` drops rows where both bid and ask volume are 0.
+
+Cache: CACHE/<same path as the URL>, written atomically (tmp + rename), so an interrupted run resumes. A 404 or an
+empty body is cached as a 0-byte file (= no data).
+
+    python duka.py fetch jobs.txt --workers 3        # one job per line: SYM m1 YYYY-MM-DD | SYM h1 YYYY-MM
+    python duka.py probe USA500IDXUSD 2010-03       # print the H1 file's first candles (both sides)
+
+The server answers HTTP 429 without a browser User-Agent. A *new* connection is slow (TCP+TLS 2-25 s, sometimes
+reset or 503 on every request): one-shot requests (urllib, curl) therefore take 15-35 s each. On a kept-alive
+connection a request takes ~0.3 s, so each worker thread keeps one connection open and replaces it on any 503 or
+error. Every request is logged to CACHE/requests.log (unix time, latency s, status, bytes, path).
+"""
+import datetime
+import http.client
+import lzma
+import os
+import random
+import sys
+import threading
+import time
+from concurrent.futures import ThreadPoolExecutor, as_completed
+from pathlib import Path
+
+import numpy as np
+
+HERE = Path(__file__).resolve().parent
+CACHE = HERE / "cache"
+UA = ("Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) "
+      "Chrome/126.0 Safari/537.36")
+REC = np.dtype([("t", ">i4"), ("o", ">i4"), ("c", ">i4"), ("l", ">i4"), ("h", ">i4"), ("v", ">f4")])
+SIDES = ("BID", "ASK")
+
+# integer price -> price; verified on 2016 overlap days against IC for USDJPY / EURUSD (see REPORT.md)
+SCALE = {"XAUUSD": 1e3, "XAGUSD": 1e3}
+
+
+def scale_of(sym: str) -> float:
+    if sym in SCALE:
+        return SCALE[sym]
+    return 1e3 if sym.endswith("JPY") else 1e5
+
+
+def rel_path(sym: str, kind: str, when, side: str) -> str:
+    if kind == "m1":
+        return f"{sym}/{when.year}/{when.month - 1:02d}/{when.day:02d}/{side}_candles_min_1.bi5"
+    if kind == "h1":
+        return f"{sym}/{when.year}/{when.month - 1:02d}/{side}_candles_hour_1.bi5"
+    if kind == "tick":   # when = datetime (hour)
+        return f"{sym}/{when.year}/{when.month - 1:02d}/{when.day:02d}/{when.hour:02d}h_ticks.bi5"
+    raise ValueError(kind)
+
+
+# ---------------------------------------------------------------- fetching
+_log_lock = threading.Lock()
+HOST = "datafeed.dukascopy.com"
+PACE = 0.1                   # s between requests on one connection
+
+
+def _log(line: str):
+    with _log_lock:
+        with open(CACHE / "requests.log", "a") as fh:
+            fh.write(line + "\n")
+
+
+_tls = threading.local()
+
+
+def _conn(fresh: bool = False):
+    """This thread's persistent HTTPS connection (keep-alive). Connecting is the slow part (TLS 2-25 s, sometimes
+    reset); requests on an open connection take ~0.3 s. A 503 is sticky to a connection, so it is replaced."""
+    c = getattr(_tls, "c", None)
+    if c is not None and not fresh:
+        return c
+    if c is not None:
+        try:
+            c.close()
+        except Exception:
+            pass
+        _tls.c = None
+    delay = 2.0
+    for k in range(30):
+        t0 = time.time()
+        try:
+            c = http.client.HTTPSConnection(HOST, timeout=45)
+            c.connect()
+            _log(f"{t0:.1f}\t{time.time() - t0:.2f}\tCONNECT\t0\t-")
+            _tls.c = c
+            return c
+        except Exception as e:
+            _log(f"{t0:.1f}\t{time.time() - t0:.2f}\tCONNFAIL:{type(e).__name__}\t0\t-")
+            time.sleep(delay * (0.5 + random.random()))
+            delay = min(delay * 1.5, 60.0)
+    raise RuntimeError("cannot connect")
+
+
+def fetch_one(rp: str, tries: int = 12) -> int:
+    """Download one file into the cache unless present; returns its size (0 = no data)."""
+    dst = CACHE / rp
+    if dst.exists():
+        return dst.stat().st_size
+    dst.parent.mkdir(parents=True, exist_ok=True)
+    path = f"/datafeed/{rp}"
+    for attempt in range(tries):
+        c = _conn()
+        t0 = time.time()
+        status, body = None, b""
+        try:
+            c.request("GET", path, headers={"User-Agent": UA, "Accept": "*/*"})
+            r = c.getresponse()
+            body = r.read()
+            status = r.status
+        except Exception as e:  # timeout, reset
+            status = f"ERR:{type(e).__name__}"
+        _log(f"{t0:.1f}\t{time.time() - t0:.2f}\t{status}\t{len(body)}\t{rp}")
+        if status == 200 or status == 404:
+            tmp = dst.with_name(dst.name + f".tmp{os.getpid()}_{threading.get_ident()}")
+            tmp.write_bytes(body if status == 200 else b"")
+            os.replace(tmp, dst)
+            if PACE:
+                time.sleep(PACE)
+            return len(body)
+        _conn(fresh=True)
+        if status == 429:
+            time.sleep(10 * (attempt + 1))
+    raise RuntimeError(f"failed after {tries} tries: {path}")
+
+
+def parse_jobs(lines):
+    out = []
+    for ln in lines:
+        ln = ln.split("#")[0].strip()
+        if not ln:
+            continue
+        sym, kind, when = ln.split()[:3]
+        sides = ln.split()[3:] or list(SIDES)
+        if kind == "m1":
+            d = datetime.date.fromisoformat(when)
+        else:
+            y, m = when.split("-")
+            d = datetime.date(int(y), int(m), 1)
+        for s in sides:
+            out.append(rel_path(sym, kind, d, s))
+    return out
+
+
+def fetch_many(paths, workers: int = 6, label: str = ""):
+    todo = [p for p in dict.fromkeys(paths) if not (CACHE / p).exists()]
+    print(f"{label} {len(paths)} files, {len(todo)} to fetch, {workers} workers", flush=True)
+    t0, done, fails = time.time(), 0, []
+    with ThreadPoolExecutor(workers) as ex:
+        futs = {ex.submit(fetch_one, p): p for p in todo}
+        for f in as_completed(futs):
+            done += 1
+            try:
+                f.result()
+            except Exception as e:
+                fails.append((futs[f], str(e)))
+            if done % 25 == 0 or done == len(todo):
+                el = time.time() - t0
+                print(f"{label} {done}/{len(todo)} in {el / 60:.1f} min, {done / el:.2f} files/s, fails {len(fails)}",
+                      flush=True)
+    return fails
+
+
+# ---------------------------------------------------------------- decoding
+def decode(path: Path, base_ms: int, scale: float, step_ms: int = 1000):
+    raw = Path(path).read_bytes()
+    if not raw:
+        return None
+    a = np.frombuffer(lzma.decompress(raw), dtype=REC)
+    return dict(ts=base_ms + a["t"].astype(np.int64) * step_ms, o=a["o"] / scale, c=a["c"] / scale,
+                l=a["l"] / scale, h=a["h"] / scale, v=a["v"].astype(np.float64))
+
+
+def _ms(d) -> int:
+    return int(datetime.datetime(d.year, d.month, d.day, tzinfo=datetime.timezone.utc).timestamp() * 1000)
+
+
+def _merge(b, a):
+    """Bid and ask candle dicts on the same grid -> one dict; rows with zero volume on both sides dropped."""
+    if b is None or a is None:
+        return None
+    assert np.array_equal(b["ts"], a["ts"]), "bid/ask grids differ"
+    keep = (b["v"] > 0) | (a["v"] > 0)
+    out = {"ts": b["ts"][keep]}
+    for k in "ohlc":
+        out[k] = b[k][keep]
+        out["a" + k] = a[k][keep]
+    out["vb"], out["va"] = b["v"][keep], a["v"][keep]
+    return out
+
+
+def load_m1_day(sym: str, d: datetime.date):
+    """M1 bid+ask of one UTC day: ts (ms), o/h/l/c bid, ao/ah/al/ac ask, vb/va; None if missing or empty."""
+    sc = scale_of(sym)
+    parts = []
+    for s in SIDES:
+        p = CACHE / rel_path(sym, "m1", d, s)
+        if not p.exists():
+            return None
+        parts.append(decode(p, _ms(d), sc))
+    return _merge(*parts)
+
+
+def load_h1_month(sym: str, y: int, m: int):
+    sc = scale_of(sym)
+    parts = []
+    for s in SIDES:
+        p = CACHE / rel_path(sym, "h1", datetime.date(y, m, 1), s)
+        if not p.exists():
+            return None
+        parts.append(decode(p, _ms(datetime.date(y, m, 1)), sc))
+    return _merge(*parts)
+
+
+def load_h1(sym: str, first=(2003, 1), last=(2015, 12)):
+    """Concatenated H1 bid+ask for months first..last (missing months skipped, reported in 'missing')."""
+    y, m = first
+    parts, missing = [], []
+    while (y, m) <= last:
+        x = load_h1_month(sym, y, m)
+        if x is None:
+            missing.append((y, m))
+        elif len(x["ts"]):
+            parts.append(x)
+        y, m = (y + (m == 12), m % 12 + 1)
+    out = {k: np.concatenate([p[k] for p in parts]) for k in parts[0]}
+    out["missing"] = missing
+    return out
+
+
+def main(argv):
+    if argv[0] == "fetch":
+        jobs = parse_jobs(Path(argv[1]).read_text().splitlines())
+        w = int(argv[argv.index("--workers") + 1]) if "--workers" in argv else 3
+        fails = fetch_many(jobs, w, label=Path(argv[1]).stem)
+        for p, e in fails:
+            print("FAIL", p, e)
+    elif argv[0] == "probe":
+        sym, ym = argv[1], argv[2]
+        y, m = map(int, ym.split("-"))
+        for s in SIDES:
+            p = rel_path(sym, "h1", datetime.date(y, m, 1), s)
+            n = fetch_one(p)
+            print(sym, ym, s, n, "bytes")
+            if n:
+                for sc in (1e1, 1e2, 1e3, 1e5):
+                    x = decode(CACHE / p, _ms(datetime.date(y, m, 1)), sc)
+                    v = x["v"] > 0
+                    print(f"  scale {sc:g}: first close {x['c'][v][:1]}, rows with volume {v.sum()}")
+
+
+if __name__ == "__main__":
+    main(sys.argv[1:])

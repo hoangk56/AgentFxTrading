@@ -6,6 +6,36 @@ detail. The numbers are copied from those files, and the file wins if the two ev
 When you write a new result file, add a row to that day's entry (or start a new entry) and link the file. Don't
 repeat its tables here.
 
+## 2026-10-05: round 8, how the symbols affect each other. No candidate
+
+| tested | verdict | detail |
+|---|---|---|
+| Four streams on one M1 panel of the 26 symbols (2016-2024, HOLD cut out). L: intraday lead-lag (26 x 26 at 1-60 min, 10 named economic leads, dynamic leads). S: shock spillover (large fast moves -> linked markets, beta-gap catch-up, safe havens, 08:30 New York data). R: relative value (return-spread pairs, Avellaneda-Lee PCA residuals, currency strength meter, commodity-currency fair value, index dispersion). X: literature map (38 papers), cross-session and risk-regime spillovers, crypto -> indices, weekly oil -> equities | **none reached a pre-registration, HOLD not opened**. The lead-lag structure is real (robust matrix: 1,248 cells with \|t\| >= 4 vs ~2 by chance, IS/VAL t corr 0.41) but sits inside the first minute: after a 1-minute delay it is 0.01-0.2 bp per sd against 0.7-7 bp of cost. Shocks diffuse slowly into JP225/HK50/BTC/ETH (1-7 bp vs 2.5-8 bp). FX residual reversal is real in 2004-15, IS and VAL (+1.2..+2.7 bp vs 1.2-1.5 bp). Pairs outside FX pay two legs (4-120 bp) for less. Best cell: US30 continuing after 08:30 New York data, power 2.6 / 1.4 (bar 3), side post hoc. Weekly oil -> US500 fade (Driesprong et al. 2008) is -54 bp per sd in VAL (t -3.2), but its IS t -2.8 came from dropping weeks without quotes; with proper fills IS is -18 (t -1.2) | [round8_inter_symbol_2026-10-05.md](results/portfolio/round8_inter_symbol_2026-10-05.md), [round8_hypotheses/](results/portfolio/round8_hypotheses/) |
+
+Standing: unchanged. What the symbols do to each other is real but either priced within a minute or smaller than
+IC's spread, which is widest exactly where quotes lag. C3 remains the only algorithm that has passed.
+
+## 2026-10-05: round 7, new data and relaxed limits. No new algorithm; C3 passes a 2004-2015 era
+
+| tested | verdict | detail |
+|---|---|---|
+| A: Dukascopy M1 2004-2015 (PRE, never used in this repo; validated against IC on 2016 days) as a fourth era for the registered C3 and M1 rules, unchanged engine, IC 2016-17 spread profile on Dukascopy's bid | **C3 passes** its registered bar: 5,184 legs, R +0.038, day-clustered t 4.8, 10/12 years, every pair > 0 (EURJPY weakest, +0.019), +0.030 at spread x1.5; the edge sits at the 00:55 fix (pivot at 01:05: +0.010), holiday long legs lose again. **M1 fails again**: R +0.020, day-clustered t 0.64, beats 64 % of random days | [round7_new_data_2026-10-05.md](results/portfolio/round7_new_data_2026-10-05.md) (A), [round7_pre_code/](results/portfolio/round7_pre_code/) |
+| B: seven IC symbols no round had used (ES35, F40, IT40, STOXX50, US2000, USDCNH; DOGEUSD's cache is empty): large-to-small-cap and core-to-periphery lead-lag, European close and expiry, PBOC fix surprise (official CFETS series), CNH home hours and month-end | none: best gross power 1.9 (needs ~3). The CFDs follow futures (no lead-lag); the fix surprise is priced in 6 minutes; USDCNH Asian-hours drift is real (+1.2 / +2.0 bp) but the size of its ~1 bp cost | same (B) |
+| C: literature 2010-2026 (38 mechanisms, 15 not yet tested) and 7 screens: adaptive same-slot periodicity (Heston, Korajczyk & Sadka), quarter-hour openings, US500 expiry pinning, stablecoin issuance, PBOC countercyclical reversal, ISM pre-drift | none: best power 1.3. Adaptive periodicity is real in FX (JPY crosses) but 0.02-0.3 bp per slot against 0.3-3 bp of cost | same (C) |
+| D: relaxed limits (hold <= ~3 months, <= 10 positions): 24 published multi-week rules (carry, dollar carry, FX momentum/value, TSMOM, index/commodity momentum) on 2000-2024 daily data at IC's costs | none: IC's financing markup costs 1.4-4.5 %/yr (TSMOM 12 m gross Sharpe 0.60 -> net 0.16); best net 0.20-0.23 at t <= 1.2; after 2015 the premia are ~0 even gross; HOLD (expected t ~1.3 x annual Sharpe) can only falsify slow premia | same (D) |
+
+Standing: unchanged. C3 is the only algorithm that has passed, now over four eras (2004-15, 2016-21, 2022-24,
+2025-26). Intraday flows lose to IC's spread and commission, multi-week premia to its financing markup.
+
+## 2026-10-04: round 6, commodity settlement flows, inventory reports, passive execution. No candidate
+
+| tested | verdict | detail |
+|---|---|---|
+| S1: momentum into the futures settlement (leveraged-ETF rebalancing) in XTI/XBR/XNG/XAU/XAG, XPT as the control; S2: follow-through after the EIA crude / gas reports; S3: the API report; S4: buying the 10:00-Sydney dip with a limit order (tick level); S5: fading 5-minute shocks in US30/USTEC by VIX regime. IS/VAL only, HOLD cut at load | **none reached a pre-registration, HOLD not opened**. The settlement flow is real where leveraged ETFs exist (gold slope t +6.8 / +2.6, silver +8.2 / **-4.3**, platinum control -3.9 / -2.9) but 0.3-2.4 bp against 1-4 bp of cost. EIA follow-through has the right sign in all three energies (XTI +18 / +16 bp to 14:30) but t <= 1.3 at ~50 events a year: expected HOLD t ~0.7 even if real. The API effect also shows on days without a report. Passive buys fill on 85-93 % of days but 0/48 cells net > 0. No index reversal repeats in VAL. Also found: the engine charges metals commission at a fixed $/oz from 2026 prices, ~2 bp instead of 0.6 bp for gold/silver in 2016-21; no verdict changes | [round6_commodity_flows_2026-10-04.md](results/portfolio/round6_commodity_flows_2026-10-04.md) |
+
+Standing: unchanged. C3 is the only algorithm that has passed a holdout. The round's power table says a candidate needs a
+per-trade Sharpe of at least 3 / sqrt(its HOLD trade count) before its holdout is worth spending.
+
 ## 2026-09-30: cost of camouflaging GotobiBot from the broker
 
 | tested | verdict | detail |
