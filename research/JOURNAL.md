@@ -6,6 +6,12 @@ detail. The numbers are copied from those files, and the file wins if the two ev
 When you write a new result file, add a row to that day's entry (or start a new entry) and link the file. Don't
 repeat its tables here.
 
+## 2026-10-06: GotobiBot live fills vs IC ticks and the cTrader backtest. Execution matches; the fix-time short pays latency
+
+| tested | verdict | detail |
+|---|---|---|
+| The 24 real Gotobi legs of 30/09 and 05/10 (12 live, 12 demo) against IC ticks at the fill second and against backtest jobs #391-#393 on the same days; plus 26 decoys | **execution matches the backtest**: entry slippage 0.0 pip (live median), commission identical, live and demo feeds identical. One real gap: the short leg at the 00:55 fix fills after the long's close, 11/12 legs worse than the backtest, mean -0.45 pip live / -1.23 demo (n 12, not significant); 2 live short orders failed with TechnicalError and waited 30 s. The edge itself needs ~100 gotobi days to test live | [gotobi_live_fills_2026-10-06.md](results/portfolio/gotobi_live_fills_2026-10-06.md) |
+
 ## 2026-10-06: round 22, triage of all residual ideas. No candidate; the search paused here at the user's request
 
 | tested | verdict | detail |
