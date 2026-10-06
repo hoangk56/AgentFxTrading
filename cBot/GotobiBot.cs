@@ -23,7 +23,8 @@ namespace cAlgo.Robots
     /// Tokyo keeps no daylight saving time, so every time here is a fixed UTC time.
     ///
     /// Run one instance per symbol: USDJPY, EURJPY, GBPJPY (the three the research validated; AUDJPY showed no
-    /// effect). An instance holds at most one position at a time and never longer than one leg (7 h at most).
+    /// effect). An instance holds one leg at a time and never longer than one leg (7 h at most). At the fix the short
+    /// is sent while the long closes, so for under a second both are open.
     ///
     /// Sizing never reads the account: every trade risks `RiskPerTradeMoney` at a stop of 3 x ATR20(H1), so the lot
     /// follows volatility around that default risk, not equity.
@@ -109,6 +110,12 @@ namespace cAlgo.Robots
         [Parameter("Max Spread (pips)", Group = "Risk", DefaultValue = 3.0, MinValue = 0.1)]
         public double MaxSpreadPips { get; set; }
 
+        // A leg whose order failed, or whose spread was too wide, is tried again after this many seconds. The short
+        // goes out at the fix, when the price moves fastest: on 05/10/2026 two live shorts failed with TechnicalError
+        // and waited 30 s (research/results/portfolio/gotobi_live_fills_2026-10-06.md).
+        [Parameter("Order Retry (seconds)", Group = "Risk", DefaultValue = 2, MinValue = 1, MaxValue = 60)]
+        public int OrderRetrySeconds { get; set; }
+
         // Last line of defence after a restart or a missed exit: legs close at their planned time; anything the bot
         // owns that is older than this is closed too. Far inside the 5-day limit.
         [Parameter("Max Hold (hours)", Group = "Risk", DefaultValue = 12, MinValue = 1, MaxValue = 120)]
@@ -173,8 +180,16 @@ namespace cAlgo.Robots
         private readonly HashSet<DateTime> _skipDates = new HashSet<DateTime>();
         private readonly HashSet<string> _legsDone = new HashSet<string>();
         private readonly Dictionary<string, DateTime> _lastAttemptAt = new Dictionary<string, DateTime>();
+        private readonly Dictionary<string, int> _orderFailures = new Dictionary<string, int>();
         private readonly Dictionary<int, string> _closeReasons = new Dictionary<int, string>();
         private readonly Dictionary<int, double> _initialSlPips = new Dictionary<int, double>();
+        // A leg's order is asynchronous (ExecuteMarketOrderAsync): no other order goes out until its result arrives,
+        // or until PendingOrderTimeoutSeconds have passed without one (then LegAlreadyTraded finds a fill it missed).
+        private const double PendingOrderTimeoutSeconds = 30;
+        private string _pendingOrderTag;
+        private DateTime _pendingOrderSince;
+        // The quote and the clock when each close was sent, for the slippage the close's log line reports.
+        private readonly Dictionary<int, SentQuote> _closeQuotes = new Dictionary<int, SentQuote>();
         // Evaluate() also runs from the 1 s timer, which fires without ticks. Before the first quote of the week (or
         // while the broker is closed on a holiday) Symbol.Bid/Ask still hold the last quote before the close, so the
         // spread check, an order and a close would all use that stale price (backtests #366-#374 filled USDJPY at
@@ -294,6 +309,15 @@ namespace cAlgo.Robots
             public bool Decoy;
         }
 
+        /// <summary>Bid and ask when an order was sent, and how long the broker took to fill it.</summary>
+        private class SentQuote
+        {
+            public double Bid;
+            public double Ask;
+            public long SentAt;          // Stopwatch timestamp
+            public double LatencyMs;
+        }
+
         // Orders carry no label or comment, and the position's entry time comes from the fill, so the windows below
         // allow a few minutes past the latest time an order can be sent.
         private const int EntrySlackMinutes = 5;
@@ -348,6 +372,16 @@ namespace cAlgo.Robots
             {
                 var now = Server.Time;
                 if (!HasFreshQuote(now)) return;   // no quote yet this week, or the broker is closed
+
+                // Short leg at today's fix, only within the grace minutes after it. Its order is sent before the long
+                // is closed and does not wait for its fill, so both reach the broker together: a short sent after the
+                // close filled ~0.5-1.2 pip worse than the backtest, which does both on one tick
+                // (research/results/portfolio/gotobi_live_fills_2026-10-06.md).
+                var today = now.Date;
+                if (TradeShort && PlanLeg(Leg.Short, today, out bool shortDecoy) && now >= FixTime(today)
+                    && now <= FixTime(today).AddMinutes(ShortEntryGraceMinutes) && now < ShortExitTime(today))
+                    TryOpenLeg(Leg.Short, today, shortDecoy);
+
                 CloseDueLegs(now);
 
                 // Long leg for tomorrow's gotobi day: from 18:00 UTC today (03:00 Tokyo tomorrow) to the latest entry.
@@ -355,12 +389,6 @@ namespace cAlgo.Robots
                 if (TradeLong && PlanLeg(Leg.Long, tomorrow, out bool longDecoy) && now >= JitteredLongEntry(tomorrow)
                     && now <= LongEntryLatest(tomorrow) && now < FixTime(tomorrow))
                     TryOpenLeg(Leg.Long, tomorrow, longDecoy);
-
-                // Short leg at today's fix, only within the grace minutes after it.
-                var today = now.Date;
-                if (TradeShort && PlanLeg(Leg.Short, today, out bool shortDecoy) && now >= FixTime(today)
-                    && now <= FixTime(today).AddMinutes(ShortEntryGraceMinutes) && now < ShortExitTime(today))
-                    TryOpenLeg(Leg.Short, today, shortDecoy);
             }
             catch (Exception ex)
             {
@@ -378,20 +406,8 @@ namespace cAlgo.Robots
         {
             foreach (var pos in GetBotPositions())
             {
-                string reason = null;
-                var info = LegOf(pos);
-                if (info != null)
-                {
-                    if (info.Leg == Leg.Long && now >= FixTime(info.Day)) reason = "Fix exit (09:55 Tokyo)";
-                    else if (info.Leg == Leg.Short && now >= ShortExitTime(info.Day)) reason = "Session exit (11:55 Tokyo)";
-                }
-                if (reason == null && now - pos.EntryTime >= TimeSpan.FromHours(MaxHoldHours))
-                    reason = $"Max hold ({MaxHoldHours} h)";
-                if (reason == null && VirtualStopHit(pos, info))
-                    reason = info.Decoy ? $"StopLoss (virtual, {DecoyStopAtrMultiplier} x ATR{AtrPeriod} H1)"
-                                        : $"StopLoss (virtual, {StopAtrMultiplier} x ATR{AtrPeriod} H1)";
+                string reason = DueExitReason(pos, now);
                 if (reason == null) continue;
-                if (info != null && info.Decoy) reason = "Decoy: " + reason;
 
                 var result = CloseWithReason(pos, reason);
                 if (result == null || !result.IsSuccessful)
@@ -399,20 +415,48 @@ namespace cAlgo.Robots
             }
         }
 
-        /// <summary>One attempt per leg and gotobi day, including after a stop-out; retried every 30 s while the
-        /// spread is too wide or the order fails, until the leg's window closes.</summary>
+        /// <summary>Why `pos` must close now: its leg's planned exit, Max hold or its virtual stop. Null while it may
+        /// stay open.</summary>
+        private string DueExitReason(Position pos, DateTime now)
+        {
+            string reason = null;
+            var info = LegOf(pos);
+            if (info != null)
+            {
+                if (info.Leg == Leg.Long && now >= FixTime(info.Day)) reason = "Fix exit (09:55 Tokyo)";
+                else if (info.Leg == Leg.Short && now >= ShortExitTime(info.Day)) reason = "Session exit (11:55 Tokyo)";
+            }
+            if (reason == null && now - pos.EntryTime >= TimeSpan.FromHours(MaxHoldHours))
+                reason = $"Max hold ({MaxHoldHours} h)";
+            if (reason == null && VirtualStopHit(pos, info))
+                reason = info.Decoy ? $"StopLoss (virtual, {DecoyStopAtrMultiplier} x ATR{AtrPeriod} H1)"
+                                    : $"StopLoss (virtual, {StopAtrMultiplier} x ATR{AtrPeriod} H1)";
+            if (reason != null && info != null && info.Decoy) reason = "Decoy: " + reason;
+            return reason;
+        }
+
+        /// <summary>One attempt per leg and gotobi day, including after a stop-out; retried every OrderRetrySeconds
+        /// while the spread is too wide or the order fails, until the leg's window closes.</summary>
         private void TryOpenLeg(Leg leg, DateTime day, bool decoy)
         {
             string tag = LegTag(leg, day);
             if (_legsDone.Contains(tag)) return;
-            if (GetBotPositions().Count > 0) return;   // one position at a time; the long closes before the short opens
+            if (_pendingOrderTag != null)
+            {
+                if ((Server.Time - _pendingOrderSince).TotalSeconds < PendingOrderTimeoutSeconds) return;
+                Print($"[Gotobi] {_pendingOrderTag}: no order result after {PendingOrderTimeoutSeconds:F0} s; checking positions and history");
+                _pendingOrderTag = null;
+            }
+            // One leg at a time. A position whose exit is due does not count: Evaluate() closes it right after, so at
+            // the fix the short's order goes out while the long closes.
+            if (GetBotPositions().Any(p => DueExitReason(p, Server.Time) == null)) return;
             // A Monday gotobi day's long window opens on Sunday 18:00 UTC, before the FX week does; wait for the
             // first quote after the open (as the research did) instead of filling on Friday's stale price. The
             // schedule alone is not enough: a backtest's can say "open" an hour before the first tick, so Evaluate()
             // also waits for a fresh quote (HasFreshQuote).
             if (!Symbol.MarketHours.IsOpened()) return;
 
-            if (_lastAttemptAt.TryGetValue(tag, out var last) && (Server.Time - last).TotalSeconds < 30) return;
+            if (_lastAttemptAt.TryGetValue(tag, out var last) && (Server.Time - last).TotalSeconds < RetryDelaySeconds(tag)) return;
             _lastAttemptAt[tag] = Server.Time;
 
             if (LegAlreadyTraded(tag))
@@ -462,24 +506,53 @@ namespace cAlgo.Robots
                 virtualPips = decoy ? DecoyStopAtrMultiplier * atr / Symbol.PipSize : stopPips;
                 orderStopPips = stopPips * (EmergencyStopMin + _random.NextDouble() * Math.Max(0, EmergencyStopMax - EmergencyStopMin));
             }
-            var result = ExecuteMarketOrder(tradeType, SymbolName, volume, null, orderStopPips, null, null);
-            if (result != null && result.IsSuccessful && result.Position != null)
+            var quote = new SentQuote { Bid = Symbol.Bid, Ask = Symbol.Ask, SentAt = System.Diagnostics.Stopwatch.GetTimestamp() };
+            _pendingOrderTag = tag;
+            _pendingOrderSince = Server.Time;
+            ExecuteMarketOrderAsync(tradeType, SymbolName, volume, null, orderStopPips, null, null, result =>
             {
-                _legsDone.Add(tag);
-                _legs[result.Position.Id] = new LegInfo { Leg = leg, Day = day, Tag = tag, StopPips = virtualPips, Decoy = decoy };
-                double reportedStop = virtualPips ?? stopPips;
-                _initialSlPips[result.Position.Id] = reportedStop;
-                string reason = leg == Leg.Long ? "Gotobi long into the 09:55 Tokyo fix" : "Gotobi short after the 09:55 Tokyo fix";
-                if (decoy) reason = leg == Leg.Long ? "Decoy long (plain weekday)" : "Decoy short (plain weekday)";
-                Print($"[Gotobi] Opened #{result.Position.Id} {tradeType} {volume / Symbol.LotSize:F2} lots {SymbolName} @ {result.Position.EntryPrice}, " +
-                      $"stop {reportedStop:F1} pips{(virtualPips.HasValue ? $" (virtual, broker {orderStopPips:F1})" : "")} ({tag}{(decoy ? ", decoy" : "")})");
-                ReportPositionOpen(result.Position, reportedStop, reason);
-            }
-            else
-            {
-                Print($"[Gotobi] {tag}: order failed ({(result != null ? result.Error.ToString() : "no result")}); retrying in 30 s");
-            }
+                if (_pendingOrderTag == tag) _pendingOrderTag = null;
+                quote.LatencyMs = ElapsedMs(quote.SentAt);
+                if (result != null && result.IsSuccessful && result.Position != null)
+                {
+                    _legsDone.Add(tag);
+                    _legs[result.Position.Id] = new LegInfo { Leg = leg, Day = day, Tag = tag, StopPips = virtualPips, Decoy = decoy };
+                    double reportedStop = virtualPips ?? stopPips;
+                    _initialSlPips[result.Position.Id] = reportedStop;
+                    string reason = leg == Leg.Long ? "Gotobi long into the 09:55 Tokyo fix" : "Gotobi short after the 09:55 Tokyo fix";
+                    if (decoy) reason = leg == Leg.Long ? "Decoy long (plain weekday)" : "Decoy short (plain weekday)";
+                    Print($"[Gotobi] Opened #{result.Position.Id} {tradeType} {volume / Symbol.LotSize:F2} lots {SymbolName} @ {result.Position.EntryPrice}, " +
+                          $"stop {reportedStop:F1} pips{(virtualPips.HasValue ? $" (virtual, broker {orderStopPips:F1})" : "")} ({tag}{(decoy ? ", decoy" : "")}); " +
+                          FillNote(tradeType, result.Position.EntryPrice, quote));
+                    ReportPositionOpen(result.Position, reportedStop, reason);
+                }
+                else
+                {
+                    _orderFailures[tag] = (_orderFailures.TryGetValue(tag, out var fails) ? fails : 0) + 1;
+                    Print($"[Gotobi] {tag}: order failed ({(result != null ? result.Error.ToString() : "no result")}) after {quote.LatencyMs:F0} ms; retrying in {RetryDelaySeconds(tag):F0} s");
+                }
+            });
         }
+
+        /// <summary>Seconds between two attempts at `tag`: OrderRetrySeconds, doubled after each failed order from the
+        /// second on and capped at 60 s, so an order the broker keeps refusing (a long's window lasts 5 h) is not
+        /// resent every few seconds. A spread too wide is no failure: it sends nothing.</summary>
+        private double RetryDelaySeconds(string tag)
+        {
+            int fails = _orderFailures.TryGetValue(tag, out var n) ? n : 0;
+            return Math.Min(60.0, OrderRetrySeconds * Math.Pow(2, Math.Max(0, fails - 1)));
+        }
+
+        /// <summary>How a fill compares with the quote when its order was sent: "quote 157.300/157.302, slippage
+        /// +0.3 pips, 212 ms". Slippage is in pips against the trader (a buy above the ask, a sell below the bid).</summary>
+        private string FillNote(TradeType side, double fill, SentQuote quote)
+        {
+            double slippage = (side == TradeType.Buy ? fill - quote.Ask : quote.Bid - fill) / Symbol.PipSize;
+            return $"quote {quote.Bid}/{quote.Ask}, slippage {slippage:+0.0;-0.0;0.0} pips, {quote.LatencyMs:F0} ms";
+        }
+
+        private static double ElapsedMs(long since) =>
+            (System.Diagnostics.Stopwatch.GetTimestamp() - since) * 1000.0 / System.Diagnostics.Stopwatch.Frequency;
 
         /// <summary>True when this bot already opened `tag` on this symbol: still open, or closed (History, read off
         /// each trade's side and entry time like an open position).</summary>
@@ -512,7 +585,11 @@ namespace cAlgo.Robots
         private TradeResult CloseWithReason(Position pos, string reason)
         {
             _closeReasons[pos.Id] = reason;
-            return ClosePosition(pos);
+            var quote = new SentQuote { Bid = Symbol.Bid, Ask = Symbol.Ask, SentAt = System.Diagnostics.Stopwatch.GetTimestamp() };
+            var result = ClosePosition(pos);
+            quote.LatencyMs = ElapsedMs(quote.SentAt);
+            if (result != null && result.IsSuccessful) _closeQuotes[pos.Id] = quote;   // read by OnPositionClosed
+            return result;
         }
         #endregion
 
@@ -856,7 +933,11 @@ namespace cAlgo.Robots
                         reason = args.Reason.ToString();
 
                     _legs.Remove(pos.Id);
-                    Print($"[Gotobi] Closed #{pos.Id} {pos.TradeType} {info?.Tag ?? "(no leg)"}{(info != null && info.Decoy ? " decoy" : "")}: {reason}, net {pos.NetProfit:F2}");
+                    // A close the bot sent: the exit against the quote then (a long closes on the bid, a short on the ask).
+                    string fillNote = _closeQuotes.TryGetValue(pos.Id, out var closeQuote)
+                        ? $" @ {exitPrice}; {FillNote(pos.TradeType == TradeType.Buy ? TradeType.Sell : TradeType.Buy, exitPrice, closeQuote)}" : "";
+                    _closeQuotes.Remove(pos.Id);
+                    Print($"[Gotobi] Closed #{pos.Id} {pos.TradeType} {info?.Tag ?? "(no leg)"}{(info != null && info.Decoy ? " decoy" : "")}: {reason}, net {pos.NetProfit:F2}{fillNote}");
                     if (info != null && info.StopPips.HasValue && !_initialSlPips.ContainsKey(pos.Id))
                         _initialSlPips[pos.Id] = info.StopPips.Value;       // opened before a restart
                     ReportPositionClosed(pos, pos.NetProfit, reason, exitPrice, pos.Pips);

@@ -81,19 +81,56 @@ def test_lot_size_never_reads_the_account():
 
 def test_no_position_outlives_its_leg_or_five_days():
     assert _default("MaxHoldHours") <= 24 and _max_value("MaxHoldHours") <= 5 * 24
-    body = _body("private void CloseDueLegs(DateTime now)")
+    body = _body("private string DueExitReason(Position pos, DateTime now)")
     assert "now >= FixTime(info.Day)" in body and "now >= ShortExitTime(info.Day)" in body
     assert "TimeSpan.FromHours(MaxHoldHours)" in body
+    assert "string reason = DueExitReason(pos, now);" in _body("private void CloseDueLegs(DateTime now)")
     assert "CloseDueLegs(now);" in _body("private void Evaluate()")
 
 
 def test_one_position_at_a_time_and_one_attempt_per_leg():
     body = _body("private void TryOpenLeg(Leg leg, DateTime day, bool decoy)")
-    order = body.index("ExecuteMarketOrder(")
-    assert body.index("if (GetBotPositions().Count > 0) return;") < order
+    order = body.index("ExecuteMarketOrderAsync(")
+    # one leg at a time: only a position whose exit is due (closed in the same Evaluate) lets the next leg go out
+    assert body.index("if (GetBotPositions().Any(p => DueExitReason(p, Server.Time) == null)) return;") < order
+    # one order in flight; a lost result times out, and LegAlreadyTraded then finds a fill it missed
+    assert body.index("if (_pendingOrderTag != null)") < order
+    assert body.index("_pendingOrderTag = tag;") < order
+    assert "if (_pendingOrderTag == tag) _pendingOrderTag = null;" in body[order:]
     assert body.index("LegAlreadyTraded(tag)") < order
     assert body.index("if (!Symbol.MarketHours.IsOpened()) return;") < order   # no fill on a stale weekend quote
-    assert SRC.count("ExecuteMarketOrder(") == 1
+    assert "ExecuteMarketOrder(" not in SRC and SRC.count("ExecuteMarketOrderAsync(") == 1
+
+
+def test_the_fix_short_goes_out_before_the_long_closes():
+    # gotobi_live_fills_2026-10-06: a short sent only after the long's close filled ~0.5-1.2 pip worse than the
+    # backtest, which closes and opens on one tick. The short's order is asynchronous and sent first.
+    evaluate = _body("private void Evaluate()")
+    assert evaluate.index("TryOpenLeg(Leg.Short, today, shortDecoy);") < evaluate.index("CloseDueLegs(now);")
+    assert evaluate.index("CloseDueLegs(now);") < evaluate.index("TryOpenLeg(Leg.Long, tomorrow, longDecoy);")
+
+
+def test_a_failed_order_is_retried_within_seconds_then_backs_off():
+    # 05/10/2026: two live shorts failed with TechnicalError at the fix and waited 30 s
+    assert _default("OrderRetrySeconds") <= 2
+    body = _body("private void TryOpenLeg(Leg leg, DateTime day, bool decoy)")
+    assert "(Server.Time - last).TotalSeconds < RetryDelaySeconds(tag)" in body
+    assert "_orderFailures[tag] =" in body
+    delay = _body("private double RetryDelaySeconds(string tag)")
+    assert "Math.Min(60.0, OrderRetrySeconds * Math.Pow(2, Math.Max(0, fails - 1)))" in delay
+
+
+def test_fills_are_logged_against_the_quote_at_send():
+    body = _body("private void TryOpenLeg(Leg leg, DateTime day, bool decoy)")
+    assert body.index("new SentQuote { Bid = Symbol.Bid, Ask = Symbol.Ask") < body.index("ExecuteMarketOrderAsync(")
+    assert "FillNote(tradeType, result.Position.EntryPrice, quote)" in body
+    note = _body("private string FillNote(TradeType side, double fill, SentQuote quote)")
+    assert "side == TradeType.Buy ? fill - quote.Ask : quote.Bid - fill" in note      # + = against the trader
+    close = _body("private TradeResult CloseWithReason(Position pos, string reason)")
+    assert close.index("new SentQuote") < close.index("ClosePosition(pos)")
+    closed = _body("private void OnPositionClosed(PositionClosedEventArgs args)")
+    # a long closes on the bid (a sell), a short on the ask (a buy)
+    assert "FillNote(pos.TradeType == TradeType.Buy ? TradeType.Sell : TradeType.Buy, exitPrice, closeQuote)" in closed
     traded = _body("private bool LegAlreadyTraded(string tag)")
     assert "GetBotPositions().Any(p => LegOf(p)?.Tag == tag)" in traded
     assert "History.Any(h => h.SymbolName == SymbolName && InferLeg(h.TradeType, h.EntryTime)?.Tag == tag)" in traded
@@ -150,7 +187,7 @@ def test_broker_stop_is_never_wider_than_the_real_one():
 
 
 def test_virtual_stop_closes_after_the_leg_exits_are_checked():
-    body = _body("private void CloseDueLegs(DateTime now)")
+    body = _body("private string DueExitReason(Position pos, DateTime now)")
     assert body.index("now >= FixTime(info.Day)") < body.index("VirtualStopHit(pos, info)")
     hit = _body("private bool VirtualStopHit(Position pos, LegInfo info)")
     assert "Symbol.Bid <= stop.Value" in hit and "Symbol.Ask >= stop.Value" in hit
@@ -185,7 +222,7 @@ def test_long_entry_jitter_stays_in_the_researched_window():
 
 def test_orders_carry_no_label_and_no_comment():
     body = _body("private void TryOpenLeg(Leg leg, DateTime day, bool decoy)")
-    assert "ExecuteMarketOrder(tradeType, SymbolName, volume, null, orderStopPips, null, null)" in body
+    assert "ExecuteMarketOrderAsync(tradeType, SymbolName, volume, null, orderStopPips, null, null, result =>" in body
     for gone in ("TagKeyFile", "Seal(", "Unseal(", "_tagKey", "IsOwnLabel", "ParseLeg", ".Comment", ".Label"):
         assert gone not in SRC, gone
     assert not re.search(r"\b_label\b", SRC)

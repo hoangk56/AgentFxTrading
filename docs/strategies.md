@@ -23,6 +23,12 @@ move to the Friday before) Japanese importers buy USD at the 09:55 Tokyo fixing.
 (02:55 UTC). One position at a time per instance. Each trade risks `RiskPerTradeMoney` dollars at a stop of
 3 × ATR20 (H1). Result file: `research/results/portfolio/swing_lab_v2_2026-09-27.md`.
 
+**Orders at the fix.** Orders are asynchronous. At the fix the short's order goes out before the long's close, so
+for under a second both are open. A short sent only after the close filled 0.5–1.2 pip worse than the backtest
+(`research/results/portfolio/gotobi_live_fills_2026-10-06.md`). A failed order is retried after `OrderRetrySeconds`
+(2 s), with the wait doubling after each further failure up to 60 s. Every fill and every close the bot sends logs
+the quote when it was sent, the slippage in pips and the broker's latency.
+
 **Plain orders.** An order carries no label and no comment, like one placed by hand. The bot treats every position on
 its symbol as its own (one bot per symbol and account, nothing traded there by hand) and reads the leg back off the
 position: a buy entered in the evening long window is the long of the next day, a sell entered at the fix the short of

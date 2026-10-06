@@ -30,8 +30,8 @@ def _method(src, signature):
 
 
 def _entry_orders(src):
-    """Offsets of real ExecuteMarketOrder calls (comment lines skipped)."""
-    for m in re.finditer(r"ExecuteMarketOrder\(", src):
+    """Offsets of real ExecuteMarketOrder / ExecuteMarketOrderAsync calls (comment lines skipped)."""
+    for m in re.finditer(r"ExecuteMarketOrder(Async)?\(", src):
         line_start = src.rfind("\n", 0, m.start()) + 1
         if "//" not in src[line_start:m.start()]:
             yield m.start()
