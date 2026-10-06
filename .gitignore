@@ -83,3 +83,6 @@ research/results/**/*.gz
 research/results/**/*.log
 research/results/**/*trades*.csv
 research/results/**/control.csv
+
+# Third-party research skills, installed locally (re-cloned from upstream, not tracked)
+research/.claude/
