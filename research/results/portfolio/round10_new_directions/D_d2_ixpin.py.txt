@@ -1,0 +1,36 @@
+import json, datetime as dt, numpy as np
+from zoneinfo import ZoneInfo
+P="/private/tmp/claude-501/-Users-hoangbk-00-code-base-105-AgentFxTrading/64fd0f45-a961-42f5-8d1b-dc313a11911f/scratchpad/r10/panel/"
+meta=json.load(open(P+"meta.json")); syms=meta["symbols"]; T0=meta["T0_ms"]
+mid=np.load(P+"mid.npy",mmap_mode="r"); spr=np.load(P+"spr.npy",mmap_mode="r")
+NY=ZoneInfo("America/New_York")
+def idx(d,hh,mm):
+    t=dt.datetime(d.year,d.month,d.day,hh,mm,tzinfo=NY).astimezone(dt.timezone.utc)
+    return int((t.timestamp()*1000-T0)//60000)
+days=[]; d=dt.date(2016,1,4)
+while d<=dt.date(2024,12,31):
+    if d.weekday()<5: days.append(d)
+    d+=dt.timedelta(days=1)
+DAILY=dt.date(2022,5,16)
+CFG={"US500":(25,(3,5,10)),"USTEC":(100,(15,25,50)),"US30":(100,(15,25,50))}
+for s,(step,ds) in CFG.items():
+    i=syms.index(s); m=mid[i]; sp=spr[i]
+    for anchor in (15,13):
+        rows=[]
+        for d in days:
+            a=idx(d,anchor,0); e=a+1; x=idx(d,anchor,58)
+            p0,pe,px=float(m[a]),float(m[e]),float(m[x])
+            if not (np.isfinite(p0) and np.isfinite(pe) and np.isfinite(px)): continue
+            L=round(p0/step)*step; dist=L-p0
+            if dist==0: continue
+            g=np.sign(dist)*np.log(px/pe)*1e4; c=(float(sp[e])+float(sp[x]))/2/pe*1e4
+            exp_day = d.weekday()==4 or d>=DAILY
+            rows.append((abs(dist),g,c,exp_day,d.year<=2021))
+        a=np.array(rows)
+        for era in (True,False):
+            for ex in (True,False):
+                for dm in ds:
+                    sel=a[(a[:,4]==era)&(a[:,3]==ex)&(a[:,0]<=dm)]
+                    if len(sel)<30: continue
+                    g=sel[:,1]; net=g-sel[:,2]
+                    print(f"{s:6s} {anchor}:00 {'IS ' if era else 'VAL'} {'expiry' if ex else 'other '} d<={dm:3d} n{len(sel):4d} mid {g.mean():+.2f} t{g.mean()/g.std()*np.sqrt(len(g)):+.1f} cost {sel[:,2].mean():.2f} net {net.mean():+.2f} t{net.mean()/net.std()*np.sqrt(len(net)):+.1f}")

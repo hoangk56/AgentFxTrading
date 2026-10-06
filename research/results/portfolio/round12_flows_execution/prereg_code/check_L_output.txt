@@ -1,0 +1,8 @@
+IS  registered   trades  150 mid +4.90 cost 1.42 net +3.48 t +3.19 sharpe +0.261 win 57% long/short net +1.93/+4.99
+IS  spread x1.5  trades  150 mid +4.90 cost 1.42 net +3.07 t +2.81 sharpe +0.230 win 56% long/short net +1.93/+4.99
+IS  +1 min       trades  150 mid +4.90 cost 1.42 net +3.20 t +2.88 sharpe +0.236 win 59% long/short net +1.93/+4.99
+IS  by year 2016:+6.55(n19) 2017:-0.04(n27) 2018:+3.97(n26) 2019:+5.87(n27) 2020:+7.19(n26) 2021:-2.02(n25)
+VAL registered   trades   78 mid +3.14 cost 1.03 net +2.11 t +1.70 sharpe +0.193 win 53% long/short net +0.89/+3.39
+VAL spread x1.5  trades   78 mid +3.14 cost 1.03 net +1.90 t +1.53 sharpe +0.173 win 51% long/short net +0.89/+3.39
+VAL +1 min       trades   78 mid +3.14 cost 1.03 net +1.99 t +1.61 sharpe +0.182 win 55% long/short net +0.89/+3.39
+VAL by year 2022:+0.81(n31) 2023:+0.99(n25) 2024:+5.21(n22)

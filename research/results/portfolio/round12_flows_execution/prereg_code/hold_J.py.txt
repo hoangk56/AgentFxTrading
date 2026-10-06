@@ -1,0 +1,68 @@
+"""Round 12, candidate J5c (DEMO bar): short AUDUSD 09:45 -> 10:00 Sydney, only on days when 10:00 Sydney falls at or
+after 18:30 New York (outside IC's post-rollover wide-spread hour).
+
+Lead's independent implementation of stream J's draft on the IC M1 cache research/data/m1/AUDUSD.npz (quote = close
+of the last M1 bar ending at or before the time; mid = (bid + ask) / 2, cost = half spread in + half out + 0.6 bp).
+
+    python hold_J.py check   # data cut at 2025-01-01 at load; IS 2016-21, VAL 2022-24
+    python hold_J.py hold    # HOLD 2025-01-01..2026-09-24, run once
+"""
+import sys, datetime as dt
+from zoneinfo import ZoneInfo
+import numpy as np
+
+REPO = "/Users/hoangbk/00.code_base/105.AgentFxTrading/"
+SYD, NY, UTC = ZoneInfo("Australia/Sydney"), ZoneInfo("America/New_York"), dt.timezone.utc
+COMM = 0.6
+mode = sys.argv[1]
+CUT = 1735689600000
+z = np.load(REPO + "research/data/m1/AUDUSD.npz")
+ts = z["ts"]
+keep = ts < CUT if mode == "check" else ts >= 1733011200000      # hold: from 2024-12-01
+ts, c, ca = ts[keep], z["c"][keep].astype(float), z["ca"][keep].astype(float)
+
+def quote(local_dt, back_max_min=10):
+    t = int(local_dt.astimezone(UTC).timestamp() * 1000) - 60000
+    j = np.searchsorted(ts, t, side="right") - 1
+    if j < 0 or ts[j] < t - back_max_min * 60000:
+        return None
+    return (c[j] + ca[j]) / 2, ca[j] - c[j]
+
+d = dt.date(2016, 1, 1) if mode == "check" else dt.date(2025, 1, 1)
+end = dt.date(2024, 12, 31) if mode == "check" else dt.date(2026, 9, 24)
+trades = []
+while d <= end:
+    ok = d.weekday() < 5 and not ((d.month == 12 and d.day >= 24) or (d.month == 1 and d.day <= 2))
+    if ok:
+        t10 = dt.datetime(d.year, d.month, d.day, 10, 0, tzinfo=SYD)
+        ny = t10.astimezone(NY)
+        if ny.hour * 60 + ny.minute >= 18 * 60 + 30:
+            a = quote(dt.datetime(d.year, d.month, d.day, 9, 45, tzinfo=SYD))
+            b = quote(t10)
+            a1 = quote(dt.datetime(d.year, d.month, d.day, 9, 46, tzinfo=SYD))
+            b1 = quote(dt.datetime(d.year, d.month, d.day, 10, 1, tzinfo=SYD))
+            if a and b and a1 and b1 and t10.astimezone(UTC) < dt.datetime(2026, 9, 25, tzinfo=UTC):
+                g = -np.log(b[0] / a[0]) * 1e4
+                sp = 0.5 * (a[1] / a[0] + b[1] / b[0]) * 1e4
+                g1 = -np.log(b1[0] / a1[0]) * 1e4
+                sp1 = 0.5 * (a1[1] / a1[0] + b1[1] / b1[0]) * 1e4
+                trades.append((d, g, sp, g1, sp1))
+    d += dt.timedelta(days=1)
+
+def report(lo, hi, label):
+    T = [x for x in trades if lo <= x[0].year <= hi]
+    g = np.array([x[1] for x in T]); sp = np.array([x[2] for x in T])
+    g1 = np.array([x[3] for x in T]); sp1 = np.array([x[4] for x in T])
+    for name, net in (("registered", g - sp - COMM), ("spread x1.5", g - 1.5 * sp - COMM),
+                      ("+1 min", g1 - sp1 - COMM), ("+1 min & x1.5", g1 - 1.5 * sp1 - COMM)):
+        t = net.mean() / net.std(ddof=1) * np.sqrt(len(net))
+        print(f"{label} {name:14s} trades {len(net):4d} mid {g.mean():+.2f} cost {sp.mean() + COMM:.2f} "
+              f"net {net.mean():+.3f} t {t:+.2f} sharpe {net.mean() / net.std(ddof=1):+.3f}")
+    print(label, "by year", " ".join(f"{y}:{np.mean([x[1]-x[2]-COMM for x in T if x[0].year == y]):+.2f}"
+                                       for y in sorted({x[0].year for x in T})))
+
+if mode == "check":
+    report(2016, 2021, "IS ")
+    report(2022, 2024, "VAL")
+else:
+    report(2025, 2026, "HOLD")

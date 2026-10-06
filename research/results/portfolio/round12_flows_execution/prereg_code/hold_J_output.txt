@@ -1,0 +1,5 @@
+HOLD registered     trades  314 mid +0.48 cost 0.73 net -0.252 t -0.99 sharpe -0.056
+HOLD spread x1.5    trades  314 mid +0.48 cost 0.73 net -0.316 t -1.24 sharpe -0.070
+HOLD +1 min         trades  314 mid +0.48 cost 0.73 net -0.263 t -1.09 sharpe -0.061
+HOLD +1 min & x1.5  trades  314 mid +0.48 cost 0.73 net -0.347 t -1.43 sharpe -0.081
+HOLD by year 2025:-0.41 2026:-0.07

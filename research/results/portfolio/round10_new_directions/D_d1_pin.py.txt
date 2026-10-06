@@ -1,0 +1,53 @@
+"""D1: FX option pinning toward the nearest 50-pip level into the 10:00 NY cut. IS/VAL only (panel ends 2024)."""
+import json, datetime as dt, numpy as np
+from zoneinfo import ZoneInfo
+P="/private/tmp/claude-501/-Users-hoangbk-00-code-base-105-AgentFxTrading/64fd0f45-a961-42f5-8d1b-dc313a11911f/scratchpad/r10/panel/"
+meta=json.load(open(P+"meta.json")); syms=meta["symbols"]; T0=meta["T0_ms"]
+mid=np.load(P+"mid.npy",mmap_mode="r"); spr=np.load(P+"spr.npy",mmap_mode="r")
+NY=ZoneInfo("America/New_York")
+PAIRS=["EURUSD","GBPUSD","USDJPY","AUDUSD","USDCAD","USDCHF"]
+days=[]; d=dt.date(2016,1,4)
+while d<=dt.date(2024,12,31):
+    if d.weekday()<5: days.append(d)
+    d+=dt.timedelta(days=1)
+def idx(d,hh,mm):
+    t=dt.datetime(d.year,d.month,d.day,hh,mm,tzinfo=NY).astimezone(dt.timezone.utc)
+    return int((t.timestamp()*1000-T0)//60000)
+def run(anchor_h, legs):
+    res={}
+    for s in PAIRS:
+        i=syms.index(s); m=mid[i]; sp=spr[i]
+        pip=0.01 if "JPY" in s else 0.0001; step=50*pip
+        for d in days:
+            a=idx(d,anchor_h,0)
+            m0=float(m[a]);
+            if not np.isfinite(m0): continue
+            L=round(m0/step)*step; dist=(L-m0)/pip
+            for name,(h0,m0_,h1,m1_,sign) in legs.items():
+                e=idx(d,h0,m0_); x=idx(d,h1,m1_)
+                pe,px=float(m[e]),float(m[x])
+                if not (np.isfinite(pe) and np.isfinite(px)): continue
+                side=np.sign(dist)*sign
+                if side==0: continue
+                gross=side*np.log(px/pe)*1e4
+                cost=(float(sp[e])/2+float(sp[x])/2)/pe*1e4+0.6
+                era="IS" if d.year<=2021 else "VAL"
+                res.setdefault((name,era),[]).append((abs(dist),gross,cost,d.toordinal()))
+    return res
+def report(res,label):
+    for (name,era),v in sorted(res.items()):
+        a=np.array(v)
+        for dmax in (5,10,20,25):
+            sel=a[a[:,0]<=dmax]
+            if len(sel)<30: continue
+            # day-cluster
+            days_=sel[:,3]; u,inv=np.unique(days_,return_inverse=True)
+            g=np.bincount(inv,sel[:,1]); n=np.bincount(inv,sel[:,1]*0+1); c=np.bincount(inv,sel[:,2])
+            t=g.mean()/(g.std(ddof=1)/np.sqrt(len(g)))
+            net=(sel[:,1]-sel[:,2]); gn=np.bincount(inv,net); tn=gn.mean()/(gn.std(ddof=1)/np.sqrt(len(gn)))
+            print(f"{label:8s} {name:5s} {era:3s} d<={dmax:2d} n{len(sel):5d} mid {sel[:,1].mean():+.2f}bp t{t:+.1f} cost {sel[:,2].mean():.2f} net {net.mean():+.2f} t{tn:+.1f} sh {net.mean()/net.std():+.3f}")
+legs={"pre":(9,1,9,59,+1),"post":(10,0,11,0,-1)}
+report(run(9,legs),"cut")
+# controls: same rule anchored at 07:00 and 12:00 NY
+report(run(7,{"pre":(7,1,7,59,+1),"post":(8,0,9,0,-1)}),"ctl07")
+report(run(12,{"pre":(12,1,12,59,+1),"post":(13,0,14,0,-1)}),"ctl12")

@@ -1,0 +1,35 @@
+import json, datetime as dt, numpy as np
+from zoneinfo import ZoneInfo
+P="/private/tmp/claude-501/-Users-hoangbk-00-code-base-105-AgentFxTrading/64fd0f45-a961-42f5-8d1b-dc313a11911f/scratchpad/r10/panel/"
+meta=json.load(open(P+"meta.json")); syms=meta["symbols"]; T0=meta["T0_ms"]
+mid=np.load(P+"mid.npy",mmap_mode="r"); spr=np.load(P+"spr.npy",mmap_mode="r")
+NY=ZoneInfo("America/New_York")
+def idx(d,hh,mm):
+    t=dt.datetime(d.year,d.month,d.day,hh,mm,tzinfo=NY).astimezone(dt.timezone.utc)
+    return int((t.timestamp()*1000-T0)//60000)
+def near(m,i,back=5):
+    for k in range(back+1):
+        v=float(m[i-k])
+        if np.isfinite(v): return v,i-k
+    return np.nan,i
+for s in ("US30","USTEC","US500","DE40"):
+    i=syms.index(s); m=mid[i]; sp=spr[i]
+    rows=[]
+    d=dt.date(2016,1,5)
+    while d<=dt.date(2024,12,31):
+        if d.weekday()<5:
+            pv=d-dt.timedelta(days=3 if d.weekday()==0 else 1)
+            a,ia=near(m,idx(d,2,0)); b,ib=near(m,idx(d,3,0))
+            c1,_=near(m,idx(pv,14,0)); c2,_=near(m,idx(pv,15,59))
+            if np.isfinite(a) and np.isfinite(b):
+                g=np.log(b/a)*1e4; cost=(float(sp[ia])+float(sp[ib]))/2/a*1e4
+                late=np.log(c2/c1)*1e4 if np.isfinite(c1) and np.isfinite(c2) else np.nan
+                rows.append((d.year,g,cost,late))
+        d+=dt.timedelta(days=1)
+    r=np.array(rows)
+    for era,sel in (("IS",r[:,0]<=2021),("VAL",r[:,0]>=2022)):
+        for cond,cs in (("all",np.ones(len(r),bool)),("late<0",r[:,3]<0)):
+            x=r[sel&cs]; g=x[:,1]; net=g-x[:,2]
+            print(f"{s:6s} {era:3s} {cond:6s} n{len(x):4d} mid {g.mean():+.2f}bp t{g.mean()/g.std()*np.sqrt(len(g)):+.1f} cost {x[:,2].mean():.2f} net {net.mean():+.2f} t{net.mean()/net.std()*np.sqrt(len(net)):+.1f} sh {net.mean()/net.std():+.3f}")
+    by={y:r[r[:,0]==y] for y in range(2016,2025)}
+    print("   by year mid/net:", " ".join(f"{y}:{v[:,1].mean():+.1f}/{(v[:,1]-v[:,2]).mean():+.1f}" for y,v in by.items()))
