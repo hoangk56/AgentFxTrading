@@ -1,0 +1,90 @@
+"""Round 12, candidate L (DEMO bar): gold momentum into the COMEX settlement on top-decile move days.
+
+Registered rule (PREREG_L_gold_settlement_bigday.md). Reads research/data/m1/XAUUSD.npz (mid = (bid close + ask
+close) / 2, spread = ask close - bid close of the minute). Lead's independent implementation of stream L's draft.
+
+    python hold_L.py check   # data cut at 2025-01-01 at load; prints IS 2016-21 and VAL 2022-24
+    python hold_L.py hold    # HOLD 2025-01-02..2026-09-24, run once (rolling stats warm up on 2024)
+"""
+import sys, json, datetime as dt
+from zoneinfo import ZoneInfo
+import numpy as np
+
+REPO = "/Users/hoangbk/00.code_base/105.AgentFxTrading/"
+NYSE = "/private/tmp/claude-501/-Users-hoangbk-00-code-base-105-AgentFxTrading/9c63906c-bbbf-42bd-9a64-431d9d3f5de1/scratchpad/r12/lead/nyse_holidays.json"
+NY, UTC = ZoneInfo("America/New_York"), dt.timezone.utc
+COMM, Q, SDN, THN, THMIN = 0.6, 0.90, 60, 250, 60
+mode = sys.argv[1]
+CUT = 1735689600000
+
+z = np.load(REPO + "research/data/m1/XAUUSD.npz")
+ts = z["ts"]
+keep = ts < CUT if mode == "check" else ts >= 1640995200000          # hold: from 2022-01-01 for warm-up
+ts, c, ca = ts[keep], z["c"][keep].astype(float), z["ca"][keep].astype(float)
+mid, spr = (c + ca) / 2, ca - c
+hol = {dt.date.fromisoformat(s) for s in json.load(open(NYSE))}
+
+def quote(d, hh, mm):
+    """Last minute bar closing at or before hh:mm New York on date d."""
+    t = int(dt.datetime(d.year, d.month, d.day, hh, mm, tzinfo=NY).astimezone(UTC).timestamp() * 1000) - 60000
+    j = np.searchsorted(ts, t, side="right") - 1
+    if j < 0 or ts[j] < t - 3 * 86400000:
+        return None
+    return mid[j], spr[j]
+
+d0 = dt.date(2015, 1, 1) if mode == "check" else dt.date(2022, 1, 1)
+d1 = dt.date(2024, 12, 31) if mode == "check" else dt.date(2026, 9, 24)
+days, d = [], d0
+while d <= d1:
+    if d.weekday() < 5 and d not in hol:
+        days.append(d)
+    d += dt.timedelta(days=1)
+
+S = [quote(d, 13, 30) for d in days]
+P14 = [quote(d, 13, 14) for d in days]
+P15 = [quote(d, 13, 15) for d in days]
+trades, zs, rets = [], [], []
+for k in range(1, len(days)):
+    if S[k] is None or S[k - 1] is None or P14[k] is None:
+        zs.append(np.nan); rets.append(np.nan); continue
+    past = np.array(rets[-SDN:], dtype=float)
+    past = past[~np.isnan(past)]
+    zk = np.nan
+    if len(past) >= SDN // 2:
+        zk = np.log(P14[k][0] / S[k - 1][0]) / past.std(ddof=1)
+    hist = np.abs(np.array(zs[-THN:], dtype=float)); hist = hist[~np.isnan(hist)]
+    if not np.isnan(zk) and len(hist) >= THMIN and abs(zk) > np.percentile(hist, 100 * Q):
+        side = 1 if zk > 0 else -1
+        a, b = P15[k], S[k]
+        a1 = quote(days[k], 13, 16)
+        g = side * np.log(b[0] / a[0]) * 1e4
+        cst = 0.5 * (a[1] / a[0] + b[1] / b[0]) * 1e4 + COMM
+        g1 = side * np.log(b[0] / a1[0]) * 1e4
+        c1 = 0.5 * (a1[1] / a1[0] + b[1] / b[0]) * 1e4 + COMM
+        trades.append((days[k], side, zk, g, cst, g1, c1))
+    zs.append(zk)
+    rets.append(np.log(S[k][0] / S[k - 1][0]))
+
+def report(lo, hi, label):
+    T = [x for x in trades if lo <= x[0] <= hi]
+    if not T:
+        print(label, "no trades"); return
+    g = np.array([x[3] for x in T]); cst = np.array([x[4] for x in T])
+    for name, net in (("registered", g - cst), ("spread x1.5", g - 1.5 * (cst - COMM) - COMM),
+                      ("+1 min", np.array([x[5] - x[6] for x in T]))):
+        t = net.mean() / net.std(ddof=1) * np.sqrt(len(net))
+        print(f"{label} {name:12s} trades {len(net):4d} mid {g.mean():+.2f} cost {cst.mean():.2f} net {net.mean():+.2f} "
+              f"t {t:+.2f} sharpe {net.mean()/net.std(ddof=1):+.3f} win {np.mean(net > 0)*100:.0f}% "
+              f"long/short net {(g-cst)[[x[1] > 0 for x in T]].mean():+.2f}/{(g-cst)[[x[1] < 0 for x in T]].mean():+.2f}")
+    yrs = sorted({x[0].year for x in T})
+    print(label, "by year", " ".join(f"{y}:{np.mean([x[3]-x[4] for x in T if x[0].year == y]):+.2f}"
+                                       f"(n{sum(1 for x in T if x[0].year == y)})" for y in yrs))
+
+if mode == "check":
+    report(dt.date(2016, 1, 1), dt.date(2021, 12, 31), "IS ")
+    report(dt.date(2022, 1, 1), dt.date(2024, 12, 31), "VAL")
+else:
+    report(dt.date(2025, 1, 1), dt.date(2026, 9, 24), "HOLD")
+    for x in trades:
+        if x[0] >= dt.date(2025, 1, 1):
+            print(f"   {x[0]} side {x[1]:+d} z {x[2]:+.2f} net {x[3]-x[4]:+.2f}")

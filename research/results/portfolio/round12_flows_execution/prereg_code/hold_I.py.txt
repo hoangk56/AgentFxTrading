@@ -1,0 +1,106 @@
+"""Round 12, candidate I (DEMO bar): month-end post-fix USD reversal after large US equity months.
+
+Registered rule (PREREG_I_month_end_post_fix_usd.md). Reads the IC M1 caches research/data/m1/<SYM>.npz
+(mid = (bid close + ask close) / 2, spread = ask close - bid close of the minute).
+
+    python hold_I.py check   # 2016-2024 only (ts < 2025-01-01 cut at load): must reproduce the panel numbers
+    python hold_I.py hold    # month-ends 2025-01..2026-08, run once
+"""
+import sys, json, datetime as dt
+from zoneinfo import ZoneInfo
+import numpy as np
+
+REPO = "/Users/hoangbk/00.code_base/105.AgentFxTrading/"
+ENG = "/private/tmp/claude-501/-Users-hoangbk-00-code-base-105-AgentFxTrading/9c63906c-bbbf-42bd-9a64-431d9d3f5de1/scratchpad/r12/lead/eng_holidays.json"
+THR = 0.024471581800513734          # IS 2016-21 median |r_US| at month-end, fixed
+PAIRS = {"EURUSD": -1, "USDJPY": +1, "GBPUSD": -1}   # pair side when buying USD
+COMM = 0.6                          # bp round trip
+LON, NY, UTC = ZoneInfo("Europe/London"), ZoneInfo("America/New_York"), dt.timezone.utc
+mode = sys.argv[1]
+CUT = 1735689600000                 # 2025-01-01
+LO = 1451606400000 if mode == "check" else 1730419200000   # 2016-01-01 / 2024-11-01
+
+eng = {dt.date.fromisoformat(s) for s in json.load(open(ENG))}
+data = {}
+for s in ["US500", *PAIRS]:
+    z = np.load(REPO + f"research/data/m1/{s}.npz")
+    ts = z["ts"]
+    keep = (ts >= LO) & (ts < CUT) if mode == "check" else (ts >= LO)
+    ts, c, ca = ts[keep], z["c"][keep].astype(float), z["ca"][keep].astype(float)
+    data[s] = (ts, (c + ca) / 2, ca - c)
+
+def quote(sym, local_dt):
+    """Last minute bar that closes at or before local_dt (bar ts + 60 s <= t)."""
+    ts, m, sp = data[sym]
+    t = int(local_dt.astimezone(UTC).timestamp() * 1000) - 60000
+    j = np.searchsorted(ts, t, side="right") - 1
+    if j < 0 or ts[j] < t - 3 * 86400000:
+        return None
+    return m[j], sp[j]
+
+def month_T(y, m):
+    d = dt.date(y + (m == 12), m % 12 + 1, 1) - dt.timedelta(days=1)
+    while d.weekday() >= 5 or d in eng or (d.month, d.day) in ((12, 25), (1, 1)):
+        d -= dt.timedelta(days=1)
+    return d
+
+def prev_bd(d):
+    d -= dt.timedelta(days=1)
+    while d.weekday() >= 5:
+        d -= dt.timedelta(days=1)
+    return d
+
+def us_close(d):
+    return quote("US500", dt.datetime(d.year, d.month, d.day, 16, 0, tzinfo=NY))[0]
+
+if mode == "check":
+    months = [(y, m) for y in range(2016, 2025) for m in range(1, 13)]
+else:
+    months = [(2024, 12)] + [(y, m) for y in (2025, 2026) for m in range(1, 13)][:20]   # last: 2026-08
+
+rows = []
+for k in range(1, len(months)):
+    (py, pm), (y, m) = months[k - 1], months[k]
+    T, Tp = month_T(y, m), month_T(py, pm)
+    r = float(np.log(us_close(prev_bd(T)) / us_close(Tp)))
+    if abs(r) < THR:
+        rows.append((T, r, None)); continue
+    usd = 1 if r > 0 else -1
+    legs = []
+    for lag in (0, 1):                 # 0 = registered, 1 = +1 minute entry
+        for sprx in (1.0, 1.5):
+            net = []
+            for s, sg in PAIRS.items():
+                a = quote(s, dt.datetime(T.year, T.month, T.day, 16, lag, tzinfo=LON))
+                b = quote(s, dt.datetime(T.year, T.month, T.day, 17, 0, tzinfo=LON))
+                g = usd * sg * np.log(b[0] / a[0]) * 1e4
+                c = sprx * 0.5 * (a[1] / a[0] + b[1] / b[0]) * 1e4 + COMM
+                net.append((g, c, g - c))
+            legs.append(net)
+    rows.append((T, r, legs))
+
+def report(lo, hi, label):
+    sel = [x for x in rows if x[2] is not None and lo <= x[0].year <= hi]
+    allm = [x for x in rows if lo <= x[0].year <= hi]
+    if not sel:
+        print(label, "no events"); return
+    for v, name in enumerate(["registered", "spread x1.5", "+1 min", "+1 min & x1.5"]):
+        L = np.array([[leg[2] for leg in x[2][v]] for x in sel])
+        G = np.array([[leg[0] for leg in x[2][v]] for x in sel]); C = np.array([[leg[1] for leg in x[2][v]] for x in sel])
+        e = L.sum(1)
+        t = e.mean() / e.std(ddof=1) * np.sqrt(len(e)) if len(e) > 1 else float("nan")
+        print(f"{label} {name:14s} months {len(allm)} events {len(sel)} trades {L.size} mid/trade {G.mean():+.2f} "
+              f"cost {C.mean():.2f} net/trade {L.mean():+.2f} net/event {e.mean():+.2f} t(month) {t:+.2f} "
+              f"pairs {np.round(L.mean(0), 2).tolist()}")
+    if label.strip() in ("IS", "VAL", "HOLD"):
+        for x in sel:
+            print(f"   {x[0]} r_US {x[1]*100:+.2f}% net/trade " + " ".join(f"{leg[2]:+.2f}" for leg in x[2][0]))
+
+if mode == "check":
+    report(2016, 2021, "IS ")
+    report(2022, 2024, "VAL")
+else:
+    for x in rows:
+        if x[2] is None:
+            print(f"   {x[0]} r_US {x[1]*100:+.2f}% below gate")
+    report(2025, 2026, "HOLD")

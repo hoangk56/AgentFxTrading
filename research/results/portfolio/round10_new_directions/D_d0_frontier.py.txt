@@ -1,0 +1,24 @@
+import json, numpy as np
+P="/private/tmp/claude-501/-Users-hoangbk-00-code-base-105-AgentFxTrading/64fd0f45-a961-42f5-8d1b-dc313a11911f/scratchpad/r10/panel/"
+meta=json.load(open(P+"meta.json")); syms=meta["symbols"]; T0=meta["T0_ms"]
+mid=np.load(P+"mid.npy",mmap_mode="r"); spr=np.load(P+"spr.npy",mmap_mode="r")
+N=mid.shape[1]; MIN=60000
+is_end=(1640995200000-T0)//MIN
+minute_of_day=(np.arange(is_end)%1440)
+liquid=(minute_of_day>=7*60)&(minute_of_day<20*60)
+comm={s:(0.6 if (len(s)==6 and s not in ("BTCUSD","ETHUSD","XTIUSD","XBRUSD","XNGUSD","AUS200")) or s.startswith("XA") or s.startswith("XP") else 0.0) for s in syms}
+print(f"{'sym':7s} {'cost':>5s} | " + " | ".join(f"{h:>4s} sd  need1/d need1/wk" for h in ("15m","1h","4h","1d")))
+for i,s in enumerate(syms):
+    m=np.array(mid[i,:is_end],dtype=np.float64); sp=np.array(spr[i,:is_end],dtype=np.float64)
+    lq=liquid if np.isfinite(m[liquid]).sum()>100000 else ((minute_of_day>=60)&(minute_of_day<8*60))
+    ok=np.isfinite(m)&lq
+    cost=np.nanmedian(sp[ok]/m[ok])*1e4+comm[s]
+    out=[]
+    for h in (15,60,240,1440):
+        st=np.arange(0,is_end-h,h) if h<1440 else np.arange(int(np.argmax(np.bincount(np.flatnonzero(ok)%1440,minlength=1440)*lq[:1440]*(np.arange(1440)>=np.flatnonzero(lq[:1440])[-1]-180))),is_end-h,h)
+        a=m[st]; b=m[st+h]; g=np.isfinite(a)&np.isfinite(b)&lq[st] if h<1440 else np.isfinite(a)&np.isfinite(b)
+        r=np.log(b[g]/a[g])*1e4
+        r=r[np.abs(r)<np.percentile(np.abs(r),99.9)]
+        sd=r.std()
+        out.append((sd, cost+0.145*sd, cost+0.32*sd))
+    print(f"{s:7s} {cost:5.2f} | "+" | ".join(f"{sd:6.1f} {n1:6.1f} {n2:6.1f}" for sd,n1,n2 in out))

@@ -1,0 +1,57 @@
+"""Quick IS probe: sub-minute lead-lag on 1-second grids (mid at last tick)."""
+import sys
+from datetime import date, timedelta
+import numpy as np
+from research.ticks import load_ticks
+
+def grid(sym, d0, d1):
+    t = load_ticks(sym, d0, d1)
+    sec = t.ts // 1000
+    mid = (t.bid + t.ask) / 2; spr = t.ask - t.bid
+    # last tick per second
+    last = np.r_[sec[1:] != sec[:-1], True]
+    return sec[last], mid[last], spr[last]
+
+def ffill_on(secs, s, v):
+    i = np.searchsorted(s, secs, side="right") - 1
+    out = np.where(i >= 0, v[np.clip(i, 0, None)], np.nan)
+    age = np.where(i >= 0, secs - s[np.clip(i, 0, None)], 1e9)
+    return out, age
+
+lead, fol = sys.argv[1], sys.argv[2]
+y = int(sys.argv[3]) if len(sys.argv) > 3 else 2019
+res = []
+for m in range(1, 13):
+    d0 = date(y, m, 1); d1 = (d0 + timedelta(days=32)).replace(day=1) - timedelta(days=1)
+    sl, ml, _ = grid(lead, d0, d1); sf, mf, spf = grid(fol, d0, d1)
+    if len(sl) == 0 or len(sf) == 0: continue
+    secs = np.arange(max(sl[0], sf[0]), min(sl[-1], sf[-1]))
+    L, al = ffill_on(secs, sl, ml); F, af = ffill_on(secs, sf, mf); S, _ = ffill_on(secs, sf, spf)
+    ok = (al < 5) & (af < 5)
+    k = 10
+    rl = np.full(len(secs), np.nan); rl[k:] = np.log(L[k:] / L[:-k])
+    rl[~ok] = np.nan
+    # rolling sd via day blocks: use median abs over month as scale (probe only)
+    sd = np.nanstd(rl)
+    z = rl / sd
+    for delay in (1, 2, 5):
+        for h in (10, 30, 60, 300):
+            fr = np.full(len(secs), np.nan)
+            fr[:-(delay + h)] = np.log(F[delay + h:] / F[delay:-h]) * 1e4
+            for thr in (4, 6, 8):
+                sel = np.isfinite(z) & (np.abs(z) >= thr) & np.isfinite(fr)
+                # de-overlap: keep first sel in each 60 s
+                idx = np.flatnonzero(sel)
+                if len(idx) == 0: continue
+                keep = np.r_[True, np.diff(idx) > 60]
+                idx = idx[keep]
+                v = np.sign(z[idx]) * fr[idx]
+                c = S[idx] / F[idx] * 1e4
+                res.append((m, delay, h, thr, len(idx), v.sum(), (v**2).sum(), c.sum()))
+r = np.array(res)
+for delay in (1, 2, 5):
+    for h in (10, 30, 60, 300):
+        for thr in (4, 6, 8):
+            s = r[(r[:, 1] == delay) & (r[:, 2] == h) & (r[:, 3] == thr)]
+            n = s[:, 4].sum(); mu = s[:, 5].sum() / n; var = s[:, 6].sum() / n - mu**2
+            print(f"{lead}->{fol} {y} d{delay} h{h:3d} z{thr} n{int(n):6d} mean {mu:+.2f}bp t {mu/np.sqrt(var/n):+.1f} spread {s[:,7].sum()/n:.2f}bp")

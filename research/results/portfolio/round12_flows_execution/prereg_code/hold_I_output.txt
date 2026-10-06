@@ -1,0 +1,24 @@
+   2025-04-30 r_US -0.93% below gate
+   2025-10-31 r_US +2.04% below gate
+   2025-11-28 r_US -0.42% below gate
+   2025-12-31 r_US +0.78% below gate
+   2026-01-30 r_US +1.67% below gate
+   2026-02-27 r_US -0.45% below gate
+   2026-06-30 r_US -1.92% below gate
+   2026-07-31 r_US -0.60% below gate
+HOLD registered     months 20 events 12 trades 36 mid/trade +0.43 cost 0.66 net/trade -0.23 net/event -0.68 t(month) -0.08 pairs [0.17, -0.74, -0.11]
+HOLD spread x1.5    months 20 events 12 trades 36 mid/trade +0.43 cost 0.69 net/trade -0.25 net/event -0.76 t(month) -0.08 pairs [0.16, -0.76, -0.16]
+HOLD +1 min         months 20 events 12 trades 36 mid/trade +0.52 cost 0.66 net/trade -0.13 net/event -0.40 t(month) -0.04 pairs [-0.2, -0.63, 0.44]
+HOLD +1 min & x1.5  months 20 events 12 trades 36 mid/trade +0.52 cost 0.69 net/trade -0.16 net/event -0.49 t(month) -0.05 pairs [-0.22, -0.65, 0.39]
+   2025-01-31 r_US +3.13% net/trade -3.77 +5.47 -17.33
+   2025-02-28 r_US -2.90% net/trade +0.94 +1.39 -3.46
+   2025-03-31 r_US -6.52% net/trade -8.01 -26.92 -15.17
+   2025-05-30 r_US +6.16% net/trade +4.33 -6.08 +10.83
+   2025-06-30 r_US +4.47% net/trade -27.06 -20.21 -12.56
+   2025-07-31 r_US +2.62% net/trade +12.25 +7.44 +8.70
+   2025-08-29 r_US +2.54% net/trade +7.69 +4.92 +0.73
+   2025-09-30 r_US +3.01% net/trade +12.60 +18.27 +13.15
+   2026-03-31 r_US -8.05% net/trade -3.29 +0.59 -3.10
+   2026-04-30 r_US +8.98% net/trade -1.20 -1.81 +2.49
+   2026-05-29 r_US +4.83% net/trade -8.74 +2.04 +1.55
+   2026-08-28 r_US +3.14% net/trade +16.29 +6.03 +12.89

@@ -6,6 +6,139 @@ detail. The numbers are copied from those files, and the file wins if the two ev
 When you write a new result file, add a row to that day's entry (or start a new entry) and link the file. Don't
 repeat its tables here.
 
+## 2026-10-06: round 22, triage of all residual ideas. No candidate; the search paused here at the user's request
+
+| tested | verdict | detail |
+|---|---|---|
+| R: every open idea of rounds 3-21 (~190) triaged; 11 survivors need no user decision, none reaching power 3 at full size; 4 declared and tested (FOMC-cycle even weeks, low-volume FX reversal, Wednesday-rollover carry, 10-year auction concession), 13 cells | **none**; the residual list that needs no user decision is exhausted | [round22_residual_2026-10-06.md](results/portfolio/round22_residual_2026-10-06.md), [TRIAGE_R.md](results/portfolio/round22_residual/TRIAGE_R.md) |
+
+Standing after rounds 12-22: C3 is the only LIVE algorithm. Two weak DEMO candidates (E1 EURUSD 11:00-13:00 London
+short; gold into the COMEX settlement on big days) await the user; one durable but rare effect (the dollar falls on
+FOMC days, 8 a year) is below the bars. The binding constraint is IC's cost and the decay of post-hoc picks; the
+remaining routes all need a user decision (see round 16's STREAM_X and round 22's TRIAGE_R).
+
+## 2026-10-06: round 21, the FOMC-day dollar premium on other US-policy events. No candidate
+
+| tested | verdict | detail |
+|---|---|---|
+| U: round 20's rule A4 unchanged on FOMC minutes, Chair testimony, Jackson Hole, Treasury refunding statements (pooled and alone) and gold over the same windows, 8 declared cells, 2004-24 official calendars | **none**: the non-FOMC events pooled are -3.0 / +6.9 / -11.6 bp (PRE / IS / VAL); pooling with FOMC only dilutes the FOMC days. The premium belongs to the FOMC decision alone, as the literature says | [round21_fed_events_2026-10-06.md](results/portfolio/round21_fed_events_2026-10-06.md) |
+
+Standing: unchanged. C3 is the only LIVE algorithm; E1 and the gold settlement big-day rule are weak DEMO candidates.
+
+## 2026-10-06: round 20, declared-only: central-bank-day carry and index expiry settlements. No candidate
+
+| tested | verdict | detail |
+|---|---|---|
+| F: Mueller, Tahbaz-Salehi & Vedolin (2017) FOMC-day currency premium, 7 declared cells (+ pooled 8 banks, BoJ) | the dollar falls on FOMC days in every era (A4: PRE +17.7 / IS net +21.6 t 1.90 / VAL +31.6 t 2.40; pooled 2004-24 t 3.25) but **fails DEMO on IS t** with 8 events a year; the carry spread itself and other banks: none | [round20_declared2_2026-10-06.md](results/portfolio/round20_declared2_2026-10-06.md) |
+| G: DAX / FTSE / EURO STOXX 50 / CAC / HSI expiry settlement auctions, 64 declared cells | **none**: four quarterly cells meet the DEMO numbers but are one effect and fail the random-entry control (the whole quarterly-expiry session falls, carried by 2020-23) | same |
+
+Standing: unchanged. C3 is the only LIVE algorithm; E1 and the gold settlement big-day rule are weak DEMO candidates.
+
+## 2026-10-06: round 19, declared-only hypotheses. No candidate
+
+| tested | verdict | detail |
+|---|---|---|
+| H: E1's mechanism (home currency weakens into its own fix) for CAD, AUD, NZD, GBP, CHF, CNH/CNY, 23 declared cells with official fix-time histories | does not generalise (wrong or no sign in CAD/AUD/NZD/GBP/CHF); exception: USDCNH rises into the CFETS 16:30 Beijing close (+1.22 bp t 4.57 IS / +1.68 t 4.08 VAL, absent on mainland holidays) but nets +0.19 / +0.66 at IC's ~1 bp: below DEMO | [round19_declared_2026-10-06.md](results/portfolio/round19_declared_2026-10-06.md) |
+| T: second literature pass, 34 papers, 7 untested families, 63 declared cells (pre-announcement drift, dash for cash, Monday reversal, Tuesday blues, Bitcoin Monday, crude weekdays, FX weekend-gap fade) | **none** beats chance; the weekend-gap fade was real in 2004-15 and is gone since publication | same |
+
+Standing: unchanged. C3 is the only LIVE algorithm; E1 and the gold settlement big-day rule are weak DEMO candidates.
+
+## 2026-10-06: round 18, decay forensics and calendar day-of-month clocks. No candidate
+
+| tested | verdict | detail |
+|---|---|---|
+| A: yearly effect series and trend for 49 effects (STREAM_X table + C3), forecasts for 2025-26, comparison with the published HOLD retention of the 6 registered rules | trends cannot separate decay from noise and did not predict HOLD retention; **how the rule was found did**: declared / literature / PRE-sided rules kept 0.65-1.03 of VAL in HOLD (C3, gold big days, E1), post-hoc picks with VAL in view 0.19-0.31 (J5c, I, M1). 2024 was a common low year (Sydney V lowest since 2016). C3 is the only effect flat on every reading | [round18_decay_dom_2026-10-06.md](results/portfolio/round18_decay_dom_2026-10-06.md) |
+| B: calendar day-of-month (1-31, n-th last, payment-day convention) x clock windows, 631,915 cells, PRE discovery | **none**: calendar-day cells are noise like business-day cells; information only: USD up in the European morning on the 15th (post hoc, within chance) | same |
+
+Standing: unchanged. C3 is the only LIVE algorithm; E1 and the gold settlement big-day rule are weak DEMO candidates
+(a demo alone would need 5-24 years to reach t 2 at IC's costs).
+
+## 2026-10-06: round 17, quote-based order flow and big-day momentum in European indices. No candidate
+
+| tested | verdict | detail |
+|---|---|---|
+| Y: signed quote flow (price-only OFI, tick rule, quote intensity) from IC ticks predicting 1-60 min, 7 symbols | **none**: unconditional flow predicts reversal (the own-return reversal); the return-orthogonal part continues at 0.01-0.06 bp per z (1/20 of cost). A post-hoc US30 morning top-0.1 % cell (IS t 2.11, 10 VAL trades) is within chance for ~1,600 cells and not registered | [round17_microstructure_2026-10-06.md](results/portfolio/round17_microstructure_2026-10-06.md) |
+| Z: intraday momentum on top-decile move days, European index CFDs (DE40 information only), US30/USTEC comparison, 92 + 12 cells | **none**: +1-2 bp top-decile mid against ~3.7 bp cost; DE40's round-13 slope does not replicate; the US big-day continuation is March-April 2020 | same |
+
+Standing: unchanged. C3 is the only LIVE algorithm; E1 and the gold settlement big-day rule are weak DEMO candidates.
+
+## 2026-10-06: round 16, income conversion flows and the value of pending decisions. No candidate
+
+| tested | verdict | detail |
+|---|---|---|
+| W: cross-border income conversion with published dates (Swiss big-3 dividends, Japan June/December, euro-area May, Australian seasons, US refunding coupons, OAT/Bund/JGB redemptions), 18 + 2 cells, PRE where possible | **none**: best net IS t 1.52 (EUR into the fix in May, stronger in December: not dividends); published flows are a few bp in a 60-450 bp 1-5-day block | [round16_income_flows_2026-10-06.md](results/portfolio/round16_income_flows_2026-10-06.md) |
+| X: decision value from the ~45 effects real at mid in rounds 3-15 (no new returns) | at IC's costs 0 LIVE-like rows; without the FX commission or at a low-cost venue 2-3 rows (ECB pre-fix slot, Sydney V legs), but only if they stop decaying (Sydney kept 0.31 of VAL in HOLD, needs ~0.7). Cheapest way to price that: Dukascopy AUD/NZD (and XAU/XAG) M1 2004-15, then data after 2026-09-24 | same, [STREAM_X.md](results/portfolio/round16_income_flows/STREAM_X.md) |
+
+Standing: unchanged. C3 is the only LIVE algorithm; E1 and the gold settlement big-day rule are weak DEMO candidates.
+
+## 2026-10-06: round 15, very short windows (1-10 min) at benchmark minutes. No candidate
+
+| tested | verdict | detail |
+|---|---|---|
+| S: FX, 85,225 cells of 1-10 min around 8 benchmark minutes, PRE 2004-15 discovery, IS/VAL confirmation | **none**: PRE selection at minute scale is worse than chance because the ECB V moved ~16 min earlier at the end of 2015 (in the market, both data sources agree); the best every-weekday window's IS mid is 0.88 bp (EURUSD), under the 0.8-1.2 bp LIVE line. Two post-hoc DEMO-number drafts (Friday ECB pre-fix slot inside E1; GBPJPY month-end 10:28 NY) not registered | [round15_short_windows_2026-10-06.md](results/portfolio/round15_short_windows_2026-10-06.md) |
+| V: metals, AUD/NZD, index CFDs, XTI, 25,704 cells around 24 benchmark minutes, sides from written mechanisms | **none**: 141 predicted cells confirmed in VAL (chance 23), all 0.3-2.7 bp against 1-7 bp costs. Information only: silver falls into the 12:00 LBMA auction (+2.7 bp, t 8-9 in IS and VAL, 9/9 years) and gold into the 15:00 one; at IC's costs, at or below zero | same |
+
+Standing: unchanged. C3 is the only LIVE algorithm; E1 and the gold settlement big-day rule are weak DEMO candidates
+awaiting the user.
+
+## 2026-10-06: round 14, books of stable clock effects and conditions that double them. No candidate
+
+| tested | verdict | detail |
+|---|---|---|
+| Q: one algorithm trading a book of stable clock legs chosen on PRE + IS (12 books, 1-9 legs) | **none**: the best book (3 legs) has VAL power 2.01; the 9-leg book would clear LIVE if its legs kept their IS Sharpe (0.158-0.170 per day), but 5 of 9 keep under 20 % of their IS net in VAL (book VAL Sharpe 0.050). The primary book is E1 (not registered) | [round14_books_2026-10-06.md](results/portfolio/round14_books_2026-10-06.md) |
+| R: mechanism-derived conditions for E1 and four other stable clock effects, 96 cells | **none**: selectors scale E1 1.5-1.7x in IS/VAL (1.1x in PRE) but cut the trades, so power stays ~2; not beyond chance as a family. E1 reverses on TARGET2 closing days (no ECB fix; -3.9 bp, t -2.7, 2004-24), which supports its ECB-fix mechanism | same |
+
+Standing: unchanged. C3 is the only LIVE algorithm; E1 and the gold settlement big-day rule are weak DEMO candidates
+awaiting the user.
+
+## 2026-10-06: round 13, structural flows that should not decay. One weak DEMO candidate
+
+| tested | verdict | detail |
+|---|---|---|
+| M: stability-first scan, 270,086 FX/gold clock and calendar cells, discovery on PRE 2004-15 (side fixed there), confirmation on IS and VAL | stable effects exist beyond chance (139 of 500 PRE cells confirm in IS, chance 29) but shrink to a fifth of their PRE size and are mostly below cost. **E1, short EURUSD 11:00-13:00 London every weekday**, met DEMO (IS +1.17 bp t 3.29, VAL +1.35 t 2.46, power 1.8-1.9), registered, **HOLD +0.64 (t 0.99), both fills +1 min 0.00: DEMO candidate**, weak | [round13_structural_2026-10-06.md](results/portfolio/round13_structural_2026-10-06.md), [PREREG_M](results/portfolio/round13_structural/PREREG_M_eurusd_midday.md) |
+| N: structural calendars (US tax days, Treasury coupon/bill/refunding settlements, bond-index month-end extension, fiscal-year ends, quarter-end funding, Chinese tax deadline), 58 cells, PRE where possible | **none**: best registered cell (US30 the day after a big coupon settlement, IS t 2.68) is negative in VAL; no dose-response to settlement size; no mechanism keeps its sign over PRE, IS and VAL | same |
+| P: round 12's gold big-day settlement rule on XTI/XBR/XNG and ten index closes, 25 cells | **none**: the index big-day scale-up in IS is March-April 2020; in VAL US indices reverse into the close on big days; gold's dose shape is not found elsewhere | same |
+
+Standing: C3 remains the only LIVE algorithm. Two weak DEMO candidates await the user (E1 EURUSD midday, L4-G-d gold
+settlement big days); no cBots written.
+
+## 2026-10-06: round 12, hedge flows, other executions, flow-size conditions, literature 2018-26. One weak DEMO candidate
+
+| tested | verdict | detail |
+|---|---|---|
+| I: month-end equity-hedge flows at the WM/R fix, USD side from month-to-date equity returns (Melvin & Prins 2015); 72 mid + 27 basket cells | the paper's into-fix move is absent; the post-fix reversal on large US months met DEMO on IS/VAL (+6.77 bp per trade t 3.79 / +1.68 t 0.84), registered and **failed HOLD: -0.23 bp (t -0.08)** | [round12_flows_execution_2026-10-06.md](results/portfolio/round12_flows_execution_2026-10-06.md), [PREREG_I](results/portfolio/round12_flows_execution/PREREG_I_month_end_post_fix_usd.md) |
+| J: other executions of the sub-cost effects (spread-timed minutes/seconds, passive limits, several flows in one trade, lot by forecast, cheaper twin), 70 cells + post hoc | none clears LIVE: SGE, Sydney post-leg and ECB would need a round trip below the 0.6 bp commission; passive fills are adversely selected. The Sydney V's cost is a clash with IC's post-rollover hour in the northern winter; AUDUSD outside that hour (post hoc) met DEMO (+0.44 t 2.54 / +0.76 t 3.77), registered and **failed HOLD: -0.25 bp (t -0.99)**, the dip shrank to +0.48 | same, [PREREG_J](results/portfolio/round12_flows_execution/PREREG_J_sydney_aud_offroll.md) |
+| K: literature 2018-2026 (30 papers), 6 untested families, 123 cells (FX momentum into closes, 0DTE opening range, Deribit / CME BTC expiries, crude and metals intraday momentum) | **none**: no family beats chance on its registered side; closest lead (fade BTC 07-08 UTC on Deribit-expiry Fridays) is killed by 2018-21 BTC costs | same |
+| L: flow-size conditions from each mechanism for the strong sub-cost flows, 42 cells | SGE 2x, Sydney 1.7x, ECB wrong sign at month-end; **gold momentum into the COMEX settlement on top-decile move days** met DEMO (+3.48 t 3.19 / +2.11 t 1.70), registered, **HOLD +1.68 bp (t 0.37, 46 trades): DEMO candidate**, weak (three trades decide the mean; silver flips) | same, [PREREG_L](results/portfolio/round12_flows_execution/PREREG_L_gold_settlement_bigday.md) |
+
+Standing: C3 remains the only algorithm that has passed a LIVE holdout. One DEMO candidate (gold settlement big days)
+awaits the user's decision on a demo; no cBot written. All three registered candidates decayed from IS to VAL to HOLD.
+
+## 2026-10-06: round 11, multi-day event drift, 1-5 day cross-sections, full index intraday scan. No candidate
+
+| tested | verdict | detail |
+|---|---|---|
+| F: drift 1-5 days after central-bank decisions and macro surprises (delayed overshooting; 1,877 CB events, 15 non-US release types, US CPI/NFP), entry >= 90 min after the event | **none**: best IS net t 0.64 (F1 5-day continuation +3.0 / +10.2 bp). The 1-day drift was real in 2004-15 (+7.4 bp, t 3.04) and is gone since 2016 | [round11_multiday_cross_section_index_scan_2026-10-06.md](results/portfolio/round11_multiday_cross_section_index_scan_2026-10-06.md), [round10_new_directions/](results/portfolio/round10_new_directions/) (STREAM_F/G/H) |
+| G: cross-sectional momentum / reversal at 1-5 days across 8 currencies, 8 indices, 6 commodities (+ dispersion conditioning, Nagel reversal) | **none**: no predictability at mid in IS, VAL or PRE (dollar-neutral currency book \|t\| <= 1.51); every family's best t below chance | same |
+| H: every 15 / 60-min window of the commission-free index CFDs (15,913 cells) + 16 mechanism-first index windows (MOC imbalance, 10:00 ET data, closing auctions, SOQ) | **none**: 0 cells clear the frontier; max \|t_IS\| 4.94 vs null p95 4.51, net < 0. Post-hoc lead, not registrable: short US30 15:45-16:00 ET on FOMC days (+6.7 / +9.5 bp, ~8 a year, power ~1.1) | same |
+
+Standing: unchanged. C3 remains the only algorithm that has passed. The search stopped after this round at the user's
+request.
+
+## 2026-10-06: round 10, new directions on the existing data. No candidate (LIVE or DEMO)
+
+| tested | verdict | detail |
+|---|---|---|
+| A: Asian benchmarks and Chinese venue sessions with venue-holiday placebos (SGE gold auctions, SHFE/INE opens and closes, Platts oil windows, Asian FX fixings, Nikkei SQ); 223 cells + 26 post hoc | **none**: 0 cells net > 0 in IS and VAL on the registered side. The SGE 10:15 Beijing auction moves gold +0.93 / +0.72 bp (t 7.9 / 4.5, 9/9 years, absent on Chinese holidays) but the other way from the registered V and below its 1.05-1.6 bp cost. A7 (post hoc, short gold on Chinese holidays) met the DEMO numbers (net t 3.3 / 2.8) and **failed its pre-written 2004-15 check** (t -3.3): a holiday-block artefact | [round10_new_directions_2026-10-06.md](results/portfolio/round10_new_directions_2026-10-06.md), [round10_new_directions/](results/portfolio/round10_new_directions/) |
+| B: central-bank decisions (8 banks, 1,877 events 2004-24) and home-market holidays, pooled | **none**: no pre-decision drift outside the Fed, no post-decision continuation (net +0.4 / +0.0 bp), home-holiday asymmetry real in 2004-21 but gone in VAL and ~3 bp; fading the first 5 min of press conferences has one sign in three eras but is post hoc with IS t 1.55 | same |
+| C: one cost-gated FX book combining the effects real at mid (residual reversal, dollar catch-up, fixing V, home hours, Wednesday carry, Sydney V, same-slot periodicity) | **none**: best IS t 1.65; the summed forecast stays under the 0.6 bp commission outside the Sydney open, and the edge vanishes at zero-spread minutes; break-even commission ~0.15 bp | same |
+| D: feasibility frontier; sub-minute lead-lag on ticks; FX and index option pinning; the European-open overnight drift (Boyarchenko et al. 2023) | **none**. Frontier: one trade a day needs ~1.4 bp gross per 15 min in EURUSD/USDJPY, 2.6 in US30, 2.7 in gold; tick lead-lag +0.1..0.4 bp; no pinning (\|t\| <= 1.9); the drift is gone after 2019 | same |
+| E: fixing flows on volatile / active days; follow-through after 16 types of non-US macro releases (~130 a year) | **none**: flows grow ~1.5x on volatile days but spreads grow too; EURUSD rises into the ECB fix (opposite of the registered side; flipped, exactly at cost); no follow-through after non-US data (best IS t 1.32 vs null 2.61) | same |
+
+Standing: unchanged. C3 remains the only algorithm that has passed. Every real flow found in ten rounds sits below
+the feasibility line for its symbol except gotobi. What could change it needs a decision: more IC symbols (crosses,
+EM pairs, softs), new data after 2026-09-24, or a cost structure without the 0.6 bp FX commission floor.
+
 ## 2026-10-05: round 9, what a $100k account changes. No new algorithm; C3 sizing at $100k and at a prop firm
 
 | tested | verdict | detail |

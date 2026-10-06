@@ -1,0 +1,91 @@
+"""Lead's independent recomputation of stream I's DEMO draft (IS/VAL only, panel ends 2024-12-31)."""
+import json, datetime as dt
+from zoneinfo import ZoneInfo
+import numpy as np
+
+P = "/private/tmp/claude-501/-Users-hoangbk-00-code-base-105-AgentFxTrading/9c63906c-bbbf-42bd-9a64-431d9d3f5de1/scratchpad/r12/"
+meta = json.load(open(P + "shared/panel/meta.json"))
+SYM = meta["symbols"]; T0 = meta["T0_ms"]
+mid = np.load(P + "shared/panel/mid.npy", mmap_mode="r")
+spr = np.load(P + "shared/panel/spr.npy", mmap_mode="r")
+eng = {dt.date.fromisoformat(s) for s in json.load(open(P + "lead/eng_holidays.json"))}
+LON, NY, UTC = ZoneInfo("Europe/London"), ZoneInfo("America/New_York"), dt.timezone.utc
+rows = {s: (np.asarray(mid[SYM.index(s)], dtype=np.float64), np.asarray(spr[SYM.index(s)], dtype=np.float64))
+        for s in ["US500", "EURUSD", "USDJPY", "GBPUSD"]}
+
+def idx(local_dt):
+    ms = int(local_dt.astimezone(UTC).timestamp() * 1000)
+    return (ms - T0) // 60000
+
+def last_quote(sym, i):
+    m = rows[sym][0]
+    j = i
+    while j > i - 3 * 1440 and np.isnan(m[j]):
+        j -= 1
+    return m[j], rows[sym][1][j]
+
+def month_T(y, m):
+    d = (dt.date(y + (m == 12), m % 12 + 1, 1) - dt.timedelta(days=1))
+    while d.weekday() >= 5 or d in eng or (d.month, d.day) in ((12, 25), (1, 1)):
+        d -= dt.timedelta(days=1)
+    return d
+
+def prev_bd(d):
+    d -= dt.timedelta(days=1)
+    while d.weekday() >= 5:
+        d -= dt.timedelta(days=1)
+    return d
+
+def us_close(d):
+    return last_quote("US500", idx(dt.datetime(d.year, d.month, d.day, 16, 0, tzinfo=NY)) - 1)[0]
+
+SIDE_USD = {"EURUSD": -1, "USDJPY": +1, "GBPUSD": -1}   # +1 = buy the pair when buying USD
+months = [(y, m) for y in range(2016, 2025) for m in range(1, 13)]
+ev = []
+for k in range(1, len(months)):
+    (py, pm), (y, m) = months[k - 1], months[k]
+    T = month_T(y, m); Tp = month_T(py, pm)
+    r = np.log(us_close(prev_bd(T)) / us_close(Tp))
+    ev.append((T, r))
+rs = np.array([e[1] for e in ev])
+yrs = np.array([e[0].year for e in ev])
+thr = np.median(np.abs(rs[yrs <= 2021]))
+print(f"events {len(ev)}  IS median |r_US| {thr!r}")
+
+def run(entry_off=0, exit_off=0, sprx=1.0):
+    out = []
+    for (T, r) in ev:
+        if abs(r) < thr:
+            continue
+        usd = 1 if r > 0 else -1
+        i0 = idx(dt.datetime(T.year, T.month, T.day, 16, 0, tzinfo=LON)) - 1 + entry_off   # close of 15:59 bar = 16:00:00
+        i1 = idx(dt.datetime(T.year, T.month, T.day, 17, 0, tzinfo=LON)) - 1 + exit_off
+        legs = []
+        for s, sg in SIDE_USD.items():
+            m0, s0 = last_quote(s, i0); m1, s1 = last_quote(s, i1)
+            side = usd * sg
+            g = side * np.log(m1 / m0) * 1e4
+            c = sprx * 0.5 * (s0 / m0 + s1 / m1) * 1e4 + 0.6
+            legs.append((g, c))
+        out.append((T, legs))
+    return out
+
+def summ(out, label):
+    for era, lo, hi in (("IS", 2016, 2021), ("VAL", 2022, 2024)):
+        sel = [o for o in out if lo <= o[0].year <= hi]
+        g = np.array([[l[0] for l in o[1]] for o in sel]); c = np.array([[l[1] for l in o[1]] for o in sel])
+        n = g - c; ev_net = n.sum(1)
+        t = ev_net.mean() / ev_net.std(ddof=1) * np.sqrt(len(ev_net))
+        print(f"{label:22s} {era:3s} events {len(sel):3d} mid/trade {g.mean():+6.2f} cost {c.mean():5.2f} "
+              f"net/trade {n.mean():+6.2f} net/event {ev_net.mean():+6.2f} t {t:+5.2f} "
+              f"pairs {np.round(n.mean(0),2)}")
+
+summ(run(), "base 16:00->17:00")
+summ(run(entry_off=1), "entry +1 min")
+summ(run(sprx=1.5), "spread x1.5")
+summ(run(entry_off=1, exit_off=0), "16:01 entry")
+summ(run(entry_off=5), "16:05 entry")
+
+for (T, r) in ev:
+    if abs(r) >= thr and T.year <= 2021:
+        print("EV", T, f"{r*100:+.3f}")

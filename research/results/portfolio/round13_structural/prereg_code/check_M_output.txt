@@ -1,0 +1,10 @@
+IS  registered     trades 1525 mid +1.80 cost 0.63 net +1.166 t +3.29 sharpe +0.084
+IS  spread x1.5    trades 1525 mid +1.80 cost 0.63 net +1.149 t +3.25 sharpe +0.083
+IS  +1 min         trades 1525 mid +1.80 cost 0.63 net +1.077 t +2.99 sharpe +0.077
+IS  +1 min & x1.5  trades 1525 mid +1.80 cost 0.63 net +1.062 t +2.95 sharpe +0.076
+IS  by year 2016:+3.03 2017:+1.36 2018:+0.85 2019:+1.52 2020:-0.77 2021:+0.99
+VAL registered     trades  765 mid +1.97 cost 0.62 net +1.349 t +2.46 sharpe +0.089
+VAL spread x1.5    trades  765 mid +1.97 cost 0.62 net +1.338 t +2.44 sharpe +0.088
+VAL +1 min         trades  765 mid +1.97 cost 0.62 net +1.037 t +1.91 sharpe +0.069
+VAL +1 min & x1.5  trades  765 mid +1.97 cost 0.62 net +1.028 t +1.89 sharpe +0.068
+VAL by year 2022:+2.89 2023:+0.97 2024:+0.19
