@@ -44,6 +44,8 @@ const DASHBOARD_BOOTSTRAP = window.DASHBOARD_BOOTSTRAP || {};
                     btOnShow();
                 } else if (targetId === 'view-ledger') {
                     ledgerOnShow();
+                } else if (targetId === 'view-gotobi') {
+                    gotobiOnShow();
                 }
             }
         }
@@ -614,6 +616,7 @@ const DASHBOARD_BOOTSTRAP = window.DASHBOARD_BOOTSTRAP || {};
             refreshDashboardData();
             fetchLeaderboard();
             if (typeof ledgerRefreshIfShown === 'function') ledgerRefreshIfShown();
+            if (typeof gotobiRefreshIfShown === 'function') gotobiRefreshIfShown();
         });
 
         let rawDailyHistory = DASHBOARD_BOOTSTRAP.pnlHistory;
