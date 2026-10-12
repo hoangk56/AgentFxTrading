@@ -126,6 +126,8 @@ portfolio_manager = init_portfolio()
 app.include_router(portfolio_router)
 from app.ledger_api import router as ledger_router
 app.include_router(ledger_router)
+from app.gotobi_calendar_api import router as gotobi_calendar_router
+app.include_router(gotobi_calendar_router)
 
 
 if __name__ == "__main__":
