@@ -29,9 +29,14 @@ _GOTOBI_SESSION = "Tokyo fix"
 # list each year with `python -m research.tools.gotobi_holidays --upcoming`.
 GOTOBI_SKIP_DATES = "2026-12-25,2026-12-31,2027-05-05,2027-09-20,2027-12-31"
 
+# Broker stop = the real 3 x ATR stop instead of the cBot's random 0.8-1.0x: the tight stop cost ~1.4 % of the real
+# legs' net over 2020-2026 (research/results/portfolio/gotobi_broker_stop_jitter_2026-10-15.md). The entry jitter stays.
+GOTOBI_BROKER_STOP_MIN = 1.0
+
 
 def _gotobi(max_spread: float, risk: float = 100.0) -> dict:
-    return {"RiskPerTradeMoney": risk, "MaxSpreadPips": max_spread, "SkipDates": GOTOBI_SKIP_DATES}
+    return {"RiskPerTradeMoney": risk, "MaxSpreadPips": max_spread, "SkipDates": GOTOBI_SKIP_DATES,
+            "EmergencyStopMin": GOTOBI_BROKER_STOP_MIN}
 
 
 def _cell(period: str, session: str, params: dict) -> dict:
@@ -42,7 +47,7 @@ def _cell(period: str, session: str, params: dict) -> dict:
 PRESETS: Dict[Tuple[str, str], Dict] = {
     # Gotobi (GotobiBot) — research C3: the schedule and the 3 x ATR20(H1) stop are the cBot's defaults; a cell
     # sets the default $ risk per trade (never a share of equity; $100 is the research's), the entry spread cap
-    # (GBPJPY quotes wider) and the days with no Tokyo fix.
+    # (GBPJPY quotes wider), the days with no Tokyo fix and the broker stop's lower bound.
     ("gotobi", "USDJPY"): _cell("m15", _GOTOBI_SESSION, _gotobi(max_spread=3.0)),
     ("gotobi", "EURJPY"): _cell("m15", _GOTOBI_SESSION, _gotobi(max_spread=3.0)),
     ("gotobi", "GBPJPY"): _cell("m15", _GOTOBI_SESSION, _gotobi(max_spread=4.0)),

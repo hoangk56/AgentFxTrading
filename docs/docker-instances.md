@@ -84,8 +84,13 @@ validated.
 
 Every trade risks `--RiskPerTradeMoney` (dollars, never a share of equity) at a stop of 3 x ATR20(H1), so the lot
 follows volatility around that default. The schedule, the stop and the one-position-at-a-time rule are the cBot's
-defaults and are the same on every pair; a cell only sets the risk, the entry spread cap and the days to sit out. Its
-exposure is one position of one default risk, two legs a day, six gotobi days a month.
+defaults and are the same on every pair; a cell only sets the risk, the entry spread cap, the days to sit out and
+`--EmergencyStopMin=1.0`. Its exposure is one position of one default risk, two legs a day, six gotobi days a month.
+
+`--EmergencyStopMin=1.0` sends the broker the real stop. The cBot's default draws the broker stop at random between
+0.8x and 1.0x of it to hide the strategy, which cost ~1.4 % of the real legs' net over 2020-2026
+([`gotobi_broker_stop_jitter_2026-10-15.md`](../research/results/portfolio/gotobi_broker_stop_jitter_2026-10-15.md)).
+The ±60 min long entry jitter and the decoy legs stay on.
 
 Japanese public holidays and the 31/12 bank holiday have no Tokyo fix, and on the 45 such gotobi days of 2016-2026
 the basket lost money
@@ -120,7 +125,8 @@ docker run -d \
   --AccountLabel="demo" \
   --RiskPerTradeMoney=100.0 \
   --MaxSpreadPips=3.0 \
-  --SkipDates="2026-12-25,2026-12-31,2027-05-05,2027-09-20,2027-12-31"
+  --SkipDates="2026-12-25,2026-12-31,2027-05-05,2027-09-20,2027-12-31" \
+  --EmergencyStopMin=1.0
 ```
 
 ### EURJPY — Gotobi Fix
@@ -149,7 +155,8 @@ docker run -d \
   --AccountLabel="demo" \
   --RiskPerTradeMoney=100.0 \
   --MaxSpreadPips=3.0 \
-  --SkipDates="2026-12-25,2026-12-31,2027-05-05,2027-09-20,2027-12-31"
+  --SkipDates="2026-12-25,2026-12-31,2027-05-05,2027-09-20,2027-12-31" \
+  --EmergencyStopMin=1.0
 ```
 
 ### GBPJPY — Gotobi Fix
@@ -178,7 +185,8 @@ docker run -d \
   --AccountLabel="demo" \
   --RiskPerTradeMoney=100.0 \
   --MaxSpreadPips=4.0 \
-  --SkipDates="2026-12-25,2026-12-31,2027-05-05,2027-09-20,2027-12-31"
+  --SkipDates="2026-12-25,2026-12-31,2027-05-05,2027-09-20,2027-12-31" \
+  --EmergencyStopMin=1.0
 ```
 
 ---
