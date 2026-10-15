@@ -53,14 +53,16 @@ def test_gotobi_golden_command():
         "--symbol=GBPJPY --period=m15 --full-access "
         '--BotId="cbot-demo-main-gbpjpy-fix-gotobi" --ApiUrl="http://127.0.0.1:8000/trade" --AccountLabel="Demo Main" '
         '--RiskPerTradeMoney=100.0 --MaxSpreadPips=4.0 '
-        '--SkipDates="2026-12-25,2026-12-31,2027-05-05,2027-09-20,2027-12-31"'
+        '--SkipDates="2026-12-25,2026-12-31,2027-05-05,2027-09-20,2027-12-31" --EmergencyStopMin=1.0'
     )
 
 
-def test_gotobi_cells_carry_only_risk_spread_and_skip_dates():
+def test_gotobi_cells_carry_only_risk_spread_skip_dates_and_broker_stop():
     """The schedule and the stop are the research's (cBot defaults); a cell must not re-tune them per symbol."""
     for sym in GOTOBI_SYMBOLS:
-        assert set(PRESETS[("gotobi", sym)]["params"]) == {"RiskPerTradeMoney", "MaxSpreadPips", "SkipDates"}, sym
+        assert set(PRESETS[("gotobi", sym)]["params"]) == {
+            "RiskPerTradeMoney", "MaxSpreadPips", "SkipDates", "EmergencyStopMin"}, sym
+        assert PRESETS[("gotobi", sym)]["params"]["EmergencyStopMin"] == 1.0, sym
         assert PRESETS[("gotobi", sym)]["params"]["SkipDates"] == GOTOBI_SKIP_DATES, sym
 
 

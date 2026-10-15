@@ -6,6 +6,12 @@ detail. The numbers are copied from those files, and the file wins if the two ev
 When you write a new result file, add a row to that day's entry (or start a new entry) and link the file. Don't
 repeat its tables here.
 
+## 2026-10-15: GotobiBot camouflage split. The tight broker stop costs ~1.4 %; the entry jitter helps
+
+| tested | verdict | detail |
+|---|---|---|
+| Prod GotobiBot.algo, 3 pairs, 2020-01..2026-10-08, $1,000 risk, same setup as 10-09: defaults (twice, for noise) vs broker stop 1.0x vs broker stop 1.0x + no entry jitter, legs paired by pair/side/day | **broker stop 0.8-1.0x → 1.0x: +$2.1-2.4k (+1.3-1.5 %, t 1.1-1.2)**, noise between identical runs $293; the 09-30 −5.9 % does not reproduce. **Dropping the jitter (long at 18:00 sharp) loses −$10,680 (−6.5 %, t −2.3)**, all on the long leg; the gain comes from legs jittered 20-60 min early (+0.021R, t 2.9). Keep the jitter; an earlier long entry is an in-sample hint to test on 2014-2019 first | [gotobi_broker_stop_jitter_2026-10-15.md](results/portfolio/gotobi_broker_stop_jitter_2026-10-15.md) (Vietnamese) |
+
 ## 2026-10-06: GotobiBot live fills vs IC ticks and the cTrader backtest. Execution matches; the fix-time short pays latency
 
 | tested | verdict | detail |
