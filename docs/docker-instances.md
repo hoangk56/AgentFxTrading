@@ -1,7 +1,7 @@
-# 🐳 Docker Instance Catalog — all 3 presets
+# 🐳 Docker Instance Catalog — all 5 presets
 
-Every instance AgentFxTrading ships: the Gotobi Fix bot on its three JPY pairs = **3 `docker run` commands**, written
-out in full.
+Every instance AgentFxTrading ships: the Gotobi Fix bot on its three JPY pairs and the ECB window bot's two rules on
+EURUSD = **5 `docker run` commands**, written out in full.
 
 This file is the long form of the dashboard's **Docker Bot Management → Setup Instances** grid. Ticking a cell there
 runs exactly the command printed here. Both come from [`app/cbot_presets.py`](../app/cbot_presets.py), which is the
@@ -10,7 +10,7 @@ drift apart.
 
 > **Prerequisites live in [deployment.md](deployment.md).** Install the server, write the cTID password file and build
 > the `.algo` package first: [Building the cBots](deployment.md#building-the-cbots) and
-> [Running bots](deployment.md#running-bots). Come back here once `cBot/GotobiBot.algo` exists.
+> [Running bots](deployment.md#running-bots). Come back here once `cBot/GotobiBot.algo` and `cBot/EcbWindowBot.algo` exist.
 
 ---
 
@@ -18,8 +18,9 @@ drift apart.
 
 - [Adapting a block](#-adapting-a-block)
 - [Container naming](#-container-naming)
-- [The 3-cell grid](#-the-3-cell-grid)
+- [The 5-cell grid](#-the-5-cell-grid)
 - [Gotobi Fix — `GotobiBot.algo`](#-gotobi-fix--gotobibotalgo)
+- [ECB Window — `EcbWindowBot.algo`](#-ecb-window--ecbwindowbotalgo)
 - [Running demo and live side by side](#-running-demo-and-live-side-by-side)
 
 ---
@@ -54,21 +55,25 @@ same scheme with `demo` as the slug:
 | Strategy | Pattern | Example |
 | :--- | :--- | :--- |
 | Gotobi Fix | `cbot-<slug>-<symbol>-fix-gotobi` | `cbot-demo-usdjpy-fix-gotobi` |
+| ECB Window F3 | `cbot-<slug>-eurusd-ecb-f3` | `cbot-live-eurusd-ecb-f3` |
+| ECB Window E1 | `cbot-<slug>-eurusd-ecb-e1` | `cbot-demo-eurusd-ecb-e1` |
 
 The name doubles as `--BotId`, so `docker ps` tells you the account, symbol, session and strategy of every bot without
 opening its flags — and the dashboard can match a running container back to its config row.
 
 ---
 
-## 🗺️ The 3-cell grid
+## 🗺️ The 5-cell grid
 
-`period` · session for each cell. 🔬 = validated by the research, only on the JPY pairs.
+`period` · session for each cell. 🔬 = passed a pre-registered LIVE holdout (Gotobi on the JPY pairs); 🧪 = a candidate
+the research runs to measure it (F3 passed its holdout only at the RELAXED tier, E1 is a weak DEMO candidate).
 
-| Symbol | Gotobi Fix |
-| :--- | :--- |
-| **USDJPY** | 🔬 `m15` · Tokyo fix |
-| **EURJPY** | 🔬 `m15` · Tokyo fix |
-| **GBPJPY** | 🔬 `m15` · Tokyo fix |
+| Symbol | Gotobi Fix | ECB Window F3 | ECB Window E1 |
+| :--- | :--- | :--- | :--- |
+| **USDJPY** | 🔬 `m15` · Tokyo fix | – | – |
+| **EURJPY** | 🔬 `m15` · Tokyo fix | – | – |
+| **GBPJPY** | 🔬 `m15` · Tokyo fix | – | – |
+| **EURUSD** | – | 🧪 `m15` · ECB fix window | 🧪 `m15` · ECB fix window |
 
 ---
 
@@ -187,6 +192,87 @@ docker run -d \
   --MaxSpreadPips=4.0 \
   --SkipDates="2026-12-25,2026-12-31,2027-05-05,2027-09-20,2027-12-31" \
   --EmergencyStopMin=1.0
+```
+
+---
+
+## 🇪🇺 ECB Window — `EcbWindowBot.algo`
+
+Sells EURUSD at 11:00 London and buys it back at 13:00 London: EUR is sold into the 14:15 CET ECB reference rate. Two
+rules share the cBot, and `--UsdTopOnly` picks one:
+
+- **F3** (`--UsdTopOnly=true`): only on USD-TOP days, when USDJPY and USDCHF rose from 18:00 New York the previous
+  weekday to 07:00 London by at least the 67th percentile of the previous 250 weekdays. Never on a Monday (no quote at
+  18:00 New York on Friday). It passed its 2025-2026 holdout at the research's RELAXED tier only
+  ([`PREREG_R24_relaxed_hold.md`](../research/results/portfolio/round24_relaxed/PREREG_R24_relaxed_hold.md)), so the
+  preset trades the minimum lot: a measurement of real fills, not a sized bet.
+- **E1** (`--UsdTopOnly=false`): every weekday, a weak DEMO candidate
+  ([`PREREG_M_eurusd_midday.md`](../research/results/portfolio/round13_structural/PREREG_M_eurusd_midday.md)). It
+  logs and reports the USD-TOP flag of each trade, so its USD-TOP days also score F3.
+
+Both skip 24/12 to 1/1. The lot is fixed (`--Lots`), never read off the account. The rule has no stop; the broker
+gets a far guard stop (`--EmergencyStopPips=100`, touched by 0.11 % of E1's trades over 2016-2026 and by no F3 result,
+[`ecb_window_cbot_2026-10-16.md`](../research/results/portfolio/ecb_window_cbot_2026-10-16.md)) for a bot that dies
+with a position open.
+
+The selector needs mid prices, which bars do not carry: the bot records the live USDJPY/USDCHF bid and ask at 18:00
+New York and 07:00 London in `/root/ctrader_data/<BotId>_usd_top_quotes.csv` and reads its history from that log and
+from [`cBot/seeds/ecb_usd_top_seed.csv`](../cBot/seeds/ecb_usd_top_seed.csv)
+(`python -m research.tools.ecb_usd_top_seed`). A minute neither holds falls back to the bid close of an M15 bar, and
+the bot logs the quote source of every decision.
+
+### EURUSD — ECB Window F3
+
+`m15` · ECB fix window
+
+```bash
+docker run -d \
+  --name cbot-demo-eurusd-ecb-f3 \
+  --restart unless-stopped \
+  --network host \
+  -v $(pwd):/workspace \
+  -v /root:/root \
+  ghcr.io/spotware/ctrader-console:latest \
+  run /workspace/cBot/EcbWindowBot.algo \
+  --ctid=your_email@example.com \
+  --pwd-file=/root/ctrader_data/ctid_pwd \
+  --account=YOUR_ACCOUNT_ID \
+  --symbol=EURUSD \
+  --period=m15 \
+  --full-access \
+  --BotId="cbot-demo-eurusd-ecb-f3" \
+  --ApiUrl="http://127.0.0.1:8000/trade" \
+  --AccountLabel="demo" \
+  --UsdTopOnly=true \
+  --Lots=0.01 \
+  --EmergencyStopPips=100.0
+```
+
+### EURUSD — ECB Window E1
+
+`m15` · ECB fix window
+
+```bash
+docker run -d \
+  --name cbot-demo-eurusd-ecb-e1 \
+  --restart unless-stopped \
+  --network host \
+  -v $(pwd):/workspace \
+  -v /root:/root \
+  ghcr.io/spotware/ctrader-console:latest \
+  run /workspace/cBot/EcbWindowBot.algo \
+  --ctid=your_email@example.com \
+  --pwd-file=/root/ctrader_data/ctid_pwd \
+  --account=YOUR_ACCOUNT_ID \
+  --symbol=EURUSD \
+  --period=m15 \
+  --full-access \
+  --BotId="cbot-demo-eurusd-ecb-e1" \
+  --ApiUrl="http://127.0.0.1:8000/trade" \
+  --AccountLabel="demo" \
+  --UsdTopOnly=false \
+  --Lots=0.1 \
+  --EmergencyStopPips=100.0
 ```
 
 ---

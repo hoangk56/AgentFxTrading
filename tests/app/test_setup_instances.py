@@ -57,11 +57,12 @@ def test_presets_endpoint_shape():
     res = client.get("/api/setup/presets")
     assert res.status_code == 200
     data = res.json()
-    assert set(data["strategies"]) == {"gotobi"}
+    assert set(data["strategies"]) == {"gotobi", "ecb_f3", "ecb_e1"}
     assert data["strategies"]["gotobi"]["label"] == "Gotobi Fix"
-    assert data["symbols"] == ["USDJPY", "EURJPY", "GBPJPY"]
-    assert len(data["cells"]) == 3        # gotobi on 3 JPY pairs
+    assert data["symbols"] == ["USDJPY", "EURJPY", "GBPJPY", "EURUSD"]
+    assert len(data["cells"]) == 5        # gotobi on 3 JPY pairs, the ECB window's F3 and E1 on EURUSD
     assert {c["symbol"] for c in data["cells"] if c["strategy"] == "gotobi"} == {"USDJPY", "EURJPY", "GBPJPY"}
+    assert {c["strategy"] for c in data["cells"] if c["symbol"] == "EURUSD"} == {"ecb_f3", "ecb_e1"}
     assert all(set(c) == {"symbol", "strategy", "period", "session"} for c in data["cells"])
 
 
@@ -107,7 +108,7 @@ def test_existing_name_is_reported_and_not_started(account, fake_docker):
 
 def test_unknown_pair_is_error_and_batch_continues(account, fake_docker):
     res = _post(account["id"], [
-        {"symbol": "EURUSD", "strategy": "gotobi"},        # symbol not in the matrix
+        {"symbol": "EURUSD", "strategy": "gotobi"},        # pair not in the matrix (EURUSD is the ECB window's)
         {"symbol": "eurjpy", "strategy": "gotobi"},         # symbol case-normalised
         {"symbol": "USDJPY", "strategy": "nope"},
         {"symbol": "BTCUSD", "strategy": "donchian"},       # the removed Crypto Donchian

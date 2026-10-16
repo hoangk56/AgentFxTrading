@@ -1,0 +1,19 @@
+  F3 ref IS: n 381, net +2.38 (t +3.27)
+  F3 ref VAL: n 207, net +3.00 (t +2.59)
+  F3 ref HOLD: n 117, net +1.99 (t +2.15)
+  F3 bidH1 IS: n 390, net +2.35 (t +3.26)
+  F3 bidH1 VAL: n 205, net +3.14 (t +2.69)
+  F3 bidH1 HOLD: n 122, net +1.80 (t +1.97)
+  E1 IS: n 1525, net +1.16 (t +3.27)
+  E1 VAL: n 765, net +1.34 (t +2.44)
+  E1 HOLD: n 444, net +0.63 (t +0.97)
+F3 days ref 705, bidH1 717, common 688, only ref 17, only bidH1 29
+F3 ref days by weekday Mon..Fri [0, 195, 175, 155, 180] | Monday U NaN share 1.0
+E1 2016-26: share of trades with adverse excursion >= 20 pips: 14.01 % (383)
+E1 2016-26: share of trades with adverse excursion >= 30 pips: 4.75 % (130)
+E1 2016-26: share of trades with adverse excursion >= 40 pips: 1.94 % (53)
+E1 2016-26: share of trades with adverse excursion >= 50 pips: 1.17 % (32)
+E1 2016-26: share of trades with adverse excursion >= 60 pips: 0.69 % (19)
+E1 2016-26: share of trades with adverse excursion >= 80 pips: 0.33 % (9)
+E1 2016-26: share of trades with adverse excursion >= 100 pips: 0.11 % (3)
+max adverse excursion 133.2 pips; n 2734

@@ -1,0 +1,106 @@
+"""Round 24 lead: one HOLD look for FOMC_A4 and F3 (rules exactly as stream C's rules.py / rules2.py).
+usage: R24_PANEL=<panel> hold_r24.py check|hold   (check = IS/VAL on the 2016-24 panel, to match stream C first)"""
+import sys, os, json, datetime as dt
+H = os.path.dirname(os.path.abspath(__file__))
+sys.path.insert(0, H); sys.path.insert(1, H + "/../../C")
+import numpy as np
+from clib import loc_ms, price, cl_t, day_of, year_of, CAL, UTC
+from eng import legs_to_trades
+from research.swing.rates import rate as _rate
+
+MODE = sys.argv[1]
+if MODE == "check":
+    D0, D1 = dt.date(2016, 1, 1), dt.date(2024, 12, 31)
+    FOMC = [dt.date.fromisoformat(s) for s in json.load(open(CAL + "/fomc_2016_2024.json"))["scheduled_statement_dates"]]
+    ERAS = [("IS", dt.date(2016, 1, 1), dt.date(2021, 12, 31)), ("VAL", dt.date(2022, 1, 1), dt.date(2024, 12, 31))]
+else:
+    D0, D1 = dt.date(2024, 1, 1), dt.date(2026, 9, 24)   # 2024 only feeds F3's causal selector history
+    # Fed calendar (federalreserve.gov/monetarypolicy/fomccalendars.htm, fetched 2026-10-15), scheduled statement days
+    FOMC = [dt.date.fromisoformat(s) for s in ["2025-01-29", "2025-03-19", "2025-05-07", "2025-06-18", "2025-07-30",
+            "2025-09-17", "2025-10-29", "2025-12-10", "2026-01-28", "2026-03-18", "2026-04-29", "2026-06-17",
+            "2026-07-29", "2026-09-16"]]
+    ERAS = [("HOLD", dt.date(2025, 1, 1), dt.date(2026, 9, 24))]
+
+
+def xmas(d):
+    return (d.month == 12 and d.day >= 24) or (d.month == 1 and d.day <= 1)
+
+
+def prev_wkd(d):
+    p = d - dt.timedelta(days=1)
+    while p.weekday() >= 5:
+        p -= dt.timedelta(days=1)
+    return p
+
+
+def arr(x):
+    return np.asarray(x, dtype=np.int64)
+
+
+WKD = [D0 + dt.timedelta(days=i) for i in range((D1 - D0).days + 1)]
+WKD = [d for d in WKD if d.weekday() < 5]
+
+# ---- FOMC_A4 (rules2.build_A4) ----
+CCY_LEG = {"EUR": ("EURUSD", 1), "GBP": ("GBPUSD", 1), "AUD": ("AUDUSD", 1), "NZD": ("NZDUSD", 1),
+           "JPY": ("USDJPY", -1), "CAD": ("USDCAD", -1), "CHF": ("USDCHF", -1)}
+
+
+def rank_ms(d):
+    f = dt.date(d.year, d.month, 1)
+    return int(dt.datetime(f.year, f.month, f.day, tzinfo=UTC).timestamp() * 1000) - 86400000
+
+
+def build_A4(dates):
+    legs = {s: dict(side=[], ms_in=[], ms_out=[], w=[], grp=[]) for s, _ in CCY_LEG.values()}
+    for i, d in enumerate(dates):
+        e = prev_wkd(d); ms = rank_ms(e); ru = _rate("USD", ms)
+        hi = [c for c in CCY_LEG if _rate(c, ms) > ru]
+        for c in hi:
+            s, sd = CCY_LEG[c]; L = legs[s]
+            L["side"].append(sd); L["ms_in"].append(loc_ms(e, 16, 1, "NY")); L["ms_out"].append(loc_ms(d, 16, 1, "NY"))
+            L["w"].append(1.0 / len(hi)); L["grp"].append(i)
+    return [dict(sym=s, side=np.array(L["side"]), ms_in=arr(L["ms_in"]), ms_out=arr(L["ms_out"]), w=np.array(L["w"]),
+                 grp=np.array(L["grp"]), back=5) for s, L in legs.items() if L["grp"]]
+
+
+# ---- F3 (rules.top_select + clock) ----
+def top_select(sym_list, d_list, t0_fn, t1_fn, q, hist=250, mn=60):
+    U = np.zeros(len(d_list))
+    for s in sym_list:
+        U += np.log(price(s, arr([t1_fn(d) for d in d_list])) / price(s, arr([t0_fn(d) for d in d_list])))
+    U /= len(sym_list)
+    sel = np.zeros(len(d_list), bool)
+    for i in range(len(d_list)):
+        h = U[max(0, i - hist):i]; h = h[~np.isnan(h)]
+        if len(h) >= mn and not np.isnan(U[i]):
+            sel[i] = U[i] >= np.percentile(h, q)
+    return sel
+
+
+sel = top_select(["USDJPY", "USDCHF"], WKD, lambda d: loc_ms(prev_wkd(d), 18, 0, "NY"), lambda d: loc_ms(d, 7, 0, "LON"), 67)
+F3D = [d for d, s in zip(WKD, sel) if s and not xmas(d)]
+
+
+def build_F3(dates):
+    A = arr([loc_ms(d, 11, 0, "LON") for d in dates]); B = arr([loc_ms(d, 13, 0, "LON") for d in dates])
+    return [dict(sym="EURUSD", side=-1, ms_in=A, ms_out=B, grp=np.arange(len(dates)))]
+
+
+def report(name, T):
+    for era, a, b in ERAS:
+        lo = loc_ms(a, 0, 0, "UTC"); hi = loc_ms(b + dt.timedelta(days=1), 0, 0, "UTC")
+        s = (T["ms_in"] >= lo) & (T["ms_in"] < hi)
+        if s.sum() < 2:
+            print(name, era, "n", int(s.sum())); continue
+        d = day_of(T["ms_in"][s])
+        out = [f"{name} {era} n {int(s.sum())}"]
+        for k, lab in (("gross", "mid"), ("net", "net"), ("net15", "x1.5"), ("net1", "+1min")):
+            m, t = cl_t(T[k][s], d); out.append(f"{lab} {m:+.2f} (t {t:+.2f})")
+        x = T["net"][s]; out.append(f"sd {x.std(ddof=1):.2f} cost {np.mean(T['gross'][s]-T['net'][s]):.2f} swap {np.mean(T['swap'][s]):+.2f}")
+        y = year_of(T["ms_in"][s])
+        out.append("years " + " ".join(f"{int(v)}:{x[y == v].mean():+.2f}/{int((y == v).sum())}" for v in np.unique(y)))
+        print(" | ".join(out), flush=True)
+
+
+report("FOMC_A4", legs_to_trades(build_A4([d for d in FOMC if D0 <= d <= D1])))
+report("F3", legs_to_trades(build_F3(F3D)))

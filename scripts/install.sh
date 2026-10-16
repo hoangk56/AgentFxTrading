@@ -434,7 +434,7 @@ build_algos() {
   step "Building cBot .algo packages (this pulls ${CTRADER_IMAGE})"
   docker pull -q "$CTRADER_IMAGE"
   local name
-  for name in GotobiBot; do
+  for name in GotobiBot EcbWindowBot; do
     build_algo "$name"
   done
   # The console container runs as root, so hand everything back to forge.
