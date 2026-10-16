@@ -44,7 +44,7 @@ const DASHBOARD_BOOTSTRAP = window.DASHBOARD_BOOTSTRAP || {};
                     btOnShow();
                 } else if (targetId === 'view-ledger') {
                     ledgerOnShow();
-                } else if (targetId === 'view-gotobi') {
+                } else if (targetId === 'view-calendar') {
                     gotobiOnShow();
                 }
             }
@@ -53,7 +53,10 @@ const DASHBOARD_BOOTSTRAP = window.DASHBOARD_BOOTSTRAP || {};
         // The open view lives in the URL hash (#backtest, #ledger, …; Overview has none),
         // so F5 and Back/Forward stay on it.
         function viewFromHash(hash) {
-            const view = hash.length > 1 ? document.getElementById('view-' + hash.slice(1)) : null;
+            // #gotobi was the Calendar's hash before it took the ECB window trades too; old links still open it.
+            const aliases = {gotobi: 'calendar'};
+            const name = hash.slice(1);
+            const view = hash.length > 1 ? document.getElementById('view-' + (aliases[name] || name)) : null;
             return view && view.classList.contains('view-section') ? view.id : 'view-dashboard';
         }
 
@@ -549,8 +552,9 @@ const DASHBOARD_BOOTSTRAP = window.DASHBOARD_BOOTSTRAP || {};
             if(!b)return '<span class="bot-badge bot-badge--default"><span class="bot-dot"></span>N/A</span>';
             const bl=String(b).toLowerCase();
             const isG=bl.includes('gotobi');
-            const badgeCls = isG ? 'bot-badge--gotobi' : 'bot-badge--default';
-            const badgeText = isG ? 'Gotobi' : 'cBot';
+            const isE=bl.includes('-ecb-');
+            const badgeCls = isG ? 'bot-badge--gotobi' : (isE ? 'bot-badge--ecb' : 'bot-badge--default');
+            const badgeText = isG ? 'Gotobi' : (isE ? 'ECB' : 'cBot');
             const safe=escapeHtml(b);
             return `<div class="bot-cell">
                 <span class="bot-badge ${badgeCls}"><span class="bot-dot"></span>${badgeText}</span>

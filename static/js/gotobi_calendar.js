@@ -1,5 +1,6 @@
-/* Gotobi view: one month of the GotobiBot's gotobi days, Monday to Friday, with the P&L of its real legs and, apart,
- * of its decoys (app/gotobi_calendar.py, /api/gotobi/calendar). Clicking a day lists its positions.
+/* Calendar view: one month of the GotobiBot's gotobi days, Monday to Friday, with the P&L of its real legs and, apart,
+ * of its decoys and of the EcbWindowBot's trades (F3, E1) (app/gotobi_calendar.py, /api/gotobi/calendar). Clicking a
+ * day lists its positions.
  *
  * Loaded with `defer`, after the dashboard script whose escapeHtml, formatMoney and selectedAccountId it uses.
  * The gc*Html functions are pure (data in, HTML out) so tests/app/test_gotobi_calendar_ui.py can render them in node
@@ -37,6 +38,8 @@ function gcCellHtml(day, today, selected) {
         main = '<div class="gc-sub">JP holiday</div>';
     }
     const extra = [];
+    const ecb = day.ecb || {n: 0};
+    if (ecb.n) extra.push(`<span class="gc-ecb">ECB ${gcMoney(ecb.pnl)} ·${ecb.n}${ecb.open ? ` (${ecb.open} open)` : ''}</span>`);
     if (day.decoy.n) extra.push(`decoy ${gcMoney(day.decoy.pnl)} ·${day.decoy.n}${day.decoy.open ? ` (${day.decoy.open} open)` : ''}`);
     if (day.other.n) extra.push(`other ${gcMoney(day.other.pnl)} ·${day.other.n}`);
     const foot = extra.map(x => `<div class="gc-decoy">${x}</div>`).join('');
@@ -55,6 +58,8 @@ function gcMonthHtml(data, selected) {
         + stat(`Real P&amp;L (${Number(t.real_trades) || 0} legs)`, gcMoney(t.real_pnl),
                Number(t.real_pnl) >= 0 ? 'kpi-value--profit' : 'kpi-value--loss')
         + stat(`Decoy P&amp;L (${Number(t.decoy_trades) || 0})`, gcMoney(t.decoy_pnl))
+        + stat(`ECB P&amp;L (${Number(t.ecb_trades) || 0} trades)`, gcMoney(t.ecb_pnl),
+               Number(t.ecb_pnl) >= 0 ? 'kpi-value--profit' : 'kpi-value--loss')
         + '</div>';
     const head = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'].map(d => `<div class="gc-dow">${d}</div>`).join('');
     const blanks = days.length ? '<div class="gc-cell gc-cell--blank"></div>'.repeat(Number(days[0].weekday) || 0) : '';
@@ -66,14 +71,15 @@ function gcDayHtml(day) {
     if (!day) return '';
     const date = escapeHtml(day.date);
     const title = `<h4 class="lg-subtitle">${date}${day.gotobi ? ' · gotobi' : ''}${day.skipped ? ' · skipped' : ''}</h4>`;
-    if (!day.trades.length) return `${title}<p class="td-dim lg-hint">No Gotobi position on this day.</p>`;
+    if (!day.trades.length) return `${title}<p class="td-dim lg-hint">No Gotobi or ECB position on this day.</p>`;
     const rows = day.trades.map(tr => {
-        const kind = tr.decoy ? 'Decoy' : (tr.leg ? 'Real' : 'Other');
-        const leg = tr.leg ? tr.leg[0].toUpperCase() + tr.leg.slice(1) : '—';
+        const ecb = tr.strategy === 'ecb';
+        const kind = ecb ? `ECB ${escapeHtml(tr.rule)}` : (tr.decoy ? 'Decoy' : (tr.leg ? 'Real' : 'Other'));
+        const leg = ecb ? '11-13 London' : (tr.leg ? tr.leg[0].toUpperCase() + tr.leg.slice(1) : '—');
         const pnl = tr.status === 'closed'
             ? `<span class="${Number(tr.pnl) >= 0 ? 'pnl-positive' : 'pnl-negative'}">${gcMoney(tr.pnl)}</span>`
             : '<span class="td-dim">open</span>';
-        return `<tr class="${tr.decoy ? 'gc-row--decoy' : ''}"><td>${kind}</td><td>${leg}</td>`
+        return `<tr class="${tr.decoy ? 'gc-row--decoy' : (ecb ? 'gc-row--ecb' : '')}"><td>${kind}</td><td>${leg}</td>`
             + `<td class="td-mono">${escapeHtml(tr.symbol)}</td><td>${escapeHtml(tr.side)}</td>`
             + `<td class="td-mono">${escapeHtml(tr.volume)}</td>`
             + `<td class="td-mono">${escapeHtml(tr.entry_time_vn || tr.entry_time || '')}</td>`
@@ -98,7 +104,7 @@ function gcScope() {
 }
 
 function gcShown() {
-    const view = document.getElementById('view-gotobi');
+    const view = document.getElementById('view-calendar');
     return view && view.classList.contains('active');
 }
 
@@ -122,7 +128,7 @@ async function gcLoad() {
         if (gcSelected === null && gcData.days.some(d => d.date === gcData.today)) gcSelected = gcData.today;
         gcRender();
     } catch (e) {
-        body.innerHTML = `<p class="pnl-negative">Could not load the Gotobi calendar: ${escapeHtml(e.message)}</p>`;
+        body.innerHTML = `<p class="pnl-negative">Could not load the calendar: ${escapeHtml(e.message)}</p>`;
     } finally {
         gcLoading = false;
     }

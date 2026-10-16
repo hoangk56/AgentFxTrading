@@ -11,7 +11,7 @@ from tests._paths import DASHBOARD_JS, dashboard_page
 
 client = TestClient(app)
 NODE = shutil.which("node")
-VIEWS = ("dashboard", "leaderboard", "backtest", "docker", "ledger", "logs")
+VIEWS = ("dashboard", "leaderboard", "backtest", "docker", "ledger", "calendar", "logs")
 
 
 def _function(src: str, name: str) -> str:
@@ -48,7 +48,7 @@ const pushed = [], switched = [];
 const history = {{pushState: (s, t, url) => {{ pushed.push(url); location.hash = url.startsWith('#') ? url : ''; }}}};
 function switchView(id) {{ switched.push(id); }}
 {functions}
-const read = Object.fromEntries(['', '#', '#backtest', '#docker', '#dashboard', '#nope', '#other', '#"]']
+const read = Object.fromEntries(['', '#', '#backtest', '#docker', '#dashboard', '#nope', '#other', '#"]', '#calendar', '#gotobi']
     .map(h => [h, viewFromHash(h)]));
 openView('view-ledger');      // pushes #ledger
 openView('view-ledger');      // already there: no new history entry
@@ -59,6 +59,7 @@ console.log(JSON.stringify({{read, pushed, switched}}));
     got = json.loads(out)
     assert got["read"] == {"": "view-dashboard", "#": "view-dashboard", "#backtest": "view-backtest",
                            "#docker": "view-docker", "#dashboard": "view-dashboard", "#nope": "view-dashboard",
-                           "#other": "view-dashboard", '#"]': "view-dashboard"}
+                           "#other": "view-dashboard", '#"]': "view-dashboard",
+                           "#calendar": "view-calendar", "#gotobi": "view-calendar"}
     assert got["pushed"] == ["#ledger", "/demo/dashboard?x=1"]
     assert got["switched"] == ["view-ledger", "view-ledger", "view-dashboard"]

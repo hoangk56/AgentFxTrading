@@ -4,13 +4,13 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AgentFxTrading Dashboard</title>
-    <link rel="stylesheet" href="/static/css/dashboard.css?v=20261012_gotobi">
+    <link rel="stylesheet" href="/static/css/dashboard.css?v=20261016_calendar1">
     <script src="/static/js/auth.js?v=20260927_login"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="/static/js/backtest.js?v=20260927_2bots" defer></script>
     <script src="/static/js/ledger.js?v=20260927_ledger0" defer></script>
-    <script src="/static/js/gotobi_calendar.js?v=20261012_gotobi0" defer></script>
+    <script src="/static/js/gotobi_calendar.js?v=20261016_calendar1" defer></script>
     <link rel="icon" type="image/png" href="/static/favicon.png">
 </head>
 <body class="app-shell">
@@ -97,9 +97,9 @@
                 <span class="nav-icon"><i data-lucide="flask-conical"></i></span>
                 <span class="nav-label">Backtest</span>
             </a>
-            <a href="#gotobi" class="nav-item" data-target="view-gotobi" title="Gotobi calendar: gotobi days and the Gotobi trades of each">
+            <a href="#calendar" class="nav-item" data-target="view-calendar" title="Calendar: gotobi days, the Gotobi trades and the ECB window trades of each day">
                 <span class="nav-icon"><i data-lucide="calendar-days"></i></span>
-                <span class="nav-label">Gotobi</span>
+                <span class="nav-label">Calendar</span>
             </a>
             <a href="#ledger" class="nav-item" data-target="view-ledger" title="Ledger: deposits, withdrawals and discrepancy">
                 <span class="nav-icon"><i data-lucide="book-open"></i></span>
@@ -197,6 +197,8 @@
                 <div class="bot-cell">
                     {% if 'gotobi' in b_lower %}
                     <span class="bot-badge bot-badge--gotobi"><span class="bot-dot"></span>Gotobi</span>
+                    {% elif '-ecb-' in b_lower %}
+                    <span class="bot-badge bot-badge--ecb"><span class="bot-dot"></span>ECB</span>
                     {% else %}
                     <span class="bot-badge bot-badge--default"><span class="bot-dot"></span>cBot</span>
                     {% endif %}
@@ -711,11 +713,11 @@
                 <div id="lg-body"><p class="td-dim">Loading...</p></div>
             </div>
 
-            <!-- Gotobi calendar View (static/js/gotobi_calendar.js) -->
-            <div id="view-gotobi" class="view-section">
+            <!-- Calendar View: Gotobi and ECB window trades by day (static/js/gotobi_calendar.js) -->
+            <div id="view-calendar" class="view-section">
                 <section class="panel">
                     <div class="panel-header">
-                        <span class="panel-title"><i data-lucide="calendar-days" class="panel-icon text-blue"></i> Gotobi Calendar</span>
+                        <span class="panel-title"><i data-lucide="calendar-days" class="panel-icon text-blue"></i> Calendar</span>
                         <div class="gc-nav">
                             <button id="gc-prev-btn" class="log-btn" title="Previous month">◀</button>
                             <span id="gc-month-label" class="gc-month-label"></span>
@@ -724,7 +726,7 @@
                         </div>
                     </div>
                     <div class="panel-body gc-panel-body">
-                        <p class="td-dim lg-hint">Gotobi days (5th, 10th, 15th, 20th, 25th, month end; a weekend one moves to the Friday before) and the GotobiBot positions opened for each: the long the evening before, the short at the 07:55 GMT+7 Tokyo fix. Decoys (camouflage legs on plain weekdays) are counted apart. SKIP = a Japanese holiday in the presets' SkipDates.</p>
+                        <p class="td-dim lg-hint">Gotobi days (5th, 10th, 15th, 20th, 25th, month end; a weekend one moves to the Friday before) and the GotobiBot positions opened for each: the long the evening before, the short at the 07:55 GMT+7 Tokyo fix. Decoys (camouflage legs on plain weekdays) are counted apart. SKIP = a Japanese holiday in the presets' SkipDates. ECB = the ECB window bot's EURUSD shorts (sold 18:00 GMT+7 in winter, 17:00 in summer, closed two hours later), F3 on USD-TOP days and E1 every weekday, on the day they were opened.</p>
                         <div id="gc-body"><p class="td-dim">Loading...</p></div>
                         <div id="gc-day"></div>
                     </div>
@@ -772,5 +774,5 @@
             leaderboard: {{ leaderboard | tojson }},
         };
     </script>
-    <script src="/static/js/dashboard.js?v=20261012_gotobi"></script>
+    <script src="/static/js/dashboard.js?v=20261016_calendar1"></script>
 </body></html>
