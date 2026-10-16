@@ -1,4 +1,5 @@
-"""HTTP API of the dashboard's Gotobi view (app/gotobi_calendar.py): one month of gotobi days and Gotobi trades.
+"""HTTP API of the dashboard's Calendar view (app/gotobi_calendar.py): one month of gotobi days, Gotobi trades and
+ECB window trades.
 
 Handlers are plain `def`: FastAPI runs them in its threadpool, so the DB work never blocks the event loop that
 serves the bots' reports.
@@ -38,9 +39,11 @@ def api_gotobi_calendar(month: Optional[str] = None, account_id: str = "all"):
         return JSONResponse(status_code=422, content={"success": False, "message": f"Bad month '{month}', want YYYY-MM"})
 
     # A long is entered the evening before its day, so the month's first day starts with the day before it.
+    bots = " OR ".join("bot_id LIKE ?" for _ in gc.BOT_SUFFIXES)
     sql = ("SELECT id, bot_id, account_id, symbol, side, volume, entry_time, exit_time, pnl, status FROM positions "
-           "WHERE bot_id LIKE ? AND entry_time >= ? AND entry_time < ?")
-    params = ["%" + gc.BOT_SUFFIX, (first - timedelta(days=1)).isoformat(), (last + timedelta(days=1)).isoformat()]
+           f"WHERE ({bots}) AND entry_time >= ? AND entry_time < ?")
+    params = ["%" + suffix for suffix in gc.BOT_SUFFIXES]
+    params += [(first - timedelta(days=1)).isoformat(), (last + timedelta(days=1)).isoformat()]
     ids = _account_ids(account_id)
     if ids is not None:
         if not ids:

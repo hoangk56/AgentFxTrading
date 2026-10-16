@@ -1,0 +1,221 @@
+"""Round 24 stream C engine. Panel = r23 shared panel (bar-start labels, 2016-01-01..2024-12-31, HOLD absent).
+
+Quote convention (as in the registered E1 / L code): the price "at time X" is the close of the last M1 bar ending at
+or before X = bar labelled X-1 min (stale up to `back` bars). A trade at clock times (A, B) is quoted at A and B.
+Latency check: both quotes 1 minute later. Spread check: half spreads x1.5. Costs: half spread at each quote + 0.6 bp
+commission for FX and metals (0 for indices, energy, crypto) + swap per 17:00 New York rollover crossed (x3 on the
+symbol's triple day) from research.swing.rates.swap_frac_at."""
+import json, datetime as dt, zoneinfo
+import numpy as np
+
+SCR = "/private/tmp/claude-501/-Users-hoangbk-00-code-base-105-AgentFxTrading/4b8ace6a-8940-44d5-a772-50d419f9fb6d/scratchpad"
+import os
+PANEL = os.environ.get("R24_PANEL", SCR + "/r23/shared/panel")
+CAL = SCR + "/r23/shared/cal"
+META = json.load(open(PANEL + "/meta.json"))
+SYMS = META["symbols"]; T0 = META["T0_ms"]; NMIN = META["minutes"]
+MID = np.load(PANEL + "/mid.npy", mmap_mode="r"); SPR = np.load(PANEL + "/spr.npy", mmap_mode="r")
+UTC = dt.timezone.utc
+TZ = {k: zoneinfo.ZoneInfo(v) for k, v in dict(NY="America/New_York", LON="Europe/London", SYD="Australia/Sydney",
+                                                   TOK="Asia/Tokyo", HK="Asia/Hong_Kong", CET="Europe/Berlin",
+                                                   UTC="UTC", SH="Asia/Shanghai").items()}
+FXMET = {"EURUSD", "GBPUSD", "USDJPY", "USDCHF", "USDCAD", "AUDUSD", "NZDUSD", "AUDJPY", "EURJPY", "GBPJPY",
+         "XAUUSD", "XAGUSD", "XPTUSD", "USDCNH"}
+VAL0 = int(dt.datetime(2022, 1, 1, tzinfo=UTC).timestamp() * 1000)
+_rows = {}
+
+
+def row(sym):
+    if sym not in _rows:
+        if sym == "USDCNH":
+            m, s = cnh_row()
+        else:
+            i = SYMS.index(sym)
+            m = np.asarray(MID[i], dtype=np.float32); s = np.asarray(SPR[i], dtype=np.float32)
+        _rows[sym] = (m, s, ffill_idx(m).astype(np.int32))
+    return _rows[sym]
+
+
+def cnh_row():
+    """USDCNH: IC M1 bid bars (zbars, x1e5) cut at 2025-01-01; mid = bid close + half of 2.93 pips; spread 2.93 pips."""
+    import glob
+    from pathlib import Path
+    from research.bars import decode_zbars
+    m = np.full(NMIN, np.nan, np.float32)
+    for f in sorted(glob.glob("/Users/hoangbk/00.code_base/105.AgentFxTrading/research/data/USDCNH/m1/*.zbars")):
+        if Path(f).name[:4] > "2024":
+            continue
+        a = decode_zbars(Path(f))
+        a = a[(a[:, 0] >= T0) & (a[:, 0] < META["T1_ms_exclusive"])]
+        if a.size:
+            m[(a[:, 0] - T0) // 60000] = a[:, 4] / 1e5 + 0.000293 / 2
+    s = np.where(np.isnan(m), np.nan, 0.000293).astype(np.float32)
+    return m, s
+
+
+def ffill_idx(m):
+    """last index <= k with a quote (or -1)."""
+    ok = ~np.isnan(m)
+    idx = np.where(ok, np.arange(m.size), -1)
+    return np.maximum.accumulate(idx)
+
+
+def drop(sym):
+    _rows.pop(sym, None)
+
+
+def loc_ms(d, hh, mm=0, tz="NY"):
+    return int(dt.datetime(d.year, d.month, d.day, hh, mm, tzinfo=TZ[tz]).timestamp() * 1000)
+
+
+def k_of(ms):
+    return (np.asarray(ms, dtype=np.int64) - T0) // 60000
+
+
+def quote_k(sym, ms, back=10):
+    """vectorised: bar index of the price at time ms (bar labelled ms-1min or the last quote within `back` bars);
+    -1 if none."""
+    m, s, ff = row(sym)
+    k = k_of(ms) - 1
+    k = np.asarray(k)
+    out = np.full(k.shape, -1, dtype=np.int64)
+    ok = (k >= 0) & (k < NMIN)
+    j = np.full(k.shape, -1, dtype=np.int64); j[ok] = ff[k[ok]]
+    good = ok & (j >= 0) & (k - j <= back)
+    out[good] = j[good]
+    return out
+
+
+def price(sym, ms, back=10):
+    m, s, _ = row(sym)
+    k = quote_k(sym, ms, back)
+    p = np.where(k >= 0, m[np.maximum(k, 0)].astype(float), np.nan)
+    return p
+
+
+_swapc = {}
+
+
+def swap_mult(sym, ms_in, ms_out):
+    """number of rollover units (x3 triple day) for 17:00 NY rollovers in (ms_in, ms_out]."""
+    from research.swing.swing import swap_frac
+    try:
+        tri = swap_frac(sym)[2]
+    except KeyError:
+        tri = 2
+    d0 = dt.datetime.fromtimestamp(ms_in / 1000, TZ["NY"]).date() - dt.timedelta(days=1)
+    d1 = dt.datetime.fromtimestamp(ms_out / 1000, TZ["NY"]).date()
+    mult = 0; d = d0
+    while d <= d1:
+        if d.weekday() < 5:
+            r = loc_ms(d, 17, 0, "NY")
+            if ms_in < r < ms_out:   # a quote at exactly 17:00 is the 16:59 bar close: no swap
+                mult += 3 if d.weekday() == tri else 1
+        d += dt.timedelta(days=1)
+    return mult
+
+
+def swap_bp(sym, side, ms_in, ms_out):
+    mult = swap_mult(sym, ms_in, ms_out)
+    if mult == 0:
+        return 0.0
+    from research.swing.rates import swap_frac_at
+    key = (sym, side, dt.datetime.fromtimestamp(ms_in / 1000, UTC).strftime("%Y-%m"))
+    if key not in _swapc:
+        _swapc[key] = swap_frac_at(sym, side, ms_in)
+    return _swapc[key] * 1e4 * mult
+
+
+def trades(sym, side, ms_in, ms_out, back=10, swap=True):
+    """Vectorised trades quoted at ms_in / ms_out (arrays). side: +1/-1 scalar or array.
+    Returns dict of arrays: gross, hs (half-spread sum, bp), comm, swap, net, net15, gross1, hs1, net1 (+1 min both),
+    ok mask."""
+    ms_in = np.asarray(ms_in, dtype=np.int64); ms_out = np.asarray(ms_out, dtype=np.int64)
+    side = np.broadcast_to(np.asarray(side, dtype=float), ms_in.shape)
+    m, s, _ = row(sym)
+    res = {}
+    for tag, lat in (("", 0), ("1", 60000)):
+        ka = quote_k(sym, ms_in + lat, back); kb = quote_k(sym, ms_out + lat, back)
+        ok = (ka >= 0) & (kb >= 0) & (kb > ka)
+        a = m[np.maximum(ka, 0)].astype(float); b = m[np.maximum(kb, 0)].astype(float)
+        sa = s[np.maximum(ka, 0)].astype(float); sb = s[np.maximum(kb, 0)].astype(float)
+        g = side * np.log(b / a) * 1e4
+        hs = 0.5 * (sa / a + sb / b) * 1e4
+        res["gross" + tag] = np.where(ok, g, np.nan); res["hs" + tag] = np.where(ok, hs, np.nan)
+        res["ok" + tag] = ok
+    comm = 0.6 if sym in FXMET else 0.0
+    sw = np.zeros(ms_in.shape)
+    if swap:
+        for i in range(ms_in.size):
+            if res["ok"][i]:
+                sw[i] = swap_bp(sym, int(side[i]), int(ms_in[i]), int(ms_out[i]))
+    res["comm"] = np.full(ms_in.shape, comm); res["swap"] = sw
+    res["net"] = res["gross"] - res["hs"] - comm + sw
+    res["net15"] = res["gross"] - 1.5 * res["hs"] - comm + sw
+    res["net1"] = res["gross1"] - res["hs1"] - comm + sw
+    res["ok"] = res["ok"] & res["ok1"]
+    return res
+
+
+def cl_t(x, g):
+    x = np.asarray(x, float); g = np.asarray(g)
+    keep = ~np.isnan(x); x = x[keep]; g = g[keep]
+    n = x.size
+    if n < 2:
+        return (x.mean() if n else np.nan), np.nan
+    m = x.mean(); u, inv = np.unique(g, return_inverse=True)
+    s = np.bincount(inv, weights=x - m); G = u.size
+    if G < 2:
+        return m, np.nan
+    se = np.sqrt((s ** 2).sum() * G / (G - 1)) / n
+    return m, (m / se if se > 0 else np.nan)
+
+
+def day_of(ms):
+    return (np.asarray(ms, dtype=np.int64) // 86400000)
+
+
+def year_of(ms):
+    return np.array([dt.datetime.fromtimestamp(int(x) / 1000, UTC).year for x in np.atleast_1d(ms)])
+
+
+def bdays(d0, d1, skip=()):
+    d = d0; out = []
+    while d <= d1:
+        if d.weekday() < 5 and d.isoformat() not in skip:
+            out.append(d)
+        d += dt.timedelta(days=1)
+    return out
+
+
+def nyse_closed():
+    c = json.load(open(CAL + "/cal_N.json"))
+    return set(c["nyse_closed"].keys()) | set(c.get("special_closures", []))
+
+
+_nyoff = {}
+
+
+def ny_minute(ms):
+    """New York local minute of day for UTC ms (vectorised, DST-aware via a per-UTC-day offset table)."""
+    ms = np.asarray(ms, dtype=np.int64)
+    days = ms // 86400000
+    u = np.unique(days)
+    for d in u:
+        if d not in _nyoff:
+            t = dt.datetime.fromtimestamp(int(d) * 86400 + 43200, UTC).astimezone(TZ["NY"])
+            _nyoff[d] = int(t.utcoffset().total_seconds() // 60)
+    off = np.array([_nyoff[d] for d in days.ravel()]).reshape(days.shape) if days.size else days
+    return ((ms // 60000) + off) % 1440
+
+
+def in_roll(ms_in, ms_out, lo=16 * 60 + 45, hi=18 * 60 + 15):
+    """True if [ms_in, ms_out] intersects lo..hi New York (minutes), checked at entry, exit and every 15 minutes."""
+    ms_in = np.asarray(ms_in, dtype=np.int64); ms_out = np.asarray(ms_out, dtype=np.int64)
+    bad = np.zeros(ms_in.shape, bool)
+    span = int(np.max(ms_out - ms_in)) if ms_in.size else 0
+    for step in range(0, span + 1, 15 * 60000):
+        t = np.minimum(ms_in + step, ms_out)
+        m = ny_minute(t); bad |= (m > lo) & (m < hi)
+    m = ny_minute(ms_out); bad |= (m > lo) & (m < hi)
+    return bad

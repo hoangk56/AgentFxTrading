@@ -7,7 +7,7 @@ from pathlib import Path
 import pytest
 
 from app.cbot_presets import (
-    DEFAULT_IMAGE, GOTOBI_SKIP_DATES, PRESETS, SESSION_SLUGS, STRATEGIES, SYMBOLS,
+    DEFAULT_IMAGE, ECB_BROKER_STOP_PIPS, GOTOBI_SKIP_DATES, PRESETS, SESSION_SLUGS, STRATEGIES, SYMBOLS,
     build_run_command, container_name, describe_cell, installed_cells, presets_payload,
 )
 from tests._paths import REPO_ROOT, CBOT_DIR
@@ -20,22 +20,22 @@ LIVE = {"id": 2, "slug": "live-ic", "ctid_email": "me@example.com", "account_num
         "account_type": "live", "label": "IC", "pwd_file": "/root/ctrader_data/ctid_live-ic_pwd"}
 
 # The matrix: Gotobi on the three JPY pairs the research validated
-# (research/results/portfolio/swing_lab_v2_2026-09-27.md) = 3 cells.
+# (research/results/portfolio/swing_lab_v2_2026-09-27.md) and the ECB window's two rules on EURUSD = 5 cells.
 GOTOBI_SYMBOLS = ("USDJPY", "EURJPY", "GBPJPY")
-EXPECTED_MATRIX = {sym: {"gotobi"} for sym in GOTOBI_SYMBOLS}
+EXPECTED_MATRIX = {**{sym: {"gotobi"} for sym in GOTOBI_SYMBOLS}, "EURUSD": {"ecb_f3", "ecb_e1"}}
 
 
 def test_matrix_covers_every_strategy_on_its_symbols():
-    assert len(PRESETS) == 3
+    assert len(PRESETS) == 5
     actual = {}
     for strategy, symbol in PRESETS:
         actual.setdefault(symbol, set()).add(strategy)
     assert actual == EXPECTED_MATRIX
-    assert SYMBOLS == ["USDJPY", "EURJPY", "GBPJPY"]
+    assert SYMBOLS == ["USDJPY", "EURJPY", "GBPJPY", "EURUSD"]
 
 
 def test_every_cell_is_well_formed():
-    assert set(STRATEGIES) == {"gotobi"}
+    assert set(STRATEGIES) == {"gotobi", "ecb_f3", "ecb_e1"}
     for (strategy, symbol), cell in PRESETS.items():
         assert strategy in STRATEGIES
         assert symbol == symbol.upper()
@@ -66,6 +66,29 @@ def test_gotobi_cells_carry_only_risk_spread_skip_dates_and_broker_stop():
         assert PRESETS[("gotobi", sym)]["params"]["SkipDates"] == GOTOBI_SKIP_DATES, sym
 
 
+def test_ecb_golden_command():
+    cmd = build_run_command(LIVE, "ecb_f3", "EURUSD", ROOT, HOME)
+    assert cmd == (
+        "docker run -d --name cbot-live-ic-eurusd-ecb-f3 --restart unless-stopped --network host "
+        f"-v {ROOT}:/workspace -v {HOME}:/root {DEFAULT_IMAGE} run /workspace/cBot/EcbWindowBot.algo "
+        "--ctid=me@example.com --pwd-file=/root/ctrader_data/ctid_live-ic_pwd --account=6094347 "
+        "--symbol=EURUSD --period=m15 --full-access "
+        '--BotId="cbot-live-ic-eurusd-ecb-f3" --ApiUrl="http://127.0.0.1:8000/trade" --AccountLabel="IC" '
+        "--UsdTopOnly=true --Lots=0.01 --EmergencyStopPips=100.0"
+    )
+
+
+def test_ecb_cells_differ_only_in_the_rule_and_the_lot():
+    """The window, the selector and the Christmas skip are the research's (cBot defaults); F3 and E1 differ in
+    UsdTopOnly, and in the lot only because F3 runs live at the minimum and E1 on demo."""
+    f3, e1 = PRESETS[("ecb_f3", "EURUSD")]["params"], PRESETS[("ecb_e1", "EURUSD")]["params"]
+    assert set(f3) == set(e1) == {"UsdTopOnly", "Lots", "EmergencyStopPips"}
+    assert f3["UsdTopOnly"] is True and e1["UsdTopOnly"] is False
+    assert f3["Lots"] == 0.01 and e1["Lots"] == 0.1
+    assert f3["EmergencyStopPips"] == e1["EmergencyStopPips"] == ECB_BROKER_STOP_PIPS
+    assert STRATEGIES["ecb_f3"]["algo"] == STRATEGIES["ecb_e1"]["algo"] == "EcbWindowBot.algo"
+
+
 def _is_gotobi(d: date) -> bool:
     """GotobiBot.IsGotobi: the 5th/10th/15th/20th/25th or the month's last day, a weekend one moved to the Friday before."""
     last = calendar.monthrange(d.year, d.month)[1]
@@ -93,6 +116,8 @@ def test_gotobi_skip_dates_are_gotobi_days_the_bot_parses():
 def test_container_name_carries_the_session():
     assert container_name("demo-main", "gotobi", "USDJPY") == "cbot-demo-main-usdjpy-fix-gotobi"
     assert container_name("live-ic", "gotobi", "GBPJPY") == "cbot-live-ic-gbpjpy-fix-gotobi"
+    assert container_name("live-live", "ecb_f3", "EURUSD") == "cbot-live-live-eurusd-ecb-f3"
+    assert container_name("demo-demo", "ecb_e1", "EURUSD") == "cbot-demo-demo-eurusd-ecb-e1"
 
 
 def test_every_preset_session_has_a_slug_in_its_name():
@@ -134,7 +159,7 @@ def test_presets_payload_shape():
     payload = presets_payload()
     assert payload["strategies"] == STRATEGIES
     assert payload["symbols"] == SYMBOLS
-    assert len(payload["cells"]) == 3
+    assert len(payload["cells"]) == 5
     cell = next(c for c in payload["cells"] if c["symbol"] == "GBPJPY")
     assert cell == {"symbol": "GBPJPY", "strategy": "gotobi", "period": "m15", "session": "Tokyo fix"}
     for c in payload["cells"]:
@@ -172,7 +197,21 @@ def test_installed_cells_is_empty_without_accounts_or_configs():
 INSTANCES_DOC = REPO_ROOT / "docs" / "docker-instances.md"
 _INFRA_FLAGS = {"ctid", "pwd-file", "account", "symbol", "period", "full-access",
                 "BotId", "ApiUrl", "AccountLabel"}
-_ALGO_TO_STRATEGY = {spec["algo"]: name for name, spec in STRATEGIES.items()}
+_STRATEGIES_BY_ALGO = {}
+for _name, _spec in STRATEGIES.items():
+    _STRATEGIES_BY_ALGO.setdefault(_spec["algo"], []).append(_name)
+
+
+def _strategy_of(algo: str, block: str) -> str:
+    """The strategy a block runs: its algo's, or (several strategies share the algo) the one whose suffix ends the
+    block's --BotId."""
+    names = _STRATEGIES_BY_ALGO[algo]
+    if len(names) == 1:
+        return names[0]
+    bot_id = re.search(r'--BotId="([^"]+)"', block).group(1)
+    matches = [n for n in names if bot_id.endswith(STRATEGIES[n]["suffix"])]
+    assert len(matches) == 1, f"--BotId {bot_id} does not name one of {names}"
+    return matches[0]
 
 
 def _strategy_flags(command: str) -> dict:
@@ -188,9 +227,9 @@ def _documented_cells(path: Path) -> dict:
     for block in re.findall(r"```bash\n(.*?)```", path.read_text(), re.S):
         algo = re.search(r"/workspace/cBot/(\S+\.algo)", block)
         symbol = re.search(r"--symbol=(\S+)", block)
-        if not (algo and symbol) or algo.group(1) not in _ALGO_TO_STRATEGY:
+        if not (algo and symbol) or algo.group(1) not in _STRATEGIES_BY_ALGO:
             continue
-        key = (_ALGO_TO_STRATEGY[algo.group(1)], symbol.group(1))
+        key = (_strategy_of(algo.group(1), block), symbol.group(1))
         assert key not in cells, f"{path.name} documents {key} twice"
         cells[key] = _strategy_flags(block)
     return cells
@@ -202,7 +241,7 @@ def test_instances_doc_exists():
 
 def test_instances_doc_covers_every_cell():
     assert set(_documented_cells(INSTANCES_DOC)) == set(PRESETS), (
-        "docs/docker-instances.md must document all 3 preset cells, no more and no fewer")
+        "docs/docker-instances.md must document all 5 preset cells, no more and no fewer")
 
 
 @pytest.mark.parametrize(("strategy", "symbol"), sorted(PRESETS), ids=lambda v: v)
@@ -222,7 +261,7 @@ _SYMBOL_BRANCH = re.compile(
     r'Contains\("(XAU|GOLD|XAG|SILVER|JPY|US30|DJ30|USTEC|NAS100|DE40|GER40|UK100|GB100|BTC|ETH)"\)')
 
 
-@pytest.mark.parametrize("cs_name", ["GotobiBot.cs"])
+@pytest.mark.parametrize("cs_name", ["GotobiBot.cs", "EcbWindowBot.cs"])
 def test_cbots_do_not_branch_on_the_symbol_name(cs_name):
     src = (CBOT_DIR / cs_name).read_text(encoding="utf-8")
     hits = [m.group(0) for m in _SYMBOL_BRANCH.finditer(src)]

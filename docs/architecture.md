@@ -112,7 +112,9 @@ AgentFxTrading/
 │   ├── bot_commands.py, bot_controls.py   dashboard → cBot commands, per-bot pause
 │   └── db.py                    PostgreSQL / SQLite layer
 ├── cBot/                        cTrader cBots (C#), one file per bot
-│   └── GotobiBot.cs             Gotobi Tokyo fix
+│   ├── GotobiBot.cs             Gotobi Tokyo fix
+│   ├── EcbWindowBot.cs          ECB-fix window on EURUSD (rules F3, E1)
+│   └── seeds/                   quote seeds a cBot reads at start (ecb_usd_top_seed.csv)
 ├── templates/dashboard.html     dashboard page
 ├── static/                      dashboard JS (js/), CSS (css/), favicon
 ├── scripts/                     VPS installer, PostgreSQL backup, SQLite → PostgreSQL migration

@@ -42,7 +42,7 @@ def test_api_tick_records_the_bar_heartbeat():
     assert wd._bar_seen["cbot-hb-usdjpy-fix-gotobi"] == "2026-09-24T08:45:00"
 
 
-@pytest.mark.parametrize("cs_name", ["GotobiBot.cs"])
+@pytest.mark.parametrize("cs_name", ["GotobiBot.cs", "EcbWindowBot.cs"])
 def test_bot_stamps_every_bar_and_sends_it_with_its_ticks(cs_name):
     """
     Stamping Bars.LastBar.OpenTime repeated a value across two bars: inside OnBarClosed that is

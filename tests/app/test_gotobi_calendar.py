@@ -1,8 +1,10 @@
-"""Gotobi calendar (app/gotobi_calendar.py, /api/gotobi/calendar): the bot's gotobi days and its Gotobi trades by day.
+"""Calendar (app/gotobi_calendar.py, /api/gotobi/calendar): the gotobi days, the Gotobi trades and the ECB window
+trades by day.
 
 A position belongs to the gotobi day the bot opened it for (GotobiBot.InferLeg): a buy in the evening long window is
 the long of the next day, a sell just after the 00:55 UTC fix the short of that day. On a day that is not a trading
-day (not gotobi, or in the presets' SkipDates) the bot trades only decoys.
+day (not gotobi, or in the presets' SkipDates) the bot trades only decoys. An EcbWindowBot trade belongs to its UTC
+entry day, in its own bucket.
 """
 from datetime import date, datetime
 
@@ -42,6 +44,12 @@ def test_leg_of_follows_the_bots_entry_windows():
     assert gc.leg_of("Sell", datetime(2026, 10, 9, 12, 0)) is None
     assert gc.leg_of("Buy", datetime(2026, 10, 9, 1, 0)) is None
     assert gc.leg_of("Buy", datetime(2026, 10, 9, 18, 0)) is None     # Friday evening: Saturday is never traded
+
+
+def test_ecb_rule_comes_from_the_bot_id():
+    assert gc.ecb_rule("cbot-live-live-eurusd-ecb-f3") == "F3"
+    assert gc.ecb_rule("cbot-demo-demo-eurusd-ecb-e1") == "E1"
+    assert gc.ecb_rule("cbot-demo-usdjpy-fix-gotobi") is None and gc.ecb_rule(None) is None
 
 
 def test_trading_day_excludes_skip_dates():
@@ -123,6 +131,31 @@ def test_calendar_month_buckets_real_and_decoy_trades(db):
     assert fri30["real"]["n"] == 0 and fri30["status"] == "scheduled"
     assert (data["totals"]["real_pnl"], data["totals"]["real_trades"], data["totals"]["decoy_pnl"]) == (8.5, 2, 3.6)
     assert data["totals"]["gotobi_days"] == 6
+
+
+def test_calendar_ecb_trades_have_their_own_bucket(db):
+    _seed(db)
+    # 11:00 London = 10:00 UTC in summer: an F3 short on the gotobi Friday 9th, an E1 short on plain Tuesday 6th
+    _pos(db, 20, "cbot-live-live-eurusd-ecb-f3", "Sell", "2026-10-09 10:00:00", "2026-10-09 12:00:00", 1.2,
+         account="live-1")
+    _pos(db, 21, "cbot-demo-demo-eurusd-ecb-e1", "Sell", "2026-10-06 10:00:01", "2026-10-06 12:00:00", -3.0)
+    _pos(db, 22, "cbot-demo-demo-eurusd-ecb-e1", "Sell", "2026-10-12 10:00:00", None, None, status="open")
+    data = client.get("/api/gotobi/calendar?month=2026-10&account_id=all").json()
+    days = _days(data)
+    fri = days["2026-10-09"]
+    assert fri["ecb"] == {"n": 1, "pnl": 1.2, "open": 0}
+    assert fri["real"]["n"] == 3 and fri["status"] == "traded"          # the Gotobi legs are unchanged
+    f3 = next(t for t in fri["trades"] if t["id"] == 20)
+    assert (f3["strategy"], f3["rule"], f3["leg"], f3["decoy"]) == ("ecb", "F3", None, False)
+    tue = days["2026-10-06"]
+    assert tue["ecb"] == {"n": 1, "pnl": -3.0, "open": 0} and tue["status"] == "plain"
+    assert tue["decoy"]["n"] == 0 and tue["other"]["n"] == 0
+    assert days["2026-10-12"]["ecb"] == {"n": 1, "pnl": 0.0, "open": 1}
+    assert (data["totals"]["ecb_trades"], data["totals"]["ecb_pnl"]) == (3, -1.8)
+    assert data["totals"]["real_trades"] == 3                          # ECB trades never count as Gotobi legs
+    assert all(t["strategy"] == "gotobi" for t in days["2026-10-07"]["trades"])
+    live = _days(client.get("/api/gotobi/calendar?month=2026-10&account_id=live").json())
+    assert live["2026-10-09"]["ecb"]["n"] == 1 and live["2026-10-06"]["ecb"]["n"] == 0
 
 
 def test_calendar_account_scope(db):

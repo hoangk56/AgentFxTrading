@@ -6,6 +6,12 @@ detail. The numbers are copied from those files, and the file wins if the two ev
 When you write a new result file, add a row to that day's entry (or start a new entry) and link the file. Don't
 repeat its tables here.
 
+## 2026-10-16: EcbWindowBot (F3 / E1) checked against the registered code
+
+| tested | verdict | detail |
+|---|---|---|
+| `cBot/EcbWindowBot.cs` (F3 live at 0.01 lot, E1 on demo, at the user's request) checked against the registered code: rebuilt F3 / E1, the selector's quote convention (Mondays never qualify; quote = M1 bar ending at the minute or up to 10 bars before), bid bars vs mids, a seed of research quotes, a Python port of the cBot's decision, cTrader backtests of the built bot, and a broker guard stop | **matches**: bid bars would change 46 of 714 F3 days, so the bot scores on recorded mids + a seed; port 48/48 F3 days of 2026; cTrader F3 2026-06..09 19/19 days at 11:00:00 -> 13:00:00 London, E1 every weekday; guard stop 100 pips moves no F3 number (touches 0.11 % of E1 trades) | [ecb_window_cbot_2026-10-16.md](results/portfolio/ecb_window_cbot_2026-10-16.md) |
+
 ## 2026-10-15: GotobiBot camouflage split. The tight broker stop costs ~1.4 %; the entry jitter helps
 
 | tested | verdict | detail |

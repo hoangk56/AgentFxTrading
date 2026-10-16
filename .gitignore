@@ -70,6 +70,8 @@ backups/
 
 # cBot build artifacts
 *.algo
+# ...but the quote seeds a cBot reads at start are source (research/tools/ecb_usd_top_seed.py writes them)
+!cBot/seeds/*.csv
 
 # Superpowers SDD scratch workspace
 .superpowers/

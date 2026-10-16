@@ -2,8 +2,10 @@
 Strategy × symbol presets for the dashboard's "Setup Instances" screen.
 
 Gotobi (GotobiBot) trades only the three JPY pairs the research validated
-(research/results/portfolio/swing_lab_v2_2026-09-27.md), so the grid has 3 cells. All 3 are written out as
-`docker run` commands in docs/docker-instances.md, which tests/app/test_cbot_presets.py keeps in sync with this module. `params`
+(research/results/portfolio/swing_lab_v2_2026-09-27.md); the ECB window (EcbWindowBot) only EURUSD, as F3 (USD-TOP days,
+research/results/portfolio/round24_relaxed/PREREG_R24_relaxed_hold.md) or E1 (every weekday,
+research/results/portfolio/round13_structural/PREREG_M_eurusd_midday.md). So the grid has 5 cells. All 5 are written out
+as `docker run` commands in docs/docker-instances.md, which tests/app/test_cbot_presets.py keeps in sync with this module. `params`
 holds only the strategy-tuned flags. Infrastructure flags (credentials, symbol, period, BotId, ApiUrl,
 AccountLabel) are emitted by `build_run_command`, so a preset never knows which account runs it.
 """
@@ -16,12 +18,16 @@ API_URL = "http://127.0.0.1:8000/trade"
 
 STRATEGIES: Dict[str, Dict[str, str]] = {
     "gotobi":  {"label": "Gotobi Fix",  "algo": "GotobiBot.algo",               "suffix": "-gotobi"},
+    # One cBot, two rules: the suffix (and the preset's UsdTopOnly) tells them apart.
+    "ecb_f3":  {"label": "ECB Window F3", "algo": "EcbWindowBot.algo",          "suffix": "-f3"},
+    "ecb_e1":  {"label": "ECB Window E1", "algo": "EcbWindowBot.algo",          "suffix": "-e1"},
 }
 
 # Row order of the setup grid.
-SYMBOLS: List[str] = ["USDJPY", "EURJPY", "GBPJPY"]
+SYMBOLS: List[str] = ["USDJPY", "EURJPY", "GBPJPY", "EURUSD"]
 
 _GOTOBI_SESSION = "Tokyo fix"
+_ECB_SESSION = "ECB fix window"
 
 # Gotobi days the bot sits out. Japanese public holidays and the 31/12 bank holiday have no Tokyo fix, and on the 45
 # such days of 2016-2026 the basket lost (R -0.066, t -3.4; research/results/portfolio/gotobi_jp_holidays_2026-09-29.md).
@@ -39,11 +45,21 @@ def _gotobi(max_spread: float, risk: float = 100.0) -> dict:
             "EmergencyStopMin": GOTOBI_BROKER_STOP_MIN}
 
 
+# A far broker stop for a bot or VPS that dies with a position open; the rule itself has no stop (it exits at 13:00
+# London). Touched by 0.11 % (3) of E1's trades in 2016-2026; no F3 result changes at 100 pips
+# (research/results/portfolio/ecb_window_cbot_2026-10-16.md).
+ECB_BROKER_STOP_PIPS = 100.0
+
+
+def _ecb(usd_top_only: bool, lots: float) -> dict:
+    return {"UsdTopOnly": usd_top_only, "Lots": lots, "EmergencyStopPips": ECB_BROKER_STOP_PIPS}
+
+
 def _cell(period: str, session: str, params: dict) -> dict:
     return {"period": period, "session": session, "params": params}
 
 
-# (strategy, SYMBOL) -> {"period", "session", "params"}; the 3 gotobi cells.
+# (strategy, SYMBOL) -> {"period", "session", "params"}; the 3 gotobi cells and the 2 ECB-window ones.
 PRESETS: Dict[Tuple[str, str], Dict] = {
     # Gotobi (GotobiBot) — research C3: the schedule and the 3 x ATR20(H1) stop are the cBot's defaults; a cell
     # sets the default $ risk per trade (never a share of equity; $100 is the research's), the entry spread cap
@@ -51,6 +67,11 @@ PRESETS: Dict[Tuple[str, str], Dict] = {
     ("gotobi", "USDJPY"): _cell("m15", _GOTOBI_SESSION, _gotobi(max_spread=3.0)),
     ("gotobi", "EURJPY"): _cell("m15", _GOTOBI_SESSION, _gotobi(max_spread=3.0)),
     ("gotobi", "GBPJPY"): _cell("m15", _GOTOBI_SESSION, _gotobi(max_spread=4.0)),
+    # ECB window (EcbWindowBot): sell EURUSD 11:00 -> 13:00 London; the schedule and the USD-TOP selector are the
+    # cBot's defaults. F3 runs live at the minimum lot (a measurement, not a sized bet: it is a RELAXED candidate
+    # that has not met its promotion rule); E1 runs on demo at 0.1 lot. Lots are fixed, never from the account.
+    ("ecb_f3", "EURUSD"): _cell("m15", _ECB_SESSION, _ecb(usd_top_only=True, lots=0.01)),
+    ("ecb_e1", "EURUSD"): _cell("m15", _ECB_SESSION, _ecb(usd_top_only=False, lots=0.1)),
 }
 
 
@@ -67,6 +88,7 @@ def _fmt(value) -> str:
 # which session a bot trades without reading its --SessionName flag.
 SESSION_SLUGS: Dict[str, str] = {
     _GOTOBI_SESSION: "fix",
+    _ECB_SESSION: "ecb",
 }
 
 

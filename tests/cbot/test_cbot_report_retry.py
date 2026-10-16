@@ -21,6 +21,7 @@ CBOT = CBOT_DIR
 
 REPORTS = {
     "GotobiBot.cs": ["ReportPositionOpen", "ReportPositionClosed"],
+    "EcbWindowBot.cs": ["ReportPositionOpen", "ReportPositionClosed"],
 }
 
 
@@ -72,14 +73,14 @@ def test_pooled_connections_retire_before_uvicorns_keep_alive(bot):
     assert float(m.group(1)) < 5, "must be below uvicorn's 5 s --timeout-keep-alive"
 
 
-@pytest.mark.parametrize("bot", ["GotobiBot.cs"])
+@pytest.mark.parametrize("bot", ["GotobiBot.cs", "EcbWindowBot.cs"])
 def test_close_report_carries_the_position(bot):
     body = _method_body(bot, "ReportPositionClosed")
     for field in ("side =", "volume =", "entry_price =", "entry_time ="):
         assert field in body, f"{bot} close report lacks {field.split()[0]}: the server cannot book a lost open"
 
 
-@pytest.mark.parametrize("bot", ["GotobiBot.cs"])
+@pytest.mark.parametrize("bot", ["GotobiBot.cs", "EcbWindowBot.cs"])
 def test_close_report_carries_the_initial_stop(bot):
     """The leaderboard scores by initial risk; a rebuilt row without sl_pips drops a bot to lot basis."""
     body = _method_body(bot, "ReportPositionClosed")

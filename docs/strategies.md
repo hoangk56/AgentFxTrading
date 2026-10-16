@@ -6,14 +6,16 @@ Defaults quoted below are the cBot's own parameter defaults.
 
 > **Evidence.** None of these descriptions is a claim that the strategy makes money. The offline research
 > ([research/README.md](../research/README.md), dated conclusions in [research/JOURNAL.md](../research/JOURNAL.md))
-> found that Gotobi passed its pre-registered holdout.
+> found that Gotobi passed its pre-registered holdout. The ECB window's F3 passed its holdout only at the relaxed
+> tier and E1 is a weak demo candidate; both run to measure them, F3 at the minimum lot.
 
-The bot is rule-based: it never asks the server for a decision. It reports positions and telemetry to the server and
-polls it for dashboard commands.
+The bots are rule-based: they never ask the server for a decision. They report positions and telemetry to the server and
+poll it for dashboard commands.
 
 | cBot | Symbols in the presets | Timeframe |
 | :--- | :--- | :--- |
 | `GotobiBot` | USDJPY, EURJPY, GBPJPY | M15 chart, fixed UTC schedule |
+| `EcbWindowBot` | EURUSD (rules F3 and E1) | M15 chart, London schedule |
 
 ## Gotobi Fix (`cBot/GotobiBot.cs`)
 
@@ -42,6 +44,31 @@ a ~39 % win rate instead of ~56 %. On 2024-01..2026-09 at $200 risk this cost 10
 would have cost 83 % (`research/results/portfolio/gotobi_camouflage_2026-09-30.md`). With `--VirtualStop=false` the
 bot trades the plain strategy with the real stop at the broker; set `--DecoyLegProbability=0` and `--LongEntryJitterMinutes=0` to
 backtest the plain strategy.
+
+## ECB Window (`cBot/EcbWindowBot.cs`)
+
+Research candidates E1 and F3. EUR is sold into the 14:15 CET ECB reference rate, so EURUSD tends to fall over the
+London midday. The bot sells EURUSD at 11:00 London and buys it back at 13:00 London, one position at a time, at a
+fixed lot (`Lots`). E1 (`UsdTopOnly=false`) trades every weekday; F3 (`UsdTopOnly=true`) only on USD-TOP days: the mean
+log change of USDJPY and USDCHF mids from 18:00 New York on the previous weekday to 07:00 London is at or above the
+67th percentile (numpy's linear) of the previous 250 weekdays' scores, with at least 60 known. A score needs a quote
+within 10 minutes before each time, so Mondays (Friday 18:00 New York is after the close) never qualify. Both skip
+24/12-1/1. Pre-registrations: `research/results/portfolio/round13_structural/PREREG_M_eurusd_midday.md` (E1),
+`research/results/portfolio/round24_relaxed/PREREG_R24_relaxed_hold.md` (F3, with the stop and promotion rules of
+`PREREG_DRAFT_C_ecb_window_variants.md`).
+
+**Selector quotes.** The bars cTrader gives a cBot are bid-only, and the 18:00 New York spread is wide after the
+rollover; scoring on bids instead of mids changes ~6 % of the F3 days
+(`research/results/portfolio/ecb_window_cbot_2026-10-16.md`). So the bot records the live bid and ask of the selector
+symbols at both minutes in a quote log (`/root/ctrader_data/<BotId>_usd_top_quotes.csv`, kept across restarts), reads
+its history from that log and from the research seed `cBot/seeds/ecb_usd_top_seed.csv`
+(`research/tools/ecb_usd_top_seed.py`), and only for a minute neither holds uses the bid close of an M15 bar. Each
+day's verdict is logged with its score, threshold, history count and quote sources; each trade reports them in
+`entry_indicators` with the quote at the order, the latency and the spread.
+
+**Timing.** The order goes out at 11:00:00 London; if it cannot within `EntryGraceSeconds` (60) the day is skipped, as
+one minute late cost E1 its whole holdout net. The close goes out at 13:00 London. The broker gets a far stop
+(`EmergencyStopPips`, 100) that is not part of the rule.
 
 ## Removed bots
 
