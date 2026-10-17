@@ -4,13 +4,13 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AgentFxTrading Dashboard</title>
-    <link rel="stylesheet" href="/static/css/dashboard.css?v=20261016_calendar1">
+    <link rel="stylesheet" href="/static/css/dashboard.css?v=20261017_ecbplan">
     <script src="/static/js/auth.js?v=20260927_login"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="/static/js/backtest.js?v=20260927_2bots" defer></script>
     <script src="/static/js/ledger.js?v=20260927_ledger0" defer></script>
-    <script src="/static/js/gotobi_calendar.js?v=20261016_calendar1" defer></script>
+    <script src="/static/js/gotobi_calendar.js?v=20261017_ecbplan" defer></script>
     <link rel="icon" type="image/png" href="/static/favicon.png">
 </head>
 <body class="app-shell">
@@ -726,7 +726,7 @@
                         </div>
                     </div>
                     <div class="panel-body gc-panel-body">
-                        <p class="td-dim lg-hint">Gotobi days (5th, 10th, 15th, 20th, 25th, month end; a weekend one moves to the Friday before) and the GotobiBot positions opened for each: the long the evening before, the short at the 07:55 GMT+7 Tokyo fix. Decoys (camouflage legs on plain weekdays) are counted apart. SKIP = a Japanese holiday in the presets' SkipDates. ECB = the ECB window bot's EURUSD shorts (sold 18:00 GMT+7 in winter, 17:00 in summer, closed two hours later), F3 on USD-TOP days and E1 every weekday, on the day they were opened.</p>
+                        <p class="td-dim lg-hint">Gotobi days (5th, 10th, 15th, 20th, 25th, month end; a weekend one moves to the Friday before) and the GotobiBot positions opened for each: the long the evening before, the short at the 07:55 GMT+7 Tokyo fix. Decoys (camouflage legs on plain weekdays) are counted apart. SKIP = a Japanese holiday in the presets' SkipDates. ECB = the ECB window bot's EURUSD shorts (sold 18:00 GMT+7 in winter, 17:00 in summer, closed two hours later), F3 on USD-TOP days and E1 every weekday, on the day they were opened. Where an ECB bot is installed, E1's coming weekdays read "scheduled" (a past one without its trade "no trade") and F3's coming Tuesday-Friday "if USD-TOP": it learns at 07:00 London whether the day qualifies.</p>
                         <div id="gc-body"><p class="td-dim">Loading...</p></div>
                         <div id="gc-day"></div>
                     </div>

@@ -41,11 +41,12 @@ def test_dashboard_has_the_gotobi_nav_view_and_script():
     assert "gotobiRefreshIfShown()" in page       # the account selector refreshes it
 
 
-def _day(date, weekday, status, trades=(), real=(0, 0.0, 0), decoy=(0, 0.0, 0), other=(0, 0.0, 0), ecb=(0, 0.0, 0)):
+def _day(date, weekday, status, trades=(), real=(0, 0.0, 0), decoy=(0, 0.0, 0), other=(0, 0.0, 0), ecb=(0, 0.0, 0),
+         plan=()):
     b = lambda t: {"n": t[0], "pnl": t[1], "open": t[2]}
     return {"date": date, "weekday": weekday, "gotobi": status not in ("plain",), "skipped": status == "skipped",
             "status": status, "real": b(real), "decoy": b(decoy), "other": b(other), "ecb": b(ecb),
-            "trades": list(trades)}
+            "ecb_plan": list(plan), "trades": list(trades)}
 
 
 @pytest.mark.skipif(NODE is None, reason="node is not installed")
@@ -53,8 +54,9 @@ def test_gotobi_renderers_escape_external_strings():
     dash = DASHBOARD_JS.read_text(encoding="utf-8")
     src = JS.read_text(encoding="utf-8")
     helpers = "\n".join(_function(dash, n) for n in ("escapeHtml", "formatMoney"))
-    renderers = "\n".join(_function(src, n) for n in ("gcMoney", "gcMonthLabel", "gcCellHtml", "gcMonthHtml",
-                                                     "gcDayHtml"))
+    plan_map = src[src.index("const GC_ECB_PLAN"):src.index("\n", src.index("const GC_ECB_PLAN"))]
+    renderers = plan_map + "\n" + "\n".join(_function(src, n) for n in (
+        "gcEcbPlanText", "gcMoney", "gcMonthLabel", "gcCellHtml", "gcMonthHtml", "gcDayHtml"))
     trade = {"id": 1, "bot_id": HOSTILE, "account_id": HOSTILE, "symbol": HOSTILE, "side": HOSTILE, "volume": 0.1,
              "strategy": "gotobi", "rule": None, "leg": "long", "decoy": False, "status": "closed", "pnl": 12.0,
              "entry_time_vn": HOSTILE, "exit_time_vn": HOSTILE}
@@ -66,13 +68,16 @@ def test_gotobi_renderers_escape_external_strings():
                      _day("2026-10-05", 0, "no-trade"),
                      _day("2026-10-09", 4, "traded", trades=[trade, dict(trade, decoy=True, leg="short"), ecb_trade],
                           real=(2, 8.5, 1), ecb=(1, -2.0, 0)),
-                     _day("2026-10-15", 3, "scheduled"),
+                     _day("2026-10-15", 3, "scheduled", plan=[{"rule": "E1", "status": "scheduled"},
+                                                              {"rule": "F3", "status": "possible"}]),
+                     _day("2026-10-16", 4, "plain", plan=[{"rule": HOSTILE, "status": HOSTILE}]),
                      _day("2026-10-20", 1, "skipped")]}
     script = f"""{helpers}
 {renderers}
 const data = {json.dumps(data)};
 console.log(JSON.stringify({{month: gcMonthHtml(data, '2026-10-09'), day: gcDayHtml(data.days[2]),
-                             empty: gcDayHtml(data.days[1]), label: gcMonthLabel('2026-10')}}));
+                             empty: gcDayHtml(data.days[1]), label: gcMonthLabel('2026-10'),
+                             planned: gcDayHtml(data.days[3])}}));
 """
     run = subprocess.run([NODE, "-e", script], capture_output=True, text=True, timeout=30)
     assert run.returncode == 0, run.stderr
@@ -90,4 +95,6 @@ console.log(JSON.stringify({{month: gcMonthHtml(data, '2026-10-09'), day: gcDayH
     assert "ECB evil&lt;img" in out["day"] and "11-13 London" in out["day"] and "gc-row--ecb" in out["day"]
     assert "ECB -$2.00 ·1" in month and "ECB P&amp;L (1 trades)" in month
     assert "No Gotobi or ECB position" in out["empty"]
+    assert "ECB E1 scheduled · F3 if USD-TOP" in month and "<img" not in month.lower()
+    assert "E1 scheduled: sell EURUSD 11:00" in out["planned"] and "decided at 07:00 London" in out["planned"]
     assert out["label"] == "October 2026"
