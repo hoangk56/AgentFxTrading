@@ -9,7 +9,9 @@ The rules mirror cBot/GotobiBot.cs with the presets' schedule (the cBot's defaul
 - the bot trades a day that is not a trading day only as a decoy (camouflage), so those positions are kept apart;
 - an EcbWindowBot position (bot id ending -ecb-f3 / -ecb-e1) sells at 11:00 London and closes at 13:00 the same day, so
   it belongs to its UTC entry day; its rule comes from the bot id. It has its own bucket and never changes a day's
-  gotobi status.
+  gotobi status. Each installed ECB bot (in the account scope, from the day its config was created) also plans its days:
+  E1 trades every weekday but 24/12-1/1, so a future one is 'scheduled' and a past one without its trade 'no-trade';
+  F3 only knows at 07:00 London whether a day is USD-TOP and never trades a Monday, so its coming days are 'possible'.
 
 The dashboard's Calendar view (static/js/gotobi_calendar.js) draws the month; app/gotobi_calendar_api.py serves it.
 """
@@ -23,6 +25,7 @@ from app.ledger import parse_utc
 BOT_SUFFIX = "-gotobi"
 # EcbWindowBot container suffixes (app/cbot_presets.STRATEGIES ecb_f3 / ecb_e1) -> the rule each runs.
 ECB_SUFFIXES = {"-ecb-f3": "F3", "-ecb-e1": "E1"}
+ECB_RULE_BY_STRATEGY = {"ecb_f3": "F3", "ecb_e1": "E1"}
 BOT_SUFFIXES = (BOT_SUFFIX, *ECB_SUFFIXES)
 
 # GotobiBot schedule defaults: long entry 18:00 +/- 60 min jitter to 23:00 UTC the day before, fix 00:55 UTC with
@@ -74,6 +77,27 @@ def ecb_rule(bot_id: str) -> Optional[str]:
     return None
 
 
+def is_ecb_day(d: date, rule: str) -> bool:
+    """A day the ECB window rule may trade: a weekday outside 24/12-1/1 (EcbWindowBot.IsTradingDay); F3 never on a
+    Monday (no 18:00 New York quote on the Friday before)."""
+    if d.weekday() >= 5 or (d.month == 12 and d.day >= 24) or (d.month == 1 and d.day == 1):
+        return False
+    return not (rule == "F3" and d.weekday() == 0)
+
+
+def ecb_plan(d: date, today: date, bots: Dict[str, date], traded_rules: Set[str]) -> List[Dict]:
+    """What each installed ECB rule (rule -> first day it ran) expects on `d` when it has no trade there yet."""
+    plan = []
+    for rule in sorted(bots, key=lambda r: ("E1", "F3").index(r) if r in ("E1", "F3") else 9):
+        if rule in traded_rules or d < bots[rule] or not is_ecb_day(d, rule):
+            continue
+        if rule == "E1":
+            plan.append({"rule": rule, "status": "scheduled" if d >= today else "no-trade"})
+        elif d >= today:
+            plan.append({"rule": rule, "status": "possible"})
+    return plan
+
+
 def leg_of(side: str, entry: datetime) -> Optional[Tuple[str, date]]:
     """(leg, gotobi day) of a position by its side and UTC entry time, or None outside both entry windows or for a
     weekend day (the bot never trades one, GotobiBot.PlanLeg)."""
@@ -111,12 +135,13 @@ def _add(bucket: Dict, pos: Dict) -> None:
 
 
 def month_calendar(month: str, positions: Iterable[Dict], skips: Set[date], today: date,
-                   vn_time=lambda ts: ts) -> Dict:
+                   vn_time=lambda ts: ts, ecb_bots: Optional[Dict[str, date]] = None) -> Dict:
     """The weekdays of `month` with their gotobi status and the Gotobi positions of each, real and decoy apart, and
     the ECB window positions of each in their own bucket.
 
     status (gotobi only): 'traded' (a trading day with a real position), 'scheduled' (a trading day today or later with
     none yet), 'no-trade' (a past trading day without one), 'skipped' (a gotobi day in SkipDates), 'plain' (not gotobi).
+    ecb_plan: per installed ECB rule without a trade that day (`ecb_bots`: rule -> first day), see ecb_plan().
     A Gotobi position outside the bot's entry windows (a manual trade, say) is listed on its entry day as leg None.
     """
     first, last = month_bounds(month)
@@ -166,8 +191,9 @@ def month_calendar(month: str, positions: Iterable[Dict], skips: Set[date], toda
             totals["decoy_pnl"] = round(totals["decoy_pnl"] + decoy["pnl"], 2)
             totals["ecb_trades"] += ecb["n"]
             totals["ecb_pnl"] = round(totals["ecb_pnl"] + ecb["pnl"], 2)
+            plan = ecb_plan(d, today, ecb_bots or {}, {t["rule"] for t in trades if t["rule"]})
             days.append({"date": d.isoformat(), "weekday": d.weekday(), "gotobi": gotobi, "skipped": d in skips,
                          "status": status, "real": real, "decoy": decoy, "other": other, "ecb": ecb,
-                         "trades": trades})
+                         "ecb_plan": plan, "trades": trades})
         d += timedelta(days=1)
     return {"month": month, "today": today.isoformat(), "days": days, "totals": totals}

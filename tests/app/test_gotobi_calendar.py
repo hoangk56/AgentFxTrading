@@ -52,6 +52,22 @@ def test_ecb_rule_comes_from_the_bot_id():
     assert gc.ecb_rule("cbot-demo-usdjpy-fix-gotobi") is None and gc.ecb_rule(None) is None
 
 
+def test_ecb_days_and_plan_follow_the_bot():
+    assert gc.is_ecb_day(date(2026, 10, 19), "E1") and not gc.is_ecb_day(date(2026, 10, 19), "F3")   # Monday
+    assert gc.is_ecb_day(date(2026, 10, 20), "F3")
+    assert not gc.is_ecb_day(date(2026, 10, 17), "E1")                                               # Saturday
+    assert not gc.is_ecb_day(date(2026, 12, 24), "E1") and not gc.is_ecb_day(date(2027, 1, 1), "E1")
+    assert gc.is_ecb_day(date(2026, 12, 23), "E1") and gc.is_ecb_day(date(2027, 1, 4), "E1")
+    today, bots = date(2026, 10, 19), {"E1": date(2026, 10, 16), "F3": date(2026, 10, 16)}
+    assert gc.ecb_plan(date(2026, 10, 15), today, bots, set()) == []                                 # before the bots
+    assert gc.ecb_plan(date(2026, 10, 16), today, bots, set()) == [{"rule": "E1", "status": "no-trade"}]
+    assert gc.ecb_plan(date(2026, 10, 19), today, bots, set()) == [{"rule": "E1", "status": "scheduled"}]
+    assert gc.ecb_plan(date(2026, 10, 20), today, bots, set()) == [
+        {"rule": "E1", "status": "scheduled"}, {"rule": "F3", "status": "possible"}]
+    assert gc.ecb_plan(date(2026, 10, 20), today, bots, {"E1"}) == [{"rule": "F3", "status": "possible"}]
+    assert gc.ecb_plan(date(2026, 10, 20), today, {}, set()) == []
+
+
 def test_trading_day_excludes_skip_dates():
     assert gc.is_trading_day(date(2026, 10, 9), set())
     assert not gc.is_trading_day(date(2026, 12, 25), {date(2026, 12, 25)})
@@ -156,6 +172,38 @@ def test_calendar_ecb_trades_have_their_own_bucket(db):
     assert all(t["strategy"] == "gotobi" for t in days["2026-10-07"]["trades"])
     live = _days(client.get("/api/gotobi/calendar?month=2026-10&account_id=live").json())
     assert live["2026-10-09"]["ecb"]["n"] == 1 and live["2026-10-06"]["ecb"]["n"] == 0
+
+
+def _install_ecb(db, slug, number, acc_type, strategy, created):
+    from app.accounts import get_account_registry
+    from app.portfolio import get_portfolio_manager
+    from app.cbot_presets import container_name
+    acc = get_account_registry().get_ctrader_account_by_slug(slug) or get_account_registry().insert_ctrader_account(
+        slug, "me@example.com", number, acc_type, slug, "/root/ctrader_data/pwd")
+    name = container_name(acc["slug"], strategy, "EURUSD")
+    get_portfolio_manager().add_cbot_config(name, "ECB", "docker run ...")
+    db.execute("UPDATE cbot_configs SET created_at = ? WHERE name = ?", (created, name))
+    db.commit()
+
+
+def test_calendar_plans_the_installed_ecb_rules_in_scope(db):
+    _install_ecb(db, "demo-demo", "demo-1", "demo", "ecb_e1", "2026-10-07 10:00:00")
+    _install_ecb(db, "live-live", "live-1", "live", "ecb_f3", "2026-10-07 10:00:00")
+    _pos(db, 30, "cbot-demo-demo-eurusd-ecb-e1", "Sell", "2026-10-08 10:00:00", "2026-10-08 12:00:00", 2.0)
+    demo = _days(client.get("/api/gotobi/calendar?month=2026-10&account_id=demo").json())
+    assert demo["2026-10-06"]["ecb_plan"] == []                                     # before the bot existed
+    assert demo["2026-10-07"]["ecb_plan"] == [{"rule": "E1", "status": "no-trade"}]
+    assert demo["2026-10-08"]["ecb_plan"] == [] and demo["2026-10-08"]["ecb"]["n"] == 1
+    assert demo["2026-10-12"]["ecb_plan"] == [{"rule": "E1", "status": "scheduled"}]   # today, Monday
+    live = _days(client.get("/api/gotobi/calendar?month=2026-10&account_id=live").json())
+    assert live["2026-10-12"]["ecb_plan"] == []                                     # F3 skips Mondays
+    assert live["2026-10-13"]["ecb_plan"] == [{"rule": "F3", "status": "possible"}]
+    assert live["2026-10-09"]["ecb_plan"] == []                                     # a past F3 day says nothing
+    both = _days(client.get("/api/gotobi/calendar?month=2026-10&account_id=all").json())
+    assert both["2026-10-13"]["ecb_plan"] == [{"rule": "E1", "status": "scheduled"}, {"rule": "F3", "status": "possible"}]
+    assert both["2026-10-08"]["ecb_plan"] == []                                     # E1 traded; F3 past
+    one = _days(client.get("/api/gotobi/calendar?month=2026-10&account_id=live-1").json())
+    assert one["2026-10-13"]["ecb_plan"] == [{"rule": "F3", "status": "possible"}]
 
 
 def test_calendar_account_scope(db):

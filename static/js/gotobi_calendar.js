@@ -18,6 +18,14 @@ function gcMonthLabel(month) {
     return `${names[m - 1] || '?'} ${y}`;
 }
 
+// An installed ECB rule's day without its trade: E1 'scheduled' / 'no-trade', F3 'possible' (USD-TOP is known at
+// 07:00 London on the day).
+const GC_ECB_PLAN = {scheduled: 'scheduled', 'no-trade': 'no trade', possible: 'if USD-TOP'};
+
+function gcEcbPlanText(p) {
+    return `${escapeHtml(p.rule)} ${GC_ECB_PLAN[p.status] || escapeHtml(p.status)}`;
+}
+
 function gcCellHtml(day, today, selected) {
     const num = Number(day.date.slice(8));
     const cls = ['gc-cell', `gc-cell--${day.status}`];
@@ -40,6 +48,8 @@ function gcCellHtml(day, today, selected) {
     const extra = [];
     const ecb = day.ecb || {n: 0};
     if (ecb.n) extra.push(`<span class="gc-ecb">ECB ${gcMoney(ecb.pnl)} ·${ecb.n}${ecb.open ? ` (${ecb.open} open)` : ''}</span>`);
+    const plan = day.ecb_plan || [];
+    if (plan.length) extra.push(`<span class="gc-ecb gc-ecb--plan">ECB ${plan.map(gcEcbPlanText).join(' · ')}</span>`);
     if (day.decoy.n) extra.push(`decoy ${gcMoney(day.decoy.pnl)} ·${day.decoy.n}${day.decoy.open ? ` (${day.decoy.open} open)` : ''}`);
     if (day.other.n) extra.push(`other ${gcMoney(day.other.pnl)} ·${day.other.n}`);
     const foot = extra.map(x => `<div class="gc-decoy">${x}</div>`).join('');
@@ -70,7 +80,9 @@ function gcMonthHtml(data, selected) {
 function gcDayHtml(day) {
     if (!day) return '';
     const date = escapeHtml(day.date);
-    const title = `<h4 class="lg-subtitle">${date}${day.gotobi ? ' · gotobi' : ''}${day.skipped ? ' · skipped' : ''}</h4>`;
+    const plan = (day.ecb_plan || []).map(p => `<p class="td-dim lg-hint">ECB ${gcEcbPlanText(p)}`
+        + `${p.rule === 'F3' && p.status === 'possible' ? ' (decided at 07:00 London)' : ''}: sell EURUSD 11:00, close 13:00 London.</p>`).join('');
+    const title = `<h4 class="lg-subtitle">${date}${day.gotobi ? ' · gotobi' : ''}${day.skipped ? ' · skipped' : ''}</h4>${plan}`;
     if (!day.trades.length) return `${title}<p class="td-dim lg-hint">No Gotobi or ECB position on this day.</p>`;
     const rows = day.trades.map(tr => {
         const ecb = tr.strategy === 'ecb';
