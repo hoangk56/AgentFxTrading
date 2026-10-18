@@ -1,0 +1,51 @@
+[IS_ff] r27 mod50 events 271, r28 hold trades 271
+  ts      identical: True
+  tsarm   identical: True
+  L       identical: True
+  side    identical: True
+  thr     identical: True
+  sarm    identical: True
+  midj    identical: True
+  sprj    identical: True
+  mod100  identical: True
+  net     (all latencies x holds x stop variants) identical: True, shape (271, 5, 4, 2)
+  gross   (all latencies x holds x stop variants) identical: True, shape (271, 5, 4, 2)
+  net15   (all latencies x holds x stop variants) identical: True, shape (271, 5, 4, 2)
+  xgap    (all latencies x holds x stop variants) identical: True, shape (271, 5, 4)
+  egap    (all latencies x holds x stop variants) identical: True, shape (271, 5)
+  h30 ns net 250: r27 mean +5.9874, r28 +5.9874, max |diff| 0.00e+00
+[VAL_ff] r27 mod50 events 185, r28 hold trades 185
+  ts      identical: True
+  tsarm   identical: True
+  L       identical: True
+  side    identical: True
+  thr     identical: True
+  sarm    identical: True
+  midj    identical: True
+  sprj    identical: True
+  mod100  identical: True
+  net     (all latencies x holds x stop variants) identical: True, shape (185, 5, 4, 2)
+  gross   (all latencies x holds x stop variants) identical: True, shape (185, 5, 4, 2)
+  net15   (all latencies x holds x stop variants) identical: True, shape (185, 5, 4, 2)
+  xgap    (all latencies x holds x stop variants) identical: True, shape (185, 5, 4)
+  egap    (all latencies x holds x stop variants) identical: True, shape (185, 5)
+  h30 ns net 250: r27 mean +3.2665, r28 +3.2665, max |diff| 0.00e+00
+[min_XAUUSD_20151228_20211231.npz] offset 0 min, length 3162240
+  mmax  identical: True
+  mmin  identical: True
+  last  identical: True
+  lspr  identical: True
+  n     identical: True
+  W_up  identical: True
+  W_dn  identical: True
+  s60   identical: True
+[min_XAUUSD_20211227_20241231.npz] offset 3155040 min, length 1585440
+  mmax  identical from minute 1500: True
+  mmin  identical from minute 1500: True
+  last  identical from minute 1500: True
+  lspr  identical from minute 1500: True
+  n     identical from minute 1500: True
+  W_up  identical from minute 1500: True; differing minutes 67, last differing index 66
+  W_dn  identical from minute 1500: True; differing minutes 541, last differing index 540
+  s60   identical from minute 1500: True; differing minutes 60, last differing index 59
+[causality] W_up / W_dn == brute-force max / min of minutes m-1440 .. m-1 at 4000 random minutes: mismatches 0

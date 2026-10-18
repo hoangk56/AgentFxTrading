@@ -1,0 +1,815 @@
+utc_minute,event,source
+2024-01-03T15:00,ISM Manufacturing PMI,https://www.prnewswire.com/news-releases/manufacturing-pmi-at-47-4-december-2023-manufacturing-ism-report-on-business-302024715.html
+2024-01-03T15:00,JOLTS job openings (BLS),https://www.bls.gov/schedule/2024/home.htm
+2024-01-03T19:00,FOMC minutes (Fed),https://www.federalreserve.gov/newsevents/2024-january.htm
+2024-01-04T13:15,ADP National Employment Report,https://www.prnewswire.com/news-releases/adp-national-employment-report-private-sector-employment-increased-by-164-000-jobs-in-december-annual-pay-was-up-5-4-302026295.html
+2024-01-04T13:30,Unemployment Claims (DOL),https://oui.doleta.gov/press/2024/010424.pdf
+2024-01-05T13:30,"Employment Situation: NFP, AHE, unemployment rate (BLS)",https://www.bls.gov/schedule/2024/home.htm
+2024-01-05T15:00,ISM Services PMI,https://www.prnewswire.com/news-releases/services-pmi-at-50-6-december-2023-services-ism-report-on-business-302026587.html
+2024-01-10T18:00,10-y Note Auction (Treasury),"https://api.fiscaldata.treasury.gov/services/api/fiscal_service/v1/accounting/od/auctions_query?fields=record_date,cusip,security_type,security_term,auction_date,issue_date,maturity_date,closing_time_comp,closing_time_noncomp,original_security_term,reopening,inflation_index_security,floating_rate,high_yield,offering_amt,announcemt_date,pdf_filenm_comp_results,original_issue_date&filter=auction_date:gte:2024-01-01,auction_date:lte:2026-09-30,security_type:in:(Note,Bond)&sort=auction_date&page%5Bsize%5D=1000"
+2024-01-11T13:30,CPI (BLS),https://www.bls.gov/schedule/2024/home.htm
+2024-01-11T13:30,Unemployment Claims (DOL),https://oui.doleta.gov/press/2024/011124.pdf
+2024-01-11T18:00,30-y Bond Auction (Treasury),"https://api.fiscaldata.treasury.gov/services/api/fiscal_service/v1/accounting/od/auctions_query?fields=record_date,cusip,security_type,security_term,auction_date,issue_date,maturity_date,closing_time_comp,closing_time_noncomp,original_security_term,reopening,inflation_index_security,floating_rate,high_yield,offering_amt,announcemt_date,pdf_filenm_comp_results,original_issue_date&filter=auction_date:gte:2024-01-01,auction_date:lte:2026-09-30,security_type:in:(Note,Bond)&sort=auction_date&page%5Bsize%5D=1000"
+2024-01-12T13:30,PPI (BLS),https://www.bls.gov/schedule/2024/home.htm
+2024-01-16T13:30,Empire State Manufacturing,https://www.newyorkfed.org/survey/empire/empiresurvey_archives
+2024-01-17T13:30,Retail Sales (Census advance),https://www2.census.gov/retail/releases/historical/marts/adv2312.pdf
+2024-01-18T13:30,Unemployment Claims (DOL),https://oui.doleta.gov/press/2024/011824.pdf
+2024-01-19T15:00,UoM Consumer Sentiment (prelim),https://data.sca.isr.umich.edu/fetchdoc.php?docid=74746
+2024-01-24T14:45,S&P Global Flash US PMI,https://www.pmi.spglobal.com/Public/Home/PressRelease/e378d753625f446d9d4ef29b3f71a1c4
+2024-01-25T13:30,GDP (BEA),https://www.bea.gov/sites/default/files/2024-06/2024-News-Release-Schedule.pdf
+2024-01-25T13:30,Unemployment Claims (DOL),https://oui.doleta.gov/press/2024/012524.pdf
+2024-01-26T13:30,"Personal income and outlays, core PCE (BEA)",https://www.bea.gov/sites/default/files/2024-06/2024-News-Release-Schedule.pdf
+2024-01-30T15:00,CB Consumer Confidence,https://www.prnewswire.com/news-releases/us-consumer-confidence-increased-in-january-302048029.html
+2024-01-30T15:00,JOLTS job openings (BLS),https://www.bls.gov/schedule/2024/home.htm
+2024-01-31T13:15,ADP National Employment Report,https://www.prnewswire.com/news-releases/adp-national-employment-report-private-sector-employment-increased-by-107-000-jobs-in-january-annual-pay-was-up-5-2-302049287.html
+2024-01-31T13:30,Employment Cost Index (BLS),https://www.bls.gov/schedule/2024/home.htm
+2024-01-31T19:00,"FOMC statement, rate decision (Fed)",https://www.federalreserve.gov/newsevents/2024-january.htm
+2024-01-31T19:30,FOMC press conference (Fed),https://www.federalreserve.gov/newsevents/2024-january.htm
+2024-02-01T13:30,Unemployment Claims (DOL),https://oui.doleta.gov/press/2024/020124.pdf
+2024-02-01T15:00,ISM Manufacturing PMI,https://www.prnewswire.com/news-releases/manufacturing-pmi-at-49-1-january-2024-manufacturing-ism-report-on-business-302049663.html
+2024-02-02T13:30,"Employment Situation: NFP, AHE, unemployment rate (BLS)",https://www.bls.gov/schedule/2024/home.htm
+2024-02-02T15:00,UoM Consumer Sentiment (final),https://data.sca.isr.umich.edu/fetchdoc.php?docid=75004
+2024-02-05T15:00,ISM Services PMI,https://www.prnewswire.com/news-releases/services-pmi-at-53-4-january-2024-services-ism-report-on-business-302052175.html
+2024-02-07T18:00,10-y Note Auction (Treasury),"https://api.fiscaldata.treasury.gov/services/api/fiscal_service/v1/accounting/od/auctions_query?fields=record_date,cusip,security_type,security_term,auction_date,issue_date,maturity_date,closing_time_comp,closing_time_noncomp,original_security_term,reopening,inflation_index_security,floating_rate,high_yield,offering_amt,announcemt_date,pdf_filenm_comp_results,original_issue_date&filter=auction_date:gte:2024-01-01,auction_date:lte:2026-09-30,security_type:in:(Note,Bond)&sort=auction_date&page%5Bsize%5D=1000"
+2024-02-08T13:30,Unemployment Claims (DOL),https://oui.doleta.gov/press/2024/020824.pdf
+2024-02-08T18:00,30-y Bond Auction (Treasury),"https://api.fiscaldata.treasury.gov/services/api/fiscal_service/v1/accounting/od/auctions_query?fields=record_date,cusip,security_type,security_term,auction_date,issue_date,maturity_date,closing_time_comp,closing_time_noncomp,original_security_term,reopening,inflation_index_security,floating_rate,high_yield,offering_amt,announcemt_date,pdf_filenm_comp_results,original_issue_date&filter=auction_date:gte:2024-01-01,auction_date:lte:2026-09-30,security_type:in:(Note,Bond)&sort=auction_date&page%5Bsize%5D=1000"
+2024-02-13T13:30,CPI (BLS),https://www.bls.gov/schedule/2024/home.htm
+2024-02-15T13:30,Empire State Manufacturing,https://www.newyorkfed.org/survey/empire/empiresurvey_archives
+2024-02-15T13:30,Retail Sales (Census advance),https://www2.census.gov/retail/releases/historical/marts/adv2401.pdf
+2024-02-15T13:30,Unemployment Claims (DOL),https://oui.doleta.gov/press/2024/021524.pdf
+2024-02-16T13:30,PPI (BLS),https://www.bls.gov/schedule/2024/home.htm
+2024-02-16T15:00,UoM Consumer Sentiment (prelim),https://data.sca.isr.umich.edu/fetchdoc.php?docid=75084
+2024-02-21T19:00,FOMC minutes (Fed),https://www.federalreserve.gov/newsevents/2024-february.htm
+2024-02-22T13:30,Unemployment Claims (DOL),https://oui.doleta.gov/press/2024/022224.pdf
+2024-02-22T14:45,S&P Global Flash US PMI,https://www.pmi.spglobal.com/Public/Home/PressRelease/36cedd38091e42eda51ffea4468c4c03
+2024-02-27T15:00,CB Consumer Confidence,https://www.prnewswire.com/news-releases/us-consumer-confidence-retreated-in-february-302072709.html
+2024-02-28T13:30,GDP (BEA),https://www.bea.gov/sites/default/files/2024-06/2024-News-Release-Schedule.pdf
+2024-02-29T13:30,"Personal income and outlays, core PCE (BEA)",https://www.bea.gov/sites/default/files/2024-06/2024-News-Release-Schedule.pdf
+2024-02-29T13:30,Unemployment Claims (DOL),https://oui.doleta.gov/press/2024/022924.pdf
+2024-03-01T15:00,ISM Manufacturing PMI,https://www.prnewswire.com/news-releases/manufacturing-pmi-at-47-8-february-2024-manufacturing-ism-report-on-business-302076127.html
+2024-03-01T15:00,UoM Consumer Sentiment (final),https://data.sca.isr.umich.edu/fetchdoc.php?docid=75200
+2024-03-05T15:00,ISM Services PMI,https://www.prnewswire.com/news-releases/services-pmi-at-52-6-february-2024-services-ism-report-on-business-302078785.html
+2024-03-06T13:15,ADP National Employment Report,https://www.prnewswire.com/news-releases/adp-national-employment-report-private-sector-employment-increased-by-140-000-jobs-in-february-annual-pay-was-up-5-1-302081418.html
+2024-03-06T15:00,Fed Chair Jerome H. Powell testifies (Fed),https://www.federalreserve.gov/newsevents/2024-march.htm
+2024-03-06T15:00,JOLTS job openings (BLS),https://www.bls.gov/schedule/2024/home.htm
+2024-03-07T13:30,Unemployment Claims (DOL),https://oui.doleta.gov/press/2024/030724.pdf
+2024-03-07T15:00,Fed Chair Jerome H. Powell testifies (Fed),https://www.federalreserve.gov/newsevents/2024-march.htm
+2024-03-08T13:30,"Employment Situation: NFP, AHE, unemployment rate (BLS)",https://www.bls.gov/schedule/2024/home.htm
+2024-03-12T12:30,CPI (BLS),https://www.bls.gov/schedule/2024/home.htm
+2024-03-12T17:00,10-y Note Auction (Treasury),"https://api.fiscaldata.treasury.gov/services/api/fiscal_service/v1/accounting/od/auctions_query?fields=record_date,cusip,security_type,security_term,auction_date,issue_date,maturity_date,closing_time_comp,closing_time_noncomp,original_security_term,reopening,inflation_index_security,floating_rate,high_yield,offering_amt,announcemt_date,pdf_filenm_comp_results,original_issue_date&filter=auction_date:gte:2024-01-01,auction_date:lte:2026-09-30,security_type:in:(Note,Bond)&sort=auction_date&page%5Bsize%5D=1000"
+2024-03-13T17:00,30-y Bond Auction (Treasury),"https://api.fiscaldata.treasury.gov/services/api/fiscal_service/v1/accounting/od/auctions_query?fields=record_date,cusip,security_type,security_term,auction_date,issue_date,maturity_date,closing_time_comp,closing_time_noncomp,original_security_term,reopening,inflation_index_security,floating_rate,high_yield,offering_amt,announcemt_date,pdf_filenm_comp_results,original_issue_date&filter=auction_date:gte:2024-01-01,auction_date:lte:2026-09-30,security_type:in:(Note,Bond)&sort=auction_date&page%5Bsize%5D=1000"
+2024-03-14T12:30,PPI (BLS),https://www.bls.gov/schedule/2024/home.htm
+2024-03-14T12:30,Retail Sales (Census advance),https://www2.census.gov/retail/releases/historical/marts/adv2402.pdf
+2024-03-14T12:30,Unemployment Claims (DOL),https://oui.doleta.gov/press/2024/031424.pdf
+2024-03-15T12:30,Empire State Manufacturing,https://www.newyorkfed.org/survey/empire/empiresurvey_archives
+2024-03-15T14:00,UoM Consumer Sentiment (prelim),https://data.sca.isr.umich.edu/fetchdoc.php?docid=75282
+2024-03-20T18:00,"FOMC statement, rate decision, SEP (Fed)",https://www.federalreserve.gov/newsevents/2024-march.htm
+2024-03-20T18:30,FOMC press conference (Fed),https://www.federalreserve.gov/newsevents/2024-march.htm
+2024-03-21T12:30,Unemployment Claims (DOL),https://oui.doleta.gov/press/2024/032124.pdf
+2024-03-21T13:45,S&P Global Flash US PMI,https://www.pmi.spglobal.com/Public/Home/PressRelease/949f155d1bf6438bb2bda4e3537d2f75
+2024-03-26T14:00,CB Consumer Confidence,https://www.prnewswire.com/news-releases/us-consumer-confidence-little-changed-in-march-302099617.html
+2024-03-28T12:30,GDP (BEA),https://www.bea.gov/sites/default/files/2024-06/2024-News-Release-Schedule.pdf
+2024-03-28T12:30,Unemployment Claims (DOL),https://oui.doleta.gov/press/2024/032824.pdf
+2024-03-28T14:00,UoM Consumer Sentiment (final),https://data.sca.isr.umich.edu/fetchdoc.php?docid=75428
+2024-03-29T12:30,"Personal income and outlays, core PCE (BEA)",https://www.bea.gov/sites/default/files/2024-06/2024-News-Release-Schedule.pdf
+2024-03-29T15:30,Fed Chair Jerome H. Powell speaks (Fed),https://www.federalreserve.gov/newsevents/2024-march.htm
+2024-04-01T14:00,ISM Manufacturing PMI,https://www.prnewswire.com/news-releases/manufacturing-pmi-at-50-3-march-2024-manufacturing-ism-report-on-business-302104149.html
+2024-04-02T14:00,JOLTS job openings (BLS),https://www.bls.gov/schedule/2024/home.htm
+2024-04-03T12:15,ADP National Employment Report,https://www.prnewswire.com/news-releases/adp-national-employment-report-private-sector-employment-increased-by-184-000-jobs-in-march-annual-pay-was-up-5-1-302107138.html
+2024-04-03T14:00,ISM Services PMI,https://www.prnewswire.com/news-releases/services-pmi-at-51-4-march-2024-services-ism-report-on-business-302106133.html
+2024-04-03T16:10,Fed Chair Jerome H. Powell speaks (Fed),https://www.federalreserve.gov/newsevents/2024-april.htm
+2024-04-04T12:30,Unemployment Claims (DOL),https://oui.doleta.gov/press/2024/040424.pdf
+2024-04-05T12:30,"Employment Situation: NFP, AHE, unemployment rate (BLS)",https://www.bls.gov/schedule/2024/home.htm
+2024-04-10T12:30,CPI (BLS),https://www.bls.gov/schedule/2024/home.htm
+2024-04-10T17:00,10-y Note Auction (Treasury),"https://api.fiscaldata.treasury.gov/services/api/fiscal_service/v1/accounting/od/auctions_query?fields=record_date,cusip,security_type,security_term,auction_date,issue_date,maturity_date,closing_time_comp,closing_time_noncomp,original_security_term,reopening,inflation_index_security,floating_rate,high_yield,offering_amt,announcemt_date,pdf_filenm_comp_results,original_issue_date&filter=auction_date:gte:2024-01-01,auction_date:lte:2026-09-30,security_type:in:(Note,Bond)&sort=auction_date&page%5Bsize%5D=1000"
+2024-04-10T18:00,FOMC minutes (Fed),https://www.federalreserve.gov/newsevents/2024-april.htm
+2024-04-11T12:30,PPI (BLS),https://www.bls.gov/schedule/2024/home.htm
+2024-04-11T12:30,Unemployment Claims (DOL),https://oui.doleta.gov/press/2024/041124.pdf
+2024-04-11T17:00,30-y Bond Auction (Treasury),"https://api.fiscaldata.treasury.gov/services/api/fiscal_service/v1/accounting/od/auctions_query?fields=record_date,cusip,security_type,security_term,auction_date,issue_date,maturity_date,closing_time_comp,closing_time_noncomp,original_security_term,reopening,inflation_index_security,floating_rate,high_yield,offering_amt,announcemt_date,pdf_filenm_comp_results,original_issue_date&filter=auction_date:gte:2024-01-01,auction_date:lte:2026-09-30,security_type:in:(Note,Bond)&sort=auction_date&page%5Bsize%5D=1000"
+2024-04-12T14:00,UoM Consumer Sentiment (prelim),https://data.sca.isr.umich.edu/fetchdoc.php?docid=75504
+2024-04-15T12:30,Empire State Manufacturing,https://www.newyorkfed.org/survey/empire/empiresurvey_archives
+2024-04-15T12:30,Retail Sales (Census advance),https://www2.census.gov/retail/releases/historical/marts/adv2403.pdf
+2024-04-16T17:15,Fed Chair Jerome H. Powell speaks (Fed),https://www.federalreserve.gov/newsevents/2024-april.htm
+2024-04-18T12:30,Unemployment Claims (DOL),https://oui.doleta.gov/press/2024/041824.pdf
+2024-04-23T13:45,S&P Global Flash US PMI,https://www.pmi.spglobal.com/Public/Home/PressRelease/2a6d069e95b3402f85a5e44e3ff49917
+2024-04-25T12:30,GDP (BEA),https://www.bea.gov/sites/default/files/2024-06/2024-News-Release-Schedule.pdf
+2024-04-25T12:30,Unemployment Claims (DOL),https://oui.doleta.gov/press/2024/042524.pdf
+2024-04-26T12:30,"Personal income and outlays, core PCE (BEA)",https://www.bea.gov/sites/default/files/2024-06/2024-News-Release-Schedule.pdf
+2024-04-26T14:00,UoM Consumer Sentiment (final),https://data.sca.isr.umich.edu/fetchdoc.php?docid=75632
+2024-04-30T12:30,Employment Cost Index (BLS),https://www.bls.gov/schedule/2024/home.htm
+2024-04-30T14:00,CB Consumer Confidence,https://www.prnewswire.com/news-releases/us-consumer-confidence-retreats-in-april-302131681.html
+2024-05-01T12:15,ADP National Employment Report,https://www.prnewswire.com/news-releases/adp-national-employment-report-private-sector-employment-increased-by-192-000-jobs-in-april-annual-pay-was-up-5-0-302133022.html
+2024-05-01T14:00,ISM Manufacturing PMI,https://www.prnewswire.com/news-releases/manufacturing-pmi-at-49-2-april-2024-manufacturing-ism-report-on-business-302132412.html
+2024-05-01T14:00,JOLTS job openings (BLS),https://www.bls.gov/schedule/2024/home.htm
+2024-05-01T18:00,"FOMC statement, rate decision (Fed)",https://www.federalreserve.gov/newsevents/2024-may.htm
+2024-05-01T18:30,FOMC press conference (Fed),https://www.federalreserve.gov/newsevents/2024-may.htm
+2024-05-02T12:30,Unemployment Claims (DOL),https://oui.doleta.gov/press/2024/050224.pdf
+2024-05-03T12:30,"Employment Situation: NFP, AHE, unemployment rate (BLS)",https://www.bls.gov/schedule/2024/home.htm
+2024-05-03T14:00,ISM Services PMI,https://www.prnewswire.com/news-releases/services-pmi-at-49-4-april-2024-services-ism-report-on-business-302134930.html
+2024-05-08T17:00,10-y Note Auction (Treasury),"https://api.fiscaldata.treasury.gov/services/api/fiscal_service/v1/accounting/od/auctions_query?fields=record_date,cusip,security_type,security_term,auction_date,issue_date,maturity_date,closing_time_comp,closing_time_noncomp,original_security_term,reopening,inflation_index_security,floating_rate,high_yield,offering_amt,announcemt_date,pdf_filenm_comp_results,original_issue_date&filter=auction_date:gte:2024-01-01,auction_date:lte:2026-09-30,security_type:in:(Note,Bond)&sort=auction_date&page%5Bsize%5D=1000"
+2024-05-09T12:30,Unemployment Claims (DOL),https://oui.doleta.gov/press/2024/050924.pdf
+2024-05-09T17:00,30-y Bond Auction (Treasury),"https://api.fiscaldata.treasury.gov/services/api/fiscal_service/v1/accounting/od/auctions_query?fields=record_date,cusip,security_type,security_term,auction_date,issue_date,maturity_date,closing_time_comp,closing_time_noncomp,original_security_term,reopening,inflation_index_security,floating_rate,high_yield,offering_amt,announcemt_date,pdf_filenm_comp_results,original_issue_date&filter=auction_date:gte:2024-01-01,auction_date:lte:2026-09-30,security_type:in:(Note,Bond)&sort=auction_date&page%5Bsize%5D=1000"
+2024-05-10T14:00,UoM Consumer Sentiment (prelim),https://data.sca.isr.umich.edu/fetchdoc.php?docid=75695
+2024-05-14T12:30,PPI (BLS),https://www.bls.gov/schedule/2024/home.htm
+2024-05-14T14:00,Fed Chair Jerome H. Powell speaks (Fed),https://www.federalreserve.gov/newsevents/2024-may.htm
+2024-05-15T12:30,CPI (BLS),https://www.bls.gov/schedule/2024/home.htm
+2024-05-15T12:30,Empire State Manufacturing,https://www.newyorkfed.org/survey/empire/empiresurvey_archives
+2024-05-15T12:30,Retail Sales (Census advance),https://www2.census.gov/retail/releases/historical/marts/adv2404.pdf
+2024-05-16T12:30,Unemployment Claims (DOL),https://oui.doleta.gov/press/2024/051624.pdf
+2024-05-19T19:30,Fed Chair Jerome H. Powell speaks (Fed),https://www.federalreserve.gov/newsevents/2024-may.htm
+2024-05-22T18:00,FOMC minutes (Fed),https://www.federalreserve.gov/newsevents/2024-may.htm
+2024-05-23T12:30,Unemployment Claims (DOL),https://oui.doleta.gov/press/2024/052324.pdf
+2024-05-23T13:45,S&P Global Flash US PMI,https://www.pmi.spglobal.com/Public/Home/PressRelease/e3fafd17513343c48327da2296a67870
+2024-05-24T14:00,UoM Consumer Sentiment (final),https://data.sca.isr.umich.edu/fetchdoc.php?docid=75830
+2024-05-28T14:00,CB Consumer Confidence,https://www.prnewswire.com/news-releases/us-consumer-confidence-rose-in-may-302156756.html
+2024-05-30T12:30,GDP (BEA),https://www.bea.gov/sites/default/files/2024-06/2024-News-Release-Schedule.pdf
+2024-05-30T12:30,Unemployment Claims (DOL),https://oui.doleta.gov/press/2024/053024.pdf
+2024-05-31T12:30,"Personal income and outlays, core PCE (BEA)",https://www.bea.gov/sites/default/files/2024-06/2024-News-Release-Schedule.pdf
+2024-06-03T14:00,ISM Manufacturing PMI,https://www.prnewswire.com/news-releases/manufacturing-pmi-at-48-7-may-2024-manufacturing-ism-report-on-business-302161049.html
+2024-06-04T14:00,JOLTS job openings (BLS),https://www.bls.gov/schedule/2024/home.htm
+2024-06-05T12:15,ADP National Employment Report,https://www.prnewswire.com/news-releases/adp-national-employment-report-private-sector-employment-increased-by-152-000-jobs-in-may-annual-pay-was-up-5-0-302164737.html
+2024-06-05T14:00,ISM Services PMI,https://www.prnewswire.com/news-releases/services-pmi-at-53-8-may-2024-services-ism-report-on-business-302163533.html
+2024-06-06T12:30,Unemployment Claims (DOL),https://oui.doleta.gov/press/2024/060624.pdf
+2024-06-07T12:30,"Employment Situation: NFP, AHE, unemployment rate (BLS)",https://www.bls.gov/schedule/2024/home.htm
+2024-06-11T17:00,10-y Note Auction (Treasury),"https://api.fiscaldata.treasury.gov/services/api/fiscal_service/v1/accounting/od/auctions_query?fields=record_date,cusip,security_type,security_term,auction_date,issue_date,maturity_date,closing_time_comp,closing_time_noncomp,original_security_term,reopening,inflation_index_security,floating_rate,high_yield,offering_amt,announcemt_date,pdf_filenm_comp_results,original_issue_date&filter=auction_date:gte:2024-01-01,auction_date:lte:2026-09-30,security_type:in:(Note,Bond)&sort=auction_date&page%5Bsize%5D=1000"
+2024-06-12T12:30,CPI (BLS),https://www.bls.gov/schedule/2024/home.htm
+2024-06-12T18:00,"FOMC statement, rate decision, SEP (Fed)",https://www.federalreserve.gov/newsevents/2024-june.htm
+2024-06-12T18:30,FOMC press conference (Fed),https://www.federalreserve.gov/newsevents/2024-june.htm
+2024-06-13T12:30,PPI (BLS),https://www.bls.gov/schedule/2024/home.htm
+2024-06-13T12:30,Unemployment Claims (DOL),https://oui.doleta.gov/press/2024/061324.pdf
+2024-06-13T17:00,30-y Bond Auction (Treasury),"https://api.fiscaldata.treasury.gov/services/api/fiscal_service/v1/accounting/od/auctions_query?fields=record_date,cusip,security_type,security_term,auction_date,issue_date,maturity_date,closing_time_comp,closing_time_noncomp,original_security_term,reopening,inflation_index_security,floating_rate,high_yield,offering_amt,announcemt_date,pdf_filenm_comp_results,original_issue_date&filter=auction_date:gte:2024-01-01,auction_date:lte:2026-09-30,security_type:in:(Note,Bond)&sort=auction_date&page%5Bsize%5D=1000"
+2024-06-14T14:00,UoM Consumer Sentiment (prelim),https://data.sca.isr.umich.edu/fetchdoc.php?docid=75905
+2024-06-17T12:30,Empire State Manufacturing,https://www.newyorkfed.org/survey/empire/empiresurvey_archives
+2024-06-18T12:30,Retail Sales (Census advance),https://www2.census.gov/retail/releases/historical/marts/adv2405.pdf
+2024-06-20T12:30,Unemployment Claims (DOL),https://oui.doleta.gov/press/2024/062024.pdf
+2024-06-20T20:00,Treasury FX Report,https://home.treasury.gov/news/press-releases/jy2419
+2024-06-21T13:45,S&P Global Flash US PMI,https://www.pmi.spglobal.com/Public/Home/PressRelease/dab295292d5a444c8f772b2b82587fa2
+2024-06-25T14:00,CB Consumer Confidence,https://www.prnewswire.com/news-releases/us-consumer-confidence-weakens-slightly-in-june-302181746.html
+2024-06-27T12:30,GDP (BEA),https://www.bea.gov/sites/default/files/2024-06/2024-News-Release-Schedule.pdf
+2024-06-27T12:30,Unemployment Claims (DOL),https://oui.doleta.gov/press/2024/062724.pdf
+2024-06-28T12:30,"Personal income and outlays, core PCE (BEA)",https://www.bea.gov/sites/default/files/2024-06/2024-News-Release-Schedule.pdf
+2024-06-28T14:00,UoM Consumer Sentiment (final),https://data.sca.isr.umich.edu/fetchdoc.php?docid=76028
+2024-07-01T14:00,ISM Manufacturing PMI,https://www.prnewswire.com/news-releases/manufacturing-pmi-at-48-5-june-2024-manufacturing-ism-report-on-business-302186137.html
+2024-07-02T13:30,Fed Chair Jerome H. Powell speaks (Fed),https://www.federalreserve.gov/newsevents/2024-july.htm
+2024-07-02T14:00,JOLTS job openings (BLS),https://www.bls.gov/schedule/2024/home.htm
+2024-07-03T12:15,ADP National Employment Report,https://www.prnewswire.com/news-releases/adp-national-employment-report-private-sector-employment-increased-by-150-000-jobs-in-june-annual-pay-was-up-4-9-302188876.html
+2024-07-03T12:30,Unemployment Claims (DOL),https://oui.doleta.gov/press/2024/070324.pdf
+2024-07-03T14:00,ISM Services PMI,https://www.prnewswire.com/news-releases/services-pmi-at-48-8-june-2024-services-ism-report-on-business-302188467.html
+2024-07-03T18:00,FOMC minutes (Fed),https://www.federalreserve.gov/newsevents/2024-july.htm
+2024-07-05T12:30,"Employment Situation: NFP, AHE, unemployment rate (BLS)",https://www.bls.gov/schedule/2024/home.htm
+2024-07-09T14:00,Fed Chair Jerome H. Powell testifies (Fed),https://www.federalreserve.gov/newsevents/2024-july.htm
+2024-07-10T14:00,Fed Chair Jerome H. Powell testifies (Fed),https://www.federalreserve.gov/newsevents/2024-july.htm
+2024-07-10T17:00,10-y Note Auction (Treasury),"https://api.fiscaldata.treasury.gov/services/api/fiscal_service/v1/accounting/od/auctions_query?fields=record_date,cusip,security_type,security_term,auction_date,issue_date,maturity_date,closing_time_comp,closing_time_noncomp,original_security_term,reopening,inflation_index_security,floating_rate,high_yield,offering_amt,announcemt_date,pdf_filenm_comp_results,original_issue_date&filter=auction_date:gte:2024-01-01,auction_date:lte:2026-09-30,security_type:in:(Note,Bond)&sort=auction_date&page%5Bsize%5D=1000"
+2024-07-11T12:30,CPI (BLS),https://www.bls.gov/schedule/2024/home.htm
+2024-07-11T12:30,Unemployment Claims (DOL),https://oui.doleta.gov/press/2024/071124.pdf
+2024-07-11T17:00,30-y Bond Auction (Treasury),"https://api.fiscaldata.treasury.gov/services/api/fiscal_service/v1/accounting/od/auctions_query?fields=record_date,cusip,security_type,security_term,auction_date,issue_date,maturity_date,closing_time_comp,closing_time_noncomp,original_security_term,reopening,inflation_index_security,floating_rate,high_yield,offering_amt,announcemt_date,pdf_filenm_comp_results,original_issue_date&filter=auction_date:gte:2024-01-01,auction_date:lte:2026-09-30,security_type:in:(Note,Bond)&sort=auction_date&page%5Bsize%5D=1000"
+2024-07-12T12:30,PPI (BLS),https://www.bls.gov/schedule/2024/home.htm
+2024-07-12T14:00,UoM Consumer Sentiment (prelim),https://data.sca.isr.umich.edu/fetchdoc.php?docid=76141
+2024-07-15T12:30,Empire State Manufacturing,https://www.newyorkfed.org/survey/empire/empiresurvey_archives
+2024-07-15T16:30,Fed Chair Jerome H. Powell speaks (Fed),https://www.federalreserve.gov/newsevents/2024-july.htm
+2024-07-16T12:30,Retail Sales (Census advance),https://www2.census.gov/retail/releases/historical/marts/adv2406.pdf
+2024-07-18T12:30,Unemployment Claims (DOL),https://oui.doleta.gov/press/2024/071824.pdf
+2024-07-24T13:45,S&P Global Flash US PMI,https://www.pmi.spglobal.com/Public/Home/PressRelease/b8e8431883e142bfbd555271cec331e9
+2024-07-25T12:30,GDP (BEA),https://www.bea.gov/sites/default/files/2024-06/2024-News-Release-Schedule.pdf
+2024-07-25T12:30,Unemployment Claims (DOL),https://oui.doleta.gov/press/2024/072524.pdf
+2024-07-26T12:30,"Personal income and outlays, core PCE (BEA)",https://www.bea.gov/sites/default/files/2024-06/2024-News-Release-Schedule.pdf
+2024-07-26T14:00,UoM Consumer Sentiment (final),https://data.sca.isr.umich.edu/fetchdoc.php?docid=76318
+2024-07-30T14:00,CB Consumer Confidence,https://www.prnewswire.com/news-releases/us-consumer-confidence-still-mixed-in-july-302209894.html
+2024-07-30T14:00,JOLTS job openings (BLS),https://www.bls.gov/schedule/2024/home.htm
+2024-07-31T12:15,ADP National Employment Report,https://www.prnewswire.com/news-releases/adp-national-employment-report-private-sector-employment-increased-by-122-000-jobs-in-july-annual-pay-was-up-4-8-302211006.html
+2024-07-31T12:30,Employment Cost Index (BLS),https://www.bls.gov/schedule/2024/home.htm
+2024-07-31T18:00,"FOMC statement, rate decision (Fed)",https://www.federalreserve.gov/newsevents/2024-july.htm
+2024-07-31T18:30,FOMC press conference (Fed),https://www.federalreserve.gov/newsevents/2024-july.htm
+2024-08-01T12:30,Unemployment Claims (DOL),https://oui.doleta.gov/press/2024/080124.pdf
+2024-08-01T14:00,ISM Manufacturing PMI,https://www.prnewswire.com/news-releases/manufacturing-pmi-at-46-8-july-2024-manufacturing-ism-report-on-business-302211321.html
+2024-08-02T12:30,"Employment Situation: NFP, AHE, unemployment rate (BLS)",https://www.bls.gov/schedule/2024/home.htm
+2024-08-05T14:00,ISM Services PMI,https://www.prnewswire.com/news-releases/services-pmi-at-51-4-july-2024-services-ism-report-on-business-302213521.html
+2024-08-07T17:00,10-y Note Auction (Treasury),"https://api.fiscaldata.treasury.gov/services/api/fiscal_service/v1/accounting/od/auctions_query?fields=record_date,cusip,security_type,security_term,auction_date,issue_date,maturity_date,closing_time_comp,closing_time_noncomp,original_security_term,reopening,inflation_index_security,floating_rate,high_yield,offering_amt,announcemt_date,pdf_filenm_comp_results,original_issue_date&filter=auction_date:gte:2024-01-01,auction_date:lte:2026-09-30,security_type:in:(Note,Bond)&sort=auction_date&page%5Bsize%5D=1000"
+2024-08-08T12:30,Unemployment Claims (DOL),https://oui.doleta.gov/press/2024/080824.pdf
+2024-08-08T17:00,30-y Bond Auction (Treasury),"https://api.fiscaldata.treasury.gov/services/api/fiscal_service/v1/accounting/od/auctions_query?fields=record_date,cusip,security_type,security_term,auction_date,issue_date,maturity_date,closing_time_comp,closing_time_noncomp,original_security_term,reopening,inflation_index_security,floating_rate,high_yield,offering_amt,announcemt_date,pdf_filenm_comp_results,original_issue_date&filter=auction_date:gte:2024-01-01,auction_date:lte:2026-09-30,security_type:in:(Note,Bond)&sort=auction_date&page%5Bsize%5D=1000"
+2024-08-13T12:30,PPI (BLS),https://www.bls.gov/schedule/2024/home.htm
+2024-08-14T12:30,CPI (BLS),https://www.bls.gov/schedule/2024/home.htm
+2024-08-15T12:30,Empire State Manufacturing,https://www.newyorkfed.org/survey/empire/empiresurvey_archives
+2024-08-15T12:30,Retail Sales (Census advance),https://www2.census.gov/retail/releases/historical/marts/adv2407.pdf
+2024-08-15T12:30,Unemployment Claims (DOL),https://oui.doleta.gov/press/2024/081524.pdf
+2024-08-16T14:00,UoM Consumer Sentiment (prelim),https://data.sca.isr.umich.edu/fetchdoc.php?docid=76437
+2024-08-21T18:00,FOMC minutes (Fed),https://www.federalreserve.gov/newsevents/2024-august.htm
+2024-08-22T12:30,Unemployment Claims (DOL),https://oui.doleta.gov/press/2024/082224.pdf
+2024-08-22T13:45,S&P Global Flash US PMI,https://www.pmi.spglobal.com/Public/Home/PressRelease/80e718ea1a5f4b3e9b51bfccf1841bb3
+2024-08-23T14:00,Fed Chair Jerome H. Powell speaks (Fed),https://www.federalreserve.gov/newsevents/2024-august.htm
+2024-08-27T14:00,CB Consumer Confidence,https://www.prnewswire.com/news-releases/us-consumer-confidence-rises-slightly-in-august-302231679.html
+2024-08-29T12:30,GDP (BEA),https://www.bea.gov/sites/default/files/2024-06/2024-News-Release-Schedule.pdf
+2024-08-29T12:30,Unemployment Claims (DOL),https://oui.doleta.gov/press/2024/082924.pdf
+2024-08-30T12:30,"Personal income and outlays, core PCE (BEA)",https://www.bea.gov/sites/default/files/2024-06/2024-News-Release-Schedule.pdf
+2024-08-30T14:00,UoM Consumer Sentiment (final),https://data.sca.isr.umich.edu/fetchdoc.php?docid=76556
+2024-09-03T14:00,ISM Manufacturing PMI,https://www.prnewswire.com/news-releases/manufacturing-pmi-at-47-2-august-2024-manufacturing-ism-report-on-business-302235328.html
+2024-09-04T14:00,JOLTS job openings (BLS),https://www.bls.gov/schedule/2024/home.htm
+2024-09-05T12:15,ADP National Employment Report,https://www.prnewswire.com/news-releases/adp-national-employment-report-private-sector-employment-increased-by-99-000-jobs-in-august-annual-pay-was-up-4-8-302239359.html
+2024-09-05T12:30,Unemployment Claims (DOL),https://oui.doleta.gov/press/2024/090524.pdf
+2024-09-05T14:00,ISM Services PMI,https://www.prnewswire.com/news-releases/services-pmi-at-51-5-august-2024-services-ism-report-on-business-302238390.html
+2024-09-06T12:30,"Employment Situation: NFP, AHE, unemployment rate (BLS)",https://www.bls.gov/schedule/2024/home.htm
+2024-09-11T12:30,CPI (BLS),https://www.bls.gov/schedule/2024/home.htm
+2024-09-11T17:00,10-y Note Auction (Treasury),"https://api.fiscaldata.treasury.gov/services/api/fiscal_service/v1/accounting/od/auctions_query?fields=record_date,cusip,security_type,security_term,auction_date,issue_date,maturity_date,closing_time_comp,closing_time_noncomp,original_security_term,reopening,inflation_index_security,floating_rate,high_yield,offering_amt,announcemt_date,pdf_filenm_comp_results,original_issue_date&filter=auction_date:gte:2024-01-01,auction_date:lte:2026-09-30,security_type:in:(Note,Bond)&sort=auction_date&page%5Bsize%5D=1000"
+2024-09-12T12:30,PPI (BLS),https://www.bls.gov/schedule/2024/home.htm
+2024-09-12T12:30,Unemployment Claims (DOL),https://oui.doleta.gov/press/2024/091224.pdf
+2024-09-12T17:00,30-y Bond Auction (Treasury),"https://api.fiscaldata.treasury.gov/services/api/fiscal_service/v1/accounting/od/auctions_query?fields=record_date,cusip,security_type,security_term,auction_date,issue_date,maturity_date,closing_time_comp,closing_time_noncomp,original_security_term,reopening,inflation_index_security,floating_rate,high_yield,offering_amt,announcemt_date,pdf_filenm_comp_results,original_issue_date&filter=auction_date:gte:2024-01-01,auction_date:lte:2026-09-30,security_type:in:(Note,Bond)&sort=auction_date&page%5Bsize%5D=1000"
+2024-09-13T14:00,UoM Consumer Sentiment (prelim),https://data.sca.isr.umich.edu/fetchdoc.php?docid=76901
+2024-09-16T12:30,Empire State Manufacturing,https://www.newyorkfed.org/survey/empire/empiresurvey_archives
+2024-09-17T12:30,Retail Sales (Census advance),https://www2.census.gov/retail/releases/historical/marts/adv2408.pdf
+2024-09-18T18:00,"FOMC statement, rate decision, SEP (Fed)",https://www.federalreserve.gov/newsevents/2024-september.htm
+2024-09-18T18:30,FOMC press conference (Fed),https://www.federalreserve.gov/newsevents/2024-september.htm
+2024-09-19T12:30,Unemployment Claims (DOL),https://oui.doleta.gov/press/2024/091924.pdf
+2024-09-23T13:45,S&P Global Flash US PMI,https://www.pmi.spglobal.com/Public/Home/PressRelease/35c60149cdbe461fb6bc3c959a58a551
+2024-09-24T14:00,CB Consumer Confidence,https://www.prnewswire.com/news-releases/us-consumer-confidence-fell-in-september-302257129.html
+2024-09-26T12:30,GDP (BEA),https://www.bea.gov/sites/default/files/2024-06/2024-News-Release-Schedule.pdf
+2024-09-26T12:30,Unemployment Claims (DOL),https://oui.doleta.gov/press/2024/092624.pdf
+2024-09-26T13:20,Fed Chair Jerome H. Powell speaks (Fed),https://www.federalreserve.gov/newsevents/2024-september.htm
+2024-09-27T12:30,"Personal income and outlays, core PCE (BEA)",https://www.bea.gov/sites/default/files/2024-06/2024-News-Release-Schedule.pdf
+2024-09-27T14:00,UoM Consumer Sentiment (final),https://data.sca.isr.umich.edu/fetchdoc.php?docid=77041
+2024-09-30T17:55,Fed Chair Jerome H. Powell speaks (Fed),https://www.federalreserve.gov/newsevents/2024-september.htm
+2024-10-01T14:00,ISM Manufacturing PMI,https://www.prnewswire.com/news-releases/manufacturing-pmi-at-47-2-september-2024-manufacturing-ism-report-on-business-302263093.html
+2024-10-01T14:00,JOLTS job openings (BLS),https://www.bls.gov/schedule/2024/home.htm
+2024-10-02T12:15,ADP National Employment Report,https://www.prnewswire.com/news-releases/adp-national-employment-report-private-sector-employment-increased-by-143-000-jobs-in-september-annual-pay-was-up-4-7-302265512.html
+2024-10-03T12:30,Unemployment Claims (DOL),https://oui.doleta.gov/press/2024/100324.pdf
+2024-10-03T14:00,ISM Services PMI,https://www.prnewswire.com/news-releases/services-pmi-at-54-9-september-2024-services-ism-report-on-business-302266144.html
+2024-10-04T12:30,"Employment Situation: NFP, AHE, unemployment rate (BLS)",https://www.bls.gov/schedule/2024/home.htm
+2024-10-09T17:00,10-y Note Auction (Treasury),"https://api.fiscaldata.treasury.gov/services/api/fiscal_service/v1/accounting/od/auctions_query?fields=record_date,cusip,security_type,security_term,auction_date,issue_date,maturity_date,closing_time_comp,closing_time_noncomp,original_security_term,reopening,inflation_index_security,floating_rate,high_yield,offering_amt,announcemt_date,pdf_filenm_comp_results,original_issue_date&filter=auction_date:gte:2024-01-01,auction_date:lte:2026-09-30,security_type:in:(Note,Bond)&sort=auction_date&page%5Bsize%5D=1000"
+2024-10-09T18:00,FOMC minutes (Fed),https://www.federalreserve.gov/newsevents/2024-october.htm
+2024-10-10T12:30,CPI (BLS),https://www.bls.gov/schedule/2024/home.htm
+2024-10-10T12:30,Unemployment Claims (DOL),https://oui.doleta.gov/press/2024/101024.pdf
+2024-10-10T17:00,30-y Bond Auction (Treasury),"https://api.fiscaldata.treasury.gov/services/api/fiscal_service/v1/accounting/od/auctions_query?fields=record_date,cusip,security_type,security_term,auction_date,issue_date,maturity_date,closing_time_comp,closing_time_noncomp,original_security_term,reopening,inflation_index_security,floating_rate,high_yield,offering_amt,announcemt_date,pdf_filenm_comp_results,original_issue_date&filter=auction_date:gte:2024-01-01,auction_date:lte:2026-09-30,security_type:in:(Note,Bond)&sort=auction_date&page%5Bsize%5D=1000"
+2024-10-11T12:30,PPI (BLS),https://www.bls.gov/schedule/2024/home.htm
+2024-10-11T14:00,UoM Consumer Sentiment (prelim),https://data.sca.isr.umich.edu/fetchdoc.php?docid=77133
+2024-10-15T12:30,Empire State Manufacturing,https://www.newyorkfed.org/survey/empire/empiresurvey_archives
+2024-10-17T12:30,Retail Sales (Census advance),https://www2.census.gov/retail/releases/historical/marts/adv2409.pdf
+2024-10-17T12:30,Unemployment Claims (DOL),https://oui.doleta.gov/press/2024/101724.pdf
+2024-10-24T12:30,Unemployment Claims (DOL),https://oui.doleta.gov/press/2024/102424.pdf
+2024-10-24T13:45,S&P Global Flash US PMI,https://www.pmi.spglobal.com/Public/Home/PressRelease/fbd8c9c1b8ae46e2b8bea848fa083877
+2024-10-25T14:00,UoM Consumer Sentiment (final),https://data.sca.isr.umich.edu/fetchdoc.php?docid=77386
+2024-10-29T14:00,CB Consumer Confidence,https://www.prnewswire.com/news-releases/us-consumer-confidence-bounced-back-in-october-302290100.html
+2024-10-29T14:00,JOLTS job openings (BLS),https://www.bls.gov/schedule/2024/home.htm
+2024-10-30T12:15,ADP National Employment Report,https://www.prnewswire.com/news-releases/adp-national-employment-report-private-sector-employment-increased-by-233-000-jobs-in-october-annual-pay-was-up-4-6-302291459.html
+2024-10-30T12:30,GDP (BEA),https://www.bea.gov/sites/default/files/2024-06/2024-News-Release-Schedule.pdf
+2024-10-31T12:30,Employment Cost Index (BLS),https://www.bls.gov/schedule/2024/home.htm
+2024-10-31T12:30,"Personal income and outlays, core PCE (BEA)",https://www.bea.gov/sites/default/files/2024-06/2024-News-Release-Schedule.pdf
+2024-10-31T12:30,Unemployment Claims (DOL),https://oui.doleta.gov/press/2024/103124.pdf
+2024-11-01T12:30,"Employment Situation: NFP, AHE, unemployment rate (BLS)",https://www.bls.gov/schedule/2024/home.htm
+2024-11-01T14:00,ISM Manufacturing PMI,https://www.prnewswire.com/news-releases/manufacturing-pmi-at-46-5-october-2024-manufacturing-ism-report-on-business-302293215.html
+2024-11-05T15:00,ISM Services PMI,https://www.prnewswire.com/news-releases/services-pmi-at-56-october-2024-services-ism-report-on-business-302295651.html
+2024-11-05T18:00,10-y Note Auction (Treasury),"https://api.fiscaldata.treasury.gov/services/api/fiscal_service/v1/accounting/od/auctions_query?fields=record_date,cusip,security_type,security_term,auction_date,issue_date,maturity_date,closing_time_comp,closing_time_noncomp,original_security_term,reopening,inflation_index_security,floating_rate,high_yield,offering_amt,announcemt_date,pdf_filenm_comp_results,original_issue_date&filter=auction_date:gte:2024-01-01,auction_date:lte:2026-09-30,security_type:in:(Note,Bond)&sort=auction_date&page%5Bsize%5D=1000"
+2024-11-06T18:00,30-y Bond Auction (Treasury),"https://api.fiscaldata.treasury.gov/services/api/fiscal_service/v1/accounting/od/auctions_query?fields=record_date,cusip,security_type,security_term,auction_date,issue_date,maturity_date,closing_time_comp,closing_time_noncomp,original_security_term,reopening,inflation_index_security,floating_rate,high_yield,offering_amt,announcemt_date,pdf_filenm_comp_results,original_issue_date&filter=auction_date:gte:2024-01-01,auction_date:lte:2026-09-30,security_type:in:(Note,Bond)&sort=auction_date&page%5Bsize%5D=1000"
+2024-11-07T13:30,Unemployment Claims (DOL),https://oui.doleta.gov/press/2024/110724.pdf
+2024-11-07T19:00,"FOMC statement, rate decision (Fed)",https://www.federalreserve.gov/newsevents/2024-november.htm
+2024-11-07T19:30,FOMC press conference (Fed),https://www.federalreserve.gov/newsevents/2024-november.htm
+2024-11-08T15:00,UoM Consumer Sentiment (prelim),https://data.sca.isr.umich.edu/fetchdoc.php?docid=77462
+2024-11-13T13:30,CPI (BLS),https://www.bls.gov/schedule/2024/home.htm
+2024-11-14T13:30,PPI (BLS),https://www.bls.gov/schedule/2024/home.htm
+2024-11-14T13:30,Unemployment Claims (DOL),https://oui.doleta.gov/press/2024/111424.pdf
+2024-11-14T20:00,Fed Chair Jerome H. Powell speaks (Fed),https://www.federalreserve.gov/newsevents/2024-november.htm
+2024-11-14T21:00,Treasury FX Report,https://home.treasury.gov/news/press-releases/jy2714
+2024-11-15T13:30,Empire State Manufacturing,https://www.newyorkfed.org/survey/empire/empiresurvey_archives
+2024-11-15T13:30,Retail Sales (Census advance),https://www2.census.gov/retail/releases/historical/marts/adv2410.pdf
+2024-11-21T13:30,Unemployment Claims (DOL),https://oui.doleta.gov/press/2024/112124.pdf
+2024-11-22T14:45,S&P Global Flash US PMI,https://www.pmi.spglobal.com/Public/Home/PressRelease/7c0f490250264deba7b64595935c501a
+2024-11-22T15:00,UoM Consumer Sentiment (final),https://data.sca.isr.umich.edu/fetchdoc.php?docid=77548
+2024-11-26T15:00,CB Consumer Confidence,https://www.prnewswire.com/news-releases/us-consumer-confidence-improved-again-in-november-302316573.html
+2024-11-26T19:00,FOMC minutes (Fed),https://www.federalreserve.gov/newsevents/2024-november.htm
+2024-11-27T13:30,GDP (BEA),https://www.bea.gov/sites/default/files/2024-06/2024-News-Release-Schedule.pdf
+2024-11-27T13:30,Unemployment Claims (DOL),https://oui.doleta.gov/press/2024/112724.pdf
+2024-11-27T15:00,"Personal income and outlays, core PCE (BEA)",https://www.bea.gov/sites/default/files/2024-06/2024-News-Release-Schedule.pdf
+2024-12-02T15:00,ISM Manufacturing PMI,https://www.prnewswire.com/news-releases/manufacturing-pmi-at-48-4-november-2024-manufacturing-ism-report-on-business-302317575.html
+2024-12-03T15:00,JOLTS job openings (BLS),https://www.bls.gov/schedule/2024/home.htm
+2024-12-04T13:15,ADP National Employment Report,https://www.prnewswire.com/news-releases/adp-national-employment-report-private-sector-employment-increased-by-146-000-jobs-in-november-annual-pay-was-up-4-8-302322430.html
+2024-12-04T15:00,ISM Services PMI,https://www.prnewswire.com/news-releases/services-pmi-at-52-1-november-2024-services-ism-report-on-business-302321303.html
+2024-12-04T18:40,Fed Chair Jerome H. Powell speaks (Fed),https://www.federalreserve.gov/newsevents/2024-december.htm
+2024-12-05T13:30,Unemployment Claims (DOL),https://oui.doleta.gov/press/2024/120524.pdf
+2024-12-06T13:30,"Employment Situation: NFP, AHE, unemployment rate (BLS)",https://www.bls.gov/schedule/2024/home.htm
+2024-12-06T15:00,UoM Consumer Sentiment (prelim),https://data.sca.isr.umich.edu/fetchdoc.php?docid=77625
+2024-12-11T13:30,CPI (BLS),https://www.bls.gov/schedule/2024/home.htm
+2024-12-11T18:00,10-y Note Auction (Treasury),"https://api.fiscaldata.treasury.gov/services/api/fiscal_service/v1/accounting/od/auctions_query?fields=record_date,cusip,security_type,security_term,auction_date,issue_date,maturity_date,closing_time_comp,closing_time_noncomp,original_security_term,reopening,inflation_index_security,floating_rate,high_yield,offering_amt,announcemt_date,pdf_filenm_comp_results,original_issue_date&filter=auction_date:gte:2024-01-01,auction_date:lte:2026-09-30,security_type:in:(Note,Bond)&sort=auction_date&page%5Bsize%5D=1000"
+2024-12-12T13:30,PPI (BLS),https://www.bls.gov/schedule/2024/home.htm
+2024-12-12T13:30,Unemployment Claims (DOL),https://oui.doleta.gov/press/2024/121224.pdf
+2024-12-12T18:00,30-y Bond Auction (Treasury),"https://api.fiscaldata.treasury.gov/services/api/fiscal_service/v1/accounting/od/auctions_query?fields=record_date,cusip,security_type,security_term,auction_date,issue_date,maturity_date,closing_time_comp,closing_time_noncomp,original_security_term,reopening,inflation_index_security,floating_rate,high_yield,offering_amt,announcemt_date,pdf_filenm_comp_results,original_issue_date&filter=auction_date:gte:2024-01-01,auction_date:lte:2026-09-30,security_type:in:(Note,Bond)&sort=auction_date&page%5Bsize%5D=1000"
+2024-12-16T13:30,Empire State Manufacturing,https://www.newyorkfed.org/survey/empire/empiresurvey_archives
+2024-12-16T14:45,S&P Global Flash US PMI,https://www.pmi.spglobal.com/Public/Home/PressRelease/8537676804634a8b9243c2911f2243a1
+2024-12-17T13:30,Retail Sales (Census advance),https://www2.census.gov/retail/releases/historical/marts/adv2411.pdf
+2024-12-18T19:00,"FOMC statement, rate decision, SEP (Fed)",https://www.federalreserve.gov/newsevents/2024-december.htm
+2024-12-18T19:30,FOMC press conference (Fed),https://www.federalreserve.gov/newsevents/2024-december.htm
+2024-12-19T13:30,GDP (BEA),https://www.bea.gov/sites/default/files/2024-06/2024-News-Release-Schedule.pdf
+2024-12-19T13:30,Unemployment Claims (DOL),https://oui.doleta.gov/press/2024/121924.pdf
+2024-12-20T13:30,"Personal income and outlays, core PCE (BEA)",https://www.bea.gov/sites/default/files/2024-06/2024-News-Release-Schedule.pdf
+2024-12-20T15:00,UoM Consumer Sentiment (final),https://data.sca.isr.umich.edu/fetchdoc.php?docid=77763
+2024-12-23T15:00,CB Consumer Confidence,https://www.prnewswire.com/news-releases/us-consumer-confidence-pulled-back-in-december-302338372.html
+2024-12-26T13:30,Unemployment Claims (DOL),https://oui.doleta.gov/press/2024/122624.pdf
+2025-01-02T13:30,Unemployment Claims (DOL),https://oui.doleta.gov/press/2025/010225.pdf
+2025-01-03T15:00,ISM Manufacturing PMI,https://www.prnewswire.com/news-releases/manufacturing-pmi-at-49-3-december-2024-manufacturing-ism-report-on-business-302341381.html
+2025-01-07T15:00,ISM Services PMI,https://www.prnewswire.com/news-releases/services-pmi-at-54-1-december-2024-services-ism-report-on-business-302343431.html
+2025-01-07T15:00,JOLTS job openings (BLS),https://www.bls.gov/schedule/2025/home.htm
+2025-01-07T18:00,10-y Note Auction (Treasury),"https://api.fiscaldata.treasury.gov/services/api/fiscal_service/v1/accounting/od/auctions_query?fields=record_date,cusip,security_type,security_term,auction_date,issue_date,maturity_date,closing_time_comp,closing_time_noncomp,original_security_term,reopening,inflation_index_security,floating_rate,high_yield,offering_amt,announcemt_date,pdf_filenm_comp_results,original_issue_date&filter=auction_date:gte:2024-01-01,auction_date:lte:2026-09-30,security_type:in:(Note,Bond)&sort=auction_date&page%5Bsize%5D=1000"
+2025-01-08T13:15,ADP National Employment Report,https://www.prnewswire.com/news-releases/adp-national-employment-report-private-sector-employment-increased-by-122-000-jobs-in-december-annual-pay-was-up-4-6-302345778.html
+2025-01-08T13:30,Unemployment Claims (DOL),https://oui.doleta.gov/press/2025/010825.pdf
+2025-01-08T18:00,30-y Bond Auction (Treasury),"https://api.fiscaldata.treasury.gov/services/api/fiscal_service/v1/accounting/od/auctions_query?fields=record_date,cusip,security_type,security_term,auction_date,issue_date,maturity_date,closing_time_comp,closing_time_noncomp,original_security_term,reopening,inflation_index_security,floating_rate,high_yield,offering_amt,announcemt_date,pdf_filenm_comp_results,original_issue_date&filter=auction_date:gte:2024-01-01,auction_date:lte:2026-09-30,security_type:in:(Note,Bond)&sort=auction_date&page%5Bsize%5D=1000"
+2025-01-08T19:00,FOMC minutes (Fed),https://www.federalreserve.gov/monetarypolicy/fomccalendars.htm
+2025-01-10T13:30,"Employment Situation: NFP, AHE, unemployment rate (BLS)",https://www.bls.gov/schedule/2025/home.htm
+2025-01-10T15:00,UoM Consumer Sentiment (prelim),https://data.sca.isr.umich.edu/fetchdoc.php?docid=77827
+2025-01-14T13:30,PPI (BLS),https://www.bls.gov/schedule/2025/home.htm
+2025-01-15T13:30,CPI (BLS),https://www.bls.gov/schedule/2025/home.htm
+2025-01-15T13:30,Empire State Manufacturing,https://www.newyorkfed.org/survey/empire/empiresurvey_archives
+2025-01-16T13:30,Retail Sales (Census advance),https://www2.census.gov/retail/releases/historical/marts/adv2412.pdf
+2025-01-16T13:30,Unemployment Claims (DOL),https://oui.doleta.gov/press/2025/011625.pdf
+2025-01-23T13:30,Unemployment Claims (DOL),https://oui.doleta.gov/press/2025/012325.pdf
+2025-01-24T14:45,S&P Global Flash US PMI,https://www.pmi.spglobal.com/Public/Home/PressRelease/93dcd42e0e5f44d3899605d537b6c350
+2025-01-24T15:00,UoM Consumer Sentiment (final),https://data.sca.isr.umich.edu/fetchdoc.php?docid=77939
+2025-01-28T15:00,CB Consumer Confidence,https://www.prnewswire.com/news-releases/us-consumer-confidence-retreated-in-january-302362076.html
+2025-01-29T19:00,"FOMC statement, rate decision (Fed)",https://www.federalreserve.gov/newsevents/2025-january.htm
+2025-01-29T19:30,FOMC press conference (Fed),https://www.federalreserve.gov/newsevents/2025-january.htm
+2025-01-30T13:30,GDP (BEA),https://apps.bea.gov/API/signup/release_dates.json
+2025-01-30T13:30,Unemployment Claims (DOL),https://oui.doleta.gov/press/2025/013025.pdf
+2025-01-31T13:30,Employment Cost Index (BLS),https://www.bls.gov/schedule/2025/home.htm
+2025-01-31T13:30,"Personal income and outlays, core PCE (BEA)",https://apps.bea.gov/API/signup/release_dates.json
+2025-02-03T15:00,ISM Manufacturing PMI,https://www.prnewswire.com/news-releases/manufacturing-pmi-at-50-9-january-2025-manufacturing-ism-report-on-business-302365753.html
+2025-02-04T15:00,JOLTS job openings (BLS),https://www.bls.gov/schedule/2025/home.htm
+2025-02-05T13:15,ADP National Employment Report,https://www.prnewswire.com/news-releases/adp-national-employment-report-private-sector-employment-increased-by-183-000-jobs-in-january-annual-pay-was-up-4-7-302368831.html
+2025-02-05T15:00,ISM Services PMI,https://www.prnewswire.com/news-releases/services-pmi-at-52-8-january-2025-services-ism-report-on-business-302367882.html
+2025-02-06T13:30,Unemployment Claims (DOL),https://oui.doleta.gov/press/2025/020625.pdf
+2025-02-07T13:30,"Employment Situation: NFP, AHE, unemployment rate (BLS)",https://www.bls.gov/schedule/2025/home.htm
+2025-02-07T15:00,UoM Consumer Sentiment (prelim),https://data.sca.isr.umich.edu/fetchdoc.php?docid=78021
+2025-02-11T15:00,Fed Chair Jerome H. Powell testifies (Fed),https://www.federalreserve.gov/newsevents/2025-february.htm
+2025-02-12T13:30,CPI (BLS),https://www.bls.gov/schedule/2025/home.htm
+2025-02-12T15:00,Fed Chair Jerome H. Powell testifies (Fed),https://www.federalreserve.gov/newsevents/2025-february.htm
+2025-02-12T18:00,10-y Note Auction (Treasury),"https://api.fiscaldata.treasury.gov/services/api/fiscal_service/v1/accounting/od/auctions_query?fields=record_date,cusip,security_type,security_term,auction_date,issue_date,maturity_date,closing_time_comp,closing_time_noncomp,original_security_term,reopening,inflation_index_security,floating_rate,high_yield,offering_amt,announcemt_date,pdf_filenm_comp_results,original_issue_date&filter=auction_date:gte:2024-01-01,auction_date:lte:2026-09-30,security_type:in:(Note,Bond)&sort=auction_date&page%5Bsize%5D=1000"
+2025-02-13T13:30,PPI (BLS),https://www.bls.gov/schedule/2025/home.htm
+2025-02-13T13:30,Unemployment Claims (DOL),https://oui.doleta.gov/press/2025/021325.pdf
+2025-02-13T18:00,30-y Bond Auction (Treasury),"https://api.fiscaldata.treasury.gov/services/api/fiscal_service/v1/accounting/od/auctions_query?fields=record_date,cusip,security_type,security_term,auction_date,issue_date,maturity_date,closing_time_comp,closing_time_noncomp,original_security_term,reopening,inflation_index_security,floating_rate,high_yield,offering_amt,announcemt_date,pdf_filenm_comp_results,original_issue_date&filter=auction_date:gte:2024-01-01,auction_date:lte:2026-09-30,security_type:in:(Note,Bond)&sort=auction_date&page%5Bsize%5D=1000"
+2025-02-14T13:30,Retail Sales (Census advance),https://www2.census.gov/retail/releases/historical/marts/adv2501.pdf
+2025-02-18T13:30,Empire State Manufacturing,https://www.newyorkfed.org/survey/empire/empiresurvey_archives
+2025-02-19T19:00,FOMC minutes (Fed),https://www.federalreserve.gov/newsevents/2025-february.htm
+2025-02-20T13:30,Unemployment Claims (DOL),https://oui.doleta.gov/press/2025/022025.pdf
+2025-02-21T14:45,S&P Global Flash US PMI,https://www.pmi.spglobal.com/Public/Home/PressRelease/c3a10cc3461d4d8aa1758082292e7358
+2025-02-21T15:00,UoM Consumer Sentiment (final),https://data.sca.isr.umich.edu/fetchdoc.php?docid=78142
+2025-02-25T15:00,CB Consumer Confidence,https://www.prnewswire.com/news-releases/us-consumer-confidence-dropped-sharply-in-february-302384647.html
+2025-02-27T13:30,GDP (BEA),https://apps.bea.gov/API/signup/release_dates.json
+2025-02-27T13:30,Unemployment Claims (DOL),https://oui.doleta.gov/press/2025/022725.pdf
+2025-02-28T13:30,"Personal income and outlays, core PCE (BEA)",https://apps.bea.gov/API/signup/release_dates.json
+2025-03-03T15:00,ISM Manufacturing PMI,https://www.prnewswire.com/news-releases/manufacturing-pmi-at-50-3-february-2025-manufacturing-ism-report-on-business-302388950.html
+2025-03-05T13:15,ADP National Employment Report,https://www.prnewswire.com/news-releases/adp-national-employment-report-private-sector-employment-increased-by-77-000-jobs-in-february-annual-pay-was-up-4-7-302393083.html
+2025-03-05T15:00,ISM Services PMI,https://www.prnewswire.com/news-releases/services-pmi-at-53-5-february-2025-services-ism-report-on-business-302392223.html
+2025-03-06T13:30,Unemployment Claims (DOL),https://oui.doleta.gov/press/2025/030625.pdf
+2025-03-07T13:30,"Employment Situation: NFP, AHE, unemployment rate (BLS)",https://www.bls.gov/schedule/2025/home.htm
+2025-03-07T17:30,Fed Chair Jerome H. Powell speaks (Fed),https://www.federalreserve.gov/newsevents/2025-march.htm
+2025-03-11T14:00,JOLTS job openings (BLS),https://www.bls.gov/schedule/2025/home.htm
+2025-03-12T12:30,CPI (BLS),https://www.bls.gov/schedule/2025/home.htm
+2025-03-12T17:00,10-y Note Auction (Treasury),"https://api.fiscaldata.treasury.gov/services/api/fiscal_service/v1/accounting/od/auctions_query?fields=record_date,cusip,security_type,security_term,auction_date,issue_date,maturity_date,closing_time_comp,closing_time_noncomp,original_security_term,reopening,inflation_index_security,floating_rate,high_yield,offering_amt,announcemt_date,pdf_filenm_comp_results,original_issue_date&filter=auction_date:gte:2024-01-01,auction_date:lte:2026-09-30,security_type:in:(Note,Bond)&sort=auction_date&page%5Bsize%5D=1000"
+2025-03-13T12:30,PPI (BLS),https://www.bls.gov/schedule/2025/home.htm
+2025-03-13T12:30,Unemployment Claims (DOL),https://oui.doleta.gov/press/2025/031325.pdf
+2025-03-13T17:00,30-y Bond Auction (Treasury),"https://api.fiscaldata.treasury.gov/services/api/fiscal_service/v1/accounting/od/auctions_query?fields=record_date,cusip,security_type,security_term,auction_date,issue_date,maturity_date,closing_time_comp,closing_time_noncomp,original_security_term,reopening,inflation_index_security,floating_rate,high_yield,offering_amt,announcemt_date,pdf_filenm_comp_results,original_issue_date&filter=auction_date:gte:2024-01-01,auction_date:lte:2026-09-30,security_type:in:(Note,Bond)&sort=auction_date&page%5Bsize%5D=1000"
+2025-03-14T14:00,UoM Consumer Sentiment (prelim),https://data.sca.isr.umich.edu/fetchdoc.php?docid=78219
+2025-03-17T12:30,Empire State Manufacturing,https://www.newyorkfed.org/survey/empire/empiresurvey_archives
+2025-03-17T12:30,Retail Sales (Census advance),https://www2.census.gov/retail/releases/historical/marts/adv2502.pdf
+2025-03-19T18:00,"FOMC statement, rate decision, SEP (Fed)",https://www.federalreserve.gov/newsevents/2025-march.htm
+2025-03-19T18:30,FOMC press conference (Fed),https://www.federalreserve.gov/newsevents/2025-march.htm
+2025-03-20T12:30,Unemployment Claims (DOL),https://oui.doleta.gov/press/2025/032025.pdf
+2025-03-24T13:45,S&P Global Flash US PMI,https://www.pmi.spglobal.com/Public/Home/PressRelease/a30301f1804041a083e1a0671ee3df46
+2025-03-25T14:00,CB Consumer Confidence,https://www.prnewswire.com/news-releases/us-consumer-confidence-tumbled-again-in-march-302410584.html
+2025-03-27T12:30,GDP (BEA),https://apps.bea.gov/API/signup/release_dates.json
+2025-03-27T12:30,Unemployment Claims (DOL),https://oui.doleta.gov/press/2025/032725.pdf
+2025-03-28T12:30,"Personal income and outlays, core PCE (BEA)",https://apps.bea.gov/API/signup/release_dates.json
+2025-03-28T14:00,UoM Consumer Sentiment (final),https://data.sca.isr.umich.edu/fetchdoc.php?docid=78363
+2025-04-01T14:00,ISM Manufacturing PMI,https://www.prnewswire.com/news-releases/manufacturing-pmi-at-49-march-2025-manufacturing-ism-report-on-business-302416129.html
+2025-04-01T14:00,JOLTS job openings (BLS),https://www.bls.gov/schedule/2025/home.htm
+2025-04-02T12:15,ADP National Employment Report,https://www.prnewswire.com/news-releases/adp-national-employment-report-private-sector-employment-increased-by-155-000-jobs-in-march-annual-pay-was-up-4-6-302418421.html
+2025-04-03T12:30,Unemployment Claims (DOL),https://oui.doleta.gov/press/2025/040325.pdf
+2025-04-03T14:00,ISM Services PMI,https://www.prnewswire.com/news-releases/services-pmi-at-50-8-march-2025-services-ism-report-on-business-302418828.html
+2025-04-04T12:30,"Employment Situation: NFP, AHE, unemployment rate (BLS)",https://www.bls.gov/schedule/2025/home.htm
+2025-04-04T15:25,Fed Chair Jerome H. Powell speaks (Fed),https://www.federalreserve.gov/newsevents/2025-april.htm
+2025-04-09T17:00,10-y Note Auction (Treasury),"https://api.fiscaldata.treasury.gov/services/api/fiscal_service/v1/accounting/od/auctions_query?fields=record_date,cusip,security_type,security_term,auction_date,issue_date,maturity_date,closing_time_comp,closing_time_noncomp,original_security_term,reopening,inflation_index_security,floating_rate,high_yield,offering_amt,announcemt_date,pdf_filenm_comp_results,original_issue_date&filter=auction_date:gte:2024-01-01,auction_date:lte:2026-09-30,security_type:in:(Note,Bond)&sort=auction_date&page%5Bsize%5D=1000"
+2025-04-09T18:00,FOMC minutes (Fed),https://www.federalreserve.gov/newsevents/2025-april.htm
+2025-04-10T12:30,CPI (BLS),https://www.bls.gov/schedule/2025/home.htm
+2025-04-10T12:30,Unemployment Claims (DOL),https://oui.doleta.gov/press/2025/041025.pdf
+2025-04-10T17:00,30-y Bond Auction (Treasury),"https://api.fiscaldata.treasury.gov/services/api/fiscal_service/v1/accounting/od/auctions_query?fields=record_date,cusip,security_type,security_term,auction_date,issue_date,maturity_date,closing_time_comp,closing_time_noncomp,original_security_term,reopening,inflation_index_security,floating_rate,high_yield,offering_amt,announcemt_date,pdf_filenm_comp_results,original_issue_date&filter=auction_date:gte:2024-01-01,auction_date:lte:2026-09-30,security_type:in:(Note,Bond)&sort=auction_date&page%5Bsize%5D=1000"
+2025-04-11T12:30,PPI (BLS),https://www.bls.gov/schedule/2025/home.htm
+2025-04-11T14:00,UoM Consumer Sentiment (prelim),https://data.sca.isr.umich.edu/fetchdoc.php?docid=78452
+2025-04-15T12:30,Empire State Manufacturing,https://www.newyorkfed.org/survey/empire/empiresurvey_archives
+2025-04-16T12:30,Retail Sales (Census advance),https://www2.census.gov/retail/releases/historical/marts/adv2503.pdf
+2025-04-16T17:30,Fed Chair Jerome H. Powell speaks (Fed),https://www.federalreserve.gov/newsevents/2025-april.htm
+2025-04-17T12:30,Unemployment Claims (DOL),https://oui.doleta.gov/press/2025/041725.pdf
+2025-04-23T13:45,S&P Global Flash US PMI,https://www.pmi.spglobal.com/Public/Home/PressRelease/9ee36c52b8a649adada211c1842512be
+2025-04-24T12:30,Unemployment Claims (DOL),https://oui.doleta.gov/press/2025/042425.pdf
+2025-04-25T14:00,UoM Consumer Sentiment (final),https://data.sca.isr.umich.edu/fetchdoc.php?docid=78601
+2025-04-29T14:00,CB Consumer Confidence,https://www.prnewswire.com/news-releases/us-consumer-confidence-plunged-again-in-april-302441206.html
+2025-04-29T14:00,JOLTS job openings (BLS),https://www.bls.gov/schedule/2025/home.htm
+2025-04-30T12:15,ADP National Employment Report,https://www.prnewswire.com/news-releases/adp-national-employment-report-private-sector-employment-increased-by-62-000-jobs-in-april-annual-pay-was-up-4-5-302442587.html
+2025-04-30T12:30,Employment Cost Index (BLS),https://www.bls.gov/schedule/2025/home.htm
+2025-04-30T12:30,GDP (BEA),https://apps.bea.gov/API/signup/release_dates.json
+2025-04-30T14:00,"Personal income and outlays, core PCE (BEA)",https://apps.bea.gov/API/signup/release_dates.json
+2025-05-01T12:30,Unemployment Claims (DOL),https://oui.doleta.gov/press/2025/050125.pdf
+2025-05-01T14:00,ISM Manufacturing PMI,https://www.prnewswire.com/news-releases/manufacturing-pmi-at-48-7-april-2025-manufacturing-ism-report-on-business-302443282.html
+2025-05-02T12:30,"Employment Situation: NFP, AHE, unemployment rate (BLS)",https://www.bls.gov/schedule/2025/home.htm
+2025-05-05T14:00,ISM Services PMI,https://www.prnewswire.com/news-releases/services-pmi-at-51-6-april-2025-services-ism-report-on-business-302445222.html
+2025-05-06T17:00,10-y Note Auction (Treasury),"https://api.fiscaldata.treasury.gov/services/api/fiscal_service/v1/accounting/od/auctions_query?fields=record_date,cusip,security_type,security_term,auction_date,issue_date,maturity_date,closing_time_comp,closing_time_noncomp,original_security_term,reopening,inflation_index_security,floating_rate,high_yield,offering_amt,announcemt_date,pdf_filenm_comp_results,original_issue_date&filter=auction_date:gte:2024-01-01,auction_date:lte:2026-09-30,security_type:in:(Note,Bond)&sort=auction_date&page%5Bsize%5D=1000"
+2025-05-07T18:00,"FOMC statement, rate decision (Fed)",https://www.federalreserve.gov/newsevents/2025-may.htm
+2025-05-07T18:30,FOMC press conference (Fed),https://www.federalreserve.gov/newsevents/2025-may.htm
+2025-05-08T12:30,Unemployment Claims (DOL),https://oui.doleta.gov/press/2025/050825.pdf
+2025-05-08T17:00,30-y Bond Auction (Treasury),"https://api.fiscaldata.treasury.gov/services/api/fiscal_service/v1/accounting/od/auctions_query?fields=record_date,cusip,security_type,security_term,auction_date,issue_date,maturity_date,closing_time_comp,closing_time_noncomp,original_security_term,reopening,inflation_index_security,floating_rate,high_yield,offering_amt,announcemt_date,pdf_filenm_comp_results,original_issue_date&filter=auction_date:gte:2024-01-01,auction_date:lte:2026-09-30,security_type:in:(Note,Bond)&sort=auction_date&page%5Bsize%5D=1000"
+2025-05-13T12:30,CPI (BLS),https://www.bls.gov/schedule/2025/home.htm
+2025-05-15T12:30,Empire State Manufacturing,https://www.newyorkfed.org/survey/empire/empiresurvey_archives
+2025-05-15T12:30,PPI (BLS),https://www.bls.gov/schedule/2025/home.htm
+2025-05-15T12:30,Retail Sales (Census advance),https://www2.census.gov/retail/releases/historical/marts/adv2504.pdf
+2025-05-15T12:30,Unemployment Claims (DOL),https://oui.doleta.gov/press/2025/051525.pdf
+2025-05-15T12:40,Fed Chair Jerome H. Powell speaks (Fed),https://www.federalreserve.gov/newsevents/2025-may.htm
+2025-05-16T14:00,UoM Consumer Sentiment (prelim),https://data.sca.isr.umich.edu/fetchdoc.php?docid=78723
+2025-05-22T12:30,Unemployment Claims (DOL),https://oui.doleta.gov/press/2025/052225.pdf
+2025-05-22T13:45,S&P Global Flash US PMI,https://www.pmi.spglobal.com/Public/Home/PressRelease/730109510e164e5489ff0a326463f6ab
+2025-05-25T18:40,Fed Chair Jerome H. Powell speaks (Fed),https://www.federalreserve.gov/newsevents/2025-may.htm
+2025-05-27T14:00,CB Consumer Confidence,https://www.prnewswire.com/news-releases/us-consumer-confidence-partially-rebounds-in-may-302465852.html
+2025-05-28T18:00,FOMC minutes (Fed),https://www.federalreserve.gov/newsevents/2025-may.htm
+2025-05-29T12:30,GDP (BEA),https://apps.bea.gov/API/signup/release_dates.json
+2025-05-29T12:30,Unemployment Claims (DOL),https://oui.doleta.gov/press/2025/052925.pdf
+2025-05-30T12:30,"Personal income and outlays, core PCE (BEA)",https://apps.bea.gov/API/signup/release_dates.json
+2025-05-30T14:00,UoM Consumer Sentiment (final),https://data.sca.isr.umich.edu/fetchdoc.php?docid=78835
+2025-06-02T14:00,ISM Manufacturing PMI,https://www.prnewswire.com/news-releases/manufacturing-pmi-at-48-5-may-2025-manufacturing-ism-report-on-business-302470183.html
+2025-06-02T17:00,Fed Chair Jerome H. Powell speaks (Fed),https://www.federalreserve.gov/newsevents/2025-june.htm
+2025-06-03T14:00,JOLTS job openings (BLS),https://www.bls.gov/schedule/2025/home.htm
+2025-06-04T12:15,ADP National Employment Report,https://www.prnewswire.com/news-releases/adp-national-employment-report-private-sector-employment-increased-by-37-000-jobs-in-may-annual-pay-was-up-4-5-302473143.html
+2025-06-04T14:00,ISM Services PMI,https://www.prnewswire.com/news-releases/services-pmi-at-49-9-may-2025-services-ism-report-on-business-302472478.html
+2025-06-05T12:30,Unemployment Claims (DOL),https://oui.doleta.gov/press/2025/060525.pdf
+2025-06-05T20:00,Treasury FX Report,https://home.treasury.gov/news/press-releases/sb0157
+2025-06-06T12:30,"Employment Situation: NFP, AHE, unemployment rate (BLS)",https://www.bls.gov/schedule/2025/home.htm
+2025-06-11T12:30,CPI (BLS),https://www.bls.gov/schedule/2025/home.htm
+2025-06-11T17:00,10-y Note Auction (Treasury),"https://api.fiscaldata.treasury.gov/services/api/fiscal_service/v1/accounting/od/auctions_query?fields=record_date,cusip,security_type,security_term,auction_date,issue_date,maturity_date,closing_time_comp,closing_time_noncomp,original_security_term,reopening,inflation_index_security,floating_rate,high_yield,offering_amt,announcemt_date,pdf_filenm_comp_results,original_issue_date&filter=auction_date:gte:2024-01-01,auction_date:lte:2026-09-30,security_type:in:(Note,Bond)&sort=auction_date&page%5Bsize%5D=1000"
+2025-06-12T12:30,PPI (BLS),https://www.bls.gov/schedule/2025/home.htm
+2025-06-12T12:30,Unemployment Claims (DOL),https://oui.doleta.gov/press/2025/061225.pdf
+2025-06-12T17:00,30-y Bond Auction (Treasury),"https://api.fiscaldata.treasury.gov/services/api/fiscal_service/v1/accounting/od/auctions_query?fields=record_date,cusip,security_type,security_term,auction_date,issue_date,maturity_date,closing_time_comp,closing_time_noncomp,original_security_term,reopening,inflation_index_security,floating_rate,high_yield,offering_amt,announcemt_date,pdf_filenm_comp_results,original_issue_date&filter=auction_date:gte:2024-01-01,auction_date:lte:2026-09-30,security_type:in:(Note,Bond)&sort=auction_date&page%5Bsize%5D=1000"
+2025-06-13T14:00,UoM Consumer Sentiment (prelim),https://data.sca.isr.umich.edu/fetchdoc.php?docid=78956
+2025-06-16T12:30,Empire State Manufacturing,https://www.newyorkfed.org/survey/empire/empiresurvey_archives
+2025-06-17T12:30,Retail Sales (Census advance),https://www2.census.gov/retail/releases/historical/marts/adv2505.pdf
+2025-06-18T12:30,Unemployment Claims (DOL),https://oui.doleta.gov/press/2025/061825.pdf
+2025-06-18T18:00,"FOMC statement, rate decision, SEP (Fed)",https://www.federalreserve.gov/newsevents/2025-june.htm
+2025-06-18T18:30,FOMC press conference (Fed),https://www.federalreserve.gov/newsevents/2025-june.htm
+2025-06-23T13:45,S&P Global Flash US PMI,https://www.pmi.spglobal.com/Public/Home/PressRelease/39d3680103b24fa69e87a6bd87c758e0
+2025-06-24T14:00,CB Consumer Confidence,https://www.prnewswire.com/news-releases/us-consumer-confidence-retreats-in-june-302489618.html
+2025-06-24T14:00,Fed Chair Jerome H. Powell testifies (Fed),https://www.federalreserve.gov/newsevents/2025-june.htm
+2025-06-25T14:00,Fed Chair Jerome H. Powell testifies (Fed),https://www.federalreserve.gov/newsevents/2025-june.htm
+2025-06-26T12:30,GDP (BEA),https://apps.bea.gov/API/signup/release_dates.json
+2025-06-26T12:30,Unemployment Claims (DOL),https://oui.doleta.gov/press/2025/062625.pdf
+2025-06-27T12:30,"Personal income and outlays, core PCE (BEA)",https://apps.bea.gov/API/signup/release_dates.json
+2025-06-27T14:00,UoM Consumer Sentiment (final),https://data.sca.isr.umich.edu/fetchdoc.php?docid=79095
+2025-07-01T13:30,Fed Chair Jerome H. Powell speaks (Fed),https://www.federalreserve.gov/newsevents/2025-july.htm
+2025-07-01T14:00,ISM Manufacturing PMI,https://www.prnewswire.com/news-releases/manufacturing-pmi-at-49-june-2025-manufacturing-ism-report-on-business-302494937.html
+2025-07-01T14:00,JOLTS job openings (BLS),https://www.bls.gov/schedule/2025/home.htm
+2025-07-02T12:15,ADP National Employment Report,https://www.prnewswire.com/news-releases/adp-national-employment-report-private-sector-employment-shed-33-000-jobs-in-june-annual-pay-was-up-4-4-302496753.html
+2025-07-03T12:30,"Employment Situation: NFP, AHE, unemployment rate (BLS)",https://www.bls.gov/schedule/2025/home.htm
+2025-07-03T12:30,Unemployment Claims (DOL),https://oui.doleta.gov/press/2025/070325.pdf
+2025-07-03T14:00,ISM Services PMI,https://www.prnewswire.com/news-releases/services-pmi-at-50-8-june-2025-services-ism-report-on-business-302497305.html
+2025-07-09T17:00,10-y Note Auction (Treasury),"https://api.fiscaldata.treasury.gov/services/api/fiscal_service/v1/accounting/od/auctions_query?fields=record_date,cusip,security_type,security_term,auction_date,issue_date,maturity_date,closing_time_comp,closing_time_noncomp,original_security_term,reopening,inflation_index_security,floating_rate,high_yield,offering_amt,announcemt_date,pdf_filenm_comp_results,original_issue_date&filter=auction_date:gte:2024-01-01,auction_date:lte:2026-09-30,security_type:in:(Note,Bond)&sort=auction_date&page%5Bsize%5D=1000"
+2025-07-09T18:00,FOMC minutes (Fed),https://www.federalreserve.gov/newsevents/2025-july.htm
+2025-07-10T12:30,Unemployment Claims (DOL),https://oui.doleta.gov/press/2025/071025.pdf
+2025-07-10T17:00,30-y Bond Auction (Treasury),"https://api.fiscaldata.treasury.gov/services/api/fiscal_service/v1/accounting/od/auctions_query?fields=record_date,cusip,security_type,security_term,auction_date,issue_date,maturity_date,closing_time_comp,closing_time_noncomp,original_security_term,reopening,inflation_index_security,floating_rate,high_yield,offering_amt,announcemt_date,pdf_filenm_comp_results,original_issue_date&filter=auction_date:gte:2024-01-01,auction_date:lte:2026-09-30,security_type:in:(Note,Bond)&sort=auction_date&page%5Bsize%5D=1000"
+2025-07-15T12:30,CPI (BLS),https://www.bls.gov/schedule/2025/home.htm
+2025-07-15T12:30,Empire State Manufacturing,https://www.newyorkfed.org/survey/empire/empiresurvey_archives
+2025-07-16T12:30,PPI (BLS),https://www.bls.gov/schedule/2025/home.htm
+2025-07-17T12:30,Retail Sales (Census advance),https://www2.census.gov/retail/releases/historical/marts/adv2506.pdf
+2025-07-17T12:30,Unemployment Claims (DOL),https://oui.doleta.gov/press/2025/071725.pdf
+2025-07-18T14:00,UoM Consumer Sentiment (prelim),https://data.sca.isr.umich.edu/fetchdoc.php?docid=79216
+2025-07-22T12:30,Fed Chair Jerome H. Powell speaks (Fed),https://www.federalreserve.gov/newsevents/2025-july.htm
+2025-07-24T12:30,Unemployment Claims (DOL),https://oui.doleta.gov/press/2025/072425.pdf
+2025-07-24T13:45,S&P Global Flash US PMI,https://www.pmi.spglobal.com/Public/Home/PressRelease/1af69f9287454749b8cf193c5acae2b0
+2025-07-29T14:00,CB Consumer Confidence,https://www.prnewswire.com/news-releases/us-consumer-confidence-inched-up-in-july-302516077.html
+2025-07-29T14:00,JOLTS job openings (BLS),https://www.bls.gov/schedule/2025/home.htm
+2025-07-30T12:15,ADP National Employment Report,https://www.prnewswire.com/news-releases/adp-national-employment-report-private-sector-employment-increased-by-104-000-jobs-in-july-annual-pay-was-up-4-4-302517308.html
+2025-07-30T12:30,GDP (BEA),https://apps.bea.gov/API/signup/release_dates.json
+2025-07-30T18:00,"FOMC statement, rate decision (Fed)",https://www.federalreserve.gov/newsevents/2025-july.htm
+2025-07-30T18:30,FOMC press conference (Fed),https://www.federalreserve.gov/newsevents/2025-july.htm
+2025-07-31T12:30,Employment Cost Index (BLS),https://www.bls.gov/schedule/2025/home.htm
+2025-07-31T12:30,"Personal income and outlays, core PCE (BEA)",https://apps.bea.gov/API/signup/release_dates.json
+2025-07-31T12:30,Unemployment Claims (DOL),https://oui.doleta.gov/press/2025/073125.pdf
+2025-08-01T12:30,"Employment Situation: NFP, AHE, unemployment rate (BLS)",https://www.bls.gov/schedule/2025/home.htm
+2025-08-01T14:00,ISM Manufacturing PMI,https://www.prnewswire.com/news-releases/manufacturing-pmi-at-48-july-2025-manufacturing-ism-report-on-business-302519014.html
+2025-08-01T14:00,UoM Consumer Sentiment (final),https://data.sca.isr.umich.edu/fetchdoc.php?docid=79330
+2025-08-05T14:00,ISM Services PMI,https://www.prnewswire.com/news-releases/services-pmi-at-50-1-july-2025-services-ism-report-on-business-302521042.html
+2025-08-06T17:00,10-y Note Auction (Treasury),"https://api.fiscaldata.treasury.gov/services/api/fiscal_service/v1/accounting/od/auctions_query?fields=record_date,cusip,security_type,security_term,auction_date,issue_date,maturity_date,closing_time_comp,closing_time_noncomp,original_security_term,reopening,inflation_index_security,floating_rate,high_yield,offering_amt,announcemt_date,pdf_filenm_comp_results,original_issue_date&filter=auction_date:gte:2024-01-01,auction_date:lte:2026-09-30,security_type:in:(Note,Bond)&sort=auction_date&page%5Bsize%5D=1000"
+2025-08-07T12:30,Unemployment Claims (DOL),https://oui.doleta.gov/press/2025/080725.pdf
+2025-08-07T17:00,30-y Bond Auction (Treasury),"https://api.fiscaldata.treasury.gov/services/api/fiscal_service/v1/accounting/od/auctions_query?fields=record_date,cusip,security_type,security_term,auction_date,issue_date,maturity_date,closing_time_comp,closing_time_noncomp,original_security_term,reopening,inflation_index_security,floating_rate,high_yield,offering_amt,announcemt_date,pdf_filenm_comp_results,original_issue_date&filter=auction_date:gte:2024-01-01,auction_date:lte:2026-09-30,security_type:in:(Note,Bond)&sort=auction_date&page%5Bsize%5D=1000"
+2025-08-12T12:30,CPI (BLS),https://www.bls.gov/schedule/2025/home.htm
+2025-08-14T12:30,PPI (BLS),https://www.bls.gov/schedule/2025/home.htm
+2025-08-14T12:30,Unemployment Claims (DOL),https://oui.doleta.gov/press/2025/081425.pdf
+2025-08-15T12:30,Empire State Manufacturing,https://www.newyorkfed.org/survey/empire/empiresurvey_archives
+2025-08-15T12:30,Retail Sales (Census advance),https://www2.census.gov/retail/releases/historical/marts/adv2507.pdf
+2025-08-15T14:00,UoM Consumer Sentiment (prelim),https://data.sca.isr.umich.edu/fetchdoc.php?docid=79451
+2025-08-20T18:00,FOMC minutes (Fed),https://www.federalreserve.gov/newsevents/2025-august.htm
+2025-08-21T12:30,Unemployment Claims (DOL),https://oui.doleta.gov/press/2025/082125.pdf
+2025-08-21T13:45,S&P Global Flash US PMI,https://www.pmi.spglobal.com/Public/Home/PressRelease/970a92b794eb4408b7b0a3df3073d275
+2025-08-22T14:00,Fed Chair Jerome H. Powell speaks (Fed),https://www.federalreserve.gov/newsevents/2025-august.htm
+2025-08-26T14:00,CB Consumer Confidence,https://www.prnewswire.com/news-releases/us-consumer-confidence-little-changed-in-august-302538912.html
+2025-08-28T12:30,GDP (BEA),https://apps.bea.gov/API/signup/release_dates.json
+2025-08-28T12:30,Unemployment Claims (DOL),https://oui.doleta.gov/press/2025/082825.pdf
+2025-08-29T12:30,"Personal income and outlays, core PCE (BEA)",https://apps.bea.gov/API/signup/release_dates.json
+2025-08-29T14:00,UoM Consumer Sentiment (final),https://data.sca.isr.umich.edu/fetchdoc.php?docid=79564
+2025-09-02T14:00,ISM Manufacturing PMI,https://www.prnewswire.com/news-releases/manufacturing-pmi-at-48-7-august-2025-ism-manufacturing-pmi-report-302543264.html
+2025-09-03T14:00,JOLTS job openings (BLS),https://www.bls.gov/schedule/2025/home.htm
+2025-09-04T12:15,ADP National Employment Report,https://www.prnewswire.com/news-releases/adp-national-employment-report-private-sector-employment-increased-by-54-000-jobs-in-august-annual-pay-was-up-4-4-302546503.html
+2025-09-04T12:30,Unemployment Claims (DOL),https://oui.doleta.gov/press/2025/090425.pdf
+2025-09-04T14:00,ISM Services PMI,https://www.prnewswire.com/news-releases/services-pmi-at-52-august-2025-ism-services-pmi-report-302545705.html
+2025-09-05T12:30,"Employment Situation: NFP, AHE, unemployment rate (BLS)",https://www.bls.gov/schedule/2025/home.htm
+2025-09-10T12:30,PPI (BLS),https://www.bls.gov/schedule/2025/home.htm
+2025-09-10T17:00,10-y Note Auction (Treasury),"https://api.fiscaldata.treasury.gov/services/api/fiscal_service/v1/accounting/od/auctions_query?fields=record_date,cusip,security_type,security_term,auction_date,issue_date,maturity_date,closing_time_comp,closing_time_noncomp,original_security_term,reopening,inflation_index_security,floating_rate,high_yield,offering_amt,announcemt_date,pdf_filenm_comp_results,original_issue_date&filter=auction_date:gte:2024-01-01,auction_date:lte:2026-09-30,security_type:in:(Note,Bond)&sort=auction_date&page%5Bsize%5D=1000"
+2025-09-11T12:30,CPI (BLS),https://www.bls.gov/schedule/2025/home.htm
+2025-09-11T12:30,Unemployment Claims (DOL),https://oui.doleta.gov/press/2025/091125.pdf
+2025-09-11T17:00,30-y Bond Auction (Treasury),"https://api.fiscaldata.treasury.gov/services/api/fiscal_service/v1/accounting/od/auctions_query?fields=record_date,cusip,security_type,security_term,auction_date,issue_date,maturity_date,closing_time_comp,closing_time_noncomp,original_security_term,reopening,inflation_index_security,floating_rate,high_yield,offering_amt,announcemt_date,pdf_filenm_comp_results,original_issue_date&filter=auction_date:gte:2024-01-01,auction_date:lte:2026-09-30,security_type:in:(Note,Bond)&sort=auction_date&page%5Bsize%5D=1000"
+2025-09-12T14:00,UoM Consumer Sentiment (prelim),https://data.sca.isr.umich.edu/fetchdoc.php?docid=79625
+2025-09-15T12:30,Empire State Manufacturing,https://www.newyorkfed.org/survey/empire/empiresurvey_archives
+2025-09-16T12:30,Retail Sales (Census advance),https://www2.census.gov/retail/releases/historical/marts/adv2508.pdf
+2025-09-17T18:00,"FOMC statement, rate decision, SEP (Fed)",https://www.federalreserve.gov/newsevents/2025-september.htm
+2025-09-17T18:30,FOMC press conference (Fed),https://www.federalreserve.gov/newsevents/2025-september.htm
+2025-09-18T12:30,Unemployment Claims (DOL),https://oui.doleta.gov/press/2025/091825.pdf
+2025-09-23T13:45,S&P Global Flash US PMI,https://www.pmi.spglobal.com/Public/Home/PressRelease/b15622fa46c94d74af2bd879a1f8e72b
+2025-09-23T16:35,Fed Chair Jerome H. Powell speaks (Fed),https://www.federalreserve.gov/newsevents/2025-september.htm
+2025-09-25T12:30,GDP (BEA),https://apps.bea.gov/API/signup/release_dates.json
+2025-09-25T12:30,Unemployment Claims (DOL),https://oui.doleta.gov/press/2025/092525.pdf
+2025-09-26T12:30,"Personal income and outlays, core PCE (BEA)",https://apps.bea.gov/API/signup/release_dates.json
+2025-09-26T14:00,UoM Consumer Sentiment (final),https://data.sca.isr.umich.edu/fetchdoc.php?docid=79767
+2025-09-30T14:00,CB Consumer Confidence,https://www.prnewswire.com/news-releases/us-consumer-confidence-declines-again-in-september-302570940.html
+2025-09-30T14:00,JOLTS job openings (BLS),https://www.bls.gov/schedule/2025/home.htm
+2025-10-01T12:15,ADP National Employment Report,https://www.prnewswire.com/news-releases/adp-national-employment-report-private-sector-employment-shed-32-000-jobs-in-september-annual-pay-was-up-4-5-302572337.html
+2025-10-01T14:00,ISM Manufacturing PMI,https://www.prnewswire.com/news-releases/manufacturing-pmi-at-49-1-september-2025-ism-manufacturing-pmi-report-302571530.html
+2025-10-03T14:00,ISM Services PMI,https://www.prnewswire.com/news-releases/services-pmi-at-50-september-2025-ism-services-pmi-report-302574151.html
+2025-10-08T17:00,10-y Note Auction (Treasury),"https://api.fiscaldata.treasury.gov/services/api/fiscal_service/v1/accounting/od/auctions_query?fields=record_date,cusip,security_type,security_term,auction_date,issue_date,maturity_date,closing_time_comp,closing_time_noncomp,original_security_term,reopening,inflation_index_security,floating_rate,high_yield,offering_amt,announcemt_date,pdf_filenm_comp_results,original_issue_date&filter=auction_date:gte:2024-01-01,auction_date:lte:2026-09-30,security_type:in:(Note,Bond)&sort=auction_date&page%5Bsize%5D=1000"
+2025-10-08T18:00,FOMC minutes (Fed),https://www.federalreserve.gov/newsevents/2025-october.htm
+2025-10-09T12:30,Fed Chair Jerome H. Powell speaks (Fed),https://www.federalreserve.gov/newsevents/2025-october.htm
+2025-10-09T17:00,30-y Bond Auction (Treasury),"https://api.fiscaldata.treasury.gov/services/api/fiscal_service/v1/accounting/od/auctions_query?fields=record_date,cusip,security_type,security_term,auction_date,issue_date,maturity_date,closing_time_comp,closing_time_noncomp,original_security_term,reopening,inflation_index_security,floating_rate,high_yield,offering_amt,announcemt_date,pdf_filenm_comp_results,original_issue_date&filter=auction_date:gte:2024-01-01,auction_date:lte:2026-09-30,security_type:in:(Note,Bond)&sort=auction_date&page%5Bsize%5D=1000"
+2025-10-10T14:00,UoM Consumer Sentiment (prelim),https://data.sca.isr.umich.edu/fetchdoc.php?docid=79830
+2025-10-14T16:20,Fed Chair Jerome H. Powell speaks (Fed),https://www.federalreserve.gov/newsevents/2025-october.htm
+2025-10-15T12:30,Empire State Manufacturing,https://www.newyorkfed.org/survey/empire/empiresurvey_archives
+2025-10-24T12:30,CPI (BLS),https://www.bls.gov/schedule/2025/home.htm
+2025-10-24T13:45,S&P Global Flash US PMI,https://www.pmi.spglobal.com/Public/Home/PressRelease/eb6ffb6222214cbfbb42d44541c5ebbe
+2025-10-24T14:00,UoM Consumer Sentiment (final),https://data.sca.isr.umich.edu/fetchdoc.php?docid=79943
+2025-10-28T14:00,CB Consumer Confidence,https://www.prnewswire.com/news-releases/us-consumer-confidence-virtually-unchanged-in-october-302596825.html
+2025-10-29T18:00,"FOMC statement, rate decision (Fed)",https://www.federalreserve.gov/newsevents/2025-october.htm
+2025-10-29T18:30,FOMC press conference (Fed),https://www.federalreserve.gov/newsevents/2025-october.htm
+2025-11-03T15:00,ISM Manufacturing PMI,https://www.prnewswire.com/news-releases/manufacturing-pmi-at-48-7-october-2025-ism-manufacturing-pmi-report-302601422.html
+2025-11-05T13:15,ADP National Employment Report,https://www.prnewswire.com/news-releases/adp-national-employment-report-private-sector-employment-increased-by-42-000-jobs-in-october-annual-pay-was-up-4-5-302605577.html
+2025-11-05T15:00,ISM Services PMI,https://www.prnewswire.com/news-releases/services-pmi-at-52-4-october-2025-ism-services-pmi-report-302604583.html
+2025-11-07T15:00,UoM Consumer Sentiment (prelim),https://data.sca.isr.umich.edu/fetchdoc.php?docid=80005
+2025-11-12T18:00,10-y Note Auction (Treasury),"https://api.fiscaldata.treasury.gov/services/api/fiscal_service/v1/accounting/od/auctions_query?fields=record_date,cusip,security_type,security_term,auction_date,issue_date,maturity_date,closing_time_comp,closing_time_noncomp,original_security_term,reopening,inflation_index_security,floating_rate,high_yield,offering_amt,announcemt_date,pdf_filenm_comp_results,original_issue_date&filter=auction_date:gte:2024-01-01,auction_date:lte:2026-09-30,security_type:in:(Note,Bond)&sort=auction_date&page%5Bsize%5D=1000"
+2025-11-13T18:00,30-y Bond Auction (Treasury),"https://api.fiscaldata.treasury.gov/services/api/fiscal_service/v1/accounting/od/auctions_query?fields=record_date,cusip,security_type,security_term,auction_date,issue_date,maturity_date,closing_time_comp,closing_time_noncomp,original_security_term,reopening,inflation_index_security,floating_rate,high_yield,offering_amt,announcemt_date,pdf_filenm_comp_results,original_issue_date&filter=auction_date:gte:2024-01-01,auction_date:lte:2026-09-30,security_type:in:(Note,Bond)&sort=auction_date&page%5Bsize%5D=1000"
+2025-11-17T13:30,Empire State Manufacturing,https://www.newyorkfed.org/survey/empire/empiresurvey_archives
+2025-11-19T19:00,FOMC minutes (Fed),https://www.federalreserve.gov/newsevents/2025-11.htm
+2025-11-20T13:30,"Employment Situation: NFP, AHE, unemployment rate (BLS)",https://www.bls.gov/schedule/2025/home.htm
+2025-11-20T13:30,Unemployment Claims (DOL),https://oui.doleta.gov/press/2025/112025.pdf
+2025-11-21T14:45,S&P Global Flash US PMI,https://www.pmi.spglobal.com/Public/Home/PressRelease/7da582e151d74189902319ed1465da03
+2025-11-21T15:00,UoM Consumer Sentiment (final),https://data.sca.isr.umich.edu/fetchdoc.php?docid=80119
+2025-11-25T13:30,PPI (BLS),https://www.bls.gov/schedule/2025/home.htm
+2025-11-25T13:30,Retail Sales (Census advance),https://www2.census.gov/retail/releases/historical/marts/adv2509.pdf
+2025-11-25T15:00,CB Consumer Confidence,https://www.prnewswire.com/news-releases/us-consumer-confidence-fell-sharply-in-november-302625725.html
+2025-11-26T13:30,Unemployment Claims (DOL),https://oui.doleta.gov/press/2025/112625.pdf
+2025-12-01T15:00,ISM Manufacturing PMI,https://www.prnewswire.com/news-releases/manufacturing-pmi-at-48-2-november-2025-ism-manufacturing-pmi-report-302626979.html
+2025-12-02T01:00,Fed Chair Jerome H. Powell speaks (Fed),https://www.federalreserve.gov/newsevents/2025-december.htm
+2025-12-03T13:15,ADP National Employment Report,https://www.prnewswire.com/news-releases/adp-national-employment-report-private-sector-employment-shed-32-000-jobs-in-november-annual-pay-was-up-4-4-302631706.html
+2025-12-03T15:00,ISM Services PMI,https://www.prnewswire.com/news-releases/services-pmi-at-52-6-november-2025-ism-services-pmi-report-302630958.html
+2025-12-04T13:30,Unemployment Claims (DOL),https://oui.doleta.gov/press/2025/120425.pdf
+2025-12-05T15:00,"Personal income and outlays, core PCE (BEA)",https://apps.bea.gov/API/signup/release_dates.json
+2025-12-05T15:00,UoM Consumer Sentiment (prelim),https://data.sca.isr.umich.edu/fetchdoc.php?docid=80182
+2025-12-09T15:00,JOLTS job openings (BLS),https://www.bls.gov/schedule/2025/home.htm
+2025-12-09T18:00,10-y Note Auction (Treasury),"https://api.fiscaldata.treasury.gov/services/api/fiscal_service/v1/accounting/od/auctions_query?fields=record_date,cusip,security_type,security_term,auction_date,issue_date,maturity_date,closing_time_comp,closing_time_noncomp,original_security_term,reopening,inflation_index_security,floating_rate,high_yield,offering_amt,announcemt_date,pdf_filenm_comp_results,original_issue_date&filter=auction_date:gte:2024-01-01,auction_date:lte:2026-09-30,security_type:in:(Note,Bond)&sort=auction_date&page%5Bsize%5D=1000"
+2025-12-10T13:30,Employment Cost Index (BLS),https://www.bls.gov/schedule/2025/home.htm
+2025-12-10T19:00,"FOMC statement, rate decision, SEP (Fed)",https://www.federalreserve.gov/newsevents/2025-december.htm
+2025-12-10T19:30,FOMC press conference (Fed),https://www.federalreserve.gov/newsevents/2025-december.htm
+2025-12-11T13:30,Unemployment Claims (DOL),https://oui.doleta.gov/press/2025/121125.pdf
+2025-12-11T18:00,30-y Bond Auction (Treasury),"https://api.fiscaldata.treasury.gov/services/api/fiscal_service/v1/accounting/od/auctions_query?fields=record_date,cusip,security_type,security_term,auction_date,issue_date,maturity_date,closing_time_comp,closing_time_noncomp,original_security_term,reopening,inflation_index_security,floating_rate,high_yield,offering_amt,announcemt_date,pdf_filenm_comp_results,original_issue_date&filter=auction_date:gte:2024-01-01,auction_date:lte:2026-09-30,security_type:in:(Note,Bond)&sort=auction_date&page%5Bsize%5D=1000"
+2025-12-15T13:30,Empire State Manufacturing,https://www.newyorkfed.org/survey/empire/empiresurvey_archives
+2025-12-16T13:30,"Employment Situation: NFP, AHE, unemployment rate (BLS)",https://www.bls.gov/schedule/2025/home.htm
+2025-12-16T13:30,Retail Sales (Census advance),https://www2.census.gov/retail/releases/historical/marts/adv2510.pdf
+2025-12-16T14:45,S&P Global Flash US PMI,https://www.pmi.spglobal.com/Public/Home/PressRelease/7c38539749e84275b30a6c77cf2bc463
+2025-12-18T13:30,CPI (BLS),https://www.bls.gov/schedule/2025/home.htm
+2025-12-18T13:30,Unemployment Claims (DOL),https://oui.doleta.gov/press/2025/121825.pdf
+2025-12-19T15:00,UoM Consumer Sentiment (final),https://data.sca.isr.umich.edu/fetchdoc.php?docid=80322
+2025-12-23T13:30,GDP (BEA),https://apps.bea.gov/API/signup/release_dates.json
+2025-12-23T15:00,CB Consumer Confidence,https://www.prnewswire.com/news-releases/us-consumer-confidence-fell-again-in-december-302648784.html
+2025-12-24T13:30,Unemployment Claims (DOL),https://oui.doleta.gov/press/2025/122425.pdf
+2025-12-30T19:00,FOMC minutes (Fed),https://www.federalreserve.gov/newsevents/2025-december.htm
+2025-12-31T13:30,Unemployment Claims (DOL),https://oui.doleta.gov/press/2025/123125.pdf
+2026-01-05T15:00,ISM Manufacturing PMI,https://www.prnewswire.com/news-releases/manufacturing-pmi-at-47-9-december-2025-ism-manufacturing-pmi-report-302649307.html
+2026-01-07T13:15,ADP National Employment Report,https://www.prnewswire.com/news-releases/adp-national-employment-report-private-sector-employment-increased-by-41-000-jobs-in-december-annual-pay-was-up-4-4-302655164.html
+2026-01-07T15:00,ISM Services PMI,https://www.prnewswire.com/news-releases/services-pmi-at-54-4-december-2025-ism-services-pmi-report-302654304.html
+2026-01-07T15:00,JOLTS job openings (BLS),https://www.bls.gov/schedule/2026/home.htm
+2026-01-08T13:30,Unemployment Claims (DOL),https://oui.doleta.gov/press/2026/010826.pdf
+2026-01-09T13:30,"Employment Situation: NFP, AHE, unemployment rate (BLS)",https://www.bls.gov/schedule/2026/home.htm
+2026-01-09T15:00,UoM Consumer Sentiment (prelim),https://data.sca.isr.umich.edu/fetchdoc.php?docid=80385
+2026-01-12T18:00,10-y Note Auction (Treasury),"https://api.fiscaldata.treasury.gov/services/api/fiscal_service/v1/accounting/od/auctions_query?fields=record_date,cusip,security_type,security_term,auction_date,issue_date,maturity_date,closing_time_comp,closing_time_noncomp,original_security_term,reopening,inflation_index_security,floating_rate,high_yield,offering_amt,announcemt_date,pdf_filenm_comp_results,original_issue_date&filter=auction_date:gte:2024-01-01,auction_date:lte:2026-09-30,security_type:in:(Note,Bond)&sort=auction_date&page%5Bsize%5D=1000"
+2026-01-13T13:30,CPI (BLS),https://www.bls.gov/schedule/2026/home.htm
+2026-01-13T18:00,30-y Bond Auction (Treasury),"https://api.fiscaldata.treasury.gov/services/api/fiscal_service/v1/accounting/od/auctions_query?fields=record_date,cusip,security_type,security_term,auction_date,issue_date,maturity_date,closing_time_comp,closing_time_noncomp,original_security_term,reopening,inflation_index_security,floating_rate,high_yield,offering_amt,announcemt_date,pdf_filenm_comp_results,original_issue_date&filter=auction_date:gte:2024-01-01,auction_date:lte:2026-09-30,security_type:in:(Note,Bond)&sort=auction_date&page%5Bsize%5D=1000"
+2026-01-14T13:30,PPI (BLS),https://www.bls.gov/schedule/2026/home.htm
+2026-01-14T13:30,Retail Sales (Census advance),https://www2.census.gov/retail/releases/historical/marts/adv2511.pdf
+2026-01-15T13:30,Empire State Manufacturing,https://www.newyorkfed.org/survey/empire/empiresurvey_overview
+2026-01-15T13:30,Unemployment Claims (DOL),https://oui.doleta.gov/press/2026/011526.pdf
+2026-01-22T13:30,GDP (BEA),https://apps.bea.gov/API/signup/release_dates.json
+2026-01-22T13:30,Unemployment Claims (DOL),https://oui.doleta.gov/press/2026/012226.pdf
+2026-01-22T15:00,"Personal income and outlays, core PCE (BEA)",https://apps.bea.gov/API/signup/release_dates.json
+2026-01-23T14:45,S&P Global Flash US PMI,https://www.pmi.spglobal.com/Public/Home/PressRelease/0a129f6065114f30907f0b169122e1f3
+2026-01-23T15:00,UoM Consumer Sentiment (final),https://data.sca.isr.umich.edu/fetchdoc.php?docid=80499
+2026-01-27T15:00,CB Consumer Confidence,https://www.prnewswire.com/news-releases/us-consumer-confidence-fell-sharply-in-january-302671278.html
+2026-01-28T19:00,"FOMC statement, rate decision (Fed)",https://www.federalreserve.gov/newsevents/2026-january.htm
+2026-01-28T19:30,FOMC press conference (Fed),https://www.federalreserve.gov/newsevents/2026-january.htm
+2026-01-29T13:30,Unemployment Claims (DOL),https://oui.doleta.gov/press/2026/012926.pdf
+2026-01-29T21:00,Treasury FX Report,https://home.treasury.gov/news/press-releases/sb0373
+2026-01-30T13:30,PPI (BLS),https://www.bls.gov/schedule/2026/home.htm
+2026-02-02T15:00,ISM Manufacturing PMI,https://www.prnewswire.com/news-releases/manufacturing-pmi-at-52-6-january-2026-ism-manufacturing-pmi-report-302675443.html
+2026-02-04T13:15,ADP National Employment Report,https://www.prnewswire.com/news-releases/adp-national-employment-report-private-sector-employment-increased-by-22-000-jobs-in-january-annual-pay-was-up-4-5-302678953.html
+2026-02-04T15:00,ISM Services PMI,https://www.prnewswire.com/news-releases/services-pmi-at-53-8-january-2026-ism-services-pmi-report-302678227.html
+2026-02-05T13:30,Unemployment Claims (DOL),https://oui.doleta.gov/press/2026/020526.pdf
+2026-02-05T15:00,JOLTS job openings (BLS),https://www.bls.gov/schedule/2026/home.htm
+2026-02-06T15:00,UoM Consumer Sentiment (prelim),https://data.sca.isr.umich.edu/fetchdoc.php?docid=80561
+2026-02-10T13:30,Employment Cost Index (BLS),https://www.bls.gov/schedule/2026/home.htm
+2026-02-10T13:30,Retail Sales (Census advance),https://www2.census.gov/retail/releases/historical/marts/adv2512.pdf
+2026-02-11T13:30,"Employment Situation: NFP, AHE, unemployment rate (BLS)",https://www.bls.gov/schedule/2026/home.htm
+2026-02-11T18:00,10-y Note Auction (Treasury),"https://api.fiscaldata.treasury.gov/services/api/fiscal_service/v1/accounting/od/auctions_query?fields=record_date,cusip,security_type,security_term,auction_date,issue_date,maturity_date,closing_time_comp,closing_time_noncomp,original_security_term,reopening,inflation_index_security,floating_rate,high_yield,offering_amt,announcemt_date,pdf_filenm_comp_results,original_issue_date&filter=auction_date:gte:2024-01-01,auction_date:lte:2026-09-30,security_type:in:(Note,Bond)&sort=auction_date&page%5Bsize%5D=1000"
+2026-02-12T13:30,Unemployment Claims (DOL),https://oui.doleta.gov/press/2026/021226.pdf
+2026-02-12T18:00,30-y Bond Auction (Treasury),"https://api.fiscaldata.treasury.gov/services/api/fiscal_service/v1/accounting/od/auctions_query?fields=record_date,cusip,security_type,security_term,auction_date,issue_date,maturity_date,closing_time_comp,closing_time_noncomp,original_security_term,reopening,inflation_index_security,floating_rate,high_yield,offering_amt,announcemt_date,pdf_filenm_comp_results,original_issue_date&filter=auction_date:gte:2024-01-01,auction_date:lte:2026-09-30,security_type:in:(Note,Bond)&sort=auction_date&page%5Bsize%5D=1000"
+2026-02-13T13:30,CPI (BLS),https://www.bls.gov/schedule/2026/home.htm
+2026-02-17T13:30,Empire State Manufacturing,https://www.newyorkfed.org/survey/empire/empiresurvey_overview
+2026-02-18T19:00,FOMC minutes (Fed),https://www.federalreserve.gov/newsevents/2026-february.htm
+2026-02-19T13:30,Unemployment Claims (DOL),https://oui.doleta.gov/press/2026/021926.pdf
+2026-02-20T13:30,GDP (BEA),https://apps.bea.gov/API/signup/release_dates.json
+2026-02-20T13:30,"Personal income and outlays, core PCE (BEA)",https://apps.bea.gov/API/signup/release_dates.json
+2026-02-20T14:45,S&P Global Flash US PMI,https://www.pmi.spglobal.com/Public/Home/PressRelease/de7251a734954460986e49e0ab041b2f
+2026-02-20T15:00,UoM Consumer Sentiment (final),https://data.sca.isr.umich.edu/fetchdoc.php?docid=80677
+2026-02-24T15:00,CB Consumer Confidence,https://www.prnewswire.com/news-releases/us-consumer-confidence-inched-up-in-february-302695754.html
+2026-02-26T13:30,Unemployment Claims (DOL),https://oui.doleta.gov/press/2026/022626.pdf
+2026-02-27T13:30,PPI (BLS),https://www.bls.gov/schedule/2026/home.htm
+2026-03-02T15:00,ISM Manufacturing PMI,https://www.prnewswire.com/news-releases/manufacturing-pmi-at-52-4-february-2026-ism-manufacturing-pmi-report-302699883.html
+2026-03-04T13:15,ADP National Employment Report,https://www.prnewswire.com/news-releases/adp-national-employment-report-private-sector-employment-increased-by-63-000-jobs-in-february-annual-pay-was-up-4-5-302703846.html
+2026-03-04T15:00,ISM Services PMI,https://www.prnewswire.com/news-releases/services-pmi-at-56-1-february-2026-ism-services-pmi-report-302702978.html
+2026-03-05T13:30,Unemployment Claims (DOL),https://oui.doleta.gov/press/2026/030526.pdf
+2026-03-06T13:30,"Employment Situation: NFP, AHE, unemployment rate (BLS)",https://www.bls.gov/schedule/2026/home.htm
+2026-03-06T13:30,Retail Sales (Census advance),https://www2.census.gov/retail/releases/historical/marts/adv2601.pdf
+2026-03-11T12:30,CPI (BLS),https://www.bls.gov/schedule/2026/home.htm
+2026-03-11T17:00,10-y Note Auction (Treasury),"https://api.fiscaldata.treasury.gov/services/api/fiscal_service/v1/accounting/od/auctions_query?fields=record_date,cusip,security_type,security_term,auction_date,issue_date,maturity_date,closing_time_comp,closing_time_noncomp,original_security_term,reopening,inflation_index_security,floating_rate,high_yield,offering_amt,announcemt_date,pdf_filenm_comp_results,original_issue_date&filter=auction_date:gte:2024-01-01,auction_date:lte:2026-09-30,security_type:in:(Note,Bond)&sort=auction_date&page%5Bsize%5D=1000"
+2026-03-12T12:30,Unemployment Claims (DOL),https://oui.doleta.gov/press/2026/031226.pdf
+2026-03-12T17:00,30-y Bond Auction (Treasury),"https://api.fiscaldata.treasury.gov/services/api/fiscal_service/v1/accounting/od/auctions_query?fields=record_date,cusip,security_type,security_term,auction_date,issue_date,maturity_date,closing_time_comp,closing_time_noncomp,original_security_term,reopening,inflation_index_security,floating_rate,high_yield,offering_amt,announcemt_date,pdf_filenm_comp_results,original_issue_date&filter=auction_date:gte:2024-01-01,auction_date:lte:2026-09-30,security_type:in:(Note,Bond)&sort=auction_date&page%5Bsize%5D=1000"
+2026-03-13T12:30,GDP (BEA),https://apps.bea.gov/API/signup/release_dates.json
+2026-03-13T12:30,"Personal income and outlays, core PCE (BEA)",https://apps.bea.gov/API/signup/release_dates.json
+2026-03-13T14:00,JOLTS job openings (BLS),https://www.bls.gov/schedule/2026/home.htm
+2026-03-13T14:00,UoM Consumer Sentiment (prelim),https://data.sca.isr.umich.edu/fetchdoc.php?docid=80739
+2026-03-16T12:30,Empire State Manufacturing,https://www.newyorkfed.org/survey/empire/empiresurvey_overview
+2026-03-18T12:30,PPI (BLS),https://www.bls.gov/schedule/2026/home.htm
+2026-03-18T18:00,"FOMC statement, rate decision, SEP (Fed)",https://www.federalreserve.gov/newsevents/2026-march.htm
+2026-03-18T18:30,FOMC press conference (Fed),https://www.federalreserve.gov/newsevents/2026-march.htm
+2026-03-19T12:30,Unemployment Claims (DOL),https://oui.doleta.gov/press/2026/031926.pdf
+2026-03-21T17:30,Fed Chair Jerome H. Powell speaks (Fed),https://www.federalreserve.gov/newsevents/2026-march.htm
+2026-03-24T13:45,S&P Global Flash US PMI,https://www.pmi.spglobal.com/Public/Home/PressRelease/adc91b5cf42442cbb220d5b66b64ec7d
+2026-03-26T12:30,Unemployment Claims (DOL),https://oui.doleta.gov/press/2026/032626.pdf
+2026-03-27T14:00,UoM Consumer Sentiment (final),https://data.sca.isr.umich.edu/fetchdoc.php?docid=80881
+2026-03-30T14:30,Fed Chair Jerome H. Powell speaks (Fed),https://www.federalreserve.gov/newsevents/2026-march.htm
+2026-03-31T14:00,CB Consumer Confidence,https://www.prnewswire.com/news-releases/us-consumer-confidence-inched-up-again-in-march-302730107.html
+2026-03-31T14:00,JOLTS job openings (BLS),https://www.bls.gov/schedule/2026/home.htm
+2026-04-01T12:15,ADP National Employment Report,https://www.prnewswire.com/news-releases/adp-national-employment-report-private-sector-employment-increased-by-62-000-jobs-in-march-annual-pay-was-up-4-5-302731281.html
+2026-04-01T12:30,Retail Sales (Census advance),https://www2.census.gov/retail/releases/historical/marts/adv2602.pdf
+2026-04-01T14:00,ISM Manufacturing PMI,https://www.prnewswire.com/news-releases/manufacturing-pmi-at-52-7-march-2026-ism-manufacturing-pmi-report-302730721.html
+2026-04-02T12:30,Unemployment Claims (DOL),https://oui.doleta.gov/press/2026/040226.pdf
+2026-04-03T12:30,"Employment Situation: NFP, AHE, unemployment rate (BLS)",https://www.bls.gov/schedule/2026/home.htm
+2026-04-06T14:00,ISM Services PMI,https://www.prnewswire.com/news-releases/services-pmi-at-54-march-2026-ism-services-pmi-report-302734026.html
+2026-04-08T17:00,10-y Note Auction (Treasury),"https://api.fiscaldata.treasury.gov/services/api/fiscal_service/v1/accounting/od/auctions_query?fields=record_date,cusip,security_type,security_term,auction_date,issue_date,maturity_date,closing_time_comp,closing_time_noncomp,original_security_term,reopening,inflation_index_security,floating_rate,high_yield,offering_amt,announcemt_date,pdf_filenm_comp_results,original_issue_date&filter=auction_date:gte:2024-01-01,auction_date:lte:2026-09-30,security_type:in:(Note,Bond)&sort=auction_date&page%5Bsize%5D=1000"
+2026-04-08T18:00,FOMC minutes (Fed),https://www.federalreserve.gov/newsevents/2026-04.htm
+2026-04-09T12:30,GDP (BEA),https://apps.bea.gov/API/signup/release_dates.json
+2026-04-09T12:30,"Personal income and outlays, core PCE (BEA)",https://apps.bea.gov/API/signup/release_dates.json
+2026-04-09T12:30,Unemployment Claims (DOL),https://oui.doleta.gov/press/2026/040926.pdf
+2026-04-09T17:00,30-y Bond Auction (Treasury),"https://api.fiscaldata.treasury.gov/services/api/fiscal_service/v1/accounting/od/auctions_query?fields=record_date,cusip,security_type,security_term,auction_date,issue_date,maturity_date,closing_time_comp,closing_time_noncomp,original_security_term,reopening,inflation_index_security,floating_rate,high_yield,offering_amt,announcemt_date,pdf_filenm_comp_results,original_issue_date&filter=auction_date:gte:2024-01-01,auction_date:lte:2026-09-30,security_type:in:(Note,Bond)&sort=auction_date&page%5Bsize%5D=1000"
+2026-04-10T12:30,CPI (BLS),https://www.bls.gov/schedule/2026/home.htm
+2026-04-10T14:00,UoM Consumer Sentiment (prelim),https://data.sca.isr.umich.edu/fetchdoc.php?docid=80946
+2026-04-14T12:30,PPI (BLS),https://www.bls.gov/schedule/2026/home.htm
+2026-04-15T12:30,Empire State Manufacturing,https://www.newyorkfed.org/survey/empire/empiresurvey_overview
+2026-04-16T12:30,Unemployment Claims (DOL),https://oui.doleta.gov/press/2026/041626.pdf
+2026-04-21T12:30,Retail Sales (Census advance),https://www2.census.gov/retail/releases/historical/marts/adv2603.pdf
+2026-04-23T12:30,Unemployment Claims (DOL),https://oui.doleta.gov/press/2026/042326.pdf
+2026-04-23T13:45,S&P Global Flash US PMI,https://www.pmi.spglobal.com/Public/Home/PressRelease/8bdf1bb2dddf420e9c0e9d7e22f75c09
+2026-04-24T14:00,UoM Consumer Sentiment (final),https://data.sca.isr.umich.edu/fetchdoc.php?docid=81060
+2026-04-28T14:00,CB Consumer Confidence,https://www.prnewswire.com/news-releases/us-consumer-confidence-edged-up-again-in-april-302755679.html
+2026-04-29T18:00,"FOMC statement, rate decision (Fed)",https://www.federalreserve.gov/newsevents/2026-04.htm
+2026-04-29T18:30,FOMC press conference (Fed),https://www.federalreserve.gov/newsevents/2026-04.htm
+2026-04-30T12:30,Employment Cost Index (BLS),https://www.bls.gov/schedule/2026/home.htm
+2026-04-30T12:30,GDP (BEA),https://apps.bea.gov/API/signup/release_dates.json
+2026-04-30T12:30,"Personal income and outlays, core PCE (BEA)",https://apps.bea.gov/API/signup/release_dates.json
+2026-04-30T12:30,Unemployment Claims (DOL),https://oui.doleta.gov/press/2026/043026.pdf
+2026-05-01T14:00,ISM Manufacturing PMI,https://www.prnewswire.com/news-releases/manufacturing-pmi-at-52-7-april-2026-ism-manufacturing-pmi-report-302759226.html
+2026-05-05T14:00,ISM Services PMI,https://www.prnewswire.com/news-releases/services-pmi-at-53-6-april-2026-ism-services-pmi-report-302761674.html
+2026-05-05T14:00,JOLTS job openings (BLS),https://www.bls.gov/schedule/2026/home.htm
+2026-05-06T12:15,ADP National Employment Report,https://www.prnewswire.com/news-releases/adp-national-employment-report-private-sector-employment-increased-by-109-000-jobs-in-april-annual-pay-was-up-4-4-302764101.html
+2026-05-07T12:30,Unemployment Claims (DOL),https://oui.doleta.gov/press/2026/050726.pdf
+2026-05-08T12:30,"Employment Situation: NFP, AHE, unemployment rate (BLS)",https://www.bls.gov/schedule/2026/home.htm
+2026-05-08T14:00,UoM Consumer Sentiment (prelim),https://data.sca.isr.umich.edu/fetchdoc.php?docid=81123
+2026-05-12T12:30,CPI (BLS),https://www.bls.gov/schedule/2026/home.htm
+2026-05-12T17:00,10-y Note Auction (Treasury),"https://api.fiscaldata.treasury.gov/services/api/fiscal_service/v1/accounting/od/auctions_query?fields=record_date,cusip,security_type,security_term,auction_date,issue_date,maturity_date,closing_time_comp,closing_time_noncomp,original_security_term,reopening,inflation_index_security,floating_rate,high_yield,offering_amt,announcemt_date,pdf_filenm_comp_results,original_issue_date&filter=auction_date:gte:2024-01-01,auction_date:lte:2026-09-30,security_type:in:(Note,Bond)&sort=auction_date&page%5Bsize%5D=1000"
+2026-05-13T12:30,PPI (BLS),https://www.bls.gov/schedule/2026/home.htm
+2026-05-13T17:00,30-y Bond Auction (Treasury),"https://api.fiscaldata.treasury.gov/services/api/fiscal_service/v1/accounting/od/auctions_query?fields=record_date,cusip,security_type,security_term,auction_date,issue_date,maturity_date,closing_time_comp,closing_time_noncomp,original_security_term,reopening,inflation_index_security,floating_rate,high_yield,offering_amt,announcemt_date,pdf_filenm_comp_results,original_issue_date&filter=auction_date:gte:2024-01-01,auction_date:lte:2026-09-30,security_type:in:(Note,Bond)&sort=auction_date&page%5Bsize%5D=1000"
+2026-05-14T12:30,Retail Sales (Census advance),https://www2.census.gov/retail/releases/historical/marts/adv2604.pdf
+2026-05-14T12:30,Unemployment Claims (DOL),https://oui.doleta.gov/press/2026/051426.pdf
+2026-05-15T12:30,Empire State Manufacturing,https://www.newyorkfed.org/survey/empire/empiresurvey_overview
+2026-05-20T18:00,FOMC minutes (Fed),https://www.federalreserve.gov/newsevents/2026-may.htm
+2026-05-21T12:30,Unemployment Claims (DOL),https://oui.doleta.gov/press/2026/052126.pdf
+2026-05-21T13:45,S&P Global Flash US PMI,https://www.pmi.spglobal.com/Public/Home/PressRelease/d7a15ea4f43c4e3493db3814db67ad99
+2026-05-22T14:00,UoM Consumer Sentiment (final),https://data.sca.isr.umich.edu/fetchdoc.php?docid=81238
+2026-05-26T14:00,CB Consumer Confidence,https://www.prnewswire.com/news-releases/us-consumer-confidence-edged-downward-in-may-302781849.html
+2026-05-28T12:30,GDP (BEA),https://apps.bea.gov/API/signup/release_dates.json
+2026-05-28T12:30,"Personal income and outlays, core PCE (BEA)",https://apps.bea.gov/API/signup/release_dates.json
+2026-05-28T12:30,Unemployment Claims (DOL),https://oui.doleta.gov/press/2026/052826.pdf
+2026-06-01T14:00,ISM Manufacturing PMI,https://www.prnewswire.com/news-releases/manufacturing-pmi-at-54-may-2026-ism-manufacturing-pmi-report-302786165.html
+2026-06-02T14:00,JOLTS job openings (BLS),https://www.bls.gov/schedule/2026/home.htm
+2026-06-03T12:15,ADP National Employment Report,https://www.prnewswire.com/news-releases/adp-national-employment-report-private-sector-employment-increased-by-122-000-jobs-in-may-annual-pay-was-up-4-4-302790127.html
+2026-06-03T14:00,ISM Services PMI,https://www.prnewswire.com/news-releases/services-pmi-at-54-5-may-2026-ism-services-pmi-report-302789082.html
+2026-06-04T12:30,Unemployment Claims (DOL),https://oui.doleta.gov/press/2026/060426.pdf
+2026-06-05T12:30,"Employment Situation: NFP, AHE, unemployment rate (BLS)",https://www.bls.gov/schedule/2026/home.htm
+2026-06-10T12:30,CPI (BLS),https://www.bls.gov/schedule/2026/home.htm
+2026-06-10T17:00,10-y Note Auction (Treasury),"https://api.fiscaldata.treasury.gov/services/api/fiscal_service/v1/accounting/od/auctions_query?fields=record_date,cusip,security_type,security_term,auction_date,issue_date,maturity_date,closing_time_comp,closing_time_noncomp,original_security_term,reopening,inflation_index_security,floating_rate,high_yield,offering_amt,announcemt_date,pdf_filenm_comp_results,original_issue_date&filter=auction_date:gte:2024-01-01,auction_date:lte:2026-09-30,security_type:in:(Note,Bond)&sort=auction_date&page%5Bsize%5D=1000"
+2026-06-11T12:30,PPI (BLS),https://www.bls.gov/schedule/2026/home.htm
+2026-06-11T12:30,Unemployment Claims (DOL),https://oui.doleta.gov/press/2026/061126.pdf
+2026-06-11T17:00,30-y Bond Auction (Treasury),"https://api.fiscaldata.treasury.gov/services/api/fiscal_service/v1/accounting/od/auctions_query?fields=record_date,cusip,security_type,security_term,auction_date,issue_date,maturity_date,closing_time_comp,closing_time_noncomp,original_security_term,reopening,inflation_index_security,floating_rate,high_yield,offering_amt,announcemt_date,pdf_filenm_comp_results,original_issue_date&filter=auction_date:gte:2024-01-01,auction_date:lte:2026-09-30,security_type:in:(Note,Bond)&sort=auction_date&page%5Bsize%5D=1000"
+2026-06-12T14:00,UoM Consumer Sentiment (prelim),https://data.sca.isr.umich.edu/fetchdoc.php?docid=81300
+2026-06-15T12:30,Empire State Manufacturing,https://www.newyorkfed.org/survey/empire/empiresurvey_overview
+2026-06-17T12:30,Retail Sales (Census advance),https://www2.census.gov/retail/releases/historical/marts/adv2605.pdf
+2026-06-17T18:00,"FOMC statement, rate decision, SEP (Fed)",https://www.federalreserve.gov/newsevents/2026-june.htm
+2026-06-17T18:30,FOMC press conference (Fed),https://www.federalreserve.gov/newsevents/2026-june.htm
+2026-06-18T12:30,Unemployment Claims (DOL),https://oui.doleta.gov/press/2026/061826.pdf
+2026-06-23T13:45,S&P Global Flash US PMI,https://www.pmi.spglobal.com/Public/Home/PressRelease/0f8762edff954b619d90d12531497919
+2026-06-25T12:30,GDP (BEA),https://apps.bea.gov/API/signup/release_dates.json
+2026-06-25T12:30,"Personal income and outlays, core PCE (BEA)",https://apps.bea.gov/API/signup/release_dates.json
+2026-06-25T12:30,Unemployment Claims (DOL),https://oui.doleta.gov/press/2026/062526.pdf
+2026-06-26T14:00,UoM Consumer Sentiment (final),https://data.sca.isr.umich.edu/fetchdoc.php?docid=81440
+2026-06-30T14:00,CB Consumer Confidence,https://www.prnewswire.com/news-releases/us-consumer-confidence-inched-up-in-june-302814510.html
+2026-06-30T14:00,JOLTS job openings (BLS),https://www.bls.gov/schedule/2026/home.htm
+2026-07-01T12:15,ADP National Employment Report,https://www.prnewswire.com/news-releases/adp-national-employment-report-private-sector-employment-increased-by-98-000-jobs-in-june-annual-pay-was-up-4-4-302815768.html
+2026-07-01T13:00,Fed Chairman Kevin Warsh speaks (Fed),https://www.federalreserve.gov/newsevents/2026-july.htm
+2026-07-01T14:00,ISM Manufacturing PMI,https://www.prnewswire.com/news-releases/manufacturing-pmi-at-53-3-june-2026-ism-manufacturing-pmi-report-302814991.html
+2026-07-02T12:30,"Employment Situation: NFP, AHE, unemployment rate (BLS)",https://www.bls.gov/schedule/2026/home.htm
+2026-07-02T12:30,Unemployment Claims (DOL),https://oui.doleta.gov/press/2026/070226.pdf
+2026-07-06T14:00,ISM Services PMI,https://www.prnewswire.com/news-releases/services-pmi-at-54-june-2026-ism-services-pmi-report-302817275.html
+2026-07-08T17:00,10-y Note Auction (Treasury),"https://api.fiscaldata.treasury.gov/services/api/fiscal_service/v1/accounting/od/auctions_query?fields=record_date,cusip,security_type,security_term,auction_date,issue_date,maturity_date,closing_time_comp,closing_time_noncomp,original_security_term,reopening,inflation_index_security,floating_rate,high_yield,offering_amt,announcemt_date,pdf_filenm_comp_results,original_issue_date&filter=auction_date:gte:2024-01-01,auction_date:lte:2026-09-30,security_type:in:(Note,Bond)&sort=auction_date&page%5Bsize%5D=1000"
+2026-07-08T18:00,FOMC minutes (Fed),https://www.federalreserve.gov/newsevents/2026-july.htm
+2026-07-09T12:30,Unemployment Claims (DOL),https://oui.doleta.gov/press/2026/070926.pdf
+2026-07-09T17:00,30-y Bond Auction (Treasury),"https://api.fiscaldata.treasury.gov/services/api/fiscal_service/v1/accounting/od/auctions_query?fields=record_date,cusip,security_type,security_term,auction_date,issue_date,maturity_date,closing_time_comp,closing_time_noncomp,original_security_term,reopening,inflation_index_security,floating_rate,high_yield,offering_amt,announcemt_date,pdf_filenm_comp_results,original_issue_date&filter=auction_date:gte:2024-01-01,auction_date:lte:2026-09-30,security_type:in:(Note,Bond)&sort=auction_date&page%5Bsize%5D=1000"
+2026-07-14T12:30,CPI (BLS),https://www.bls.gov/schedule/2026/home.htm
+2026-07-14T14:00,Fed Chairman Kevin Warsh testifies (Fed),https://www.federalreserve.gov/newsevents/2026-july.htm
+2026-07-15T12:30,Empire State Manufacturing,https://www.newyorkfed.org/survey/empire/empiresurvey_overview
+2026-07-15T12:30,PPI (BLS),https://www.bls.gov/schedule/2026/home.htm
+2026-07-15T14:00,Fed Chairman Kevin Warsh testifies (Fed),https://www.federalreserve.gov/newsevents/2026-july.htm
+2026-07-16T12:30,Retail Sales (Census advance),https://www2.census.gov/retail/releases/historical/marts/adv2606.pdf
+2026-07-16T12:30,Unemployment Claims (DOL),https://oui.doleta.gov/press/2026/071626.pdf
+2026-07-17T14:00,UoM Consumer Sentiment (prelim),https://data.sca.isr.umich.edu/fetchdoc.php?docid=81504
+2026-07-23T12:30,Unemployment Claims (DOL),https://oui.doleta.gov/press/2026/072326.pdf
+2026-07-23T20:00,Treasury FX Report,https://home.treasury.gov/news/press-releases/sb0574
+2026-07-24T13:45,S&P Global Flash US PMI,https://www.pmi.spglobal.com/Public/Home/PressRelease/04dad02019414e5ebc89ec6a04b300bd
+2026-07-28T14:00,CB Consumer Confidence,https://www.prnewswire.com/news-releases/us-consumer-confidence-edged-down-in-july-302836484.html
+2026-07-29T18:00,"FOMC statement, rate decision (Fed)",https://www.federalreserve.gov/newsevents/2026-july.htm
+2026-07-29T18:30,FOMC press conference (Fed),https://www.federalreserve.gov/newsevents/2026-july.htm
+2026-07-30T12:30,GDP (BEA),https://apps.bea.gov/API/signup/release_dates.json
+2026-07-30T12:30,"Personal income and outlays, core PCE (BEA)",https://apps.bea.gov/API/signup/release_dates.json
+2026-07-30T12:30,Unemployment Claims (DOL),https://oui.doleta.gov/press/2026/073026.pdf
+2026-07-31T12:30,Employment Cost Index (BLS),https://www.bls.gov/schedule/2026/home.htm
+2026-07-31T14:00,UoM Consumer Sentiment (final),https://data.sca.isr.umich.edu/fetchdoc.php?docid=81618
+2026-08-03T14:00,ISM Manufacturing PMI,https://www.prnewswire.com/news-releases/manufacturing-pmi-at-55-6-july-2026-ism-manufacturing-pmi-report-302840669.html
+2026-08-04T14:00,JOLTS job openings (BLS),https://www.bls.gov/schedule/2026/home.htm
+2026-08-05T12:15,ADP National Employment Report,https://www.prnewswire.com/news-releases/adp-national-employment-report-private-sector-employment-increased-by-44-000-jobs-in-july-annual-pay-was-up-4-4-302843676.html
+2026-08-05T14:00,ISM Services PMI,https://www.prnewswire.com/news-releases/services-pmi-at-54-1-july-2026-ism-services-pmi-report-302843134.html
+2026-08-06T12:30,Unemployment Claims (DOL),https://oui.doleta.gov/press/2026/080626.pdf
+2026-08-07T12:30,"Employment Situation: NFP, AHE, unemployment rate (BLS)",https://www.bls.gov/schedule/2026/home.htm
+2026-08-12T12:30,CPI (BLS),https://www.bls.gov/schedule/2026/home.htm
+2026-08-12T17:00,10-y Note Auction (Treasury),"https://api.fiscaldata.treasury.gov/services/api/fiscal_service/v1/accounting/od/auctions_query?fields=record_date,cusip,security_type,security_term,auction_date,issue_date,maturity_date,closing_time_comp,closing_time_noncomp,original_security_term,reopening,inflation_index_security,floating_rate,high_yield,offering_amt,announcemt_date,pdf_filenm_comp_results,original_issue_date&filter=auction_date:gte:2024-01-01,auction_date:lte:2026-09-30,security_type:in:(Note,Bond)&sort=auction_date&page%5Bsize%5D=1000"
+2026-08-13T12:30,PPI (BLS),https://www.bls.gov/schedule/2026/home.htm
+2026-08-13T12:30,Unemployment Claims (DOL),https://oui.doleta.gov/press/2026/081326.pdf
+2026-08-13T17:00,30-y Bond Auction (Treasury),"https://api.fiscaldata.treasury.gov/services/api/fiscal_service/v1/accounting/od/auctions_query?fields=record_date,cusip,security_type,security_term,auction_date,issue_date,maturity_date,closing_time_comp,closing_time_noncomp,original_security_term,reopening,inflation_index_security,floating_rate,high_yield,offering_amt,announcemt_date,pdf_filenm_comp_results,original_issue_date&filter=auction_date:gte:2024-01-01,auction_date:lte:2026-09-30,security_type:in:(Note,Bond)&sort=auction_date&page%5Bsize%5D=1000"
+2026-08-14T12:30,Retail Sales (Census advance),https://www.census.gov/retail/marts/www/marts_current.pdf
+2026-08-14T14:00,UoM Consumer Sentiment (prelim),https://data.sca.isr.umich.edu/fetchdoc.php?docid=81740
+2026-08-17T12:30,Empire State Manufacturing,https://www.newyorkfed.org/survey/empire/empiresurvey_overview
+2026-08-19T18:00,FOMC minutes (Fed),https://www.federalreserve.gov/newsevents/2026-august.htm
+2026-08-20T12:30,Unemployment Claims (DOL),https://oui.doleta.gov/press/2026/082026.pdf
+2026-08-21T13:45,S&P Global Flash US PMI,https://www.pmi.spglobal.com/Public/Home/PressRelease/552d682e429640fcb8af7da17ad060c3
+2026-08-25T14:00,CB Consumer Confidence,https://www.prnewswire.com/news-releases/us-consumer-confidence-edged-down-slightly-in-august-302859371.html
+2026-08-26T12:30,GDP (BEA),https://apps.bea.gov/API/signup/release_dates.json
+2026-08-26T12:30,"Personal income and outlays, core PCE (BEA)",https://apps.bea.gov/API/signup/release_dates.json
+2026-08-27T12:30,Unemployment Claims (DOL),https://oui.doleta.gov/press/2026/082726.pdf
+2026-08-28T14:00,Fed Chairman Kevin Warsh speaks (Fed),https://www.federalreserve.gov/newsevents/2026-august.htm
+2026-08-28T14:00,UoM Consumer Sentiment (final),https://data.sca.isr.umich.edu/fetchdoc.php?docid=81854
+2026-09-01T14:00,ISM Manufacturing PMI,https://www.prnewswire.com/news-releases/manufacturing-pmi-at-54-6-august-2026-ism-manufacturing-pmi-report-302865127.html
+2026-09-01T14:00,JOLTS job openings (BLS),https://www.bls.gov/schedule/2026/home.htm
+2026-09-02T12:15,ADP National Employment Report,https://www.prnewswire.com/news-releases/adp-national-employment-report-private-sector-employment-increased-by-38-000-jobs-in-august-302867661.html
+2026-09-03T12:30,Unemployment Claims (DOL),https://oui.doleta.gov/press/2026/090326.pdf
+2026-09-03T14:00,ISM Services PMI,https://www.prnewswire.com/news-releases/services-pmi-at-55-4-august-2026-ism-services-pmi-report-302868046.html
+2026-09-04T12:30,"Employment Situation: NFP, AHE, unemployment rate (BLS)",https://www.bls.gov/schedule/2026/home.htm
+2026-09-09T17:00,10-y Note Auction (Treasury),"https://api.fiscaldata.treasury.gov/services/api/fiscal_service/v1/accounting/od/auctions_query?fields=record_date,cusip,security_type,security_term,auction_date,issue_date,maturity_date,closing_time_comp,closing_time_noncomp,original_security_term,reopening,inflation_index_security,floating_rate,high_yield,offering_amt,announcemt_date,pdf_filenm_comp_results,original_issue_date&filter=auction_date:gte:2024-01-01,auction_date:lte:2026-09-30,security_type:in:(Note,Bond)&sort=auction_date&page%5Bsize%5D=1000"
+2026-09-10T12:30,PPI (BLS),https://www.bls.gov/schedule/2026/home.htm
+2026-09-10T12:30,Unemployment Claims (DOL),https://oui.doleta.gov/press/2026/091026.pdf
+2026-09-10T17:00,30-y Bond Auction (Treasury),"https://api.fiscaldata.treasury.gov/services/api/fiscal_service/v1/accounting/od/auctions_query?fields=record_date,cusip,security_type,security_term,auction_date,issue_date,maturity_date,closing_time_comp,closing_time_noncomp,original_security_term,reopening,inflation_index_security,floating_rate,high_yield,offering_amt,announcemt_date,pdf_filenm_comp_results,original_issue_date&filter=auction_date:gte:2024-01-01,auction_date:lte:2026-09-30,security_type:in:(Note,Bond)&sort=auction_date&page%5Bsize%5D=1000"
+2026-09-11T12:30,CPI (BLS),https://www.bls.gov/schedule/2026/home.htm
+2026-09-11T14:00,UoM Consumer Sentiment (prelim),https://data.sca.isr.umich.edu/fetchdoc.php?docid=81974
+2026-09-15T12:30,Empire State Manufacturing,https://www.newyorkfed.org/survey/empire/empiresurvey_overview
+2026-09-16T12:30,Retail Sales (Census advance),https://www.census.gov/retail/marts/www/marts_current.pdf
+2026-09-16T18:00,"FOMC statement, rate decision, SEP (Fed)",https://www.federalreserve.gov/newsevents/2026-september.htm
+2026-09-16T18:30,FOMC press conference (Fed),https://www.federalreserve.gov/newsevents/2026-september.htm
+2026-09-17T12:30,Unemployment Claims (DOL),https://oui.doleta.gov/press/2026/091726.pdf
+2026-09-23T13:45,S&P Global Flash US PMI,https://www.pmi.spglobal.com/Public/Home/PressRelease/ed177f50167b4203ac490a961ea706be
+2026-09-24T12:30,Unemployment Claims (DOL),https://oui.doleta.gov/press/2026/092426.pdf
+2026-09-25T14:00,UoM Consumer Sentiment (final),https://data.sca.isr.umich.edu/fetchdoc.php?docid=75443
+2026-09-29T14:00,CB Consumer Confidence,https://www.prnewswire.com/news-releases/us-consumer-confidence-fell-in-september-302892867.html
+2026-09-29T14:00,JOLTS job openings (BLS),https://www.bls.gov/schedule/2026/home.htm
+2026-09-30T12:15,ADP National Employment Report,https://www.prnewswire.com/news-releases/adp-national-employment-report-private-sector-employment-increased-by-90-000-jobs-in-september-302894314.html
+2026-09-30T12:30,GDP (BEA),https://apps.bea.gov/API/signup/release_dates.json
+2026-09-30T12:30,"Personal income and outlays, core PCE (BEA)",https://apps.bea.gov/API/signup/release_dates.json

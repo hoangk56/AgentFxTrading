@@ -155,7 +155,7 @@ def test_dashboard_renders_the_new_columns():
 
 # --- cBots ----------------------------------------------------------------------------------
 
-@pytest.mark.parametrize("cs_name", ["GotobiBot.cs", "EcbWindowBot.cs"])
+@pytest.mark.parametrize("cs_name", ["GotobiBot.cs", "EcbWindowBot.cs", "GoldLevelBot.cs"])
 def test_tick_and_close_carry_levels_and_the_reason(cs_name):
     src = (CBOT_DIR / cs_name).read_text(encoding="utf-8")
     # GotobiBot reports its virtual stop (StopPriceOf) where it keeps the real stop from the broker

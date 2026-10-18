@@ -1,0 +1,177 @@
+"""Round 27 stream G draft cell G1-XAU50 (c = 0.5, h = 30, no protective stop) over a date range, for HOLD.
+From r27/G/code/run_real.py, reduced to one bot: G1 (resting stop), c = 0.5, the $10 grid (u = 0, S = 10) on XAUUSD.
+engine.py and fills.py are round 27's files, byte-identical. The bot runs on every $10 level (the 60-minute busy
+window and the 1,440-minute level rule count every $10 trigger, as in the tested cell); the trades kept are the events
+whose level is a multiple of $50 (mod50: grid index % 5 == 0, as run_real.flags_for) with trigger >= --keep-from.
+Per trade (30-minute exit, ps = 0) it writes the readings exactly as fills.outputs and r27 analyze.py compute them:
+gross (mid) and net at latency 0 / tick / 250 / 1000 ms, net at spread x1.5 (net15, 250 ms column, as analyze's x15)
+and net with both fills +1 minute (latency '60000', as analyze's '+1 min').
+Calendar: --cal reg = the registered rule (gcommon.load_high_usd(): ForexFactory < 2024-01-01, official schedules from
+2024-01-01); --cal ff = round 27's calendar (ForexFactory through 2024), reproduction only (refused with HOLD_RUN=1).
+Nothing >= 2025-01-01 is loaded unless HOLD_RUN=1 (gcommon asserts); with HOLD_RUN=1 the limit is 2026-09-24.
+usage: python run_hold.py --minutes out/min_XAUUSD_<START>_<END>.npz --sessions D0 D1 [--keep-from D] --cal reg|ff
+       --name NAME          (dates YYYY-MM-DD; sessions are NY trading days d, arming 18:10 NY d-1 .. 15:54 NY d)
+Outputs: out/trades_<NAME>.csv, out/trades_<NAME>.npz (same rows, raw arrays), out/summary_<NAME>.txt."""
+import argparse
+import csv
+import sys
+import time
+from datetime import date, datetime, timedelta, timezone
+from pathlib import Path
+
+import numpy as np
+
+sys.path.insert(0, str(Path(__file__).parent))
+import gcommon as gc
+import engine as en
+import fills as fl
+
+SYM = 'XAUUSD'
+FAM, C, S, U = 'G1', 0.5, 10.0, 0.0
+H = 30
+HI = en.H_MIN.index(H)          # 2
+PS = 0                           # no protective stop
+LATS = en.LATS                   # '0', 'tick', '250', '1000', '60000'
+LI = {L: i for i, L in enumerate(LATS)}
+LDEC = '250'
+
+
+class HoldMinutes(en.Minutes):
+    """engine.Minutes reading a given minute file (engine.Minutes.__init__ reads out/min_<SYM>.npz)."""
+
+    def __init__(self, path):
+        z = np.load(path)
+        self.T0M = int(z['T0M'])
+        self.W_up = z['W_up']; self.W_dn = z['W_dn']; self.s60 = z['s60']
+        self.mmax = z['mmax']; self.mmin = z['mmin']; self.n = z['n']
+
+
+def iso(ms):
+    return datetime.fromtimestamp(ms / 1000, timezone.utc).strftime('%Y-%m-%dT%H:%M:%S.%f')[:-3]
+
+
+def run(minfile, d0, d1, keep_from, cal, name):
+    assert cal in ('reg', 'ff')
+    if cal == 'ff':
+        assert not gc.HOLD_RUN and d1 < gc.HOLD_START, '--cal ff is round 27 calendar (ForexFactory, ends 2024-12-31)'
+    mins = HoldMinutes(minfile)
+    NMIN = len(mins.W_up)
+    rel = gc.load_high_usd(ff_only=(cal == 'ff'))
+    keep_ms = gc.day_ms(keep_from) if keep_from else -1
+    state = {'busy_until': 0, 'traded': {}}
+    R = {k: [] for k in ('ts', 'tsarm', 'L', 'side', 'thr', 'sarm', 'midj', 'sprj', 'mod50', 'mod100')}
+    outs = []
+    nsess = 0
+    nev_all = 0
+    t0 = time.time()
+    for d, ts, bid, ask in en.SessionFeed(SYM, d0, d1):
+        mi = mins.midx(ts)
+        # the minute file must cover the session with >= 25 h of warm-up before its first tick
+        assert mi[0] >= 1500 and mi[-1] < NMIN, f'minute file does not cover session {d}'
+        nsess += 1
+        mid, M24, m24, s, ok = en.session_arrays(ts, bid, ask, mins, rel, d)
+        ev = en.gen_events(FAM, U, S, C, ts, bid, ask, mid, M24, m24, s, ok, state)
+        ev = [e for e in ev if ts[e[1]] >= keep_ms]
+        nev_all += len(ev)
+        ev = [e for e in ev if int(round((e[2] - U) / S)) % 5 == 0]       # mod50 (run_real.flags_for)
+        if not ev:
+            continue
+        o = fl.outputs(FAM, ev, ts, bid, ask, mid, S)
+        outs.append(o)
+        for (a, j, L, side, thr, sa) in ev:
+            k = int(round((L - U) / S))
+            R['ts'].append(int(ts[j])); R['tsarm'].append(int(ts[a])); R['L'].append(L); R['side'].append(side)
+            R['thr'].append(thr); R['sarm'].append(sa); R['midj'].append(mid[j]); R['sprj'].append(ask[j] - bid[j])
+            R['mod50'].append(k % 5 == 0); R['mod100'].append(k % 10 == 0)
+    print(f'{name}: sessions {nsess}, $10 events kept {nev_all}, mod50 trades {len(R["ts"])}, '
+          f'{time.time() - t0:.0f}s', flush=True)
+    gc.OUT.mkdir(parents=True, exist_ok=True)
+    if outs:
+        cat = {k: np.concatenate([o[k] for o in outs]) for k in outs[0]}
+    else:
+        cat = {k: np.zeros((0, len(LATS), len(en.H_MIN), 2), np.float32) for k in ('net', 'gross', 'net15')}
+        cat.update(xgap=np.zeros((0, len(LATS), len(en.H_MIN)), np.int8), egap=np.zeros((0, len(LATS)), np.int8))
+    arr = {k: np.array(v) for k, v in R.items()}
+    ts = np.array(R['ts'], np.int64)
+    np.savez(gc.OUT / f'trades_{name}.npz', ts=ts, tsarm=np.array(R['tsarm'], np.int64), L=np.array(R['L']),
+             side=np.array(R['side'], np.int8), thr=np.array(R['thr']), sarm=np.array(R['sarm']),
+             midj=np.array(R['midj']), sprj=np.array(R['sprj']), mod50=np.array(R['mod50'], bool),
+             mod100=np.array(R['mod100'], bool), net=cat['net'], gross=cat['gross'], net15=cat['net15'],
+             xgap=cat['xgap'], egap=cat['egap'], S=S, u=U, c=C, h=H, cal=cal, minfile=str(minfile),
+             d0=str(d0), d1=str(d1), keep_from=str(keep_from))
+    net = cat['net'][:, :, HI, PS]
+    gro = cat['gross'][:, :, HI, PS]
+    n15 = cat['net15'][:, LI[LDEC], HI, PS]
+    era = [gc.era_of_ms(int(t)) for t in ts]
+    cols = (['trigger_utc', 'trigger_ms', 'arm_utc', 'era', 'side', 'level', 'stop_price', 's60_arm', 'mod100']
+            + [f'gross_{L}' for L in ('L0', 'tick', '250', '1000')] + [f'net_{L}' for L in ('L0', 'tick', '250', '1000')]
+            + ['net_250_x1.5', 'net_plus1min', 'exit_gap_250', 'entry_gap_250'])
+    with open(gc.OUT / f'trades_{name}.csv', 'w', newline='') as f:
+        w = csv.writer(f)
+        w.writerow(cols)
+        for k in range(len(ts)):
+            row = [iso(int(ts[k])), int(ts[k]), iso(R['tsarm'][k]), era[k], int(R['side'][k]), f"{R['L'][k]:.2f}",
+                   f"{R['thr'][k]:.6f}", f"{R['sarm'][k]:.6f}", int(R['mod100'][k])]
+            row += [f'{float(gro[k, LI[L]]):.6f}' for L in ('0', 'tick', '250', '1000')]
+            row += [f'{float(net[k, LI[L]]):.6f}' for L in ('0', 'tick', '250', '1000')]
+            row += [f'{float(n15[k]):.6f}', f"{float(net[k, LI['60000']]):.6f}",
+                    int(cat['xgap'][k, LI[LDEC], HI]), int(cat['egap'][k, LI[LDEC]])]
+            w.writerow(row)
+    summary(name, ts, np.array(era), net, gro, n15, cal, minfile, d0, d1, keep_from)
+
+
+def fmt(x, day):
+    x = np.asarray(x, float)
+    if len(x) == 0:
+        return 'n 0'
+    t = gc.clustered_t(x, day) if len(x) > 2 else np.nan
+    return f'n {len(x)} mean {x.mean():+.2f} (t {t:+.2f})'
+
+
+def summary(name, ts, era, net, gro, n15, cal, minfile, d0, d1, keep_from):
+    day = ts // 86400000
+    yr = np.array([datetime.fromtimestamp(t / 1000, timezone.utc).year for t in ts], int)
+    L = [f'G1-XAU50 c0.5 h30 ns, run {name}: sessions {d0}..{d1}, trades from {keep_from}, calendar {cal}, '
+         f'minutes {Path(str(minfile)).name}, HOLD_RUN={int(gc.HOLD_RUN)}',
+         f'written {datetime.now(timezone.utc):%Y-%m-%d %H:%M} UTC. bp per trade; t clustered by UTC day of the trigger.',
+         '']
+    groups = [('all', np.ones(len(ts), bool))] + [(e, era == e) for e in ('IS', 'VAL', 'HOLD') if (era == e).any()]
+    for gname, m in groups:
+        d = day[m]
+        x = net[m, LI['250']]
+        L.append(f'[{gname}] net 250 ms: {fmt(x, d)}')
+        L.append(f'    mid (gross) 250: {fmt(gro[m, LI["250"]], d)}')
+        L.append('    net L0 / tick / 250 / 1000: ' + ' / '.join(
+            f'{float(net[m, LI[k]].astype(float).mean()):+.2f}' if m.any() else 'nan' for k in ('0', 'tick', '250', '1000')))
+        L.append(f'    net x1.5 spread (250): {fmt(n15[m], d)}')
+        L.append(f'    net both fills +1 minute: {fmt(net[m, LI["60000"]], d)}')
+        if m.sum() > 2:
+            xs = x.astype(float)
+            L.append(f'    per-trade net Sharpe {xs.mean() / xs.std(ddof=1):+.3f}; median {np.median(xs):+.2f}; '
+                     f'sum {xs.sum():+.1f} bp; trade days {len(np.unique(d))}')
+        L.append('')
+    L.append('by year (net 250 | x1.5 | +1 min):')
+    for y in np.unique(yr):
+        m = yr == y
+        L.append(f'  {y}: n {int(m.sum())} net {float(net[m, LI["250"]].astype(float).mean()):+.2f} | '
+                 f'{float(n15[m].astype(float).mean()):+.2f} | {float(net[m, LI["60000"]].astype(float).mean()):+.2f}')
+    txt = '\n'.join(L) + '\n'
+    open(gc.OUT / f'summary_{name}.txt', 'w').write(txt)
+    print(txt)
+
+
+if __name__ == '__main__':
+    ap = argparse.ArgumentParser()
+    ap.add_argument('--minutes', required=True)
+    ap.add_argument('--sessions', nargs=2, required=True)
+    ap.add_argument('--keep-from', default=None)
+    ap.add_argument('--cal', choices=('reg', 'ff'), required=True)
+    ap.add_argument('--name', required=True)
+    a = ap.parse_args()
+    d0, d1 = date.fromisoformat(a.sessions[0]), date.fromisoformat(a.sessions[1])
+    assert d1 < gc.LIMIT_DAY, f'HOLD session requested: {d1} (HOLD_RUN={int(gc.HOLD_RUN)})'
+    kf = date.fromisoformat(a.keep_from) if a.keep_from else None
+    mf = Path(a.minutes)
+    if not mf.is_absolute():
+        mf = Path(__file__).parent / mf
+    run(mf, d0, d1, kf, a.cal, a.name)

@@ -1,0 +1,107 @@
+time_utc	tool	url	saved_file	http_status	bytes
+2026-10-18 08:38:46 UTC	curl	https://www.bls.gov/schedule/2026/home.htm	dl/bls/bls_year_2026.htm	200	100563
+2026-10-18 08:38:47 UTC	curl	https://www.bls.gov/schedule/2027/home.htm	dl/bls/bls_year_2027.htm	200	76893
+2026-10-18 08:38:47 UTC	curl	https://www.bls.gov/bls/news-release/empsit.htm	dl/bls/bls_arch_empsit.htm	200	132517
+2026-10-18 08:38:49 UTC	curl	https://www.bls.gov/bls/news-release/cpi.htm	dl/bls/bls_arch_cpi.htm	200	128672
+2026-10-18 08:38:50 UTC	curl	https://www.bls.gov/bls/news-release/ppi.htm	dl/bls/bls_arch_ppi.htm	200	129974
+2026-10-18 08:38:51 UTC	curl	https://www.bls.gov/bls/news-release/jolts.htm	dl/bls/bls_arch_jolts.htm	200	89250
+2026-10-18 08:38:53 UTC	curl	https://www.bls.gov/bls/news-release/eci.htm	dl/bls/bls_arch_eci.htm	200	93711
+2026-10-18 08:38:54 UTC	curl	https://www.bls.gov/schedule/news_release/empsit.htm	dl/bls/bls_sched_empsit.htm	200	55395
+2026-10-18 08:38:56 UTC	curl	https://www.bls.gov/schedule/news_release/cpi.htm	dl/bls/bls_sched_cpi.htm	200	55389
+2026-10-18 08:38:57 UTC	curl	https://www.bls.gov/schedule/news_release/ppi.htm	dl/bls/bls_sched_ppi.htm	200	55389
+2026-10-18 08:38:59 UTC	curl	https://www.bls.gov/schedule/news_release/jolts.htm	dl/bls/bls_sched_jolts.htm	200	54102
+2026-10-18 08:39:02 UTC	curl	https://www.bls.gov/schedule/news_release/eci.htm	dl/bls/bls_sched_eci.htm	200	54500
+2026-10-18 08:40:12 UTC	curl	https://apps.bea.gov/API/signup/release_dates.json	dl/bea/bea_release_dates.json	200	11898
+2026-10-18 08:40:13 UTC	curl	https://www.bea.gov/news/schedule	dl/bea/bea_schedule.htm	200	71459
+2026-10-18 08:40:15 UTC	curl	https://www.bea.gov/news/schedule/full	dl/bea/bea_full.htm	200	125026
+2026-10-18 08:40:16 UTC	curl	https://www.bea.gov/news/schedule/full-2027	dl/bea/bea_full_2027.htm	200	61418
+2026-10-18 08:40:52 UTC	curl	https://www.bea.gov/news/schedule/next-year	dl/bea/bea_next_year.htm	200	106652
+2026-10-18 08:40:53 UTC	curl	https://www.bea.gov/news/schedule/ics/online-calendar-subscription.ics	dl/bea/bea_calendar.ics	200	42706
+2026-10-18 08:42:18 UTC	curl	https://www.federalreserve.gov/monetarypolicy/fomccalendars.htm	dl/fed/fed_fomccalendars.htm	200	167856
+2026-10-18 08:42:18 UTC	curl	https://www.federalreserve.gov/newsevents/calendar.htm	dl/fed/fed_calendar_current.htm	200	83865
+2026-10-18 08:42:19 UTC	curl	https://www.federalreserve.gov/newsevents/2026-september.htm	dl/fed/fed_cal_2026-september.htm	200	110861
+2026-10-18 08:42:20 UTC	curl	https://www.federalreserve.gov/newsevents/2026-october.htm	dl/fed/fed_cal_2026-october.htm	200	108863
+2026-10-18 08:42:22 UTC	curl	https://www.federalreserve.gov/newsevents/2026-november.htm	dl/fed/fed_cal_2026-november.htm	200	94871
+2026-10-18 08:42:23 UTC	curl	https://www.federalreserve.gov/newsevents/2026-december.htm	dl/fed/fed_cal_2026-december.htm	200	95048
+2026-10-18 08:42:25 UTC	curl	https://www.federalreserve.gov/newsevents/2027-january.htm	dl/fed/fed_cal_2027-january.htm	404	84239
+2026-10-18 08:42:26 UTC	curl	https://www.federalreserve.gov/newsevents/2027-february.htm	dl/fed/fed_cal_2027-february.htm	404	84239
+2026-10-18 08:43:40 UTC	curl	https://api.fiscaldata.treasury.gov/services/api/fiscal_service/v1/accounting/od/auctions_query?fields=record_date,cusip,security_type,security_term,auction_date,issue_date,maturity_date,closing_time_comp,closing_time_noncomp,original_security_term,reopening,inflation_index_security,floating_rate,high_yield,offering_amt,announcemt_date,pdf_filenm_comp_results,original_issue_date&filter=auction_date:gte:2026-09-01,security_type:in:(Note,Bond)&sort=auction_date&page%5Bsize%5D=1000	dl/ust/fd_notes_bonds_from_2026-09-01.json	200	9113
+2026-10-18 08:43:41 UTC	curl	https://api.fiscaldata.treasury.gov/services/api/fiscal_service/v1/accounting/od/upcoming_auctions?sort=auction_date&page%5Bsize%5D=1000	dl/ust/fd_upcoming_auctions.json	200	24090
+2026-10-18 08:43:43 UTC	curl	https://home.treasury.gov/system/files/221/Tentative-Auction-Schedule.pdf	dl/ust/Tentative-Auction-Schedule.pdf	200	17195
+2026-10-18 08:43:43 UTC	curl	https://www.treasurydirect.gov/auctions/general-auction-timing/	dl/ust/td_general_auction_timing.htm	200	29964
+2026-10-18 08:44:30 UTC	curl	https://www.treasurydirect.gov/auctions/how-auctions-work/	dl/ust/td_how_auctions_work.htm	200	31458
+2026-10-18 08:44:32 UTC	curl	https://home.treasury.gov/policy-issues/international/macroeconomic-and-foreign-exchange-policies-of-major-trading-partners-of-the-united-states	dl/ust/ust_fxreport_page.htm	200	84092
+2026-10-18 08:44:32 UTC	curl	https://home.treasury.gov/news/press-releases	dl/ust/ust_press_releases.htm	200	71644
+2026-10-18 08:45:35 UTC	curl POST [report=press&year=2026&submit=Submit]	https://oui.doleta.gov/unemploy/archive.asp	dl/dol/dol_arch_press_2026.htm	200	55460
+2026-10-18 08:45:37 UTC	curl	https://oui.doleta.gov/press/2026/090326.pdf	dl/dol/2026_090326.pdf	200	570448
+2026-10-18 08:45:40 UTC	curl	https://oui.doleta.gov/press/2026/091026.pdf	dl/dol/2026_091026.pdf	200	645432
+2026-10-18 08:45:43 UTC	curl	https://oui.doleta.gov/press/2026/091726.pdf	dl/dol/2026_091726.pdf	200	555643
+2026-10-18 08:45:48 UTC	curl	https://oui.doleta.gov/press/2026/092426.pdf	dl/dol/2026_092426.pdf	200	699783
+2026-10-18 08:45:54 UTC	curl	https://oui.doleta.gov/press/2026/100126.pdf	dl/dol/2026_100126.pdf	200	538666
+2026-10-18 08:45:59 UTC	curl	https://oui.doleta.gov/press/2026/100826.pdf	dl/dol/2026_100826.pdf	200	534581
+2026-10-18 08:46:05 UTC	curl	https://oui.doleta.gov/press/2026/101526.pdf	dl/dol/2026_101526.pdf	200	533268
+2026-10-18 08:46:10 UTC	curl	https://www.dol.gov/ui/data.pdf	dl/dol/dol_ui_data_current.pdf	200	533268
+2026-10-18 08:46:41 UTC	WebSearch	query: Schedule of Release Dates for Principal Federal Economic Indicators 2027	-	-	-
+2026-10-18 08:46:41 UTC	curl	https://www.whitehouse.gov/wp-content/uploads/2026/10/FY2027-PFEI.pdf	dl/omb/FY2027-PFEI.pdf	200	218990
+2026-10-18 08:47:12 UTC	curl	https://oui.doleta.gov/unemploy/claims_arch.asp	dl/dol/dol_claims_arch.htm	200	14421
+2026-10-18 08:47:34 UTC	curl	https://www.opm.gov/policy-data-oversight/pay-leave/federal-holidays/	dl/opm/opm_federal_holidays.htm	200	151930
+2026-10-18 08:48:02 UTC	curl	https://adpemploymentreport.com/	dl/adp/adp_ner_home.htm	200	1341
+2026-10-18 08:48:09 UTC	curl	https://adpemploymentreport.com/assets/index-CADol5Tj.js	dl/adp/adp_index-CADol5Tj.js.txt	200	933804
+2026-10-18 08:48:38 UTC	curl	https://adpemploymentreport.com/ner_production.json	dl/adp/ner_production.json	200	11971
+2026-10-18 08:49:12 UTC	curl	https://www.ismworld.org/supply-management-news-and-reports/reports/rob-report-calendar/	dl/ism/ism_calendar_direct.htm	200	922
+2026-10-18 08:49:13 UTC	curl	https://web.archive.org/cdx/search/cdx?url=ismworld.org/supply-management-news-and-reports/reports/rob-report-calendar/&output=txt&from=2026&filter=statuscode:200	dl/ism/wb_cdx_ism_cal_2026.txt	429	162
+2026-10-18 08:49:32 UTC	curl	https://www.prnewswire.com/news/institute-for-supply-management/?page=1&pagesize=25	dl/prn/prn_ism_p1.htm	200	243205
+2026-10-18 08:50:24 UTC	curl	https://www.conference-board.org/topics/consumer-confidence	dl/cb/cb_topic.htm	404	28571
+2026-10-18 08:50:25 UTC	curl	https://www.conference-board.org/assets/js/common/calendar.js?version=1	dl/cb/cb_calendar.js.txt	404	28571
+2026-10-18 08:50:41 UTC	curl	https://web.archive.org/cdx/search/cdx?url=ismworld.org/supply-management-news-and-reports/reports/rob-report-calendar/&output=txt&from=2026&filter=statuscode:200	dl/ism/wb_cdx_ism_cal_2026.txt	429	162
+2026-10-18 08:51:05 UTC	curl	https://data.sca.isr.umich.edu/fetchdoc.php?docid=75443	dl/sca/sca_hist_release_dates.pdf	200	132835
+2026-10-18 08:51:07 UTC	curl	https://data.sca.isr.umich.edu/fetchdoc.php?docid=79628	dl/sca/sca_release_dates_2026.pdf	200	132710
+2026-10-18 08:51:09 UTC	curl	https://www.sca.isr.umich.edu/	dl/sca/sca_home.htm	200	6869
+2026-10-18 08:51:11 UTC	curl	https://data.sca.isr.umich.edu/	dl/sca/scadata_home.htm	200	13617
+2026-10-18 08:51:12 UTC	curl	https://data.sca.isr.umich.edu/reports.php?year=2026	dl/sca/scadata_reports_2026.htm	200	21444
+2026-10-18 08:51:57 UTC	curl	https://www.newyorkfed.org/survey/empire/empiresurvey_overview	dl/nyf/nyf_empire_overview.htm	200	132042
+2026-10-18 08:52:06 UTC	curl	https://www.newyorkfed.org/medialibrary/media/survey/empire/empire2026/2026_10_empire-state-manufacturing-survey.pdf	dl/nyf/2026_10_empire-state-manufacturing-survey.pdf	200	194989
+2026-10-18 08:52:22 UTC	curl	https://www.pmi.spglobal.com/Public/Release/ReleaseDates?language=en	dl/spg/spg_releasedates.htm	200	26540
+2026-10-18 08:53:26 UTC	curl	https://www2.census.gov/retail/releases/historical/marts/adv2609.pdf	dl/census/adv2609.pdf	403	5197
+2026-10-18 08:53:30 UTC	curl	https://www2.census.gov/retail/releases/historical/marts/adv2608.pdf	dl/census/adv2608.pdf	403	5197
+2026-10-18 08:54:31 UTC	curl	https://web.archive.org/cdx/search/cdx?url=ismworld.org/supply-management-news-and-reports/reports/rob-report-calendar/&output=txt&from=2026&filter=statuscode:200	dl/ism/wb_cdx_ism_cal_2026.txt	429	162
+2026-10-18 08:54:41 UTC	curl	https://web.archive.org/web/20261018000000id_/https://www.ismworld.org/supply-management-news-and-reports/reports/rob-report-calendar/	dl/ism/wb_ism_cal_latest.htm	429	162
+2026-10-18 08:54:43 UTC	curl (status probe, body discarded)	https://archive.org/wayback/available?url=ismworld.org/supply-management-news-and-reports/reports/rob-report-calendar/	-	429	-
+2026-10-18 08:54:59 UTC	curl	https://www.prnewswire.com/news/the-conference-board/?page=1&pagesize=25	dl/prn/prn_cb_p1.htm	200	243891
+2026-10-18 08:55:04 UTC	curl	https://www.prnewswire.com/news/adp%2C-inc./?page=1&pagesize=25	dl/prn/prn_adpinc_p1.htm	200	244261
+2026-10-18 08:55:15 UTC	curl	https://www.prnewswire.com/news-releases/us-consumer-confidence-fell-in-september-302892867.html	dl/prn/prn_cb_2026-09-29.htm	200	217664
+2026-10-18 08:55:29 UTC	WebFetch	https://www.conference-board.org/topics/consumer-confidence	-	404	-
+2026-10-18 00:05:33 UTC	curl (r28 build; copied 2026-10-18 08:55 UTC)	https://web.archive.org/web/20260930232246id_/https://www.ismworld.org/supply-management-news-and-reports/reports/rob-report-calendar/	dl/r28/b_wb_ism_cal_20260930232246.htm	200	79151
+2026-10-17 23:22:41 UTC	curl (r28 build; copied 2026-10-18 08:55 UTC)	https://web.archive.org/web/20261005035002id_/https://www.census.gov/retail/release_schedule.html	dl/r28/census_retail_sched_20261005035002.htm	200	52582
+2026-10-17 23:23:27 UTC	curl (r28 build; copied 2026-10-18 08:55 UTC)	https://web.archive.org/web/20260820175334id_/https://www.census.gov/retail/marts/www/MARTSreleasedates.xls	dl/r28/census_MARTSreleasedates_20260820.xls	200	38400
+2026-10-17 23:35:13 UTC	curl (r28 build; copied 2026-10-18 08:55 UTC)	https://web.archive.org/web/20260917161021id_/https://www.census.gov/retail/marts/www/marts_current.pdf	dl/r28/marts_current_20260917161021.pdf	200	278151
+2026-10-17 23:50:25 UTC	curl (r28 build; copied 2026-10-18 08:55 UTC)	https://web.archive.org/web/20260910201856id_/https://www.sca.isr.umich.edu/	dl/r28/b_wb_sca_home_20260910201856.htm	200	7135
+2026-10-17 23:50:32 UTC	curl (r28 build; copied 2026-10-18 08:55 UTC)	https://web.archive.org/web/20260925090737id_/https://www.sca.isr.umich.edu/	dl/r28/b_wb_sca_home_20260925090737.htm	200	6637
+2026-10-17 23:50:36 UTC	curl (r28 build; copied 2026-10-18 08:55 UTC)	https://web.archive.org/web/20261008231356id_/https://www.sca.isr.umich.edu/	dl/r28/b_wb_sca_home_20261008231356.htm	200	6842
+2026-10-17 23:59:00 UTC	curl (r28 build; copied 2026-10-18 08:55 UTC)	https://web.archive.org/web/20261012130133id_/https://www.pmi.spglobal.com/Public/Home/PressRelease/ed177f50167b4203ac490a961ea706be	dl/r28/b_wbspg_pr_ed177f50167b4203ac490a961ea706be.pdf	200	131231
+2026-10-17 23:52:00 UTC	curl (r28 build; copied 2026-10-18 08:55 UTC)	https://web.archive.org/web/20251125161253id_/https://www.conference-board.org/topics/consumer-confidence/index.cfm?utm_term=	dl/r28/b_wb_cb_topic_20251125161253.htm	200	292043
+2026-10-17 23:21:36 UTC	curl (r28 build; copied 2026-10-18 08:55 UTC)	https://data.sca.isr.umich.edu/fetchdoc.php?docid=81974	dl/r28/b_sca_doc81974.bin	200	646661
+2026-10-18 08:56:27 UTC	curl	https://web.archive.org/cdx/search/cdx?url=ismworld.org/supply-management-news-and-reports/reports/rob-report-calendar/&output=txt&from=202609&filter=statuscode:200	dl/ism/wb_cdx_ism_cal_2026.txt	429	162
+2026-10-18 08:59:41 UTC	curl	https://web.archive.org/cdx/search/cdx?url=ismworld.org/supply-management-news-and-reports/reports/rob-report-calendar/&output=txt&from=202609&filter=statuscode:200	dl/ism/wb_cdx_ism_cal_2026.txt	429	162
+2026-10-18 09:02:42 UTC	curl	https://web.archive.org/cdx/search/cdx?url=ismworld.org/supply-management-news-and-reports/reports/rob-report-calendar/&output=txt&from=202609&filter=statuscode:200	dl/ism/wb_cdx_ism_cal_2026.txt	429	162
+2026-10-18 09:05:44 UTC	curl	https://web.archive.org/cdx/search/cdx?url=ismworld.org/supply-management-news-and-reports/reports/rob-report-calendar/&output=txt&from=202609&filter=statuscode:200	dl/ism/wb_cdx_ism_cal_2026.txt	429	162
+2026-10-18 09:08:38 UTC	WebSearch	query: continuing resolution fiscal year 2027 government funding expires date	-	-	-
+2026-10-18 09:08:38 UTC	curl	https://www.congress.gov/crs-product/R49353	dl/misc/crs_R49353_congress.htm	403	4547
+2026-10-18 09:08:39 UTC	curl	https://www.everycrsreport.com/reports/R49353.html	dl/misc/crs_R49353_everycrsreport.htm	200	125830
+2026-10-18 09:08:44 UTC	curl	https://web.archive.org/cdx/search/cdx?url=ismworld.org/supply-management-news-and-reports/reports/rob-report-calendar/&output=txt&from=202609&filter=statuscode:200	dl/ism/wb_cdx_ism_cal_2026.txt	429	162
+2026-10-18 09:10:34 UTC	curl POST [report=press&year=2020&submit=Submit]	https://oui.doleta.gov/unemploy/archive.asp	dl/dol/dol_arch_press_2020.htm	200	56521
+2026-10-18 09:11:45 UTC	curl	https://web.archive.org/cdx/search/cdx?url=ismworld.org/supply-management-news-and-reports/reports/rob-report-calendar/&output=txt&from=202609&filter=statuscode:200	dl/ism/wb_cdx_ism_cal_2026.txt	429	162
+2026-10-18 09:12:03 UTC	curl	https://api.census.gov/data/timeseries/eits/marts?get=cell_value,data_type_code,category_code,seasonally_adj,time_slot_id,time_slot_date,time_slot_name&for=us:*&time=from+2026-07&category_code=44X72&data_type_code=SM	dl/census/api_marts_44X72_SM_from_2026-07.json	200	8531
+2026-10-18 09:13:44 UTC	curl	https://fred.stlouisfed.org/series/RSAFS	dl/misc/fred_RSAFS.htm	200	79213
+2026-10-18 09:14:47 UTC	curl	https://web.archive.org/cdx/search/cdx?url=ismworld.org/supply-management-news-and-reports/reports/rob-report-calendar/&output=txt&from=202609&filter=statuscode:200	dl/ism/wb_cdx_ism_cal_2026.txt	429	162
+2026-10-18 09:17:48 UTC	curl	https://web.archive.org/cdx/search/cdx?url=ismworld.org/supply-management-news-and-reports/reports/rob-report-calendar/&output=txt&from=202609&filter=statuscode:200	dl/ism/wb_cdx_ism_cal_2026.txt	429	162
+2026-10-18 09:20:48 UTC	curl	https://web.archive.org/cdx/search/cdx?url=ismworld.org/supply-management-news-and-reports/reports/rob-report-calendar/&output=txt&from=202609&filter=statuscode:200	dl/ism/wb_cdx_ism_cal_2026.txt	429	162
+2026-10-18 09:23:49 UTC	curl	https://web.archive.org/cdx/search/cdx?url=ismworld.org/supply-management-news-and-reports/reports/rob-report-calendar/&output=txt&from=202609&filter=statuscode:200	dl/ism/wb_cdx_ism_cal_2026.txt	429	162
+2026-10-18 09:26:50 UTC	curl	https://web.archive.org/cdx/search/cdx?url=ismworld.org/supply-management-news-and-reports/reports/rob-report-calendar/&output=txt&from=202609&filter=statuscode:200	dl/ism/wb_cdx_ism_cal_2026.txt	429	162
+2026-10-18 09:29:51 UTC	curl	https://web.archive.org/cdx/search/cdx?url=ismworld.org/supply-management-news-and-reports/reports/rob-report-calendar/&output=txt&from=202609&filter=statuscode:200	dl/ism/wb_cdx_ism_cal_2026.txt	429	162
+2026-10-18 09:32:52 UTC	curl	https://web.archive.org/cdx/search/cdx?url=ismworld.org/supply-management-news-and-reports/reports/rob-report-calendar/&output=txt&from=202609&filter=statuscode:200	dl/ism/wb_cdx_ism_cal_2026.txt	429	162
+2026-10-18 09:35:53 UTC	curl	https://web.archive.org/cdx/search/cdx?url=ismworld.org/supply-management-news-and-reports/reports/rob-report-calendar/&output=txt&from=202609&filter=statuscode:200	dl/ism/wb_cdx_ism_cal_2026.txt	429	162
+2026-10-18 09:38:55 UTC	curl	https://web.archive.org/cdx/search/cdx?url=ismworld.org/supply-management-news-and-reports/reports/rob-report-calendar/&output=txt&from=202609&filter=statuscode:200	dl/ism/wb_cdx_ism_cal_2026.txt	429	162
+2026-10-18 09:46:37 UTC	curl	https://web.archive.org/cdx/search/cdx?url=ismworld.org/supply-management-news-and-reports/reports/rob-report-calendar/&output=txt&from=202609&filter=statuscode:200	dl/ism/wb_cdx_ism_cal_2026.txt	429	162
+2026-10-18 09:51:38 UTC	curl	https://web.archive.org/cdx/search/cdx?url=ismworld.org/supply-management-news-and-reports/reports/rob-report-calendar/&output=txt&from=202609&filter=statuscode:200	dl/ism/wb_cdx_ism_cal_2026.txt	429	162
+2026-10-18 09:56:39 UTC	curl	https://web.archive.org/cdx/search/cdx?url=ismworld.org/supply-management-news-and-reports/reports/rob-report-calendar/&output=txt&from=202609&filter=statuscode:200	dl/ism/wb_cdx_ism_cal_2026.txt	429	162

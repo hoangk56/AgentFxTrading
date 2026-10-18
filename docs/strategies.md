@@ -7,7 +7,8 @@ Defaults quoted below are the cBot's own parameter defaults.
 > **Evidence.** None of these descriptions is a claim that the strategy makes money. The offline research
 > ([research/README.md](../research/README.md), dated conclusions in [research/JOURNAL.md](../research/JOURNAL.md))
 > found that Gotobi passed its pre-registered holdout. The ECB window's F3 passed its holdout only at the relaxed
-> tier and E1 is a weak demo candidate; both run to measure them, F3 at the minimum lot.
+> tier and E1 is a weak demo candidate; both run to measure them, F3 at the minimum lot. The gold levels passed their
+> holdout at the demo tier and run on demo at the minimum lot.
 
 The bots are rule-based: they never ask the server for a decision. They report positions and telemetry to the server and
 poll it for dashboard commands.
@@ -16,6 +17,7 @@ poll it for dashboard commands.
 | :--- | :--- | :--- |
 | `GotobiBot` | USDJPY, EURJPY, GBPJPY | M15 chart, fixed UTC schedule |
 | `EcbWindowBot` | EURUSD (rules F3 and E1) | M15 chart, London schedule |
+| `GoldLevelBot` | XAUUSD | ticks (M15 chart for the heartbeat), New York sessions |
 
 ## Gotobi Fix (`cBot/GotobiBot.cs`)
 
@@ -69,6 +71,39 @@ day's verdict is logged with its score, threshold, history count and quote sourc
 **Timing.** The order goes out at 11:00:00 London; if it cannot within `EntryGraceSeconds` (60) the day is skipped, as
 one minute late cost E1 its whole holdout net. The close goes out at 13:00 London. The broker gets a far stop
 (`EmergencyStopPips`, 100) that is not part of the rule.
+
+## Gold $50 Levels (`cBot/GoldLevelBot.cs`)
+
+Research candidate G1-XAU50. Stop-loss orders cluster just beyond round numbers (Osler 2003, 2005), so when gold
+breaks a $50 level it has not traded beyond for a day, the stops it sets off carry it further. The bot rests a stop
+order just past such a level and closes at market 30 minutes after it triggers. Pre-registration with the stop and
+promotion rules: `research/results/portfolio/round27_levels_opens/PREREG_G_gold_round50_cascade.md` (the tested engine is
+`prereg_code/engine.py.txt` there).
+
+**The rule, as tested.** It runs on every $10 level and trades only the multiples of $50; the other levels are armed and
+triggered from the ticks without an order, because their triggers count too. While not busy (60 minutes after the last
+trigger), from 18:10 New York to 15:54 New York the next day, the nearest level within $2 of the mid arms if it lies
+beyond the highest (an upper level) or lowest (a lower level) tick mid of the previous 1,440 clock minutes and has not
+triggered in that time. Its order is a buy stop at the level + 0.5 x s60 (a sell stop at the level - 0.5 x s60), s60
+being the median last-tick spread of the 60 minutes before, and is cancelled when the mid leaves the $2 band. No arming
+within 15 minutes of a High-impact USD release (`cBot/seeds/usd_high_calendar.csv`, from official schedules:
+`python -m research.tools.usd_high_calendar_seed`), nor in the 15 minutes after the session's first tick or a tick gap
+of more than an hour. The rule has no stop; the broker gets a far guard (`EmergencyStopUsd`, $100).
+
+**Ticks, not bars.** Everything runs on ticks: the 24-hour high and low, the spread median and the trigger. At start
+the bot loads about two days of tick history and replays the rule over it without trading, so a restart resumes with
+the rule's own state. A cTrader backtest of the built bot over 2025-01..2026-09 trades the research's holdout trades
+(`research/results/portfolio/gold_level_cbot_2026-10-18.md`).
+
+**Orders.** The order price is the rule's stop rounded outward to the tick, so the broker triggers on the same ticks
+as the rule (ask >= stop for a buy, bid <= stop for a sell; `StopTriggerMethod.Trade`). A real order is cancelled
+`CancelLeadSeconds` (2) before a release window or the 15:54 close of arming, and after an hour without ticks, so it
+cannot fill where the rule would not trade. A trigger whose order did not fill within `FillWaitSeconds` is logged as
+missed, never chased with a market order.
+
+**Evidence log.** Each traded trigger is written to `/root/ctrader_data/<BotId>_trades.csv`: the rule's numbers, the
+research fill model's prices (the first tick 250 ms after the trigger and after the exit time) and the real fill and
+close. `python -m research.tools.gold_demo_check <file>` scores it against the registered stop and promotion rules.
 
 ## Removed bots
 

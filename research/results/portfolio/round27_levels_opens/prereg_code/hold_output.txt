@@ -1,0 +1,25 @@
+XAUUSD 2024-12-26 2026-09-24 minutes with ticks 618088 ticks 59124824 -> /private/tmp/claude-501/-Users-hoangbk-00-code-base-105-AgentFxTrading/cff348f1-534e-440d-88da-40c31dade827/scratchpad/r28/lead/hold/out/min_XAUUSD_20241226_20260924.npz
+Sun Oct 18 00:26:14 UTC 2026
+HOLD: sessions 447, $10 events kept 1054, mod50 trades 228, 3s
+G1-XAU50 c0.5 h30 ns, run HOLD: sessions 2025-01-02..2026-09-24, trades from 2025-01-01, calendar reg, minutes min_XAUUSD_20241226_20260924.npz, HOLD_RUN=1
+written 2026-10-18 00:26 UTC. bp per trade; t clustered by UTC day of the trigger.
+
+[all] net 250 ms: n 228 mean +2.87 (t +1.43)
+    mid (gross) 250: n 228 mean +3.80 (t +1.89)
+    net L0 / tick / 250 / 1000: +2.84 / +2.86 / +2.87 / +2.88
+    net x1.5 spread (250): n 228 mean +2.71 (t +1.35)
+    net both fills +1 minute: n 228 mean +1.81 (t +0.90)
+    per-trade net Sharpe +0.093; median -0.44; sum +654.8 bp; trade days 198
+
+[HOLD] net 250 ms: n 228 mean +2.87 (t +1.43)
+    mid (gross) 250: n 228 mean +3.80 (t +1.89)
+    net L0 / tick / 250 / 1000: +2.84 / +2.86 / +2.87 / +2.88
+    net x1.5 spread (250): n 228 mean +2.71 (t +1.35)
+    net both fills +1 minute: n 228 mean +1.81 (t +0.90)
+    per-trade net Sharpe +0.093; median -0.44; sum +654.8 bp; trade days 198
+
+by year (net 250 | x1.5 | +1 min):
+  2025: n 126 net +0.80 | +0.65 | +0.82
+  2026: n 102 net +5.43 | +5.26 | +3.03
+
+Sun Oct 18 00:26:17 UTC 2026

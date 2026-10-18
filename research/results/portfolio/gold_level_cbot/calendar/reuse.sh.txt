@@ -1,0 +1,15 @@
+#!/bin/bash
+# usage: reuse.sh OLDNAME   -- copies r28/lead/hold/work/dl/OLDNAME (a download made by the r28 calendar build) to
+# r30/cal/dl/r28/<basename> and appends its ORIGINAL fetch line (time, URL, status from r28's calendar_fetch_log.txt)
+# to r30/cal/fetch_log.tsv, with tool "curl (r28 build; copied <now>)". No new web request is made.
+H=/private/tmp/claude-501/-Users-hoangbk-00-code-base-105-AgentFxTrading/cff348f1-534e-440d-88da-40c31dade827/scratchpad/r28/lead/hold
+C=/private/tmp/claude-501/-Users-hoangbk-00-code-base-105-AgentFxTrading/cff348f1-534e-440d-88da-40c31dade827/scratchpad/r30/cal
+OLD="$1"; B=$(basename "$OLD")
+mkdir -p "$C/dl/r28"
+cp "$H/work/dl/$OLD" "$C/dl/r28/$B" || exit 1
+L=$(grep -F -- "-> work/dl/$OLD	" "$H/calendar_fetch_log.txt" | grep 'HTTP 200' | tail -1)
+[ -z "$L" ] && { echo "no HTTP 200 log line for $OLD"; exit 1; }
+T=$(echo "$L" | cut -f1); U=$(echo "$L" | cut -f3); S=$(echo "$L" | cut -f5 | sed 's/^HTTP //')
+sz=$(wc -c < "$C/dl/r28/$B" | tr -d ' ')
+printf '%s\tcurl (r28 build; copied %s)\t%s\tdl/r28/%s\t%s\t%s\n' "$T" "$(date -u '+%Y-%m-%d %H:%M UTC')" "$U" "$B" "$S" "$sz" >> "$C/fetch_log.tsv"
+echo "copied $OLD ($T, $S) -> dl/r28/$B"

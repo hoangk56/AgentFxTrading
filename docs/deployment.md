@@ -83,7 +83,7 @@ exposing the port.
 ## Building the cBots
 
 Headless bots run the compiled `cBot/<Name>.algo`, which git does not track. The installer builds it; to do
-it by hand, run with `<Name>` = `GotobiBot`, then `EcbWindowBot` (from the repo root, with `CTRADER_HOME` = the host directory mounted as `/root`, e.g. `/root`
+it by hand, run with `<Name>` = `GotobiBot`, then `EcbWindowBot`, then `GoldLevelBot` (from the repo root, with `CTRADER_HOME` = the host directory mounted as `/root`, e.g. `/root`
 or `/home/forge/ctrader`):
 
 ```bash

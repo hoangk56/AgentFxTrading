@@ -1,0 +1,20 @@
+VAL (2022-24), G1-XAU50 c0.5 h30 ns, net 250 ms: round 27 calendar (ForexFactory, run VAL_ff) vs registered calendar
+(ForexFactory < 2024-01-01, official schedules from 2024-01-01; run VAL_reg). 2022-23 use the same calendar in both runs.
+[2022-23] FF run 109 trades, registered run 109; common 109 (all readings identical: True); only FF 0, only registered 0
+    mean net 250: FF +3.42, registered +3.42; common +3.42
+[2024] FF run 76 trades, registered run 78; common 75 (all readings identical: True); only FF 1, only registered 3
+    mean net 250: FF +3.04, registered +3.90; common +3.76
+    only FF         2024-08-16 13:51:19 UTC (Fri 09:51 NY) L 2500 side +1 net -50.96
+    only registered 2024-01-31 14:42:35 UTC (Wed 09:42 NY) L 2050 side +1 net +20.86
+    only registered 2024-05-30 14:00:40 UTC (Thu 10:00 NY) L 2350 side +1 net -8.64
+    only registered 2024-10-31 14:04:31 UTC (Thu 10:04 NY) L 2750 side -1 net +9.95
+
+Why (release minutes within +-15 min of the [arm, trigger] interval of each differing trade):
+    2024-01-31 14:42 UTC trade (armed 09:42:16 NY): FF: 09:45 NY Employment Cost Index q/q
+    2024-01-31 14:42 UTC trade (armed 09:42:16 NY): official: none
+    2024-05-30 14:00 UTC trade (armed 09:59:43 NY): FF: 10:00 NY Pending Home Sales m/m
+    2024-05-30 14:00 UTC trade (armed 09:59:43 NY): official: none
+    2024-08-16 13:51 UTC trade (armed 09:51:15 NY): FF: none
+    2024-08-16 13:51 UTC trade (armed 09:51:15 NY): official: 10:00 NY UoM Consumer Sentiment (prelim)
+    2024-10-31 14:04 UTC trade (armed 10:03:03 NY): FF: 10:00 NY Core PCE Price Index m/m
+    2024-10-31 14:04 UTC trade (armed 10:03:03 NY): official: none

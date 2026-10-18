@@ -1,0 +1,123 @@
+"""Fills and exits for stream G events (HYPOTHESES_G.md, fill model). All on one session's tick arrays.
+LATS: '0', 'tick', '250', '1000', '60000' (the last = the bar's '+1 minute': both fills 60 s late; for G2 the entry
+becomes a market order 60 s after the limit fill)."""
+import numpy as np
+
+import engine as en
+
+COMM = 0.6
+GAP_MS = 600000
+
+
+def lat_ms(L):
+    return 0 if L in ('0', 'tick') else int(L)
+
+
+def fill_after(ts, t, L):
+    """index of the first tick >= t + latency ('tick': the tick after the first tick >= t); n-1 cap; gap flag."""
+    n = len(ts)
+    i = int(np.searchsorted(ts, t + lat_ms(L), 'left'))
+    if L == 'tick':
+        i += 1
+    gap = False
+    if i >= n:
+        i = n - 1; gap = True
+    elif ts[i] > t + lat_ms(L) + GAP_MS:
+        gap = True
+    return i, gap
+
+
+def exit_at(ts, X, L):
+    """market exit sent at clock X with latency L; if no tick within 10 min, the last tick before X."""
+    n = len(ts)
+    i = int(np.searchsorted(ts, X + lat_ms(L), 'left'))
+    if L == 'tick':
+        i += 1
+    if i >= n or ts[i] > X + lat_ms(L) + GAP_MS:
+        return max(int(np.searchsorted(ts, X, 'left')) - 1, 0), True
+    return i, False
+
+
+def first_hit(arr, start, stop, thr, above):
+    """first index in [start, stop) with arr >= thr (above) or arr <= thr; -1 if none."""
+    if stop <= start:
+        return -1
+    seg = arr[start:stop]
+    h = np.flatnonzero(seg >= thr) if above else np.flatnonzero(seg <= thr)
+    return start + int(h[0]) if h.size else -1
+
+
+def outputs(fam, ev, ts, bid, ask, mid, S, lats=en.LATS, hs=en.H_MIN, pre_mode=None, slip_bp=0.0):
+    """For each event: arrays net / gross / net15 of shape (len(lats), len(hs), 2) [ps = 0 no stop, 1 stop] and
+    fill diagnostics. Returns a dict of stacked arrays.
+    pre_mode (minute-level PRE replica, latency '0' only): 'a' = G1 entry at the stop price + slip_bp (G2: the limit
+    price, i.e. unchanged); 'b' = entry at the trigger close (G1 unchanged; G2: market at the trigger close)."""
+    nl, nh = len(lats), len(hs)
+    PS = en.PS_FRAC * S
+    spr = ask - bid
+    E = len(ev)
+    NET = np.full((E, nl, nh, 2), np.nan, np.float32)
+    GRO = np.full((E, nl, nh, 2), np.nan, np.float32)
+    N15 = np.full((E, nl, nh, 2), np.nan, np.float32)
+    SLIP = np.full((E, nl), np.nan, np.float32)       # G1: (fill - stop) * side / mid, bp (>0 = worse)
+    DELAY = np.full((E, nl), np.nan, np.float32)      # ms from trigger to the entry fill tick
+    STOPHIT = np.zeros((E, nl, nh), np.int8)
+    STOPFAST = np.zeros((E, nl), np.int8)             # protective stop triggered before the entry fill tick + latency
+    XGAP = np.zeros((E, nl, nh), np.int8)
+    EGAP = np.zeros((E, nl), np.int8)
+    for k, (a, j, L, lside, thr, sa) in enumerate(ev):
+        # lside = the side the price approaches the level from (+1 from below, -1 from above);
+        # trade side: G1 follows the break (= lside), G2 fades it (= -lside)
+        side = lside if fam == 'G1' else -lside
+        tj = int(ts[j])
+        for li, Lt in enumerate(lats):
+            if fam == 'G1' or Lt == '60000' or (pre_mode == 'b' and Lt == '0'):
+                if Lt == '0':
+                    f, g = j, False
+                else:
+                    f, g = fill_after(ts, tj, Lt)
+                Ein = ask[f] if side > 0 else bid[f]
+                if fam == 'G1' and pre_mode == 'a' and Lt == '0':
+                    Ein = thr + side * slip_bp * mid[f] / 1e4
+                limit = False
+            else:
+                f, g, Ein, limit = j, False, thr, True
+            EGAP[k, li] = g
+            DELAY[k, li] = ts[f] - tj
+            if fam == 'G1':
+                SLIP[k, li] = side * (Ein - thr) / mid[f] * 1e4
+            m0 = mid[f]
+            E15 = Ein if limit else (m0 + 0.75 * spr[f] if side > 0 else m0 - 0.75 * spr[f])
+            base_t = tj + (60000 if Lt == '60000' else 0)
+            # protective stop: L - PS for a long, L + PS for a short (G1 long from below: the break failed;
+            # G2 short from below: the level broke through)
+            stop_lvl = L - side * PS
+            for hi, h in enumerate(hs):
+                X = base_t + h * 60000
+                xt, xg = exit_at(ts, X, '0' if Lt == '60000' else Lt)
+                XGAP[k, li, hi] = xg
+                xt = max(xt, min(f + 1, len(ts) - 1))
+                # stop scan between the entry tick and the exit clock
+                iX = int(np.searchsorted(ts, X, 'left'))
+                if side > 0:
+                    q = first_hit(bid, f + 1, iX, stop_lvl, above=False)
+                else:
+                    q = first_hit(ask, f + 1, iX, stop_lvl, above=True)
+                for ps in (0, 1):
+                    x = xt
+                    if ps and q >= 0:
+                        if Lt == '0':
+                            xs = q
+                        else:
+                            xs, _ = fill_after(ts, int(ts[q]), Lt)
+                        x = min(max(xs, f + 1), xt)
+                        STOPHIT[k, li, hi] = 1
+                        if hi == len(hs) - 1 and ts[q] - ts[f] <= 1000:
+                            STOPFAST[k, li] = 1
+                    Xp = bid[x] if side > 0 else ask[x]
+                    X15 = (mid[x] - 0.75 * spr[x]) if side > 0 else (mid[x] + 0.75 * spr[x])
+                    NET[k, li, hi, ps] = side * (Xp - Ein) / m0 * 1e4 - COMM
+                    GRO[k, li, hi, ps] = side * (mid[x] - m0) / m0 * 1e4
+                    N15[k, li, hi, ps] = side * (X15 - E15) / m0 * 1e4 - COMM
+    return {'net': NET, 'gross': GRO, 'net15': N15, 'slip': SLIP, 'delay': DELAY, 'stophit': STOPHIT,
+            'stopfast': STOPFAST, 'xgap': XGAP, 'egap': EGAP}

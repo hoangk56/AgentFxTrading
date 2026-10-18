@@ -1,0 +1,21 @@
+#!/bin/bash
+# usage: fetch.sh URL OUTNAME   -- downloads URL into r30/cal/dl/OUTNAME (sub-folders allowed) and appends one line to
+# r30/cal/fetch_log.tsv: date -u time, tool, URL, saved file, HTTP status, bytes.
+# No personal data is sent: generic browser User-Agent and headers, no cookies, no e-mail, no contact parameters.
+# Accept-Encoding has no "br" because this curl build cannot decode brotli.
+C=/private/tmp/claude-501/-Users-hoangbk-00-code-base-105-AgentFxTrading/cff348f1-534e-440d-88da-40c31dade827/scratchpad/r30/cal
+DL=$C/dl; LOG=$C/fetch_log.tsv
+URL="$1"; OUT="$2"
+[ -f "$LOG" ] || printf 'time_utc\ttool\turl\tsaved_file\thttp_status\tbytes\n' > "$LOG"
+mkdir -p "$(dirname "$DL/$OUT")"
+T=$(date -u '+%Y-%m-%d %H:%M:%S UTC')
+code=$(curl -sS -L --compressed --max-time 90 -A "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.4 Safari/605.1.15" \
+  -H "Accept: text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8" -H "Accept-Language: en-US,en;q=0.9" \
+  -H "Accept-Encoding: gzip, deflate" -H "Connection: keep-alive" -H "Upgrade-Insecure-Requests: 1" \
+  -H "Sec-Fetch-Dest: document" -H "Sec-Fetch-Mode: navigate" -H "Sec-Fetch-Site: none" -H "Sec-Fetch-User: ?1" \
+  -o "$DL/$OUT" -w '%{http_code}' "$URL" 2>/dev/null)
+rc=$?
+[ $rc -ne 0 ] && code="${code:-000} (curl exit $rc)"
+sz=$(wc -c < "$DL/$OUT" 2>/dev/null | tr -d ' ')
+printf '%s\tcurl\t%s\tdl/%s\t%s\t%s\n' "$T" "$URL" "$OUT" "$code" "${sz:-0}" >> "$LOG"
+echo "HTTP $code ${sz:-0} bytes -> $OUT"

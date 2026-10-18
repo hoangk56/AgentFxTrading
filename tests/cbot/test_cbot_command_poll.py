@@ -14,6 +14,7 @@ CBOT = CBOT_DIR
 OWN_POSITIONS = {
     "GotobiBot.cs": "var own = GetBotPositions();",
     "EcbWindowBot.cs": "var own = GetBotPositions();",
+    "GoldLevelBot.cs": "var own = GetBotPositions();",
 }
 BOTS = list(OWN_POSITIONS)
 
@@ -31,8 +32,9 @@ def _method(src, signature):
 
 
 def _entry_orders(src):
-    """Offsets of real ExecuteMarketOrder / ExecuteMarketOrderAsync calls (comment lines skipped)."""
-    for m in re.finditer(r"ExecuteMarketOrder(Async)?\(", src):
+    """Offsets of real entry orders: ExecuteMarketOrder(Async) and PlaceStopOrder / PlaceLimitOrder(Async) calls
+    (comment lines skipped)."""
+    for m in re.finditer(r"(ExecuteMarketOrder|PlaceStopOrder|PlaceLimitOrder)(Async)?\(", src):
         line_start = src.rfind("\n", 0, m.start()) + 1
         if "//" not in src[line_start:m.start()]:
             yield m.start()
@@ -93,6 +95,6 @@ def test_every_entry_order_is_behind_the_pause_guard(name):
     previous = -1
     for pos in orders:
         guard = src.rfind("if (DashboardPauseBlocks(", 0, pos)
-        assert guard > previous, f"{name}: ExecuteMarketOrder at offset {pos} has no pause guard of its own"
+        assert guard > previous, f"{name}: the entry order at offset {pos} has no pause guard of its own"
         assert pos - guard < 1500, f"{name}: pause guard too far from the order at offset {pos}"
         previous = pos

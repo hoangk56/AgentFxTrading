@@ -1,0 +1,195 @@
+"""Round 27 stream G engine: resting orders around fresh round levels on IC ticks.
+
+Bot rule (one bot = one family x grid x offset; HYPOTHESES_G.md has the declared text):
+- Grid levels L = u + S*k. D = 0.2 S (arm distance), PS = 0.1 S (protective stop beyond L), TOUCH = 0.05 S.
+- Sessions: NY trading days, arming allowed 18:10 NY (d-1) .. 15:54 NY (d); never within +-15 min of a High-impact
+  USD calendar minute; never within 15 min after a tick gap > 60 min.
+- Arm (bot flat, i.e. >= 60 min after its last trigger, outside exclusions) on the nearest level within D:
+  upper level L (mid in [L-D, L)) if L is fresh (L > max tick mid of the previous 1,440 clock minutes), lower level L
+  (mid in (L, L+D]) if L < min tick mid of the previous 1,440 minutes; the level was not traded by this bot in the
+  previous 1,440 minutes; the order is not marketable at the arming tick. The order price is fixed at arming with
+  s = s60 (median last-tick spread of the 60 clock minutes before the arming minute):
+    G1 (stop):  upper: buy stop at L + c*s, triggers when ASK >= it;  lower: sell stop at L - c*s, BID <= it.
+    G2 (limit): upper: sell limit at L - c*s, fills when BID > it (traded through); lower: buy limit at L + c*s,
+                fills when ASK < it.
+- Cancel when the mid leaves the band (upper: mid < L - D; lower: mid > L + D) or an exclusion starts.
+- After a trigger / fill the bot is busy 60 minutes (every exit variant shares the event set).
+"""
+from datetime import date, datetime, timedelta
+
+import numpy as np
+
+import gcommon as gc
+
+C_GRID = (0.0, 0.5, 1.0)       # G1 offsets in units of s60
+Q_GRID = (0.5, 1.0, 2.0)       # G2 offsets in units of s60
+D_FRAC, PS_FRAC, TOUCH_FRAC = 0.2, 0.1, 0.05
+BUSY_MS = 60 * 60000
+H_MIN = (5, 15, 30, 60)
+LATS = ('0', 'tick', '250', '1000', '60000')
+DAY_MS = 1440 * 60000
+
+
+class Minutes:
+    def __init__(self, sym):
+        z = np.load(gc.OUT / f'min_{sym}.npz')
+        self.T0M = int(z['T0M'])
+        self.W_up = z['W_up']; self.W_dn = z['W_dn']; self.s60 = z['s60']
+        self.mmax = z['mmax']; self.mmin = z['mmin']; self.n = z['n']
+
+    def midx(self, ts):
+        return (ts - self.T0M) // 60000
+
+
+def ny_ms(d, hh, mm):
+    return int(datetime(d.year, d.month, d.day, hh, mm, tzinfo=gc.NY).timestamp() * 1000)
+
+
+class SessionFeed:
+    """Yields (ny_date, ts, bid, ask) for NY sessions [18:10 NY d-1, 17:00 NY d], d from d0 to d1 (inclusive),
+    loading each UTC day once in order (HOLD-guarded)."""
+
+    def __init__(self, sym, d0, d1):
+        self.sym, self.d0, self.d1 = sym, d0, d1
+
+    def __iter__(self):
+        L = gc.DayLoader(self.sym)
+        cache = {}
+        next_day = self.d0 - timedelta(days=3)
+        d = self.d0
+        while d <= self.d1:
+            t_start = ny_ms(d - timedelta(days=1), 18, 10)
+            t_end = ny_ms(d, 17, 0)
+            if t_end >= gc.HOLD_MS:
+                break
+            u0 = gc.dt_of(t_start).date(); u1 = gc.dt_of(t_end).date()
+            while next_day <= u1:
+                cache[next_day] = L.load(next_day)
+                next_day += timedelta(days=1)
+            for k in [k for k in cache if k < u0 - timedelta(days=1)]:
+                del cache[k]
+            parts = [cache[k] for k in sorted(cache) if u0 <= k <= u1 and len(cache[k][0])]
+            if parts and d.weekday() < 5:
+                ts = np.concatenate([p[0] for p in parts]); b = np.concatenate([p[1] for p in parts])
+                a = np.concatenate([p[2] for p in parts])
+                i0 = np.searchsorted(ts, t_start, 'left'); i1 = np.searchsorted(ts, t_end, 'right')
+                if i1 - i0 > 10:
+                    yield d, ts[i0:i1], b[i0:i1], a[i0:i1]
+            d += timedelta(days=1)
+
+
+def session_arrays(ts, bid, ask, mins, rel_ms, d):
+    """Per-tick mid, 24-h max/min mid before the tick (M24, m24), s60 at the tick's minute, arming-allowed mask."""
+    mid = 0.5 * (bid + ask)
+    mi = mins.midx(ts)
+    grp = mi - mi[0]
+    BIG = 1e5
+    v = mid + grp * BIG
+    cmx = np.maximum.accumulate(v) - grp * BIG
+    cmn = -(np.maximum.accumulate(-mid + grp * BIG) - grp * BIG)
+    same = np.r_[False, grp[1:] == grp[:-1]]
+    exmax = np.where(same, np.r_[-np.inf, cmx[:-1]], -np.inf)
+    exmin = np.where(same, np.r_[np.inf, cmn[:-1]], np.inf)
+    M24 = np.maximum(mins.W_up[mi], exmax)
+    m24 = np.minimum(mins.W_dn[mi], exmin)
+    s = mins.s60[mi]
+    # arming window: 18:10 NY (d-1) .. 15:54 NY (d)
+    ok = (ts >= ny_ms(d - timedelta(days=1), 18, 10)) & (ts < ny_ms(d, 15, 54))
+    # High USD +-15 min
+    if len(rel_ms):
+        k = np.searchsorted(rel_ms, ts - 15 * 60000, 'left')
+        k = np.minimum(k, len(rel_ms) - 1)
+        near = np.abs(rel_ms[k] - ts) <= 15 * 60000
+        # also check the previous release (searchsorted gives the first >= ts-15m; that one is the nearest candidate)
+        ok &= ~near
+    # 15 min after a gap > 60 min (the first tick of the session counts as after a gap if the previous tick is old)
+    gap = np.r_[np.inf, np.diff(ts)] > 3600000
+    if gap.any():
+        gt = ts[gap]
+        k = np.searchsorted(gt, ts, 'right') - 1
+        after = (k >= 0) & (ts - gt[np.maximum(k, 0)] < 15 * 60000)
+        ok &= ~after
+    return mid, M24, m24, s, ok
+
+
+def _first(cond_fn, start, n, size=512):
+    """First index >= start where cond_fn(slice) is True; n if none. cond_fn(lo, hi) -> bool array."""
+    while start < n:
+        hi = min(n, start + size)
+        hit = np.flatnonzero(cond_fn(start, hi))
+        if hit.size:
+            return start + int(hit[0])
+        start = hi
+        size *= 2
+    return n
+
+
+def gen_events(fam, u, S, c, ts, bid, ask, mid, M24, m24, s, ok, state):
+    """Events of one bot in one session. state: dict with 'busy_until' (ms) and 'traded' {level_key: ms}.
+    Returns a list of (a, j, L, side, thr, s_arm)."""
+    n = len(ts)
+    D = D_FRAC * S
+    ku = np.floor((mid - u) / S) + 1.0            # level index above mid (strict)
+    Lup = u + S * ku
+    kd = np.ceil((mid - u) / S) - 1.0             # level index below mid (strict)
+    Ldn = u + S * kd
+    in_up = (Lup - mid) <= D
+    in_dn = (mid - Ldn) <= D
+    o = c * s
+    if fam == 'G1':
+        trig_up_now = ask >= Lup + o               # marketable at this tick -> not armable
+        trig_dn_now = bid <= Ldn - o
+    else:
+        trig_up_now = bid > Lup - o
+        trig_dn_now = ask < Ldn + o
+    arm_up = in_up & (Lup > M24) & ok & ~trig_up_now
+    arm_dn = in_dn & (Ldn < m24) & ok & ~trig_dn_now
+    cand = np.flatnonzero(arm_up | arm_dn)
+    out = []
+    i = 0
+    busy = state['busy_until']
+    traded = state['traded']
+    while True:
+        k = np.searchsorted(cand, i)
+        if k >= len(cand):
+            break
+        a = int(cand[k])
+        if ts[a] < busy:
+            i = int(np.searchsorted(ts, busy, 'left'))
+            continue
+        if arm_up[a]:
+            side, L, thr0 = 1, Lup[a], None
+        else:
+            side, L, thr0 = -1, Ldn[a], None
+        key = int(round(L * 100))
+        sa = s[a]
+        if side > 0:
+            thr = L + c * sa if fam == 'G1' else L - c * sa
+            lo_band = L - D
+            cancel = lambda x, y: (mid[x:y] < lo_band) | ~ok[x:y]
+            if fam == 'G1':
+                trig = lambda x, y: ask[x:y] >= thr
+            else:
+                trig = lambda x, y: bid[x:y] > thr
+        else:
+            thr = L - c * sa if fam == 'G1' else L + c * sa
+            hi_band = L + D
+            cancel = lambda x, y: (mid[x:y] > hi_band) | ~ok[x:y]
+            if fam == 'G1':
+                trig = lambda x, y: bid[x:y] <= thr
+            else:
+                trig = lambda x, y: ask[x:y] < thr
+        e = _first(cancel, a + 1, n)
+        if key in traded and ts[a] - traded[key] < DAY_MS:
+            i = e
+            continue
+        j = _first(trig, a + 1, e)
+        if j < e:
+            out.append((a, j, L, side, thr, sa))
+            busy = ts[j] + BUSY_MS
+            traded[key] = int(ts[j])
+            i = j + 1
+        else:
+            i = e
+    state['busy_until'] = busy
+    return out

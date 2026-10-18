@@ -57,12 +57,13 @@ def test_presets_endpoint_shape():
     res = client.get("/api/setup/presets")
     assert res.status_code == 200
     data = res.json()
-    assert set(data["strategies"]) == {"gotobi", "ecb_f3", "ecb_e1"}
+    assert set(data["strategies"]) == {"gotobi", "ecb_f3", "ecb_e1", "gold_levels"}
     assert data["strategies"]["gotobi"]["label"] == "Gotobi Fix"
-    assert data["symbols"] == ["USDJPY", "EURJPY", "GBPJPY", "EURUSD"]
-    assert len(data["cells"]) == 5        # gotobi on 3 JPY pairs, the ECB window's F3 and E1 on EURUSD
+    assert data["symbols"] == ["USDJPY", "EURJPY", "GBPJPY", "EURUSD", "XAUUSD"]
+    assert len(data["cells"]) == 6        # gotobi on 3 JPY pairs, the ECB window's F3 and E1 on EURUSD, gold on XAUUSD
     assert {c["symbol"] for c in data["cells"] if c["strategy"] == "gotobi"} == {"USDJPY", "EURJPY", "GBPJPY"}
     assert {c["strategy"] for c in data["cells"] if c["symbol"] == "EURUSD"} == {"ecb_f3", "ecb_e1"}
+    assert {c["strategy"] for c in data["cells"] if c["symbol"] == "XAUUSD"} == {"gold_levels"}
     assert all(set(c) == {"symbol", "strategy", "period", "session"} for c in data["cells"])
 
 

@@ -4,8 +4,10 @@ Strategy × symbol presets for the dashboard's "Setup Instances" screen.
 Gotobi (GotobiBot) trades only the three JPY pairs the research validated
 (research/results/portfolio/swing_lab_v2_2026-09-27.md); the ECB window (EcbWindowBot) only EURUSD, as F3 (USD-TOP days,
 research/results/portfolio/round24_relaxed/PREREG_R24_relaxed_hold.md) or E1 (every weekday,
-research/results/portfolio/round13_structural/PREREG_M_eurusd_midday.md). So the grid has 5 cells. All 5 are written out
-as `docker run` commands in docs/docker-instances.md, which tests/app/test_cbot_presets.py keeps in sync with this module. `params`
+research/results/portfolio/round13_structural/PREREG_M_eurusd_midday.md); the gold level bot (GoldLevelBot) only XAUUSD
+(research/results/portfolio/round27_levels_opens/PREREG_G_gold_round50_cascade.md). So the grid has 6 cells. All 6 are
+written out as `docker run` commands in docs/docker-instances.md, which tests/app/test_cbot_presets.py keeps in sync with
+this module. `params`
 holds only the strategy-tuned flags. Infrastructure flags (credentials, symbol, period, BotId, ApiUrl,
 AccountLabel) are emitted by `build_run_command`, so a preset never knows which account runs it.
 """
@@ -21,13 +23,15 @@ STRATEGIES: Dict[str, Dict[str, str]] = {
     # One cBot, two rules: the suffix (and the preset's UsdTopOnly) tells them apart.
     "ecb_f3":  {"label": "ECB Window F3", "algo": "EcbWindowBot.algo",          "suffix": "-f3"},
     "ecb_e1":  {"label": "ECB Window E1", "algo": "EcbWindowBot.algo",          "suffix": "-e1"},
+    "gold_levels": {"label": "Gold $50 Levels", "algo": "GoldLevelBot.algo",    "suffix": "-gold50"},
 }
 
 # Row order of the setup grid.
-SYMBOLS: List[str] = ["USDJPY", "EURJPY", "GBPJPY", "EURUSD"]
+SYMBOLS: List[str] = ["USDJPY", "EURJPY", "GBPJPY", "EURUSD", "XAUUSD"]
 
 _GOTOBI_SESSION = "Tokyo fix"
 _ECB_SESSION = "ECB fix window"
+_GOLD_SESSION = "Round levels"
 
 # Gotobi days the bot sits out. Japanese public holidays and the 31/12 bank holiday have no Tokyo fix, and on the 45
 # such days of 2016-2026 the basket lost (R -0.066, t -3.4; research/results/portfolio/gotobi_jp_holidays_2026-09-29.md).
@@ -55,11 +59,21 @@ def _ecb(usd_top_only: bool, lots: float) -> dict:
     return {"UsdTopOnly": usd_top_only, "Lots": lots, "EmergencyStopPips": ECB_BROKER_STOP_PIPS}
 
 
+# A far broker stop for a dead bot; the rule has none (it exits 30 minutes after the trigger). The largest adverse move
+# of any 2016-2026 trade before its exit was $54 (1.1 % of the price), so no trade touches $100
+# (research/results/portfolio/gold_level_cbot_2026-10-18.md).
+GOLD_BROKER_STOP_USD = 100.0
+
+
+def _gold(lots: float) -> dict:
+    return {"Lots": lots, "EmergencyStopUsd": GOLD_BROKER_STOP_USD}
+
+
 def _cell(period: str, session: str, params: dict) -> dict:
     return {"period": period, "session": session, "params": params}
 
 
-# (strategy, SYMBOL) -> {"period", "session", "params"}; the 3 gotobi cells and the 2 ECB-window ones.
+# (strategy, SYMBOL) -> {"period", "session", "params"}; the 3 gotobi cells, the 2 ECB-window ones and gold.
 PRESETS: Dict[Tuple[str, str], Dict] = {
     # Gotobi (GotobiBot) — research C3: the schedule and the 3 x ATR20(H1) stop are the cBot's defaults; a cell
     # sets the default $ risk per trade (never a share of equity; $100 is the research's), the entry spread cap
@@ -72,6 +86,10 @@ PRESETS: Dict[Tuple[str, str], Dict] = {
     # that has not met its promotion rule); E1 runs on demo at 0.1 lot. Lots are fixed, never from the account.
     ("ecb_f3", "EURUSD"): _cell("m15", _ECB_SESSION, _ecb(usd_top_only=True, lots=0.01)),
     ("ecb_e1", "EURUSD"): _cell("m15", _ECB_SESSION, _ecb(usd_top_only=False, lots=0.1)),
+    # Gold $50 levels (GoldLevelBot): a stop order just past a fresh $50 level, closed 30 minutes after it triggers; the
+    # rule and the release calendar (cBot/seeds/usd_high_calendar.csv) are the cBot's defaults. A DEMO candidate, so it
+    # runs on demo at the minimum lot (1 oz): the evidence is in bp per trade and the fills, not in dollars.
+    ("gold_levels", "XAUUSD"): _cell("m15", _GOLD_SESSION, _gold(lots=0.01)),
 }
 
 
@@ -89,6 +107,7 @@ def _fmt(value) -> str:
 SESSION_SLUGS: Dict[str, str] = {
     _GOTOBI_SESSION: "fix",
     _ECB_SESSION: "ecb",
+    _GOLD_SESSION: "levels",
 }
 
 

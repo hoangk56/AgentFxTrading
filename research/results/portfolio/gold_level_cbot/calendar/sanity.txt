@@ -1,0 +1,89 @@
+SANITY CHECK: 2026-09-01 .. 2026-09-30 (ET dates) rebuilt by build_fwd.py from the r30 downloads, against the
+registered /Users/hoangbk/00.code_base/105.AgentFxTrading/research/results/portfolio/round27_levels_opens/prereg_code/usd_high_2024_2026.csv
+
+rows: registered 25, rebuilt 25; unique minutes: registered 21, rebuilt 21
+only in registered: 0
+only in rebuilt:    0
+same (utc_minute, event), different source URL: 2 (shown from the first differing character)
+  2026-09-09T17:00  10-y Note Auction (Treasury)
+      registered: ...l_issue_date&filter=auction_date:gte:2024-01-01,auction_date:lte:2026-09-30,security_type:in:(Note,Bond)&sort=auction_date&page%5Bsize%5D=1000
+      rebuilt:    ...l_issue_date&filter=auction_date:gte:2026-09-01,security_type:in:(Note,Bond)&sort=auction_date&page%5Bsize%5D=1000
+  2026-09-10T17:00  30-y Bond Auction (Treasury)
+      registered: ...l_issue_date&filter=auction_date:gte:2024-01-01,auction_date:lte:2026-09-30,security_type:in:(Note,Bond)&sort=auction_date&page%5Bsize%5D=1000
+      rebuilt:    ...l_issue_date&filter=auction_date:gte:2026-09-01,security_type:in:(Note,Bond)&sort=auction_date&page%5Bsize%5D=1000
+  -> the same fiscaldata auctions_query with a different auction_date filter (registered: 2024-01-01 .. 2026-09-30;
+     r30: from 2026-09-01); same auctions, same closing_time_comp.
+
+rebuilt September rows (utc_minute, event, basis of the row):
+  2026-09-01T14:00  ISM Manufacturing PMI                                      release: PR Newswire (ISM) stamp 10:00 ET; matches ISM release calendar (web.archive.org 20260930232246)
+  2026-09-01T14:00  JOLTS job openings (BLS)                                   release: confirmed in the BLS news-release archive (jolts_09012026.htm); Job Openings and Labor Turnover Survey for July
+  2026-09-02T12:15  ADP National Employment Report                             release: PR Newswire (ADP) stamp 08:15 ET; 2 days before BLS Employment Situation (2026-09-04)
+  2026-09-03T12:30  Unemployment Claims (DOL)                                  release: embargo 8:30 A.M. (Eastern) Thursday; week ending August 29
+  2026-09-03T14:00  ISM Services PMI                                           release: PR Newswire (ISM) stamp 10:00 ET; matches ISM release calendar (web.archive.org 20260930232246)
+  2026-09-04T12:30  Employment Situation: NFP, AHE, unemployment rate (BLS)    release: confirmed in the BLS news-release archive (empsit_09042026.htm); Employment Situation for August 2026
+  2026-09-09T17:00  10-y Note Auction (Treasury)                               release: auction held, high yield 4.8340; Note 9-Year 11-Month, CUSIP 91282CRF0, reopening, announced 2026-09-03; compet
+  2026-09-10T12:30  PPI (BLS)                                                  release: confirmed in the BLS news-release archive (ppi_09102026.htm); Producer Price Index for August 2026
+  2026-09-10T12:30  Unemployment Claims (DOL)                                  release: embargo 8:30 A.M. (Eastern) Thursday; week ending September 5
+  2026-09-10T17:00  30-y Bond Auction (Treasury)                               release: auction held, high yield 5.3080; Bond 29-Year 11-Month, CUSIP 912810UW6, reopening, announced 2026-09-03; compe
+  2026-09-11T12:30  CPI (BLS)                                                  release: confirmed in the BLS news-release archive (cpi_09112026.htm); Consumer Price Index for August 2026
+  2026-09-11T14:00  UoM Consumer Sentiment (prelim)                            release: SCA home page showed "Preliminary Results for September 2026" (web.archive.org 20260925090737); report PDF doci
+  2026-09-15T12:30  Empire State Manufacturing                                 release: report PDF linked in the NY Fed release table; time: NY Fed "Released at or shortly after 8:30 a.m."
+  2026-09-16T12:30  Retail Sales (Census advance)                              release: PDF "FOR RELEASE AT 8:30 AM EDT"; data month August 2026; read from web.archive.org capture 20260917161021 of m
+  2026-09-16T18:00  FOMC statement, rate decision, SEP (Fed)                   release: Fed monthly calendar; Two-day meeting, September 15 - 16 | Press Conference; SEP meeting (* in fomccalendars.ht
+  2026-09-16T18:30  FOMC press conference (Fed)                                release: Fed monthly calendar; Two-day meeting, September 15 - 16 | Press Conference
+  2026-09-17T12:30  Unemployment Claims (DOL)                                  release: embargo 8:30 A.M. (Eastern) Thursday; week ending September 12
+  2026-09-23T13:45  S&P Global Flash US PMI                                    release: embargo line: 0945 EDT; PDF read from web.archive.org copy of this URL
+  2026-09-24T12:30  Unemployment Claims (DOL)                                  release: embargo 8:30 A.M. (Eastern) Thursday; week ending September 19
+  2026-09-25T14:00  UoM Consumer Sentiment (final)                             release: SCA home page showed "Final Results for September 2026" (web.archive.org 20261008231356); published schedule: S
+  2026-09-29T14:00  CB Consumer Confidence                                     release: PR Newswire (The Conference Board) stamp 10:00 ET
+  2026-09-29T14:00  JOLTS job openings (BLS)                                   release: confirmed in the BLS news-release archive (jolts_09292026.htm); Job Openings and Labor Turnover Survey for Augu
+  2026-09-30T12:15  ADP National Employment Report                             release: PR Newswire (ADP) stamp 08:15 ET; 2 days before BLS Employment Situation (2026-10-02)
+  2026-09-30T12:30  GDP (BEA)                                                  release: BEA schedule page links the released news release ("View"); = bea.gov schedule page; Gross Domestic Product 202
+  2026-09-30T12:30  Personal income and outlays, core PCE (BEA)                release: BEA schedule page links the released news release ("View"); = bea.gov schedule page; Personal Income and Outlay
+
+PER-MONTH ROW COUNTS: this file vs the same month a year earlier (registered file through 2026-09, this file for
+2026-10 .. 2026-12). Rows / unique minutes.
+  2026-10:  25 rows  20 min    2025-10:  16 rows  16 min    diff +9
+  2026-11:  21 rows  19 min    2025-11:  16 rows  14 min    diff +5
+  2026-12:  24 rows  20 min    2025-12:  26 rows  23 min    diff -2
+  2027-01:  20 rows  17 min    2026-01:  25 rows  21 min    diff -5
+  2027-02:  16 rows  13 min    2026-02:  23 rows  21 min    diff -7
+  2027-03:  17 rows  16 min    2026-03:  26 rows  22 min    diff -9
+  2027-04:  20 rows  18 min    2026-04:  28 rows  23 min    diff -8
+  2027-05:  16 rows  13 min    2026-05:  22 rows  18 min    diff -6
+  2027-06:  18 rows  16 min    2026-06:  24 rows  20 min    diff -6
+  2027-07:  19 rows  16 min    2026-07:  29 rows  24 min    diff -10
+  2027-08:  16 rows  15 min    2026-08:  23 rows  20 min    diff -7
+  2027-09:  18 rows  15 min    2026-09:  25 rows  21 min    diff -7
+  2027-10:  19 rows  15 min    2026-10:  25 rows  20 min    diff -6
+  2027-11:  16 rows  13 min    2026-11:  21 rows  19 min    diff -5
+  2027-12:  19 rows  16 min    2026-12:  24 rows  20 min    diff -5
+
+BY TYPE: count in this file, (count a year earlier). Months 2026-10 .. 2027-12 vs 2025-10 .. 2026-12.
+                                          26-10 26-11 26-12 27-01 27-02 27-03 27-04 27-05 27-06 27-07 27-08 27-09 27-10 27-11 27-12
+  10-y Note Auction (Treasury)             1(1)  1(1)  1(1)  1(1)  0(1)  0(1)  0(1)  0(1)  0(1)  0(1)  0(1)  0(1)  0(1)  0(1)  0(1)
+  30-y Bond Auction (Treasury)             1(1)  1(1)  1(1)  1(1)  0(1)  0(1)  0(1)  0(1)  0(1)  0(1)  0(1)  0(1)  0(1)  0(1)  0(1)
+  ADP National Employment Report           0(1)  1(1)  1(1)  0(1)  0(1)  0(1)  0(1)  0(1)  0(1)  0(1)  0(1)  0(2)  0(0)  0(1)  0(1)
+  CB Consumer Confidence                   1(1)  1(1)  1(1)  1(1)  1(1)  1(1)  1(1)  1(1)  1(1)  1(1)  1(1)  1(1)  1(1)  1(1)  1(1)
+  CPI (BLS)                                1(1)  1(0)  1(1)  1(1)  1(1)  1(1)  1(1)  1(1)  1(1)  1(1)  1(1)  1(1)  1(1)  1(1)  1(1)
+  Empire State Manufacturing               1(1)  1(1)  1(1)  0(1)  0(1)  0(1)  0(1)  0(1)  0(1)  0(1)  0(1)  0(1)  0(1)  0(1)  0(1)
+  Employment Cost Index (BLS)              1(0)  0(0)  0(1)  1(0)  0(1)  0(0)  1(1)  0(0)  0(0)  1(1)  0(0)  0(0)  1(1)  0(0)  0(0)
+  Employment Situation: NFP, AHE, unemploy 1(0)  1(1)  1(1)  1(1)  1(1)  1(1)  1(1)  1(1)  1(1)  1(1)  1(1)  1(1)  1(1)  1(1)  1(1)
+  FOMC minutes (Fed)                       1(1)  1(1)  1(1)  0(0)  1(1)  0(0)  1(1)  1(1)  1(0)  0(1)  1(1)  0(0)  1(1)  1(1)  1(1)
+  FOMC press conference (Fed)              1(1)  0(0)  1(1)  1(1)  0(0)  1(1)  1(1)  0(0)  1(1)  1(1)  0(0)  1(1)  1(1)  0(0)  1(1)
+  FOMC statement, rate decision (Fed)      1(1)  0(0)  0(0)  1(1)  0(0)  0(0)  1(1)  0(0)  0(0)  1(1)  0(0)  0(0)  1(1)  0(0)  0(0)
+  FOMC statement, rate decision, SEP (Fed) 0(0)  0(0)  1(1)  0(0)  0(0)  1(1)  0(0)  0(0)  1(1)  0(0)  0(0)  1(1)  0(0)  0(0)  1(1)
+  Fed Chair speaks                         1(2)  0(0)  0(1)  0(0)  0(0)  0(2)  0(0)  0(0)  0(0)  0(1)  0(1)  0(0)  0(1)  0(0)  0(0)
+  Fed Chair testifies                      0(0)  0(0)  0(0)  0(0)  0(0)  0(0)  0(0)  0(0)  0(0)  0(2)  0(0)  0(0)  0(0)  0(0)  0(0)
+  GDP (BEA)                                1(0)  1(0)  1(1)  1(1)  1(1)  1(1)  1(2)  1(1)  1(1)  1(1)  1(1)  1(1)  1(1)  1(1)  1(1)
+  ISM Manufacturing PMI                    1(1)  1(1)  1(1)  1(1)  1(1)  1(1)  1(1)  1(1)  1(1)  1(1)  1(1)  1(1)  1(1)  1(1)  1(1)
+  ISM Services PMI                         1(1)  1(1)  1(1)  1(1)  1(1)  1(1)  1(1)  1(1)  1(1)  1(1)  1(1)  1(1)  1(1)  1(1)  1(1)
+  JOLTS job openings (BLS)                 0(0)  1(0)  1(1)  0(1)  0(1)  0(2)  0(0)  0(1)  0(2)  0(0)  0(1)  0(2)  0(0)  0(1)  0(1)
+  PPI (BLS)                                1(0)  1(1)  1(0)  1(2)  1(1)  1(1)  1(1)  1(1)  1(1)  1(1)  1(1)  1(1)  1(1)  1(1)  1(1)
+  Personal income and outlays, core PCE (B 1(0)  1(0)  1(1)  1(1)  1(1)  1(1)  1(2)  1(1)  1(1)  1(1)  1(1)  1(1)  1(1)  1(1)  1(1)
+  Retail Sales (Census advance)            1(0)  1(1)  1(1)  1(1)  1(1)  1(1)  1(2)  1(1)  1(1)  1(1)  1(1)  1(1)  1(1)  1(1)  1(1)
+  S&P Global Flash US PMI                  1(1)  0(1)  0(1)  0(1)  0(1)  0(1)  0(1)  0(1)  0(1)  0(1)  0(1)  0(1)  0(1)  0(0)  0(0)
+  Treasury FX Report                       0(0)  0(0)  0(0)  0(1)  0(0)  0(0)  0(0)  0(0)  0(0)  0(1)  0(0)  0(0)  0(0)  0(0)  0(0)
+  Unemployment Claims (DOL)                5(0)  4(2)  5(5)  4(4)  4(4)  4(4)  5(5)  4(4)  4(4)  5(5)  4(4)  5(4)  4(5)  4(4)  5(5)
+  UoM Consumer Sentiment (final)           1(1)  1(1)  1(1)  1(1)  1(1)  1(1)  1(1)  1(1)  1(1)  1(1)  1(1)  1(1)  1(1)  1(1)  1(1)
+  UoM Consumer Sentiment (prelim)          1(1)  1(1)  1(1)  1(1)  1(1)  1(1)  1(1)  1(1)  1(1)  1(1)  1(1)  1(1)  1(1)  1(1)  1(1)

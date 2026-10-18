@@ -1,0 +1,126 @@
+COVERAGE of usd_high_fwd.csv (2026-10-01 .. 2027-12-31), built 2026-10-18 from the downloads in /private/tmp/claude-501/-Users-hoangbk-00-code-base-105-AgentFxTrading/cff348f1-534e-440d-88da-40c31dade827/scratchpad/r30/cal/dl.
+Known through = every release of that type on or before that date is in the file, from a published schedule, a
+publisher-stated rule (counted as known unless the row is flagged UNCERTAIN), or the release itself. Rows after it
+exist only where a publisher-stated rule gives them (see remarks).
+
+GENERAL
+- 2026-10-01 .. 10-17 (past): 15 rows; 15 confirmed from the release or the publisher's record of it (news-release archive, embargo line, PR Newswire stamp, linked report, Fed calendar of the month, FRED update stamp for Census); not confirmed: none. Every confirmed release came on its scheduled date (no lapse effect).
+- Appropriations: the FY2027 continuing resolution (P.L. 119-103, Division A) funds agencies through December 11, 2026 (CRS R49353, read from the EveryCRSReport copy; congress.gov answered 403). A funding gap from 2026-12-12 would cancel or move BLS, BEA, Census and DOL releases, as in October-November 2025. Treasury auctions, the Fed and the private publishers (ADP, ISM, CB, UMich, S&P Global, NY Fed) kept their schedules in 2025. Rebuild if a lapse starts.
+- Times: where a schedule gives only a date, the time is the README time for that type (stated in each note).
+
+Employment Situation: NFP, AHE, unemployment rate (BLS)
+    rows 15; last row 2027-12-03; basis: published schedule 14, release 1
+    known through 2027-12-31  source: BLS 2026 and 2027 release calendars
+    October 2026 release confirmed in the BLS archive; 2027 = OMB PFEI 2027.
+CPI (BLS)
+    rows 15; last row 2027-12-10; basis: published schedule 14, release 1
+    known through 2027-12-31  source: BLS 2026 and 2027 release calendars
+    as above.
+PPI (BLS)
+    rows 15; last row 2027-12-15; basis: published schedule 14, release 1
+    known through 2027-12-31  source: BLS 2026 and 2027 release calendars
+    as above.
+Employment Cost Index (BLS)
+    rows 5; last row 2027-10-29; basis: published schedule 5
+    known through 2027-12-31  source: BLS 2026 and 2027 release calendars
+    as above.
+JOLTS job openings (BLS)
+    rows 2; last row 2026-12-01; basis: published schedule 2
+    known through 2026-12-31  source: BLS 2026 release calendar
+    last listed 2026 release 2026-12-01. The 2027 BLS calendar so far lists only the PFEI releases (no JOLTS); the next JOLTS (November 2026 data, early January 2027) is not published. Stopped. The JOLTS schedule page omits the 2026-11-03 release that the 2026 calendar lists (kept: yearly calendar).
+GDP (BEA)
+    rows 15; last row 2027-12-22; basis: published schedule 15
+    known through 2027-12-31  source: BEA release_dates.json = bea.gov schedule 2026 and next-year (2027) pages = OMB PFEI 2027
+    BEA now releases GDP and Personal Income and Outlays together (same minute every month).
+Personal income and outlays, core PCE (BEA)
+    rows 15; last row 2027-12-22; basis: published schedule 15
+    known through 2027-12-31  source: as GDP
+    as GDP.
+Retail Sales (Census advance)
+    rows 15; last row 2027-12-15; basis: published schedule 14, release 1
+    known through 2027-12-31  source: Census release schedule page (web.archive.org capture 20261005035002) for 2026; OMB PFEI 2027 for 2027
+    census.gov blocks scripts, so the 2026 dates come from an archive capture (the latest one, 2026-10-05). The 2026-10-15 release is confirmed by FRED's RSAFS update stamp (Oct 15 7:38 AM CDT); FRED's next release date (Nov 17) matches the Census page. The January 2027 date (Dec 2026 data) is OMB's; the Census page capture still showed it "To be announced". 2027 times: 08:30 by the Census page header.
+Unemployment Claims (DOL)
+    rows 66; last row 2027-12-30; basis: published schedule 3, release 3, rule 59, rule UNCERTAIN 1
+    known through 2027-12-31  source: DOL release PDFs (to 2026-10-15); DOL "Publication Schedule" rule + its exception list
+    Every Thursday 08:30; DOL lists Wed 2026-11-25, 2027-11-10, 2027-11-24 (Thanksgiving / Veterans Day), which matches the OPM holiday tables. Not covered: ad-hoc closures by executive order (e.g. a Christmas Eve closure on Thu 2026-12-24 could move that week's release to Wed 2026-12-23, as in 2020) and any future lapse in appropriations.
+ADP National Employment Report
+    rows 2; last row 2026-12-02; basis: published schedule 2
+    known through 2026-12-22  source: ADP NER calendar (adpemploymentreport.com, ner_production.json)
+    monthly dates listed: 2026-11-04, 2026-12-02; the calendar shows items (incl. weekly pulse) through 2026-12-22; the January 2027 date (December data) is not listed. Time 08:15 = README rule.
+ISM Manufacturing PMI
+    rows 15; last row 2027-12-01; basis: published schedule 2, release 1, rule 11, rule UNCERTAIN 1
+    known through 2026-12-31  source: ISM release calendar 2026 (web.archive.org capture 20260930232246)
+    published through 2026-12; the 2027 rows are RULE dates (ISM states "first business day ... at 10:00 a.m."); January 2027 is UNCERTAIN (ISM moved January in 2024-26 "due to ISM holiday"). ismworld.org shows scripts a captcha and web.archive.org answered HTTP 429 all session, so a 2027 ISM calendar published after 2026-09-30 (if any) was not seen; replace the rule rows when it is.
+ISM Services PMI
+    rows 15; last row 2027-12-03; basis: published schedule 2, release 1, rule 11, rule UNCERTAIN 1
+    known through 2026-12-31  source: as ISM Manufacturing
+    rule for 2027: "third business day"; January 2027 UNCERTAIN.
+CB Consumer Confidence
+    rows 15; last row 2027-12-28; basis: rule 13, rule UNCERTAIN 2
+    known through 2026-11-30  source: CB statement "at 10 a.m. ET on the last Tuesday of every month" (rule; CB release text)
+    conference-board.org blocks scripts and WebFetch (HTTP 404 "Blocked"), so CB's own calendar and its "next release" line could not be read; every row from 2026-10 is a RULE date. December dates (2026-12-29, 2027-12-28) are UNCERTAIN: CB moved December to the 23rd in 2024 and 2025. Known (by rule) through 2026-11-30.
+UoM Consumer Sentiment (prelim)
+    rows 15; last row 2027-12-03; basis: published schedule 14, release 1
+    known through 2027-12-31  source: SCA release-date table (docid 75443, last updated 8/6/2026)
+    the table lists every month through 2027-12 (last release 2027-12-17); times: 10am ET per the SCA home page for the next release, README rule for the rest. Note the final of 2027-03-25 (Thu; Good Friday 2027-03-26).
+UoM Consumer Sentiment (final)
+    rows 15; last row 2027-12-17; basis: published schedule 15
+    known through 2027-12-31  source: as prelim
+    as prelim.
+S&P Global Flash US PMI
+    rows 1; last row 2026-10-23; basis: published schedule 1
+    known through 2026-11-11  source: S&P Global PMI release calendar (pmi.spglobal.com/Public/Release/ReleaseDates)
+    the calendar lists releases only through 2026-11-11; next flash US PMI (November, ~3rd week) not yet listed. Stopped.
+Empire State Manufacturing
+    rows 3; last row 2026-12-15; basis: published schedule 2, release 1
+    known through 2026-12-31  source: NY Fed Empire State release table 2026
+    the NY Fed has not posted 2027 dates and states no date rule. Stopped.
+FOMC statement, rate decision (Fed)
+    rows 5; last row 2027-10-27; basis: published schedule 5
+    known through 2027-12-31  source: Fed monthly calendars (2026) and fomccalendars.htm (2027)
+    2027 meeting dates are tentative until confirmed at the preceding meeting; times 14:00 by the README rule.
+FOMC statement, rate decision, SEP (Fed)
+    rows 5; last row 2027-12-08; basis: published schedule 5
+    known through 2027-12-31  source: as above
+    SEP at the * meetings.
+FOMC press conference (Fed)
+    rows 10; last row 2027-12-08; basis: published schedule 2, published schedule UNCERTAIN 8
+    known through 2027-12-31  source: Fed monthly calendars (2026); README rule for 2027
+    2027 press conferences are UNCONFIRMED (not listed until the monthly calendars appear).
+FOMC minutes (Fed)
+    rows 11; last row 2027-12-29; basis: published schedule 2, release 1, rule 8
+    known through 2027-12-31  source: Fed monthly calendars (2026); Fed three-week rule for 2027
+    14:00 ET.
+10-y Note Auction (Treasury)
+    rows 4; last row 2027-01-12; basis: published schedule 3, release 1
+    known through 2027-01-28  source: fiscaldata (held / announced) + Treasury Tentative Auction Schedule
+    the tentative schedule (refunding of 2026-08-05) covers auctions through 2027-01-28; the next one (February 2027 refunding) is not yet scheduled. 13:00 by the README rule for unannounced auctions.
+30-y Bond Auction (Treasury)
+    rows 4; last row 2027-01-13; basis: published schedule 3, release 1
+    known through 2027-01-28  source: as 10-y
+    as 10-y.
+Fed Chair speeches / testimony (unscheduled; not in valid_through)
+    rows 1; items listed in the Fed monthly calendars through 2026-10-15; the latest Speeches/Testimony item of anyone is dated 2026-10-15; monthly pages exist through 2026-12 (Nov and Dec 2026 list FOMC items only, no speeches).
+    So on 2026-10-18 the calendar lists no Chair item ahead at all: zero days of look-ahead. No speaking engagement of
+    any official is listed after 2026-10-15 (the next FOMC meeting is 2026-10-27/28).
+    Not in the file until the Fed lists them: the semiannual Monetary Policy Report testimony (registered list: Mar
+    and Jul 2024, Feb and Jun 2025, Jul 2026), Jackson Hole (late August) and any other Chair appearance.
+Treasury FX Report (unscheduled; only if a date is announced)
+    the Treasury FX-report page lists July 2026 as the latest report, so none came 2026-10-01 .. 10-17; no future date is announced (Treasury press releases 2026-10-08 .. 10-16, page 1, have none). No row.
+
+binding type(s): S&P Global Flash US PMI (known through 2026-11-11). Next limits:
+    2026-11-30  CB Consumer Confidence
+    2026-12-22  ADP National Employment Report
+    2026-12-31  Empire State Manufacturing
+    2026-12-31  ISM Manufacturing PMI
+    2026-12-31  ISM Services PMI
+    2026-12-31  JOLTS job openings (BLS)
+    2027-01-28  10-y Note Auction (Treasury)
+    2027-01-28  30-y Bond Auction (Treasury)
+    (all other types are known through 2027-12-31)
+
+build checks (problems found by build_fwd.py):
+  BLS jolts: in the yearly calendars but not on the jolts schedule page: ['2026-11-03']
+
+valid_through=2026-11-11

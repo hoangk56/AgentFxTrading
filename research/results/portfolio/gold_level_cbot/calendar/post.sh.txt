@@ -1,0 +1,18 @@
+#!/bin/bash
+# usage: post.sh URL FORMDATA OUTNAME -- POST variant of fetch.sh (same generic headers, same log file and format).
+C=/private/tmp/claude-501/-Users-hoangbk-00-code-base-105-AgentFxTrading/cff348f1-534e-440d-88da-40c31dade827/scratchpad/r30/cal
+DL=$C/dl; LOG=$C/fetch_log.tsv
+URL="$1"; DATA="$2"; OUT="$3"
+[ -f "$LOG" ] || printf 'time_utc\ttool\turl\tsaved_file\thttp_status\tbytes\n' > "$LOG"
+mkdir -p "$(dirname "$DL/$OUT")"
+T=$(date -u '+%Y-%m-%d %H:%M:%S UTC')
+code=$(curl -sS -L --compressed --max-time 90 -A "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.4 Safari/605.1.15" \
+  -H "Accept: text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8" -H "Accept-Language: en-US,en;q=0.9" \
+  -H "Accept-Encoding: gzip, deflate" -H "Connection: keep-alive" -H "Upgrade-Insecure-Requests: 1" \
+  -H "Content-Type: application/x-www-form-urlencoded" \
+  --data "$DATA" -o "$DL/$OUT" -w '%{http_code}' "$URL" 2>/dev/null)
+rc=$?
+[ $rc -ne 0 ] && code="${code:-000} (curl exit $rc)"
+sz=$(wc -c < "$DL/$OUT" 2>/dev/null | tr -d ' ')
+printf '%s\tcurl POST [%s]\t%s\tdl/%s\t%s\t%s\n' "$T" "$DATA" "$URL" "$OUT" "$code" "${sz:-0}" >> "$LOG"
+echo "HTTP $code ${sz:-0} bytes -> $OUT"
