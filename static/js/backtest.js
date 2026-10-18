@@ -450,6 +450,17 @@ function btToggleSpread() {
     document.getElementById('bt-spread-wrap').style.display = m1 ? '' : 'none';
 }
 
+// Offers only the data modes the selected bot can run (GoldLevelBot: ticks only; /api/backtests/sources data_modes).
+function btApplyDataModes() {
+    const name = document.getElementById('bt-bot').value;
+    const source = (bt.sources || []).find(s => s.name === name);
+    const modes = (source && source.data_modes) || ['ticks', 'm1'];
+    const select = document.getElementById('bt-data-mode');
+    for (const option of select.options) option.disabled = !modes.includes(option.value);
+    if (!modes.includes(select.value)) select.value = modes[0];
+    btToggleSpread();
+}
+
 async function btLoadSources() {
     const select = document.getElementById('bt-bot');
     try {
@@ -466,6 +477,7 @@ async function btLoadSources() {
 }
 
 async function btLoadParams() {
+    btApplyDataModes();
     const bot = document.getElementById('bt-bot').value;
     const container = document.getElementById('bt-params');
     bt.view = null;

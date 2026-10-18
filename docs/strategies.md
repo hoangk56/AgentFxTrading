@@ -86,8 +86,8 @@ trigger), from 18:10 New York to 15:54 New York the next day, the nearest level 
 beyond the highest (an upper level) or lowest (a lower level) tick mid of the previous 1,440 clock minutes and has not
 triggered in that time. Its order is a buy stop at the level + 0.5 x s60 (a sell stop at the level - 0.5 x s60), s60
 being the median last-tick spread of the 60 minutes before, and is cancelled when the mid leaves the $2 band. No arming
-within 15 minutes of a High-impact USD release (`cBot/seeds/usd_high_calendar.csv`, from official schedules:
-`python -m research.tools.usd_high_calendar_seed`), nor in the 15 minutes after the session's first tick or a tick gap
+within 15 minutes of a High-impact USD release (`cBot/seeds/usd_high_calendar.csv`: ForexFactory before 2024 and
+official schedules from 2024, as registered; `python -m research.tools.usd_high_calendar_seed`), nor in the 15 minutes after the session's first tick or a tick gap
 of more than an hour. The rule has no stop; the broker gets a far guard (`EmergencyStopUsd`, $100).
 
 **Ticks, not bars.** Everything runs on ticks: the 24-hour high and low, the spread median and the trigger. At start

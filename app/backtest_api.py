@@ -15,7 +15,7 @@ from fastapi.responses import FileResponse
 from pydantic import BaseModel, Field
 
 from app import backtest_store as store
-from app.backtest_command import BotSource, algo_host_path, describe_source, parse_run_command
+from app.backtest_command import BotSource, algo_host_path, data_modes, describe_source, parse_run_command
 from app.backtest_params import (DockerUnavailable, MetadataCache, MetadataError, OverrideError, job_params,
                                  param_view, validate_overrides)
 from app.backtest_report import ui_payload
@@ -123,6 +123,8 @@ def api_backtest_source_params(bot_name: str):
 def api_create_backtest(req: BacktestCreate):
     validate_run_config(req, today_utc())
     source = _load_source(req.bot_name)
+    if req.data_mode not in data_modes(source.strategy):
+        raise HTTPException(422, f"{source.algo} backtests need {' or '.join(data_modes(source.strategy))} data")
     meta = _metadata(source)
     try:
         overrides = validate_overrides(meta, source, req.overrides)

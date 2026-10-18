@@ -55,6 +55,17 @@ window, the levels that triggered and an armed level. In the backtests the histo
 days) and the replayed state was the engine's: the 2025 and 2026 runs each start cold and still match every trigger.
 A position open at start keeps the exit of its replayed trigger.
 
+**The replay in cTrader backtests.**
+- In a backtest longer than about a month, the replay's `MarketData.GetTicks()` series makes the CLI hang after the
+  run. The last trade is written, but saving the report fails with `Message expected` and the CLI spins at 100 % CPU.
+  - Found 2026-10-18 on the VPS. A 1-month run ended cleanly in 34 s; 3-month runs hung, with orders, without real
+    orders and without the guard stop.
+  - The same 3 months with `ReplayHistory=false` ended in 43 s.
+- The holdout runs above were cut after their last trade, so their trade logs are complete.
+- The Backtest page therefore runs the bot with `ReplayHistory=false`. A page backtest does not arm in its first 24
+  hours, so start it two days before the period of interest.
+- The live bot keeps the replay.
+
 **What the bot does not do.** It never sends a market order to chase a trigger. A trigger whose stop order did not
 fill within 5 s (`FillWaitSeconds`) is logged as missed. A real order is cancelled 2 s before an exclusion window or
 the 15:54 close of arming (`CancelLeadSeconds`) and after an hour without ticks, so the broker cannot fill it where
@@ -65,10 +76,14 @@ take several placements. In the May 2025 test week: 23 placements and cancels fo
 tested.
 
 ## The release calendar
-- **The registered calendar rule is unchanged.** High-impact USD minutes come from the official schedules of
-  PREREG_G's list, with the same event types and times.
-- **Contents of the seed.** `cBot/seeds/usd_high_calendar.csv` holds 679 minutes:
-  - the registered rows from 2025-01-01 (`prereg_code/usd_high_2024_2026.csv`, to 2026-09-30);
+- **The registered calendar rule is unchanged.** High-impact USD minutes are ForexFactory's timed USD High rows
+  before 2024-01-01 and the official schedules of PREREG_G's list from then on, with the same event types and times.
+- **Contents of the seed.** `cBot/seeds/usd_high_calendar.csv` holds 2,585 minutes:
+  - ForexFactory 2015-12-01 .. 2023-12-31 ([ff_usd_high_2015_2023.csv](gold_level_cbot/ff_usd_high_2015_2023.csv),
+    extracted from round 25's ff_events_utc.csv, whose sha256 7308d2eb... the registration names);
+  - the registered official rows from 2024-01-01 (`prereg_code/usd_high_2024_2026.csv`, to 2026-09-30). For 2015-12 ..
+    2026-09 the seed's 2,343 minutes are exactly the registered rule's (`gcommon.load_high_usd`), so a cBot backtest
+    from 2016 on trades the rule the research tested;
   - then the same types for 2026-10-01 .. 2027-12-31, built from the publishers' schedules
     ([usd_high_fwd.csv](gold_level_cbot/usd_high_fwd.csv), with
     [usd_high_fwd_detail.csv](gold_level_cbot/usd_high_fwd_detail.csv) giving each row's basis).
