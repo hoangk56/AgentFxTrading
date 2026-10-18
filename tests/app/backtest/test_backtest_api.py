@@ -66,6 +66,22 @@ def env(tmp_path, monkeypatch):
         conn.execute("DELETE FROM backtest_settings")
 
 
+def test_gold_bot_backtests_take_ticks_only(env, tmp_path):
+    project = api.PROJECT_ROOT
+    (project / "cBot" / "GoldLevelBot.algo").write_bytes(b"algo")
+    gold = container_name("bttest", "gold_levels", "XAUUSD")
+    pm = get_portfolio_manager()
+    pm.delete_cbot_config(gold)
+    assert pm.add_cbot_config(gold, "", build_run_command(ACCOUNT, "gold_levels", "XAUUSD", "/w", "/r"))
+    try:
+        rows = {r["name"]: r for r in client.get("/api/backtests/sources").json()["sources"]}
+        assert rows[gold]["supported"] is True and rows[gold]["data_modes"] == ["ticks"]
+        resp = client.post("/api/backtests", json=body(bot_name=gold, data_mode="m1", spread_pips=0.2, overrides={}))
+        assert resp.status_code == 422 and "ticks" in resp.json()["detail"]
+    finally:
+        pm.delete_cbot_config(gold)
+
+
 def body(**over):
     data = {"bot_name": GOTOBI, "start": "2026-07-24", "end": "2026-09-23", "data_mode": "ticks",
             "balance": 10000, "note": "stop 2", "overrides": {"StopAtrMultiplier": 2.0}}

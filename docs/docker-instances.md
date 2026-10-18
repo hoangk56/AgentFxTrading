@@ -296,8 +296,8 @@ preset runs on a demo account at the minimum lot (`--Lots=0.01`, 1 oz). Its stop
   triggered without an order, since their triggers also start the 60-minute busy window and the 24-hour level memory.
 - **When.** Arming runs from 18:10 New York to 15:54 New York the next day, never within 15 minutes of a High-impact
   USD release and never in the 15 minutes after the session's first tick or a tick gap of over an hour. The releases
-  come from [`cBot/seeds/usd_high_calendar.csv`](../cBot/seeds/usd_high_calendar.csv) (official schedules,
-  `python -m research.tools.usd_high_calendar_seed`). Arming stops after the file's `valid_through` day, so the seed must
+  come from [`cBot/seeds/usd_high_calendar.csv`](../cBot/seeds/usd_high_calendar.csv) (the registered rule: ForexFactory
+  before 2024, official schedules from 2024; `python -m research.tools.usd_high_calendar_seed`). Arming stops after the file's `valid_through` day, so the seed must
   be extended before then.
 - **Exit.** At market 30 minutes after the trigger; the rule has no stop. The broker gets a far guard stop
   (`--EmergencyStopUsd=100`): no 2016-2026 trade moved more than $54 against its entry before the exit

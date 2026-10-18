@@ -2,8 +2,8 @@
 of the `docker run … backtest` spec (docs/superpowers/specs/2026-09-24-backtest-page-design.md).
 
 A cBot that reached the server while backtesting would write fake trades into production, so these tests
-pin that a backtest container never shares the host network, never sees more than its three mounts, and
-always runs with every server URL disabled."""
+pin that a backtest container never shares the host network, never sees more than its three mounts (plus cBot/seeds,
+read-only, for the bots that read a seed), and always runs with every server URL disabled."""
 import re
 from pathlib import Path
 
@@ -116,7 +116,56 @@ def test_describe_gotobi_source_is_supported(homes):
     name = "cbot-demo-demo-usdjpy-fix-gotobi"
     row = bc.describe_source(name, preset("gotobi", "USDJPY"), project, ctrader)
     assert row == {"name": name, "strategy": "gotobi", "symbol": "USDJPY", "period": "m15",
-                   "account_label": "demo", "supported": True, "reason": ""}
+                   "account_label": "demo", "supported": True, "reason": "", "data_modes": ["ticks", "m1"]}
+
+
+@pytest.mark.parametrize("strategy, symbol, algo, modes", [
+    ("ecb_f3", "EURUSD", "EcbWindowBot.algo", ["ticks", "m1"]),
+    ("ecb_e1", "EURUSD", "EcbWindowBot.algo", ["ticks", "m1"]),
+    ("gold_levels", "XAUUSD", "GoldLevelBot.algo", ["ticks"]),       # the rule lives on tick bid / ask
+])
+def test_describe_ecb_and_gold_sources_are_supported(homes, strategy, symbol, algo, modes):
+    project, ctrader = homes
+    (project / "cBot" / algo).write_bytes(b"algo")
+    row = bc.describe_source("x", preset(strategy, symbol), project, ctrader)
+    assert row["supported"] is True and row["reason"] == "" and row["symbol"] == symbol
+    assert row["strategy"] == bc.STRATEGY_BY_ALGO[algo] and row["data_modes"] == modes
+
+
+@pytest.mark.parametrize("strategy, symbol, algo", [
+    ("ecb_f3", "EURUSD", "EcbWindowBot.algo"), ("gold_levels", "XAUUSD", "GoldLevelBot.algo")])
+def test_ecb_and_gold_backtests_never_reach_the_server(homes, strategy, symbol, algo):
+    project, ctrader = homes
+    (project / "cBot" / algo).write_bytes(b"algo")
+    src = bc.parse_run_command("x", preset(strategy, symbol))
+    job = make_job(strategy=src.strategy, algo=algo, symbol=symbol, params=dict(src.params))
+    command = bc.build_container_spec(job, project, ctrader)["command"]
+    locked = bc.locked_params(src.strategy, 7)
+    assert command[-len(locked):] == [f"--{k}={v}" for k, v in locked.items()]
+    for key in ("ApiUrl", "TelemetryUrl", "ReportUrl"):
+        assert f"--{key}={bc.DISABLED_URL}" in command
+    assert "--CommandPollMs=0" in command and "--ApiUrl=http://127.0.0.1:8000/trade" not in command
+    assert "--Lots=0.01" in command                                   # the preset's own values still apply
+    if src.strategy == "gold_levels":
+        assert command[-1] == "--TradeLogFile="                       # never a trade log out of a backtest
+
+
+def test_seed_bots_also_get_the_seeds_folder_read_only(homes):
+    project, ctrader = homes
+    for strategy, algo in (("ecb_window", "EcbWindowBot.algo"), ("gold_levels", "GoldLevelBot.algo")):
+        (project / "cBot" / algo).write_bytes(b"algo")
+        volumes = spec_for(homes, strategy=strategy, algo=algo)["volumes"]
+        assert volumes[str(project / "cBot" / "seeds")] == {"bind": "/workspace/cBot/seeds", "mode": "ro"}
+        assert len(volumes) == 4
+        assert all(v["mode"] == "ro" for k, v in volumes.items() if k != "agentfx-bt-cache")
+    assert str(project / "cBot" / "seeds") not in spec_for(homes)["volumes"]     # GotobiBot reads no seed
+
+
+def test_gold_backtests_need_ticks(homes):
+    project, _ = homes
+    (project / "cBot" / "GoldLevelBot.algo").write_bytes(b"algo")
+    with pytest.raises(bc.SourceError, match="ticks"):
+        spec_for(homes, strategy="gold_levels", algo="GoldLevelBot.algo", data_mode="m1", spread_pips=0.2)
 
 
 def test_gotobi_backtest_never_reaches_the_server(homes):

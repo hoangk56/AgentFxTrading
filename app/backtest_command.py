@@ -7,14 +7,15 @@ the `docker run … backtest` spec for a job. Nothing here talks to Docker or th
 
 A cBot that made HTTP calls while backtesting would, on `--network host`, reach 127.0.0.1:8000 and
 write fake trades and ticks into production, so a backtest container only ever gets bridge networking,
-three mounts, and the locked parameters below written after everything else. tests/test_backtest_command.py pins each rule.
+three mounts (four, read-only cBot/seeds, for the bots that read a seed), and the locked parameters below written
+after everything else. tests/app/backtest/test_backtest_command.py pins each rule.
 """
 import re
 import shlex
 from dataclasses import dataclass, field
 from datetime import date
 from pathlib import Path, PurePosixPath
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, Tuple
 
 from app.cbot_presets import DEFAULT_IMAGE
 
@@ -31,10 +32,21 @@ DISABLED_URL = "http://127.0.0.1:9/disabled"
 
 STRATEGY_BY_ALGO = {
     "GotobiBot.algo": "gotobi",
+    # One cBot for both ECB window rules: its UsdTopOnly field picks F3 or E1.
+    "EcbWindowBot.algo": "ecb_window",
+    "GoldLevelBot.algo": "gold_levels",
 }
 SUPPORTED_STRATEGIES = set(STRATEGY_BY_ALGO.values())
-UNSUPPORTED_REASON = "Only GotobiBot can be backtested"
+UNSUPPORTED_REASON = "Only GotobiBot, EcbWindowBot and GoldLevelBot can be backtested"
 DATA_MODES = ("ticks", "m1")
+# GoldLevelBot's rule runs on tick bid / ask (the 24-hour envelope, the spread median, the stop trigger); m1 bars
+# replayed at a fixed spread would test another rule.
+DATA_MODES_BY_STRATEGY: Dict[str, Tuple[str, ...]] = {"gold_levels": ("ticks",)}
+
+# EcbWindowBot reads its USD-TOP quote seed and GoldLevelBot its release calendar from cBot/seeds at start, so their
+# containers get that folder read-only at the path the live bots see.
+SEEDS_MOUNT = "/workspace/cBot/seeds"
+SEED_STRATEGIES = {"ecb_window", "gold_levels"}
 
 # cTrader CLI options that sit next to the cBot parameters in a `run` command.
 CLI_OPTIONS = {"ctid", "pwd-file", "password", "account", "broker", "symbol", "period", "reconnect-timeout"}
@@ -47,6 +59,20 @@ LOCKED_PARAMS: Dict[str, Dict[str, str]] = {
         "TelemetryUrl": DISABLED_URL,
         "ReportUrl": DISABLED_URL,
         "CommandPollMs": "0",
+    },
+    # The same for the ECB window and gold bots, which also write their quote / trade logs only in RealTime.
+    "ecb_window": {
+        "ApiUrl": DISABLED_URL,
+        "TelemetryUrl": DISABLED_URL,
+        "ReportUrl": DISABLED_URL,
+        "CommandPollMs": "0",
+    },
+    "gold_levels": {
+        "ApiUrl": DISABLED_URL,
+        "TelemetryUrl": DISABLED_URL,
+        "ReportUrl": DISABLED_URL,
+        "CommandPollMs": "0",
+        "TradeLogFile": "",
     },
 }
 # Never passed to a backtest container, whatever the bot's command says.
@@ -109,6 +135,11 @@ def parse_run_command(name: str, run_command: str) -> BotSource:
                      period=options["period"], pwd_file=options["pwd-file"], params=params)
 
 
+def data_modes(strategy: Optional[str]) -> Tuple[str, ...]:
+    """The data modes a strategy's backtest may use."""
+    return DATA_MODES_BY_STRATEGY.get(strategy, DATA_MODES)
+
+
 def algo_host_path(algo: str, project_root: Path) -> Path:
     if not re.fullmatch(r"[A-Za-z0-9_]+\.algo", algo or ""):
         raise SourceError(f"unexpected algo file name: {algo}")
@@ -130,14 +161,14 @@ def pwd_host_path(pwd_file: str, ctrader_home: Path) -> Path:
 def describe_source(name: str, run_command: str, project_root: Path, ctrader_home: Path) -> Dict:
     """One row of GET /api/backtests/sources."""
     row = {"name": name, "strategy": None, "symbol": "", "period": "", "account_label": "",
-           "supported": False, "reason": ""}
+           "supported": False, "reason": "", "data_modes": list(DATA_MODES)}
     try:
         src = parse_run_command(name, run_command)
     except SourceError as e:
         row["reason"] = str(e)
         return row
     row.update(strategy=src.strategy, symbol=src.symbol, period=src.period,
-               account_label=src.params.get("AccountLabel", ""))
+               account_label=src.params.get("AccountLabel", ""), data_modes=list(data_modes(src.strategy)))
     if src.strategy not in SUPPORTED_STRATEGIES:
         row["reason"] = UNSUPPORTED_REASON
         return row
@@ -177,6 +208,8 @@ def build_container_spec(job: Dict, project_root: Path, ctrader_home: Path) -> D
         raise SourceError(UNSUPPORTED_REASON)
     if job["data_mode"] not in DATA_MODES:
         raise SourceError(f"unknown data mode {job['data_mode']}")
+    if job["data_mode"] not in data_modes(strategy):
+        raise SourceError(f"{job['algo']} backtests need {' or '.join(data_modes(strategy))} data")
     host_algo = algo_host_path(job["algo"], project_root)
     host_pwd = pwd_host_path(job["pwd_file"], ctrader_home)
     algo_mount = f"{ALGO_DIR}/{job['algo']}"
@@ -197,6 +230,14 @@ def build_container_spec(job: Dict, project_root: Path, ctrader_home: Path) -> D
                 if k not in locked and k not in DROPPED_PARAMS]
     command += [f"--{k}={v}" for k, v in locked.items()]
 
+    volumes = {
+        str(host_algo): {"bind": algo_mount, "mode": "ro"},
+        str(host_pwd): {"bind": PWD_MOUNT, "mode": "ro"},
+        CACHE_VOLUME: {"bind": CACHE_DIR, "mode": "rw"},
+    }
+    if strategy in SEED_STRATEGIES:
+        volumes[str(Path(project_root) / "cBot" / "seeds")] = {"bind": SEEDS_MOUNT, "mode": "ro"}
+
     return {
         "image": DEFAULT_IMAGE,
         "name": container_name(job["id"]),
@@ -206,11 +247,7 @@ def build_container_spec(job: Dict, project_root: Path, ctrader_home: Path) -> D
         "mem_limit": MEM_LIMIT,
         "nano_cpus": NANO_CPUS,
         "cpu_shares": CPU_SHARES,
-        "volumes": {
-            str(host_algo): {"bind": algo_mount, "mode": "ro"},
-            str(host_pwd): {"bind": PWD_MOUNT, "mode": "ro"},
-            CACHE_VOLUME: {"bind": CACHE_DIR, "mode": "rw"},
-        },
+        "volumes": volumes,
         "detach": True,
         "auto_remove": False,          # the report is read out of the exited container
     }

@@ -55,6 +55,14 @@ def test_backtest_js_is_served_and_uses_the_api():
         assert route in resp.text, route
 
 
+def test_the_form_offers_only_the_bots_data_modes():
+    src = JS.read_text(encoding="utf-8")
+    apply = _function(src, "btApplyDataModes")
+    assert "source.data_modes" in apply and "option.disabled = !modes.includes(option.value)" in apply
+    assert "if (!modes.includes(select.value)) select.value = modes[0];" in apply
+    assert _function(src, "btLoadParams").index("btApplyDataModes();") < _function(src, "btLoadParams").index("await")
+
+
 def test_best_value_rules():
     src = JS.read_text(encoding="utf-8")
     assert "['max_equity_dd_pct', 'Max equity DD %', 'min', 'pct']" in src

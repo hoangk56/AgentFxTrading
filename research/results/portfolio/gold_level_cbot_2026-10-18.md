@@ -65,10 +65,14 @@ take several placements. In the May 2025 test week: 23 placements and cancels fo
 tested.
 
 ## The release calendar
-- **The registered calendar rule is unchanged.** High-impact USD minutes come from the official schedules of
-  PREREG_G's list, with the same event types and times.
-- **Contents of the seed.** `cBot/seeds/usd_high_calendar.csv` holds 679 minutes:
-  - the registered rows from 2025-01-01 (`prereg_code/usd_high_2024_2026.csv`, to 2026-09-30);
+- **The registered calendar rule is unchanged.** High-impact USD minutes are ForexFactory's timed USD High rows
+  before 2024-01-01 and the official schedules of PREREG_G's list from then on, with the same event types and times.
+- **Contents of the seed.** `cBot/seeds/usd_high_calendar.csv` holds 2,585 minutes:
+  - ForexFactory 2015-12-01 .. 2023-12-31 ([ff_usd_high_2015_2023.csv](gold_level_cbot/ff_usd_high_2015_2023.csv),
+    extracted from round 25's ff_events_utc.csv, whose sha256 7308d2eb... the registration names);
+  - the registered official rows from 2024-01-01 (`prereg_code/usd_high_2024_2026.csv`, to 2026-09-30). For 2015-12 ..
+    2026-09 the seed's 2,343 minutes are exactly the registered rule's (`gcommon.load_high_usd`), so a cBot backtest
+    from 2016 on trades the rule the research tested;
   - then the same types for 2026-10-01 .. 2027-12-31, built from the publishers' schedules
     ([usd_high_fwd.csv](gold_level_cbot/usd_high_fwd.csv), with
     [usd_high_fwd_detail.csv](gold_level_cbot/usd_high_fwd_detail.csv) giving each row's basis).

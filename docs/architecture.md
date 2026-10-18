@@ -69,6 +69,9 @@ Started from the FastAPI lifespan in `app/server.py`:
   rate-limited with backoff. Status: `GET /api/watchdog/status`.
 - **Backtest worker** (`app/backtest_worker.py`): runs queued Backtest-page jobs in `bt-<id>` containers, several
   at once (setting on the page, else `BACKTEST_MAX_PARALLEL`). Reports are kept in `webui_data/backtests/`.
+  - Bots it backtests: GotobiBot, EcbWindowBot and GoldLevelBot. GoldLevelBot runs on ticks only.
+  - Every server URL of a backtested bot is locked off (`app/backtest_command.py`).
+  - EcbWindowBot and GoldLevelBot also get `cBot/seeds` read-only, for their quote seed and release calendar.
 
 ## Dashboard modes
 

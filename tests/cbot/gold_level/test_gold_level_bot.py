@@ -23,6 +23,7 @@ RUN = (PREREG / "run_hold.py.txt").read_text(encoding="utf-8")
 MINUTES = (PREREG / "build_minutes_hold.py.txt").read_text(encoding="utf-8")
 FILLS = (PREREG / "fills.py.txt").read_text(encoding="utf-8")
 REGISTERED_CAL = PREREG / "usd_high_2024_2026.csv"
+FF_EXTRACT = REPO_ROOT / "research" / "results" / "portfolio" / "gold_level_cbot" / "ff_usd_high_2015_2023.csv"
 SEED = CBOT_DIR / "seeds" / "usd_high_calendar.csv"
 
 
@@ -190,8 +191,12 @@ def test_seed_calendar_is_where_the_bot_reads_it_and_holds_the_registered_minute
     for r in rows:
         dt.datetime.strptime(r, "%Y-%m-%dT%H:%M")
     registered = sorted({r["utc_minute"] for r in csv.DictReader(REGISTERED_CAL.open())})
-    # the registered calendar rule from 2025 on (the holdout and after) is in the seed unchanged
-    reg_2025 = [r for r in registered if r >= "2025-01-01"]
-    seed_until = [r for r in rows if r <= registered[-1]]
-    assert [r for r in seed_until if r >= "2025-01-01"] == reg_2025
+    ff = sorted({r["utc_minute"] for r in csv.DictReader(FF_EXTRACT.open())})
+    # the registered calendar rule, so a backtest from 2016 reproduces the research: ForexFactory before 2024
+    # (gcommon.CAL_SWITCH_MS), the official list from 2024 to its last row, unchanged
+    assert "def load_high_usd" in (PREREG / "gcommon.py.txt").read_text() and "CAL_SWITCH_MS = 1704067200000" in (
+        PREREG / "gcommon.py.txt").read_text()
+    assert [r for r in rows if r < "2024-01-01"] == [r for r in ff if r < "2024-01-01"]
+    assert rows[0] <= "2016-01-01" and ff[0] <= "2016-01-01"
+    assert [r for r in rows if "2024-01-01" <= r <= registered[-1]] == [r for r in registered if r >= "2024-01-01"]
     assert valid[0] >= registered[-1][:10]
