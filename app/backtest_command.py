@@ -67,12 +67,16 @@ LOCKED_PARAMS: Dict[str, Dict[str, str]] = {
         "ReportUrl": DISABLED_URL,
         "CommandPollMs": "0",
     },
+    # GoldLevelBot's start-up replay reads tick history through MarketData.GetTicks(); in a cTrader backtest longer
+    # than about a month that series makes the CLI hang after the run ("Message expected" while saving the report),
+    # so backtests start cold: no arming for the first 24 hours after the start date.
     "gold_levels": {
         "ApiUrl": DISABLED_URL,
         "TelemetryUrl": DISABLED_URL,
         "ReportUrl": DISABLED_URL,
         "CommandPollMs": "0",
         "TradeLogFile": "",
+        "ReplayHistory": "false",
     },
 }
 # Never passed to a backtest container, whatever the bot's command says.

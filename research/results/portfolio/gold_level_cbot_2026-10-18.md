@@ -55,6 +55,17 @@ window, the levels that triggered and an armed level. In the backtests the histo
 days) and the replayed state was the engine's: the 2025 and 2026 runs each start cold and still match every trigger.
 A position open at start keeps the exit of its replayed trigger.
 
+**The replay in cTrader backtests.**
+- In a backtest longer than about a month, the replay's `MarketData.GetTicks()` series makes the CLI hang after the
+  run. The last trade is written, but saving the report fails with `Message expected` and the CLI spins at 100 % CPU.
+  - Found 2026-10-18 on the VPS. A 1-month run ended cleanly in 34 s; 3-month runs hung, with orders, without real
+    orders and without the guard stop.
+  - The same 3 months with `ReplayHistory=false` ended in 43 s.
+- The holdout runs above were cut after their last trade, so their trade logs are complete.
+- The Backtest page therefore runs the bot with `ReplayHistory=false`. A page backtest does not arm in its first 24
+  hours, so start it two days before the period of interest.
+- The live bot keeps the replay.
+
 **What the bot does not do.** It never sends a market order to chase a trigger. A trigger whose stop order did not
 fill within 5 s (`FillWaitSeconds`) is logged as missed. A real order is cancelled 2 s before an exclusion window or
 the 15:54 close of arming (`CancelLeadSeconds`) and after an hour without ticks, so the broker cannot fill it where
