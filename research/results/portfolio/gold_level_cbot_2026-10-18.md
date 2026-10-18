@@ -76,7 +76,9 @@ tested.
 - **Check against the registered list.** September 2026, rebuilt with the forward code, matches it row for row: 25
   rows, 21 minutes ([calendar/sanity.txt](gold_level_cbot/calendar/sanity.txt)). The 15 releases of 2026-10-01 .. 10-17
   are confirmed from the releases themselves.
-- **`valid_through=2026-12-11`.** The bot stops arming after that day until the seed is rebuilt.
+- **`valid_through=2026-12-11`.** The bot stops arming after that day until the seed is rebuilt. The strict date at
+  which every type is known, the S&P flash PMI included, is 2026-11-11 (coverage.txt); the seed accepts the one
+  missing flash release below rather than stop the demo on 2026-11-12.
   - Every major type is known well past that date: BLS, BEA, Census, DOL, FOMC, UMich and Treasury.
   - ISM, JOLTS and Empire State are known to 2026-12-31.
   - 2026-12-11 is the end of the continuing resolution that funds the statistical agencies (CRS R49353). A lapse

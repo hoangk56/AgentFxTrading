@@ -69,9 +69,9 @@ utc_minute,event,source
 2026-12-29T15:00,CB Consumer Confidence,https://www.prnewswire.com/news-releases/us-consumer-confidence-fell-in-september-302892867.html
 2026-12-30T19:00,FOMC minutes (Fed),https://www.federalreserve.gov/newsevents/2026-december.htm
 2026-12-31T13:30,Unemployment Claims (DOL),https://oui.doleta.gov/unemploy/claims_arch.asp
-2027-01-04T15:00,ISM Manufacturing PMI,https://www.ismworld.org/supply-management-news-and-reports/reports/rob-report-calendar/
-2027-01-06T15:00,ISM Services PMI,https://www.ismworld.org/supply-management-news-and-reports/reports/rob-report-calendar/
+2027-01-05T15:00,ISM Manufacturing PMI,https://www.ismworld.org/supply-management-news-and-reports/reports/rob-report-calendar/
 2027-01-07T13:30,Unemployment Claims (DOL),https://oui.doleta.gov/unemploy/claims_arch.asp
+2027-01-07T15:00,ISM Services PMI,https://www.ismworld.org/supply-management-news-and-reports/reports/rob-report-calendar/
 2027-01-08T13:30,"Employment Situation: NFP, AHE, unemployment rate (BLS)",https://www.bls.gov/schedule/2027/home.htm
 2027-01-08T15:00,UoM Consumer Sentiment (prelim),https://data.sca.isr.umich.edu/fetchdoc.php?docid=75443
 2027-01-12T18:00,10-y Note Auction (Treasury),https://home.treasury.gov/system/files/221/Tentative-Auction-Schedule.pdf

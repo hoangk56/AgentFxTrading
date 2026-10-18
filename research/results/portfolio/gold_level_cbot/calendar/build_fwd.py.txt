@@ -501,11 +501,11 @@ for y in (2026, 2027):
                 add(d, (10, 0), ev, ISM_URL, f'published schedule: ISM release calendar {y} (read from web.archive.org capture {ts}; '
                     'ismworld.org answers scripts with a captcha); 10:00 a.m. as stated on the calendar page')
             elif not cal:
-                d = nth_bday(y, m, n)
+                d = nth_bday(y, m, n + (1 if m == 1 else 0))
                 unc = ''
                 if m == 1:
-                    unc = ('; UNCERTAIN: ISM released January Manufacturing one business day late "due to ISM holiday" in 2024-26 '
-                           '(Jan 2 an ISM holiday); in 2027 Jan 2 is a Saturday')
+                    unc = ('; January one business day later, as ISM released both reports in January 2024-26 "due to ISM '
+                           'holiday" (registered list: 2024-01-03/05, 2025-01-03/07, 2026-01-05/07)')
                 add(d, (10, 0), ev, ISM_URL, f'rule (publisher-stated): "{ISM_RULE[n]}" (ISM calendar page, web.archive.org capture '
                     f'{ism_ts_last}); business days exclude federal holidays (OPM {y}) and Good Friday; '
                     f'the {y} ISM calendar is not yet published' + unc)
@@ -972,11 +972,14 @@ KNOWN = {   # type -> (known through, source, remarks); known through = every re
         f'{adp_last_shown}; the January 2027 date (December data) is not listed. Time 08:15 = README rule.'),
     'ISM Manufacturing PMI': (date(2026, 12, 31), 'ISM release calendar 2026 (web.archive.org capture ' +
         (max(ism_cal.values())[0] if ism_cal else '?') + ')',
-        'published through 2026-12; the 2027 rows are RULE dates (ISM states "first business day ... at 10:00 a.m."); '
-        'January 2027 is UNCERTAIN (ISM moved January in 2024-26 "due to ISM holiday"). ismworld.org shows scripts a '
-        'captcha and web.archive.org answered HTTP 429 all session, so a 2027 ISM calendar published after 2026-09-30 '
-        '(if any) was not seen; replace the rule rows when it is.'),
-    'ISM Services PMI': (date(2026, 12, 31), 'as ISM Manufacturing', 'rule for 2027: "third business day"; January 2027 UNCERTAIN.'),
+        'published calendar through 2026-12 (Oct dates confirmed by the PR Newswire releases). All 2027 rows are RULE-BASED: '
+        'ISM\'s published rule "first business day of the month at 10:00 a.m." (business days = weekdays without federal '
+        'holidays and Good Friday), January one business day later as in 2024-26 (2027-01-05). ismworld.org shows '
+        'scripts a captcha and web.archive.org answered HTTP 429 all session, so a 2027 ISM calendar published after '
+        '2026-09-30 (if any) was not seen; replace the rule rows when it is.'),
+    'ISM Services PMI': (date(2026, 12, 31), 'as ISM Manufacturing',
+        'as Manufacturing; 2027 rows RULE-BASED: "third business day of the month at 10:00 a.m.", January one business '
+        'day later (2027-01-07).'),
     CBEV: (date(2026, 11, 30), 'CB statement "at 10 a.m. ET on the last Tuesday of every month" (rule; CB release text)',
         'conference-board.org blocks scripts and WebFetch (HTTP 404 "Blocked"), so CB\'s own calendar and its "next release" '
         'line could not be read; every row from 2026-10 is a RULE date. December dates (2026-12-29, 2027-12-28) are '
