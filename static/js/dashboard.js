@@ -553,8 +553,9 @@ const DASHBOARD_BOOTSTRAP = window.DASHBOARD_BOOTSTRAP || {};
             const bl=String(b).toLowerCase();
             const isG=bl.includes('gotobi');
             const isE=bl.includes('-ecb-');
-            const badgeCls = isG ? 'bot-badge--gotobi' : (isE ? 'bot-badge--ecb' : 'bot-badge--default');
-            const badgeText = isG ? 'Gotobi' : (isE ? 'ECB' : 'cBot');
+            const isL=bl.includes('-gold50');
+            const badgeCls = isG ? 'bot-badge--gotobi' : (isE ? 'bot-badge--ecb' : (isL ? 'bot-badge--gold' : 'bot-badge--default'));
+            const badgeText = isG ? 'Gotobi' : (isE ? 'ECB' : (isL ? 'Gold' : 'cBot'));
             const safe=escapeHtml(b);
             return `<div class="bot-cell">
                 <span class="bot-badge ${badgeCls}"><span class="bot-dot"></span>${badgeText}</span>
