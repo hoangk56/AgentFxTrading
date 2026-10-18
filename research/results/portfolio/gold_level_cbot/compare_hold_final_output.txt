@@ -1,0 +1,16 @@
+engine 228, bot 228, matched on trigger time 228, engine only 0, bot only 0
+matched trades with a different arm time / level / side: 0
+filled 228, missed 0
+max |stop diff| 9.09e-13, max |s60 diff| 8.37e-13
+bot model net (250 ms) vs engine net_250: max |diff| 0.0000 bp; means +2.872 / +2.872
+backtest fill net vs engine net_L0: max |diff| 2.6005 bp; means +2.856 / +2.838
+  fill vs L0 differs 2025-01-17T20:04:26.836 -0.075
+  fill vs L0 differs 2025-01-20T03:09:03.235 -0.148
+  fill vs L0 differs 2025-01-29T15:29:12.000 +0.254
+  fill vs L0 differs 2025-01-31T07:29:56.442 -0.071
+  fill vs L0 differs 2025-02-05T02:07:50.852 +0.316
+  fill vs L0 differs 2025-02-06T08:22:40.000 +0.070
+  fill vs L0 differs 2025-02-17T03:03:15.448 +0.276
+  fill vs L0 differs 2025-02-28T13:59:11.844 +0.316
+  fill vs L0 differs 2025-03-04T07:27:44.000 -0.138
+  fill vs L0 differs 2025-04-14T13:10:28.656 +0.594

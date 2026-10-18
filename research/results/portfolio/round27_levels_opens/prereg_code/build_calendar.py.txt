@@ -1,0 +1,219 @@
+"""Build r28/lead/hold/usd_high_2024_2026.csv (utc_minute, event, source): High-impact USD release minutes
+2024-01-01 .. 2026-09-30 from OFFICIAL schedules. Inputs (downloaded with work/fetch.sh, logged in
+calendar_fetch_log.txt):
+- BLS yearly release calendars (Employment Situation, CPI, PPI, JOLTS, ECI): dl/bls_year_<Y>.htm, cross-checked
+  against the BLS news-release archives dl/bls_arch_<release>.htm (actual release dates);
+- BEA: 2024 from the 2024 News Release Schedule PDF (last updated 2024-12-05; 3 times verified on the release pages),
+  2025-26 from BEA's machine-readable release_dates.json (GDP, Personal Income and Outlays);
+- Federal Reserve Board monthly calendars (newsevents/<Y>-<month>.htm): FOMC statements (14:00, SEP flagged from
+  fomccalendars.htm), press conferences (14:30), minutes (14:00), and every Speeches / Testimony item of the Chair
+  (head 'Chair ...' / 'Chairman ...', not 'Vice Chair') at its listed ET start time;
+- work/cal_a.csv (Census retail sales, DOL weekly claims, Treasury 10-y / 30-y auctions, Treasury FX report) and
+  work/cal_b.csv (ISM manufacturing / services, Conference Board, UMich prelim / final, S&P Global flash PMI,
+  NY Fed Empire State, ADP), built by helper agents from the publishers' pages (sources per row).
+usage: python -I build_calendar.py [--partial]   (--partial: allow the helper CSVs to be missing)"""
+import csv, html, json, re, sys
+from datetime import date, datetime, time, timezone
+from pathlib import Path
+from zoneinfo import ZoneInfo
+
+H = Path('/private/tmp/claude-501/-Users-hoangbk-00-code-base-105-AgentFxTrading/cff348f1-534e-440d-88da-40c31dade827/scratchpad/r28/lead/hold')
+W = H / 'work'; DL = W / 'dl'
+NY = ZoneInfo('America/New_York'); UTC = timezone.utc
+D0, D1 = date(2024, 1, 1), date(2026, 9, 30)
+MONTHS = ['january', 'february', 'march', 'april', 'may', 'june', 'july', 'august', 'september', 'october',
+          'november', 'december']
+MON = {m[:3]: i + 1 for i, m in enumerate(MONTHS)}
+rows = []          # dict(et_date, et_time, utc_minute, event, source, note)
+problems = []
+
+
+def add(d, hhmm, event, source, note=''):
+    if not (D0 <= d <= D1):
+        return
+    hh, mm = hhmm
+    u = datetime.combine(d, time(hh, mm), tzinfo=NY).astimezone(UTC)
+    rows.append(dict(et_date=d.isoformat(), et_time=f'{hh:02d}:{mm:02d}', utc_minute=u.strftime('%Y-%m-%dT%H:%M'),
+                     event=event, source=source, note=note))
+
+
+def txt(s):
+    s = re.sub(r'<br\s*/?>', ' / ', s, flags=re.I)
+    s = re.sub(r'<[^>]+>', ' ', s); s = html.unescape(s)
+    return re.sub(r'\s+', ' ', s).strip()
+
+
+def ampm(s):
+    m = re.match(r'\s*(\d{1,2}):(\d{2})\s*([ap])\.?\s*m\.?', s, flags=re.I)
+    assert m, s
+    hh, mm = int(m.group(1)), int(m.group(2))
+    if m.group(3).lower() == 'p' and hh != 12:
+        hh += 12
+    if m.group(3).lower() == 'a' and hh == 12:
+        hh = 0
+    return hh, mm
+
+
+# ------------------------------------------------------------------ BLS
+BLS_MAP = [('Employment Situation for', 'Employment Situation: NFP, AHE, unemployment rate (BLS)'),
+           ('Consumer Price Index for', 'CPI (BLS)'),
+           ('Producer Price Index for', 'PPI (BLS)'),
+           ('Job Openings and Labor Turnover Survey for', 'JOLTS job openings (BLS)'),
+           ('Employment Cost Index for', 'Employment Cost Index (BLS)')]
+bls_dates = {}
+for y in (2024, 2025, 2026):
+    t = (DL / f'bls_year_{y}.htm').read_text(encoding='utf-8', errors='replace')
+    src = f'https://www.bls.gov/schedule/{y}/home.htm'
+    for tr in re.findall(r'<tr.*?</tr>', t, flags=re.S | re.I):
+        c = [txt(x) for x in re.findall(r'<t[hd][^>]*>(.*?)</t[hd]>', tr, flags=re.S | re.I)]
+        if len(c) != 3 or not re.match(r'[A-Z][a-z]+day, ', c[0]):
+            continue
+        for key, ev in BLS_MAP:
+            if c[2].startswith(key):
+                d = datetime.strptime(c[0].split(', ', 1)[1], '%B %d, %Y').date()
+                add(d, ampm(c[1]), ev, src, c[2])
+                bls_dates.setdefault(key, set()).add(d)
+# cross-check against the archive pages (release date in the archived file name)
+ARCH = {'Employment Situation for': 'empsit', 'Consumer Price Index for': 'cpi', 'Producer Price Index for': 'ppi',
+        'Job Openings and Labor Turnover Survey for': 'jolts', 'Employment Cost Index for': 'eci'}
+for key, r in ARCH.items():
+    t = (DL / f'bls_arch_{r}.htm').read_text(encoding='utf-8', errors='replace')
+    ad = set()
+    for mm, dd, yy in re.findall(rf'/news\.release/archives/{r}_(\d\d)(\d\d)(\d{{4}})\.htm', t):
+        d = date(int(yy), int(mm), int(dd))
+        if D0 <= d <= date(2026, 9, 30):
+            ad.add(d)
+    sd = {d for d in bls_dates.get(key, set()) if D0 <= d <= date(2026, 9, 30)}
+    if ad != sd:
+        problems.append(f'BLS {r}: schedule-only {sorted(sd - ad)}, archive-only {sorted(ad - sd)}')
+
+# ------------------------------------------------------------------ BEA
+t = (W / 'txt' / 'bea_2024_schedule.txt').read_text()
+src24 = 'https://www.bea.gov/sites/default/files/2024-06/2024-News-Release-Schedule.pdf'
+for ln in t.splitlines():
+    s = ln.strip()
+    m = re.match(r'(Gross Domestic Product, (?:\d)(?:st|nd|rd|th) Quarter.*?|Personal Income and Outlays, .*?)\s{2,}'
+                 r'([A-Z][a-z]+) (\d{1,2})\s+[A-Z][a-z]{2}\s+(\d{1,2}:\d{2}) ([AP])M', s)
+    if not m:
+        continue
+    d = date(2024, MONTHS.index(m.group(2).lower()) + 1, int(m.group(3)))
+    hh, mi = map(int, m.group(4).split(':'))
+    if m.group(5) == 'P' and hh != 12:
+        hh += 12
+    ev = 'GDP (BEA)' if m.group(1).startswith('Gross') else 'Personal income and outlays, core PCE (BEA)'
+    add(d, (hh, mi), ev, src24, m.group(1))
+js = json.loads((DL / 'bea_release_dates.json').read_text())
+srcj = 'https://apps.bea.gov/API/signup/release_dates.json'
+for key, ev in (('Gross Domestic Product', 'GDP (BEA)'),
+                ('Personal Income and Outlays', 'Personal income and outlays, core PCE (BEA)')):
+    for s in sorted(set(js[key]['release_dates'])):
+        u = datetime.fromisoformat(s).astimezone(NY)
+        if u.year >= 2025:
+            add(u.date(), (u.hour, u.minute), ev, srcj, f'{key} {s}')
+
+# ------------------------------------------------------------------ Federal Reserve
+fom = (DL / 'fed_fomccalendars.htm').read_text(encoding='utf-8', errors='replace')
+sep_end = set()
+for y in ('2024', '2025', '2026'):
+    i = fom.find(f'{y} FOMC Meetings'); j = fom.find('FOMC Meetings', i + 30)
+    for mo, dd in re.findall(r'fomc-meeting__month[^>]*>(.*?)</div>.*?fomc-meeting__date[^>]*>(.*?)</div>', fom[i:j], flags=re.S):
+        mo = re.sub(r'<[^>]+>', '', mo).strip(); dd = re.sub(r'<[^>]+>', '', dd).strip()
+        if '*' in dd:
+            last_mon = mo.split('/')[-1].lower()[:3]
+            sep_end.add(date(int(y), MON[last_mon], int(re.findall(r'\d+', dd)[-1])))
+fed = list(csv.DictReader(open(W / 'fed_items.csv')))
+for r in fed:
+    y, mo = int(r['year']), int(r['month'])
+    days = [int(x) for x in re.findall(r'\d+', r['days'])]
+    if r['section'] == 'FOMC Meetings':
+        if r['head'] == 'FOMC Meeting':
+            for dd in days:
+                d = date(y, mo, dd)
+                add(d, ampm(r['time']), 'FOMC statement, rate decision' + (', SEP' if d in sep_end else '') + ' (Fed)',
+                    r['url'], r['rest'])
+                if 'Press Conference' in r['rest']:
+                    add(d, (14, 30), 'FOMC press conference (Fed)', r['url'], r['rest'])
+        elif r['head'] == 'FOMC Minutes':
+            for dd in days:
+                add(date(y, mo, dd), ampm(r['time']), 'FOMC minutes (Fed)', r['url'], r['rest'])
+        elif r['head'] == 'FOMC Press Conference':
+            pass                                  # same minute as the 'Press Conference' of the meeting row
+        else:
+            problems.append(f'unknown FOMC item {r}')
+    elif r['section'] in ('Speeches', 'Testimony'):
+        if re.search(r'(?<!Vice )\bChair(man)?\b', r['head']) and 'Vice Chair' not in r['head']:
+            kind = 'testifies' if r['section'] == 'Testimony' else 'speaks'
+            who = re.sub(r'^.*?(Chair(?:man)? [A-Z][^|]*)$', r'\1', r['head']).strip()
+            for dd in days:
+                add(date(y, mo, dd), ampm(r['time']), f'Fed {who} {kind} (Fed)', r['url'], r['head'] + ' | ' + r['rest'])
+# FOMC minutes: release dates also from fomccalendars.htm ("Minutes: ... (Released <date>)"), at 14:00 ET (the time the
+# monthly calendars give every minutes release). The January 2025 monthly page omits the 2025-01-08 release.
+min_month = {r['et_date'] for r in rows if r['event'] == 'FOMC minutes (Fed)'}
+min_cal = set()
+for y in ('2023', '2024', '2025', '2026'):
+    i = fom.find(f'{y} FOMC Meetings'); j = fom.find(' FOMC Meetings', i + 30)
+    s = re.sub(r'<[^>]+>', ' ', fom[i:j]); s = html.unescape(s); s = re.sub(r'\s+', ' ', s)
+    for ds in re.findall(r'Minutes: [^()]*\(Released ([A-Za-z]+ \d{1,2}, \d{4})\)', s):
+        min_cal.add(datetime.strptime(ds, '%B %d, %Y').date())
+for d in sorted(min_cal):
+    if D0 <= d <= D1 and d.isoformat() not in min_month:
+        add(d, (14, 0), 'FOMC minutes (Fed)', 'https://www.federalreserve.gov/monetarypolicy/fomccalendars.htm',
+            'release date from fomccalendars.htm; 14:00 ET as every minutes release in the monthly calendars')
+        problems.append(f'FOMC minutes {d}: only in fomccalendars.htm (added at 14:00 ET)')
+for ds in min_month:
+    if date.fromisoformat(ds) not in min_cal:
+        problems.append(f'FOMC minutes {ds}: in the monthly calendar but not in fomccalendars.htm')
+# FOMC check: one statement per meeting, SEP at the * meetings
+st = [r for r in rows if r['event'].startswith('FOMC statement')]
+if len(st) != 8 + 8 + 6:
+    problems.append(f'FOMC statements: {len(st)} (expected 22 for 2024-01..2026-09)')
+for d in sep_end:
+    if D0 <= d <= D1 and not any(r['et_date'] == d.isoformat() and 'SEP' in r['event'] for r in st):
+        problems.append(f'SEP meeting {d} has no statement row')
+
+# ------------------------------------------------------------------ helper CSVs
+for fn in ('cal_a.csv', 'cal_b.csv'):
+    f = W / fn
+    if not f.exists():
+        if '--partial' in sys.argv:
+            problems.append(f'{fn} missing (partial build)')
+            continue
+        raise SystemExit(f'{fn} missing')
+    for r in csv.DictReader(open(f)):
+        if not r['et_time'].strip() and r['event'] == 'Treasury FX Report' and '16:00 ET' in r['note']:
+            # the press-release text gives the date only; the official page's <time datetime> stamp is 16:00 ET
+            # (ForexFactory also timed the 2024-06-20 report at 16:00). Used as the release minute.
+            r = dict(r, et_time='16:00', utc_minute='', note='time = the official page <time datetime> stamp '
+                     '(16:00 ET), not stated in the text; ' + r['note'])
+        if not r['et_time'].strip():
+            problems.append(f'{fn}: no official time, not a minute: {r["et_date"]} {r["event"]} ({r["note"]})')
+            continue
+        d = date.fromisoformat(r['et_date'])
+        hh, mm = map(int, r['et_time'].split(':'))
+        before = len(rows)
+        add(d, (hh, mm), r['event'], r['source'], r['note'])
+        if len(rows) > before and r['utc_minute'] and rows[-1]['utc_minute'] != r['utc_minute']:
+            problems.append(f'{fn}: utc_minute mismatch {r}')
+
+# ------------------------------------------------------------------ write
+rows.sort(key=lambda r: (r['utc_minute'], r['event']))
+seen = set(); out = []
+for r in rows:
+    k = (r['utc_minute'], r['event'])
+    if k in seen:
+        continue
+    seen.add(k); out.append(r)
+with open(H / 'usd_high_2024_2026.csv', 'w', newline='') as f:
+    w = csv.writer(f); w.writerow(['utc_minute', 'event', 'source'])
+    for r in out:
+        w.writerow([r['utc_minute'], r['event'], r['source']])
+with open(W / 'usd_high_2024_2026_detail.csv', 'w', newline='') as f:
+    w = csv.DictWriter(f, fieldnames=['utc_minute', 'et_date', 'et_time', 'event', 'source', 'note'])
+    w.writeheader(); w.writerows(out)
+from collections import Counter
+c = Counter((r['et_date'][:4], re.sub(r' \(.*$', '', r['event']) if not r['event'].startswith('Fed ') else
+             ('Fed Chair testifies' if 'testifies' in r['event'] else 'Fed Chair speaks')) for r in out)
+print(f'rows {len(out)}, unique minutes {len(set(r["utc_minute"] for r in out))}')
+for k in sorted(set(e for _, e in c)):
+    print(f'  {k:60s} ' + ' '.join(f'{y}:{c[(y, k)]:3d}' for y in ('2024', '2025', '2026')))
+print('problems:'); print('\n'.join('  ' + p for p in problems) or '  none')

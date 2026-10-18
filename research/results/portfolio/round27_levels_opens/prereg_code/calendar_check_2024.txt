@@ -1,0 +1,134 @@
+Calendar check 2024: official-schedule minutes (usd_high_2024_2026.csv) vs ForexFactory High-impact USD minutes
+(r25/shared/cal/ff_events_utc.csv: cur USD, impact High, timed; the calendar round 27 used). Written 2026-10-18 00:18 UTC by work/compare_2024.py.
+
+Unique minutes: ForexFactory 238 (371 event rows), official 262 (302 event rows).
+Matched within +-1 min: 218 FF minutes / 218 official minutes (exactly the same minute: 214).
+FF-only minutes: 20. Official-only minutes: 44.
+
+Per event type (NY dates in 2024; "same minute" = the type has a release within +-1 min in both lists):
+  type                               FF days official days same minute  FF day only official day only  same day, other minute
+  adp                                     12            12          12            0                 0                       0
+  auction                                  4            24           4            0                20                       0
+  cb                                      11            12          11            0                 1                       0
+  chair                                   17            16          12            2                 1                       3
+  claims                                  52            52          52            0                 0                       0
+  cpi                                     12            12          12            0                 0                       0
+  eci                                      4             4           0            0                 0                       4
+  empire                                   7            12           7            0                 5                       0
+  empsit                                  12            12          12            0                 0                       0
+  flash_pmi                               12            12          12            0                 0                       0
+  fomc                                     8             8           8            0                 0                       0
+  fomc_pc                                  8             8           8            0                 0                       0
+  fxreport                                 1             2           1            0                 1                       0
+  gdp                                     12            12          12            0                 0                       0
+  ism_m                                   12            12          12            0                 0                       0
+  ism_s                                   12            12          12            0                 0                       0
+  jolts                                   12            12          12            0                 0                       0
+  minutes                                  8             8           8            0                 0                       0
+  pce                                     12            12           9            0                 0                       3
+  ppi                                     12            12          12            0                 0                       0
+  retail                                  12            12          12            0                 0                       0
+  uom_f                                    5            12           5            0                 7                       0
+  uom_p                                    7            12           7            0                 5                       0
+  other:Durable Goods Orders m/m           1             0           0            1                 0                       0
+  other:FOMC Member Waller Speaks          2             0           0            2                 0                       0
+  other:Final Manufacturing PMI            2             0           0            2                 0                       0
+  other:New Home Sales                     1             0           0            1                 0                       0
+  other:Pending Home Sales m/m             5             0           0            5                 0                       0
+
+FF-only minutes, with the reason:
+  2024-01-31 14:45 UTC (Wed 09:45 NY)  eci: Employment Cost Index q/q  -> official has it at 08:30 NY (-75 min)
+  2024-02-05 16:30 UTC (Mon 11:30 NY)  chair: Fed Chair Powell Speaks  -> no official release of this type that NY day
+  2024-02-27 13:30 UTC (Tue 08:30 NY)  other:Durable Goods Orders m/m: Durable Goods Orders m/m  -> type not in the official list
+  2024-03-22 15:30 UTC (Fri 11:30 NY)  chair: Fed Chair Powell Speaks  -> no official release of this type that NY day
+  2024-03-27 22:00 UTC (Wed 18:00 NY)  other:FOMC Member Waller Speaks: FOMC Member Waller Speaks  -> type not in the official list
+  2024-04-16 16:10 UTC (Tue 12:10 NY)  chair: Fed Chair Powell Speaks  -> official has it at 13:15 NY (+65 min)
+  2024-04-25 14:00 UTC (Thu 10:00 NY)  other:Pending Home Sales m/m: Pending Home Sales m/m  -> type not in the official list
+  2024-04-30 13:45 UTC (Tue 09:45 NY)  eci: Employment Cost Index q/q  -> official has it at 08:30 NY (-75 min)
+  2024-05-01 13:45 UTC (Wed 09:45 NY)  other:Final Manufacturing PMI: Final Manufacturing PMI  -> type not in the official list
+  2024-05-30 14:00 UTC (Thu 10:00 NY)  other:Pending Home Sales m/m: Pending Home Sales m/m  -> type not in the official list
+  2024-06-03 13:45 UTC (Mon 09:45 NY)  other:Final Manufacturing PMI: Final Manufacturing PMI  -> type not in the official list
+  2024-06-26 14:00 UTC (Wed 10:00 NY)  other:New Home Sales: New Home Sales  -> type not in the official list
+  2024-06-27 14:00 UTC (Thu 10:00 NY)  other:Pending Home Sales m/m: Pending Home Sales m/m  -> type not in the official list
+  2024-07-02 16:30 UTC (Tue 12:30 NY)  chair: Fed Chair Powell Speaks  -> official has it at 09:30 NY (-180 min)
+  2024-07-31 13:45 UTC (Wed 09:45 NY)  eci: Employment Cost Index q/q  -> official has it at 08:30 NY (-75 min)
+  2024-07-31 14:00 UTC (Wed 10:00 NY)  other:Pending Home Sales m/m: Pending Home Sales m/m  -> type not in the official list
+  2024-09-06 15:00 UTC (Fri 11:00 NY)  other:FOMC Member Waller Speaks: FOMC Member Waller Speaks  -> type not in the official list
+  2024-10-31 13:45 UTC (Thu 09:45 NY)  eci: Employment Cost Index q/q  -> official has it at 08:30 NY (-75 min)
+  2024-10-31 14:00 UTC (Thu 10:00 NY)  pce: Core PCE Price Index m/m  -> official has it at 08:30 NY (-90 min)
+  2024-12-04 18:45 UTC (Wed 13:45 NY)  chair: Fed Chair Powell Speaks  -> official has it at 13:40 NY (-5 min)
+
+Official-only minutes, with the reason:
+  2024-01-10 18:00 UTC (Wed 13:00 NY)  auction: 10-y Note Auction (Treasury)  -> no FF High row of this type that NY day
+  2024-01-11 18:00 UTC (Thu 13:00 NY)  auction: 30-y Bond Auction (Treasury)  -> no FF High row of this type that NY day
+  2024-01-31 13:30 UTC (Wed 08:30 NY)  eci: Employment Cost Index (BLS)  -> FF has it at 09:45 NY (+75 min)
+  2024-02-07 18:00 UTC (Wed 13:00 NY)  auction: 10-y Note Auction (Treasury)  -> no FF High row of this type that NY day
+  2024-02-08 18:00 UTC (Thu 13:00 NY)  auction: 30-y Bond Auction (Treasury)  -> no FF High row of this type that NY day
+  2024-04-10 17:00 UTC (Wed 13:00 NY)  auction: 10-y Note Auction (Treasury)  -> no FF High row of this type that NY day
+  2024-04-16 17:15 UTC (Tue 13:15 NY)  chair: Fed Chair Jerome H. Powell speaks (Fed)  -> FF has it at 12:10 NY (-65 min)
+  2024-04-30 12:30 UTC (Tue 08:30 NY)  eci: Employment Cost Index (BLS)  -> FF has it at 09:45 NY (+75 min)
+  2024-05-08 17:00 UTC (Wed 13:00 NY)  auction: 10-y Note Auction (Treasury)  -> no FF High row of this type that NY day
+  2024-05-19 19:30 UTC (Sun 15:30 NY)  chair: Fed Chair Jerome H. Powell speaks (Fed)  -> no FF High row of this type that NY day
+  2024-06-11 17:00 UTC (Tue 13:00 NY)  auction: 10-y Note Auction (Treasury)  -> no FF High row of this type that NY day
+  2024-06-13 17:00 UTC (Thu 13:00 NY)  auction: 30-y Bond Auction (Treasury)  -> no FF High row of this type that NY day
+  2024-06-28 14:00 UTC (Fri 10:00 NY)  uom_f: UoM Consumer Sentiment (final)  -> no FF High row of this type that NY day
+  2024-07-02 13:30 UTC (Tue 09:30 NY)  chair: Fed Chair Jerome H. Powell speaks (Fed)  -> FF has it at 12:30 NY (+180 min)
+  2024-07-10 17:00 UTC (Wed 13:00 NY)  auction: 10-y Note Auction (Treasury)  -> no FF High row of this type that NY day
+  2024-07-11 17:00 UTC (Thu 13:00 NY)  auction: 30-y Bond Auction (Treasury)  -> no FF High row of this type that NY day
+  2024-07-26 14:00 UTC (Fri 10:00 NY)  uom_f: UoM Consumer Sentiment (final)  -> no FF High row of this type that NY day
+  2024-07-31 12:30 UTC (Wed 08:30 NY)  eci: Employment Cost Index (BLS)  -> FF has it at 09:45 NY (+75 min)
+  2024-08-07 17:00 UTC (Wed 13:00 NY)  auction: 10-y Note Auction (Treasury)  -> no FF High row of this type that NY day
+  2024-08-08 17:00 UTC (Thu 13:00 NY)  auction: 30-y Bond Auction (Treasury)  -> no FF High row of this type that NY day
+  2024-08-16 14:00 UTC (Fri 10:00 NY)  uom_p: UoM Consumer Sentiment (prelim)  -> no FF High row of this type that NY day
+  2024-08-30 14:00 UTC (Fri 10:00 NY)  uom_f: UoM Consumer Sentiment (final)  -> no FF High row of this type that NY day
+  2024-09-11 17:00 UTC (Wed 13:00 NY)  auction: 10-y Note Auction (Treasury)  -> no FF High row of this type that NY day
+  2024-09-12 17:00 UTC (Thu 13:00 NY)  auction: 30-y Bond Auction (Treasury)  -> no FF High row of this type that NY day
+  2024-09-13 14:00 UTC (Fri 10:00 NY)  uom_p: UoM Consumer Sentiment (prelim)  -> no FF High row of this type that NY day
+  2024-09-16 12:30 UTC (Mon 08:30 NY)  empire: Empire State Manufacturing  -> no FF High row of this type that NY day
+  2024-09-27 12:30 UTC (Fri 08:30 NY)  pce: Personal income and outlays, core PCE (BEA)  -> FF has it at 10:00 NY (+90 min)
+  2024-10-09 17:00 UTC (Wed 13:00 NY)  auction: 10-y Note Auction (Treasury)  -> no FF High row of this type that NY day
+  2024-10-10 17:00 UTC (Thu 13:00 NY)  auction: 30-y Bond Auction (Treasury)  -> no FF High row of this type that NY day
+  2024-10-11 14:00 UTC (Fri 10:00 NY)  uom_p: UoM Consumer Sentiment (prelim)  -> no FF High row of this type that NY day
+  2024-10-15 12:30 UTC (Tue 08:30 NY)  empire: Empire State Manufacturing  -> no FF High row of this type that NY day
+  2024-10-25 14:00 UTC (Fri 10:00 NY)  uom_f: UoM Consumer Sentiment (final)  -> no FF High row of this type that NY day
+  2024-11-05 18:00 UTC (Tue 13:00 NY)  auction: 10-y Note Auction (Treasury)  -> no FF High row of this type that NY day
+  2024-11-06 18:00 UTC (Wed 13:00 NY)  auction: 30-y Bond Auction (Treasury)  -> no FF High row of this type that NY day
+  2024-11-08 15:00 UTC (Fri 10:00 NY)  uom_p: UoM Consumer Sentiment (prelim)  -> no FF High row of this type that NY day
+  2024-11-14 21:00 UTC (Thu 16:00 NY)  fxreport: Treasury FX Report  -> no FF High row of this type that NY day
+  2024-11-22 15:00 UTC (Fri 10:00 NY)  uom_f: UoM Consumer Sentiment (final)  -> no FF High row of this type that NY day
+  2024-12-04 18:40 UTC (Wed 13:40 NY)  chair: Fed Chair Jerome H. Powell speaks (Fed)  -> FF has it at 13:45 NY (+5 min)
+  2024-12-06 15:00 UTC (Fri 10:00 NY)  uom_p: UoM Consumer Sentiment (prelim)  -> no FF High row of this type that NY day
+  2024-12-11 18:00 UTC (Wed 13:00 NY)  auction: 10-y Note Auction (Treasury)  -> no FF High row of this type that NY day
+  2024-12-12 18:00 UTC (Thu 13:00 NY)  auction: 30-y Bond Auction (Treasury)  -> no FF High row of this type that NY day
+  2024-12-16 13:30 UTC (Mon 08:30 NY)  empire: Empire State Manufacturing  -> no FF High row of this type that NY day
+  2024-12-20 13:30 UTC (Fri 08:30 NY)  pce: Personal income and outlays, core PCE (BEA)  -> FF has it at 10:00 NY (+90 min)
+  2024-12-23 15:00 UTC (Mon 10:00 NY)  cb: CB Consumer Confidence  -> no FF High row of this type that NY day
+
+Arming minutes (sessions d = weekdays of 2024, 18:10 NY d-1 .. 15:54 NY d). A minute counts as excluded when it lies
+in [T - 15, T + 14] of a release minute T (its ticks are then within +-15 min of T, the engine rule):
+  all clock minutes: 341648 arming minutes; excluded by FF 6959 (2.04 %), by official 7683 (2.25 %);
+    FF-only 479, official-only 1203, both 6480; changed 1682 = 0.49 % of the arming minutes
+  minutes with XAUUSD ticks: 336845 arming minutes; excluded by FF 6887 (2.04 %), by official 7611 (2.26 %);
+    FF-only 479, official-only 1203, both 6408; changed 1682 = 0.50 % of the arming minutes
+
+Effect on the draft cell's trades (VAL 2024; out/cal_swap_2024.txt, written by work/cal_swap_diff.py from the run_hold.py runs VAL_ff and VAL_reg):
+  VAL (2022-24), G1-XAU50 c0.5 h30 ns, net 250 ms: round 27 calendar (ForexFactory, run VAL_ff) vs registered calendar
+  (ForexFactory < 2024-01-01, official schedules from 2024-01-01; run VAL_reg). 2022-23 use the same calendar in both runs.
+  [2022-23] FF run 109 trades, registered run 109; common 109 (all readings identical: True); only FF 0, only registered 0
+      mean net 250: FF +3.42, registered +3.42; common +3.42
+  [2024] FF run 76 trades, registered run 78; common 75 (all readings identical: True); only FF 1, only registered 3
+      mean net 250: FF +3.04, registered +3.90; common +3.76
+      only FF         2024-08-16 13:51:19 UTC (Fri 09:51 NY) L 2500 side +1 net -50.96
+      only registered 2024-01-31 14:42:35 UTC (Wed 09:42 NY) L 2050 side +1 net +20.86
+      only registered 2024-05-30 14:00:40 UTC (Thu 10:00 NY) L 2350 side +1 net -8.64
+      only registered 2024-10-31 14:04:31 UTC (Thu 10:04 NY) L 2750 side -1 net +9.95
+  
+  Why (release minutes within +-15 min of the [arm, trigger] interval of each differing trade):
+      2024-01-31 14:42 UTC trade (armed 09:42:16 NY): FF: 09:45 NY Employment Cost Index q/q
+      2024-01-31 14:42 UTC trade (armed 09:42:16 NY): official: none
+      2024-05-30 14:00 UTC trade (armed 09:59:43 NY): FF: 10:00 NY Pending Home Sales m/m
+      2024-05-30 14:00 UTC trade (armed 09:59:43 NY): official: none
+      2024-08-16 13:51 UTC trade (armed 09:51:15 NY): FF: none
+      2024-08-16 13:51 UTC trade (armed 09:51:15 NY): official: 10:00 NY UoM Consumer Sentiment (prelim)
+      2024-10-31 14:04 UTC trade (armed 10:03:03 NY): FF: 10:00 NY Core PCE Price Index m/m
+      2024-10-31 14:04 UTC trade (armed 10:03:03 NY): official: none

@@ -1,0 +1,1063 @@
+"""r30 forward calendar of High-impact USD release minutes from OFFICIAL schedules, 2026-10-01 .. 2027-12-31, plus
+2026-09 rebuilt for the sanity check. Same event types, event names, times and rules as the registered calendar
+usd_high_2024_2026.csv (research/results/portfolio/round27_levels_opens/prereg_code/hold_prep_README.txt, section 2).
+
+usage: python3 -I build_fwd.py DL_DIR OUT_DIR REGISTERED_CSV
+  DL_DIR          r30/cal/dl: the saved downloads (untrusted data: only read and parsed, never executed)
+  OUT_DIR         r30/cal: writes usd_high_fwd.csv, usd_high_fwd_detail.csv, coverage.txt, sanity.txt
+  REGISTERED_CSV  the registered usd_high_2024_2026.csv (read only; used for sanity.txt)
+PDF text is extracted with pdftotext (poppler) into memory; no file under DL_DIR is written.
+
+Basis of each row (first word of its note):
+  release:            date/time read from the release itself (embargo line, PR Newswire stamp, release archive)
+  published schedule: date read from the publisher's schedule / calendar (time from the schedule or the README rule)
+  rule:               date from a rule the publisher states (DOL Thursdays, CB last Tuesday, ISM business days,
+                      Fed minutes three weeks after the decision); marked UNCERTAIN where the publisher's own
+                      practice has broken the rule in that month before.
+"""
+import csv, html, json, re, subprocess, sys
+from collections import Counter, defaultdict
+from datetime import date, datetime, time, timedelta, timezone
+from pathlib import Path
+from zoneinfo import ZoneInfo
+
+if len(sys.argv) != 4:
+    raise SystemExit(__doc__)
+DL, OUT, REG = Path(sys.argv[1]), Path(sys.argv[2]), Path(sys.argv[3])
+NY, UTC = ZoneInfo('America/New_York'), timezone.utc
+TODAY = date(2026, 10, 18)                       # build day: rows before it must be confirmed as released
+S0, S1 = date(2026, 9, 1), date(2026, 9, 30)     # sanity month (rebuilt, compared with the registered file)
+F0, F1 = date(2026, 10, 1), date(2027, 12, 31)   # forward window (output)
+D0, D1 = S0, F1
+MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October',
+          'November', 'December']
+MON = {m: i + 1 for i, m in enumerate(MONTHS)}
+MON3 = {m[:3]: i + 1 for i, m in enumerate(MONTHS)}
+rows, problems, horizon = [], [], {}             # horizon[type] = (known_through, text)
+
+
+def rd(p):
+    return Path(p).read_text(encoding='utf-8', errors='replace')
+
+
+def nocomment(t):
+    return re.sub(r'<!--.*?-->', '', t, flags=re.S)
+
+
+def txt(s):
+    s = re.sub(r'<br\s*/?>', ' / ', s, flags=re.I)
+    s = re.sub(r'<[^>]+>', ' ', s); s = html.unescape(s)
+    return re.sub(r'\s+', ' ', s).strip()
+
+
+def page_lines(t):
+    """visible text of an HTML page, one block per line; table cells end with ' | '"""
+    t = re.sub(r'<script.*?</script>', '', t, flags=re.S | re.I)
+    t = re.sub(r'<style.*?</style>', '', t, flags=re.S | re.I)
+    t = re.sub(r'<br\s*/?>', '\n', t, flags=re.I)
+    t = re.sub(r'</(p|div|tr|li|h\d|table|section)>', '\n', t, flags=re.I)
+    t = re.sub(r'</t[dh]>', ' | ', t, flags=re.I)
+    t = re.sub(r'<[^>]+>', ' ', t); t = html.unescape(t)
+    return [re.sub(r'[ \t\r\f\v\xa0]+', ' ', x).strip() for x in t.split('\n') if x.strip()]
+
+
+def has(text, sentence):
+    """sentence occurs in text, ignoring all whitespace"""
+    return re.sub(r'\s+', '', sentence) in re.sub(r'\s+', '', text)
+
+
+def pdftext(p, last=None, layout=True):
+    a = ['pdftotext'] + (['-layout'] if layout else []) + (['-l', str(last)] if last else []) + [str(p), '-']
+    return subprocess.run(a, capture_output=True, text=True, check=True).stdout
+
+
+def ampm(s):
+    m = re.match(r'\s*(\d{1,2}):(\d{2})\s*([ap])\.?\s*m\.?', s, flags=re.I)
+    assert m, s
+    hh, mm = int(m.group(1)), int(m.group(2))
+    if m.group(3).lower() == 'p' and hh != 12:
+        hh += 12
+    if m.group(3).lower() == 'a' and hh == 12:
+        hh = 0
+    return hh, mm
+
+
+def mdy(s):
+    """'Friday, October 2, 2026' / 'October 02, 2026' / 'Nov. 06, 2026' -> date"""
+    m = re.search(r'([A-Z][a-z]{2})[a-z]*\.? (\d{1,2}), (\d{4})', s)
+    assert m, s
+    return date(int(m.group(3)), MON3[m.group(1)], int(m.group(2)))
+
+
+def add(d, hhmm, event, source, note):
+    if not (D0 <= d <= D1):
+        return
+    hh, mm = hhmm
+    u = datetime.combine(d, time(hh, mm), tzinfo=NY).astimezone(UTC)
+    rows.append(dict(utc_minute=u.strftime('%Y-%m-%dT%H:%M'), et_date=d.isoformat(), et_time=f'{hh:02d}:{mm:02d}',
+                     event=event, source=source, note=note))
+
+
+def last_weekday(y, m, wd):
+    d = date(y + (m == 12), m % 12 + 1, 1) - timedelta(days=1)
+    while d.weekday() != wd:
+        d -= timedelta(days=1)
+    return d
+
+
+def months(a, b):
+    y, m = a.year, a.month
+    while (y, m) <= (b.year, b.month):
+        yield y, m
+        y, m = (y + 1, 1) if m == 12 else (y, m + 1)
+
+
+# ====================================================================== OPM federal holidays (for the rules)
+HOL = {}                                          # date -> holiday name (observed dates)
+lines = page_lines(rd(DL / 'opm/opm_federal_holidays.htm'))
+for i, ln in enumerate(lines):
+    m = re.match(r'(20\d\d) Holiday Schedule$', ln)
+    if not m:
+        continue
+    y = int(m.group(1)); j = i + 1
+    if not 2025 <= y <= 2028:
+        continue
+    while j < len(lines) and not re.match(r'(20\d\d)( Holiday Schedule)?$', lines[j]) and not lines[j].startswith('*'):
+        dm = re.match(r'(Monday|Tuesday|Wednesday|Thursday|Friday), ([A-Z][a-z]+) (\d{2})(?:, (\d{4}))?[ *]*\|?\s*(.*)$', lines[j])
+        if dm:
+            name = dm.group(5).strip(' |') or lines[j + 1].strip(' |')
+            mo = MON[dm.group(2)]
+            yy_ = int(dm.group(4)) if dm.group(4) else (y - 1 if (mo == 12 and 'New Year' in name) else y)
+            d = date(yy_, mo, int(dm.group(3)))
+            assert d.strftime('%A') == dm.group(1), (ln, lines[j])
+            HOL[d] = name
+        j += 1
+for y in (2026, 2027):
+    n = sum(1 for d in HOL if d.year == y)
+    if n not in (11, 12):
+        problems.append(f'OPM: {n} holidays parsed for {y}')
+GOOD_FRIDAY = {date(2026, 4, 3), date(2027, 3, 26)}   # NYSE/ISM closure; not a federal holiday
+
+
+def bday(d):
+    return d.weekday() < 5 and d not in HOL and d not in GOOD_FRIDAY
+
+
+def nth_bday(y, m, n):
+    d, k = date(y, m, 1), 0
+    while True:
+        if bday(d):
+            k += 1
+            if k == n:
+                return d
+        d += timedelta(days=1)
+
+
+# ====================================================================== OMB PFEI 2027 (cross-check + Census 2027)
+PFEI_URL = 'https://www.whitehouse.gov/wp-content/uploads/2026/10/FY2027-PFEI.pdf'
+pf_txt = pdftext(DL / 'omb/FY2027-PFEI.pdf')
+assert 'PRINCIPAL FEDERAL ECONOMIC INDICATORS FOR 2027' in pf_txt
+PFEI = {}
+for name in ('Advance Monthly Sales for Retail and Food Services', 'Personal Income and Outlays', 'Gross Domestic Product',
+             'The Employment Situation', 'Producer Price Indexes', 'Consumer Price Index', 'Employment Cost Index'):
+    for ln in pf_txt.splitlines():
+        if ln.strip().startswith(name) and not ln.strip().startswith(name + ' by'):
+            toks = re.findall(r'--|\b\d{1,2}\b', ln.split(name, 1)[1])
+            if len(toks) == 12:
+                PFEI[name] = {date(2027, i + 1, int(x)) for i, x in enumerate(toks) if x != '--'}
+                break
+    else:
+        problems.append(f'OMB PFEI: no 12-month row for {name}')
+
+# ====================================================================== BLS
+BLS_MAP = [('Employment Situation for', 'Employment Situation: NFP, AHE, unemployment rate (BLS)', 'empsit',
+            'The Employment Situation'),
+           ('Consumer Price Index for', 'CPI (BLS)', 'cpi', 'Consumer Price Index'),
+           ('Producer Price Index for', 'PPI (BLS)', 'ppi', 'Producer Price Indexes'),
+           ('Job Openings and Labor Turnover Survey for', 'JOLTS job openings (BLS)', 'jolts', None),
+           ('Employment Cost Index for', 'Employment Cost Index (BLS)', 'eci', 'Employment Cost Index')]
+arch = {}
+for _, _, r, _ in BLS_MAP:
+    t = nocomment(rd(DL / f'bls/bls_arch_{r}.htm'))      # future releases sit in an HTML comment: ignore them
+    arch[r] = {date(int(yy), int(mm), int(dd)) for mm, dd, yy in
+               re.findall(rf'/news\.release/archives/{r}_(\d\d)(\d\d)(\d{{4}})\.htm', t)}
+bls_rows = defaultdict(set)
+for y in (2026, 2027):
+    t = nocomment(rd(DL / f'bls/bls_year_{y}.htm'))
+    src = f'https://www.bls.gov/schedule/{y}/home.htm'
+    for tr in re.findall(r'<tr.*?</tr>', t, flags=re.S | re.I):
+        c = [txt(x) for x in re.findall(r'<t[hd][^>]*>(.*?)</t[hd]>', tr, flags=re.S | re.I)]
+        if len(c) != 3 or not re.match(r'[A-Z][a-z]+day, ', c[0]):
+            continue
+        for key, ev, r, pf in BLS_MAP:
+            if not c[2].startswith(key):
+                continue
+            d = datetime.strptime(c[0].split(', ', 1)[1], '%B %d, %Y').date()
+            hm = ampm(c[1])
+            bls_rows[r].add((d, hm))
+            if d < TODAY:
+                if d in arch[r]:
+                    how = f'release: confirmed in the BLS news-release archive ({r}_{d:%m%d%Y}.htm)'
+                else:
+                    how = f'published schedule: BLS {y} release calendar; release NOT CONFIRMED in the news-release archive'
+                    if D0 <= d:
+                        problems.append(f'BLS {r} {d}: scheduled date before {TODAY} not in the archive')
+            else:
+                how = f'published schedule: BLS {y} release calendar'
+                if y == 2027 and pf:
+                    how += '; = OMB PFEI 2027' if d in PFEI.get(pf, set()) else '; DIFFERS from OMB PFEI 2027'
+                    if d not in PFEI.get(pf, set()):
+                        problems.append(f'BLS {r} {d} not in OMB PFEI 2027')
+            add(d, hm, ev, src, f'{how}; {c[2]}')
+# per-release schedule pages (the upcoming releases): cross-check
+for key, ev, r, pf in BLS_MAP:
+    t = nocomment(rd(DL / f'bls/bls_sched_{r}.htm'))
+    sched = set()
+    for tr in re.findall(r'<tr.*?</tr>', t, flags=re.S | re.I):
+        c = [txt(x) for x in re.findall(r'<t[hd][^>]*>(.*?)</t[hd]>', tr, flags=re.S | re.I)]
+        if len(c) == 3 and re.match(r'[A-Z][a-z]{2}[a-z]*\.? \d{1,2}, \d{4}$', c[1]):
+            sched.add((mdy(c[1]), ampm(c[2])))
+    cal = {x for x in bls_rows[r] if x[0] >= TODAY}
+    if sched - cal:
+        problems.append(f'BLS {r}: on the {r} schedule page but not in the yearly calendars: {sorted(sched - cal)}')
+    if cal - sched:
+        problems.append(f'BLS {r}: in the yearly calendars but not on the {r} schedule page: '
+                        f'{sorted(x[0].isoformat() for x in cal - sched)}')
+bls_last = {r: max(d for d, _ in v) for r, v in bls_rows.items()}
+
+# ====================================================================== BEA
+js = json.loads(rd(DL / 'bea/bea_release_dates.json'))
+srcj = 'https://apps.bea.gov/API/signup/release_dates.json'
+
+
+def bea_page(fn, year):
+    out = defaultdict(set)
+    t = nocomment(rd(DL / fn))
+    for tr in re.findall(r'<tr.*?</tr>', t, flags=re.S | re.I):
+        s = re.sub(r'\s+', ' ', html.unescape(re.sub(r'<[^>]+>', ' ', tr))).strip()
+        m = re.match(r'([A-Z][a-z]+) (\d{1,2}) (\d{1,2}:\d{2} [AP]M) N ews (.*)$', s)
+        if not m:
+            continue
+        title = m.group(4)
+        if re.match(r'(GDP \(|Gross Domestic Product, )', title):
+            k = 'Gross Domestic Product'
+        elif title.startswith('Personal Income and Outlays,'):
+            k = 'Personal Income and Outlays'
+        else:
+            continue
+        out[k].add((date(year, MON[m.group(1)], int(m.group(2))), ampm(m.group(3).replace('AM', 'a.m.').replace('PM', 'p.m.')),
+                    'View' in title))
+    return out
+
+
+bea_html = defaultdict(set)
+for fn, y in (('bea/bea_full.htm', 2026), ('bea/bea_next_year.htm', 2027)):
+    for k, v in bea_page(fn, y).items():
+        bea_html[k] |= v
+for key, ev, pf in (('Gross Domestic Product', 'GDP (BEA)', 'Gross Domestic Product'),
+                    ('Personal Income and Outlays', 'Personal income and outlays, core PCE (BEA)', 'Personal Income and Outlays')):
+    jd = set()
+    for s in sorted(set(js[key]['release_dates'])):
+        u = datetime.fromisoformat(s).astimezone(NY)
+        if not (D0 <= u.date() <= D1):
+            continue
+        jd.add((u.date(), (u.hour, u.minute)))
+        hv = {(d, hm): v for d, hm, v in bea_html[key]}
+        notes = []
+        if u.date() < TODAY:
+            notes.append('release: BEA schedule page links the released news release ("View")' if hv.get((u.date(), (u.hour, u.minute)))
+                         else 'published schedule: BEA release_dates.json; release NOT CONFIRMED on the BEA schedule page')
+        else:
+            notes.append('published schedule: BEA release_dates.json (file_last_updated ' + js['file_last_updated'][:10] + ')')
+        notes.append('= bea.gov schedule page' if (u.date(), (u.hour, u.minute)) in hv else 'NOT on the bea.gov schedule page')
+        if u.year == 2027:
+            notes.append('= OMB PFEI 2027' if u.date() in PFEI.get(pf, set()) else 'DIFFERS from OMB PFEI 2027')
+        notes.append(f'{key} {s}')
+        add(u.date(), (u.hour, u.minute), ev, srcj, '; '.join(notes))
+    hd = {(d, hm) for d, hm, _ in bea_html[key] if D0 <= d <= D1}
+    if jd != hd:
+        problems.append(f'BEA {key}: json-only {sorted(jd - hd)}, page-only {sorted(hd - jd)}')
+    if jd and max(d for d, _ in jd).year == 2027:
+        p27 = {d for d, _ in jd if d.year == 2027}
+        if p27 != PFEI.get(pf, set()):
+            problems.append(f'BEA {key} 2027 differs from OMB PFEI: {sorted(p27 ^ PFEI.get(pf, set()))}')
+
+# ====================================================================== Census advance retail sales
+RS = 'Retail Sales (Census advance)'
+SCHED_URL = 'https://www.census.gov/retail/release_schedule.html'
+MARTS_URL = 'https://www.census.gov/retail/marts/www/marts_current.pdf'
+
+
+def census_pdf(p):
+    t = re.sub(r'\s+', ' ', pdftext(p, last=1))
+    m = re.search(r'FOR RELEASE AT (\d{1,2}):(\d{2}) ?([AP])\.? ?M\.? ?(E[SD]T|ET)?,? (\w+), (\w+) (\d{1,2}), (\d{4})', t, flags=re.I)
+    if not m:
+        return None
+    h = int(m.group(1)) + (12 if m.group(3).upper() == 'P' and m.group(1) != '12' else 0)
+    d = date(int(m.group(8)), MON[m.group(6).capitalize()], int(m.group(7)))
+    dm = re.search(r'ADVANCE MONTHLY SALES FOR RETAIL AND FOOD SERVICES, (\w+) (\d{4})', t, flags=re.I)
+    return d, (h, int(m.group(2))), m.group(4) or '', (f'{dm.group(1).title()} {dm.group(2)}' if dm else '?')
+
+
+cen_pdf = {}                                       # release date -> (time, tz, data month, capture ts)
+for p in sorted(DL.glob('**/marts_current_*.pdf')):
+    r = census_pdf(p)
+    if r:
+        cen_pdf[r[0]] = (r[1], r[2], r[3], re.search(r'(\d{14})', p.name).group(1))
+snaps = sorted(DL.glob('**/census_retail_sched_*.htm'), key=lambda p: re.search(r'(\d{14})', p.name).group(1))
+snap = snaps[-1]; snap_ts = re.search(r'(\d{14})', snap.name).group(1)
+st = ' '.join(page_lines(rd(snap)))
+i = st.find('Advance Monthly Retail Trade Report'); j = st.find('Monthly Retail Trade Report', i + 40)
+adv = st[i:j]
+assert 'Release Date at 8:30 am' in adv, 'Census schedule page: no "Release Date at 8:30 am" header'
+cen_sched = {}
+for dm, rdt in re.findall(r'([A-Z][a-z]+ 20\d\d)\s*\|?\s*([A-Z][a-z]+ \d{1,2}, 20\d\d)', adv):
+    cen_sched[datetime.strptime(rdt, '%B %d, %Y').date()] = dm
+tba = re.findall(r'([A-Z][a-z]+ 20\d\d)\s*\|?\s*To be announced', adv)
+fred = {}                                          # St. Louis Fed FRED page of RSAFS (Census advance retail sales)
+fp = DL / 'misc/fred_RSAFS.htm'
+if fp.exists():
+    fl_ = page_lines(rd(fp))
+    for k_, ln in enumerate(fl_):
+        if ln == 'Updated:' and 'upd' not in fred:
+            ud = datetime.strptime(fl_[k_ + 1].strip(' |'), '%b %d, %Y').date()
+            fred['upd'] = (ud, fl_[k_ + 2].strip(' |'))
+        if ln == 'Next Release Date:' and 'next' not in fred:
+            fred['next'] = datetime.strptime(fl_[k_ + 1].strip(' |'), '%b %d, %Y').date()
+        mo_ = re.fullmatch(r'([A-Z][a-z]{2}) (20\d\d): ([\d,]+) \|', ln)
+        if mo_ and 'obs' not in fred:
+            fred['obs'] = f'{MONTHS[MON3[mo_.group(1)] - 1]} {mo_.group(2)}'
+for d in sorted(set(cen_sched) | set(cen_pdf)):
+    if not (D0 <= d <= D1):
+        continue
+    if d in cen_pdf:
+        hm, tz, dmo, ts = cen_pdf[d]
+        note = (f'release: PDF "FOR RELEASE AT {hm[0]}:{hm[1]:02d} AM {tz}"; data month {dmo}; read from web.archive.org '
+                f'capture {ts} of marts_current.pdf (census.gov returns 403 to scripts)')
+        if d in cen_sched and cen_sched[d].upper() != dmo.upper():
+            note += f'; WARNING schedule page data month {cen_sched[d]}'
+        add(d, hm, RS, MARTS_URL, note + '; secondary:web.archive.org')
+    else:
+        conf = d < TODAY and fred.get('upd', (None,))[0] == d and fred.get('obs', '').upper() == cen_sched[d].upper()
+        if d < TODAY and not conf:
+            problems.append(f'Census {d}: past date without a release capture')
+        sched_note = (f'Census release schedule page, data month {cen_sched[d]}, "Release Date at 8:30 am" (read from '
+                      f'web.archive.org capture {snap_ts}; census.gov returns 403 to scripts)')
+        if conf:
+            add(d, (8, 30), RS, SCHED_URL, f'release: FRED (St. Louis Fed) series RSAFS shows the {fred["obs"]} value, "Updated: '
+                f'{fred["upd"][0]:%b %d, %Y} {fred["upd"][1]}" (secondary record; census.gov blocks scripts); time 08:30 ET per the '
+                f'{sched_note}; secondary:web.archive.org, FRED')
+        else:
+            add(d, (8, 30), RS, SCHED_URL, f'published schedule: {sched_note}' +
+                ('; release NOT CONFIRMED (no capture of the release PDF)' if d < TODAY else '') +
+                (f'; = FRED "Next Release Date: {fred["next"]:%b %d, %Y}"' if fred.get('next') == d else '') +
+                '; secondary:web.archive.org')
+c27 = PFEI.get('Advance Monthly Sales for Retail and Food Services', set())
+for d in sorted(c27):
+    if d in cen_sched:
+        continue
+    add(d, (8, 30), RS, PFEI_URL, 'published schedule: OMB Schedule of Release Dates for Principal Federal Economic Indicators '
+        'for 2027, Census line "Advance Monthly Sales for Retail and Food Services"; time 08:30 ET = Census schedule page '
+        f'header "Release Date at 8:30 am" (capture {snap_ts})' +
+        (f'; the Census page (capture {snap_ts}) still showed {tba[0]} data "To be announced"' if tba and d.month == 1 else ''))
+
+# ====================================================================== DOL weekly claims
+CL = 'Unemployment Claims (DOL)'
+dol_pdf = {}
+for p in sorted((DL / 'dol').glob('20??_??????.pdf')):
+    t = re.sub(r'\s+', ' ', pdftext(p, last=1))
+    m = re.search(r'EMBARGOED UNTIL\s*(\d{1,2}:\d{2})\s*([AP])\.?\s*M\.?\s*\(Eastern\)\s*(\w+),?\s*(\w+)\s+(\d{1,2}),?\s*(\d{4})', t, flags=re.I)
+    assert m, p
+    d = date(int(m.group(6)), MON[m.group(4).capitalize()], int(m.group(5)))
+    h, mi = map(int, m.group(1).split(':'))
+    we = re.search(r'In the week ending (\w+ \d{1,2})', t)
+    y, mmddyy = p.stem.split('_')
+    assert d == date(2000 + int(mmddyy[4:]), int(mmddyy[:2]), int(mmddyy[2:4])), p
+    dol_pdf[d] = ((h + (12 if m.group(2).upper() == 'P' and h != 12 else 0), mi), m.group(3),
+                  we.group(1) if we else '?', f'https://oui.doleta.gov/press/{y}/{mmddyy}.pdf')
+ca = rd(DL / 'dol/dol_claims_arch.htm')
+cat = ' '.join(page_lines(ca))
+RULE = 'The UI Weekly Claims News Release is published each week on Thursday morning at 8:30am'
+assert has(cat, RULE), 'DOL publication-schedule sentence not found'
+upd = re.search(r'Updated: ([A-Z][a-z]+ \d{1,2}, \d{4})', cat)
+exc = {}
+for wd, ds, tm in re.findall(r'(Monday|Tuesday|Wednesday|Thursday|Friday), ([A-Z][a-z]+ \d{1,2}, \d{4})\s*\|?\s*(\d{1,2}:\d{2} [AP]M)', cat):
+    exc[datetime.strptime(ds, '%B %d, %Y').date()] = ampm(tm)
+    assert datetime.strptime(ds, '%B %d, %Y').strftime('%A') == wd, ds
+CA_URL = 'https://oui.doleta.gov/unemploy/claims_arch.asp'
+d = D0
+while d.weekday() != 3:
+    d += timedelta(days=1)
+while d <= D1:
+    week = [d - timedelta(days=3) + timedelta(days=k) for k in range(7)]
+    if d < TODAY:
+        got = [x for x in week if x in dol_pdf]
+        if not got:
+            problems.append(f'DOL: no release PDF for the week of Thursday {d}')
+        for x in got:
+            hm, wd, we, url = dol_pdf[x]
+            note = f'release: embargo {hm[0]}:{hm[1]:02d} A.M. (Eastern) {wd}; week ending {we}'
+            add(x, hm, CL, url, note)
+    else:
+        ex = [x for x in week if x in exc]
+        if d in HOL:
+            if not ex:
+                problems.append(f'DOL: Thursday {d} is a federal holiday ({HOL[d]}) but DOL lists no other day that week')
+            for x in ex:
+                add(x, exc[x], CL, CA_URL, f'published schedule: DOL-listed non-Thursday release ({x:%A %Y-%m-%d} 8:30 AM; '
+                    f'Thursday {d} is {HOL[d]}, OPM); claims_arch.asp "Publication Schedule" (updated {upd.group(1) if upd else "?"})')
+        else:
+            if ex:
+                problems.append(f'DOL: listed exception {ex} in a week whose Thursday {d} is not a federal holiday')
+            unc = ''
+            if (d.month, d.day) == (12, 24):
+                a20 = rd(DL / 'dol/dol_arch_press_2020.htm')
+                unc = ('; UNCERTAIN: Christmas Eve is often closed by executive order (registered list note: EO 14371 '
+                       'closed agencies on 2025-12-24); '
+                       'in 2020, with Thursday 12-24 closed, DOL published on Wednesday 2020-12-23' +
+                       (' (DOL archive press/2020/122320.pdf)' if 'press/2020/122320.pdf' in a20 else ''))
+            add(d, (8, 30), CL, CA_URL, 'rule (publisher-stated): DOL "published each week on Thursday morning at 8:30am EST. '
+                'Exceptions to this schedule occur when a Thursday falls on a Federal Holiday" (claims_arch.asp, updated '
+                f'{upd.group(1) if upd else "?"}); {d} is not a federal holiday (OPM {d.year} schedule)' + unc)
+    d += timedelta(days=7)
+for x in exc:
+    if not (TODAY <= x <= D1):
+        problems.append(f'DOL: exception date {x} outside the forward window')
+
+# ====================================================================== PR Newswire listings (ISM, CB, ADP actuals)
+
+
+def prn(fn):
+    out = []
+    t = rd(DL / fn)
+    for blk in re.findall(r'<div class="row newsCards".*?</a>', t, flags=re.S):
+        m = re.search(r'href="([^"]+)"', blk)
+        s = re.search(r'<h3>\s*<small>([^<]*)</small>(.*?)</h3>', blk, flags=re.S)
+        if not (m and s):
+            continue
+        title = html.unescape(re.sub(r'\s+', ' ', re.sub(r'<[^>]+>', ' ', s.group(2)))).strip()
+        st_ = re.match(r'([A-Z][a-z]{2}) (\d{2}), (\d{4}), (\d{2}):(\d{2}) ET', s.group(1).strip())
+        out.append((date(int(st_.group(3)), MON3[st_.group(1)], int(st_.group(2))), (int(st_.group(4)), int(st_.group(5))),
+                    title, 'https://www.prnewswire.com' + m.group(1)))
+    return out
+
+
+# ====================================================================== ISM
+ISM_URL = 'https://www.ismworld.org/supply-management-news-and-reports/reports/rob-report-calendar/'
+ism_caps = sorted(DL.glob('**/*wb_ism_cal_2*.htm'), key=lambda p: re.search(r'(\d{14})', p.name).group(1))
+ism_cal = {}                                      # year -> (capture ts, {(month, 1|3): day}, page text)
+for p in ism_caps:
+    t = rd(p)
+    if 'Report Release Date Calendar' not in t:
+        continue
+    ts = re.search(r'(\d{14})', p.name).group(1)
+    for y in (2026, 2027):
+        k = t.find(f'{y} ISM PMI')
+        if k < 0:
+            continue
+        tb = re.search(r'<table.*?</table>', t[k:], flags=re.S | re.I).group(0)
+        cal = {}
+        for tr in re.findall(r'<tr.*?</tr>', tb, flags=re.S | re.I):
+            c = [txt(x) for x in re.findall(r'<t[dh][^>]*>(.*?)</t[dh]>', tr, flags=re.S | re.I)]
+            if len(c) >= 3 and c[0].split()[0] in MON and c[0].endswith(str(y)):
+                for col, n in ((1, 1), (2, 3)):
+                    dd = re.match(r'\s*(\d{1,2})', c[col])
+                    if dd:
+                        cal[(MON[c[0].split()[0]], n)] = int(dd.group(1))
+        ism_cal[y] = (ts, cal, ' '.join(page_lines(t)))
+ISM_RULE = {1: 'The ISM Manufacturing PMI ® Report is released on the first business day of the month at 10:00 a.m. (EST).',
+            3: 'The ISM Services PMI ® Report is released on the third business day of the month at 10:00 a.m. (EST).'}
+for y, (ts, cal, ptxt) in ism_cal.items():
+    for n, s in ISM_RULE.items():
+        if not has(ptxt, s):
+            problems.append(f'ISM capture {ts}: rule sentence not found: {s}')
+ism_ts_last = max((v[0] for v in ism_cal.values()), default='?')
+ism_seen = set()
+for d, hm, title, url in prn('prn/prn_ism_p1.htm'):
+    if title.startswith('Manufacturing PMI'):
+        ev, n = 'ISM Manufacturing PMI', 1
+    elif title.startswith('Services PMI'):
+        ev, n = 'ISM Services PMI', 3
+    else:
+        continue
+    if not (D0 <= d < TODAY):
+        continue
+    ts, cal, _ = ism_cal.get(d.year, ('', {}, ''))
+    note = f'release: PR Newswire (ISM) stamp {hm[0]:02d}:{hm[1]:02d} ET'
+    note += f'; matches ISM release calendar (web.archive.org {ts})' if cal.get((d.month, n)) == d.day else '; CHECK vs ISM calendar'
+    add(d, hm, ev, url, note)
+    ism_seen.add((ev, d.year, d.month))
+for y in (2026, 2027):
+    for m in range(1, 13):
+        for n, ev in ((1, 'ISM Manufacturing PMI'), (3, 'ISM Services PMI')):
+            if (ev, y, m) in ism_seen or not (D0 <= date(y, m, 28) and date(y, m, 1) <= D1):
+                continue
+            ts, cal, _ = ism_cal.get(y, ('', {}, ''))
+            if (m, n) in cal:
+                d = date(y, m, cal[(m, n)])
+                if d < TODAY:
+                    problems.append(f'ISM {ev} {d}: past calendar date without a PR Newswire release')
+                    continue
+                add(d, (10, 0), ev, ISM_URL, f'published schedule: ISM release calendar {y} (read from web.archive.org capture {ts}; '
+                    'ismworld.org answers scripts with a captcha); 10:00 a.m. as stated on the calendar page')
+            elif not cal:
+                d = nth_bday(y, m, n + (1 if m == 1 else 0))
+                unc = ''
+                if m == 1:
+                    unc = ('; January one business day later, as ISM released both reports in January 2024-26 "due to ISM '
+                           'holiday" (registered list: 2024-01-03/05, 2025-01-03/07, 2026-01-05/07)')
+                add(d, (10, 0), ev, ISM_URL, f'rule (publisher-stated): "{ISM_RULE[n]}" (ISM calendar page, web.archive.org capture '
+                    f'{ism_ts_last}); business days exclude federal holidays (OPM {y}) and Good Friday; '
+                    f'the {y} ISM calendar is not yet published' + unc)
+
+# ====================================================================== Conference Board
+CBEV = 'CB Consumer Confidence'
+cb_rule_src = 'https://www.prnewswire.com/news-releases/us-consumer-confidence-fell-in-september-302892867.html'
+cbt = ' '.join(page_lines(rd(DL / 'prn/prn_cb_2026-09-29.htm')))
+CB_RULE = 'The Conference Board publishes the Consumer Confidence Index ® at 10 a.m. ET on the last Tuesday of every month.'
+assert has(cbt, CB_RULE), 'CB rule sentence not found'
+cb_seen = set()
+for d, hm, title, url in prn('prn/prn_cb_p1.htm'):
+    if not title.startswith('US Consumer Confidence') or not (D0 <= d < TODAY):
+        continue
+    note = f'release: PR Newswire (The Conference Board) stamp {hm[0]:02d}:{hm[1]:02d} ET'
+    if d != last_weekday(d.year, d.month, 1):
+        note += f'; off rule (last Tuesday {last_weekday(d.year, d.month, 1)})'
+    add(d, (10, 0), CBEV, url, note)
+    cb_seen.add((d.year, d.month))
+cb_next = {}                                      # date -> capture: 'The next release is ...' lines on CB page captures
+for p in sorted(DL.glob('**/*cb_topic_2*.htm')):
+    ts = re.search(r'(\d{14})', p.name).group(1)
+    for wd, md in re.findall(r'The next release is ([A-Z][a-z]+day), ([A-Z][a-z]+ \d{1,2}) at 10 AM ET', ' '.join(page_lines(rd(p)))):
+        cy = int(ts[:4]); d = datetime.strptime(f'{md} {cy}', '%B %d %Y').date()
+        if d < date(cy, int(ts[4:6]), int(ts[6:8])):
+            d = d.replace(year=cy + 1)
+        if d.strftime('%A') == wd:
+            cb_next[d] = ts
+for y, m in months(F0, F1):
+    if (y, m) in cb_seen:
+        continue
+    d = last_weekday(y, m, 1)
+    alt = [x for x in cb_next if (x.year, x.month) == (y, m)]
+    if alt:
+        d = alt[0]
+        add(d, (10, 0), CBEV, 'https://www.conference-board.org/topics/consumer-confidence',
+            f'published schedule: CB page "The next release is {d:%A}, {d:%B} {d.day} at 10 AM ET" (web.archive.org capture '
+            f'{cb_next[d]}; conference-board.org blocks scripts)' + ('' if d == last_weekday(y, m, 1) else
+                                                                     f'; off the last-Tuesday rule ({last_weekday(y, m, 1)})'))
+        continue
+    if d < TODAY:
+        problems.append(f'CB {d}: past rule date without a PR Newswire release')
+        continue
+    unc = ''
+    if m == 12:
+        unc = ('; UNCERTAIN: CB released December off this rule in 2024 (Mon 12-23) and 2025 (Tue 12-23); '
+               'CB states the next date in its November release')
+    add(d, (10, 0), CBEV, cb_rule_src, f'rule (publisher-stated): "{CB_RULE}" (CB release of 2026-09-29, PR Newswire); '
+        'conference-board.org blocks scripts, so its own calendar could not be read' + unc)
+
+# ====================================================================== ADP
+ADPEV = 'ADP National Employment Report'
+bls_es = sorted(d for d, _ in bls_rows['empsit'])
+adp_seen = set()
+for d, hm, title, url in prn('prn/prn_adpinc_p1.htm'):
+    if not re.match(r'ADP National Employment Report: Private', title) or not (D0 <= d < TODAY) or d in adp_seen:
+        continue
+    adp_seen.add(d)
+    nxt = min(x for x in bls_es + [date(2099, 1, 1)] if x >= d)
+    add(d, hm, ADPEV, url, f'release: PR Newswire (ADP) stamp {hm[0]:02d}:{hm[1]:02d} ET; '
+        f'{(nxt - d).days} days before BLS Employment Situation ({nxt})')
+aj = json.loads(rd(DL / 'adp/ner_production.json'))
+fut, pulse = [], []
+part = fut
+for x in aj['futureReports']:
+    s = x['reportDate'].strip()
+    if s.startswith('Upcoming reports (weekly NER pulse)'):
+        part = pulse
+    elif s:
+        part.append(datetime.strptime(s, '%B %d, %Y').date())
+for d in fut:
+    nxt = min(x for x in bls_es + [date(2099, 1, 1)] if x >= d)
+    add(d, (8, 15), ADPEV, 'https://adpemploymentreport.com/ner_production.json',
+        'published schedule: ADP NER calendar "Upcoming Reports" (adpemploymentreport.com; its data file ner_production.json); '
+        'time 08:15 ET = README rule (every monthly NER 2024-26 stamped 08:15 ET); weekly NER Pulse dates excluded as in '
+        f'the README; {(nxt - d).days} days before BLS Employment Situation ({nxt})')
+adp_last_shown = max(fut + pulse)
+adp_latest_past = f"{aj['reportMonth']} {aj['reportYear']}"
+
+# ====================================================================== University of Michigan
+st_txt = pdftext(DL / 'sca/sca_hist_release_dates.pdf')
+sca_upd = re.search(r'Last updated: (\d{1,2}/\d{1,2}/\d{4})', st_txt)
+sca = {}
+for ln in st_txt.splitlines():
+    m = re.match(r'\s*([A-Z][a-z]{2}) (\d{4})\s+(\d{1,2})/(\d{1,2})/(\d{4})\s+(\d{1,2})/(\d{1,2})/(\d{4})', ln)
+    if m:
+        sca[(int(m.group(2)), MON3[m.group(1)])] = (date(int(m.group(5)), int(m.group(3)), int(m.group(4))),
+                                                    date(int(m.group(8)), int(m.group(6)), int(m.group(7))))
+home = []                                         # (label, text) of SCA home pages: live fetch and archive captures
+for p in sorted(DL.glob('**/*sca_home*.htm')):
+    ts = re.search(r'(\d{14})', p.name)
+    home.append((f'web.archive.org {ts.group(1)}' if ts else 'sca.isr.umich.edu fetched 2026-10-18', ' '.join(page_lines(rd(p)))))
+reports = {}
+for blk in re.findall(r'<span class="date">([^<]*)</span>(.*?)</div>', rd(DL / 'sca/scadata_reports_2026.htm'), flags=re.S):
+    for nm, doc in re.findall(r'data-docname="([^"]*)" href="fetchdoc\.php\?docid=(\d+)"', blk[1]):
+        reports[(blk[0].strip(), html.unescape(nm))] = doc
+for (y, m), (p, f) in sorted(sca.items()):
+    for kind, d in (('prelim', p), ('final', f)):
+        if not (D0 <= d <= D1):
+            continue
+        K = 'Preliminary' if kind == 'prelim' else 'Final'
+        doc = reports.get((f'{MONTHS[m - 1]} {y}', f'{MONTHS[m - 1]} {K} Results'))
+        src = f'https://data.sca.isr.umich.edu/fetchdoc.php?docid={doc or 75443}'
+        notes = [f'published schedule: SCA release-date table (docid 75443, "Last updated: {sca_upd.group(1) if sca_upd else "?"}")']
+        tm = [lab for lab, t in home if f'Next data release: {d:%A}, {d:%B} {d.day:02d}, {d.year} for {K} {MONTHS[m - 1]} data at 10am ET' in t
+              or f'Next data release: {d:%A}, {d:%B} {d.day}, {d.year} for {K} {MONTHS[m - 1]} data at 10am ET' in t]
+        notes.append(f'time per sca.isr.umich.edu "Next data release ... at 10am ET" ({tm[0]})' if tm else
+                     'time 10:00 ET = README rule (every SCA release 2024-26 at 10am ET)')
+        if d < TODAY:
+            seen = [lab for lab, t in home if f'{K} Results for {MONTHS[m - 1]} {y}' in t]
+            if seen:
+                notes.insert(0, f'release: SCA home page showed "{K} Results for {MONTHS[m - 1]} {y}" ({seen[-1]})')
+            else:
+                notes.append('release NOT CONFIRMED')
+                problems.append(f'UMich {kind} {d}: release not confirmed')
+            if doc:
+                notes.insert(1, f'report PDF docid {doc} on the data site')
+        add(d, (10, 0), f'UoM Consumer Sentiment ({kind})', src, '; '.join(notes))
+sca_last = max(f for p, f in sca.values())
+sca_known = date(max(sca)[0], 12, 31) if max(sca)[1] == 12 else sca_last   # table covers every month of that year
+
+# ====================================================================== S&P Global flash US PMI
+SPEV = 'S&P Global Flash US PMI'
+for p in sorted(DL.glob('**/*spg_pr_*.pdf')):
+    t = pdftext(p, last=1)
+    m = re.search(r'Embargoed until (\d{2})(\d{2}) (EST|EDT)\b[^\n]*?(\d{1,2}) (' + '|'.join(MONTHS) + r') (\d{4})', t)
+    if not m or not re.search(r'US Flash PMI|Flash US (Composite|Manufacturing|Services) PMI', t):
+        continue
+    d = date(int(m.group(6)), MON[m.group(5)], int(m.group(4)))
+    g = re.search(r'([0-9a-f]{32})', p.name).group(1)
+    add(d, (int(m.group(1)), int(m.group(2))), SPEV, f'https://www.pmi.spglobal.com/Public/Home/PressRelease/{g}',
+        f'release: embargo line: {m.group(1)}{m.group(2)} {m.group(3)}' + ('; PDF read from web.archive.org copy of this URL'
+                                                                         if 'wb' in p.name else ''))
+sp = page_lines(rd(DL / 'spg/spg_releasedates.htm'))
+k = sp.index('Upcoming')
+yy, cur, sp_dates, sp_us = None, None, [], []
+for ln in sp[k + 1:]:
+    if ln.startswith('SITEMAP'):
+        break
+    if re.fullmatch(r'20\d\d', ln):
+        yy = int(ln); continue
+    m = re.fullmatch(r'([A-Z][a-z]+) (\d{2})', ln)
+    if m and m.group(1) in MON:
+        cur = date(yy, MON[m.group(1)], int(m.group(2))); sp_dates.append(cur); continue
+    m = re.fullmatch(r'(\d{2}):(\d{2}) UTC (.+)', ln)
+    if m and cur and m.group(3).strip() == 'S&P Global Flash US PMI':
+        sp_us.append(datetime(cur.year, cur.month, cur.day, int(m.group(1)), int(m.group(2)), tzinfo=UTC))
+sp_last_shown = max(sp_dates)
+assert any('first working day' in x for x in sp), 'S&P calendar page: standard-schedule text not found'
+for u0 in sp_us:
+    u = u0.astimezone(NY)
+    add(u.date(), (u.hour, u.minute), SPEV, 'https://www.pmi.spglobal.com/Public/Release/ReleaseDates?language=en',
+        f'published schedule: S&P Global PMI release calendar ({u0:%H:%M} UTC = {u:%H:%M} ET); the calendar lists releases '
+        f'through {sp_last_shown} only')
+
+# ====================================================================== NY Fed Empire State
+EMP_URL = 'https://www.newyorkfed.org/survey/empire/empiresurvey_overview'
+t = rd(DL / 'nyf/nyf_empire_overview.htm')
+assert 'Released at or shortly after 8:30 a.m.' in t
+emp_years = {}
+for m in re.finditer(r'<strong[^>]*>(?:\s|<br\s*/?>)*(20\d\d)\s*</strong>\s*</div>\s*(<table.*?</table>)', t, flags=re.S | re.I):
+    cells = re.findall(r'<td class="dirCol[^"]*"[^>]*>(.*?)</td>', m.group(2), flags=re.S | re.I)
+    emp_years[int(m.group(1))] = [(int(re.search(r'\d{1,2}', html.unescape(re.sub(r'<[^>]+>', ' ', c))).group())
+                                   if re.search(r'\d', re.sub(r'<[^>]+>', ' ', c)) else None, bool(re.search(r'\.pdf', c, flags=re.I)))
+                                  for c in cells]
+for y, cells in sorted(emp_years.items()):
+    for i, (day, linked) in enumerate(cells):
+        if day is None:
+            continue
+        d = date(y, i + 1, day)
+        if d < TODAY:
+            how = ('release: report PDF linked in the NY Fed release table' if linked else
+                   f'published schedule: NY Fed release table {y}; release NOT CONFIRMED (no report link)')
+        else:
+            how = f'published schedule: NY Fed Empire State release table {y}'
+        add(d, (8, 30), 'Empire State Manufacturing', EMP_URL, f'{how}; time: NY Fed "Released at or shortly after 8:30 a.m."')
+emp_last_year = max(emp_years)
+
+# ====================================================================== Federal Reserve
+fom = rd(DL / 'fed/fed_fomccalendars.htm')
+fom_upd = re.search(r'Last Update:\s*([A-Z][a-z]+ \d{1,2}, \d{4})', txt(fom))
+MIN_RULE = 'The minutes of regularly scheduled meetings are released three weeks after the date of the policy decision.'
+assert MIN_RULE in txt(fom)
+assert 'Each meeting date is tentative until confirmed at the meeting immediately preceding it.' in txt(fom)
+meet, sep_end = {}, set()
+for y in ('2026', '2027'):
+    i = fom.find(f'{y} FOMC Meetings'); j = fom.find('FOMC Meetings', i + 30)
+    for mo, dd in re.findall(r'fomc-meeting__month[^>]*>(.*?)</div>.*?fomc-meeting__date[^>]*>(.*?)</div>', fom[i:j], flags=re.S):
+        mo = re.sub(r'<[^>]+>', '', mo).strip(); dd = re.sub(r'<[^>]+>', '', dd).strip()
+        last_mon = mo.split('/')[-1].strip()
+        end = date(int(y), MON3[last_mon[:3]], int(re.findall(r'\d+', dd)[-1]))
+        meet[end] = f'{mo} {dd}'
+        if '*' in dd:
+            sep_end.add(end)
+FED_MON = {}
+chair_items, any_speech_last = [], None
+for p in sorted((DL / 'fed').glob('fed_cal_20??-*.htm')):
+    y, mname = p.stem.split('_')[-1].split('-')
+    t = rd(p)
+    if 'id="article"' not in t:                   # e.g. 2027 months: HTTP 404 "Page not Found"
+        continue
+    t = t[t.find('id="article"'):]
+    mt = re.search(r'<h4 class="text-center">([^<]+)</h4>', t)
+    assert mt and mt.group(1).strip().lower() == f'{mname} {y}', (p, mt and mt.group(1))
+    mi = MON[mname.capitalize()]
+    url = f'https://www.federalreserve.gov/newsevents/{y}-{mname}.htm'
+    FED_MON[(int(y), mi)] = url
+    secs = [(m_.start(), m_.group(1).strip()) for m_ in re.finditer(r'<h4 class="col-md-12">([^<]+)</h4>', t)] + [(len(t), 'END')]
+    for (s0, name), (s1, _) in zip(secs[:-1], secs[1:]):
+        for it in re.finditer(r'<div class="col-xs-2">\s*<p>([^<]*)</p>\s*</div>\s*<div class="col-xs-7">(.*?)</div>\s*'
+                              r'<div class="col-xs-3">\s*<p>([^<]*)</p>', t[s0:s1], flags=re.S):
+            tm, inner, days = it.group(1).strip(), it.group(2), it.group(3).strip()
+            ps = [txt(x) for x in re.findall(r'<p[^>]*>(.*?)</p>', inner, flags=re.S)]
+            ps = [x for x in ps if x and x != 'Watch Live']
+            head, rest = (ps[0] if ps else ''), ' | '.join(ps[1:])
+            dl_ = [int(x) for x in re.findall(r'\d+', days)]
+            if name == 'FOMC Meetings':
+                for dd in dl_:
+                    d = date(int(y), mi, dd)
+                    if head == 'FOMC Meeting':
+                        how = 'release' if d < TODAY else 'published schedule'
+                        add(d, ampm(tm), 'FOMC statement, rate decision' + (', SEP' if d in sep_end else '') + ' (Fed)', url,
+                            f'{how}: Fed monthly calendar; {rest}' + ('; SEP meeting (* in fomccalendars.htm)' if d in sep_end else ''))
+                        if 'Press Conference' in rest:
+                            add(d, (14, 30), 'FOMC press conference (Fed)', url, f'{how}: Fed monthly calendar; {rest}')
+                        if d not in meet:
+                            problems.append(f'Fed: monthly-calendar meeting {d} not in fomccalendars.htm')
+                    elif head == 'FOMC Minutes':
+                        how = 'release' if d < TODAY else 'published schedule'
+                        add(d, ampm(tm), 'FOMC minutes (Fed)', url, f'{how}: Fed monthly calendar; {rest}')
+                    elif head != 'FOMC Press Conference':
+                        problems.append(f'Fed: unknown FOMC item {head} {d}')
+            elif name in ('Speeches', 'Testimony'):
+                for dd in dl_:
+                    any_speech_last = max(any_speech_last or date(int(y), mi, dd), date(int(y), mi, dd))
+                if re.search(r'(?<!Vice )\bChair(man)?\b', head) and 'Vice Chair' not in head:
+                    kind = 'testifies' if name == 'Testimony' else 'speaks'
+                    who = re.sub(r'^.*?(Chair(?:man)? [A-Z][^|]*)$', r'\1', head).strip()
+                    for dd in dl_:
+                        d = date(int(y), mi, dd)
+                        chair_items.append(d)
+                        add(d, ampm(tm), f'Fed {who} {kind} (Fed)', url,
+                            ('release' if d < TODAY else 'published schedule') + f': Fed monthly calendar, listed ET start time; {head} | {rest}')
+fed_cal_last_month = max(FED_MON)
+FOMC_URL = 'https://www.federalreserve.gov/monetarypolicy/fomccalendars.htm'
+have = {(r['et_date'], r['event'][:14]) for r in rows if r['event'].startswith('FOMC')}
+for end, label in sorted(meet.items()):
+    if (end.year, end.month) in FED_MON:
+        if (end.isoformat(), 'FOMC statement') not in have and D0 <= end <= D1:
+            problems.append(f'Fed: meeting {label} ({end}) missing from its monthly calendar')
+        continue
+    sep = ', SEP' if end in sep_end else ''
+    base = (f'published schedule: FOMC {end.year} meeting calendar "{label}" (fomccalendars.htm, last update '
+            f'{fom_upd.group(1) if fom_upd else "?"}; "Each meeting date is tentative until confirmed at the meeting '
+            'immediately preceding it"); no Fed monthly calendar for this month yet')
+    add(end, (14, 0), f'FOMC statement, rate decision{sep} (Fed)', FOMC_URL,
+        base + '; 14:00 ET = README rule (time of every statement in the monthly calendars 2024-26)')
+    add(end, (14, 30), 'FOMC press conference (Fed)', FOMC_URL,
+        base + '; 14:30 ET = README rule; UNCONFIRMED: the press conference is listed only in the monthly calendar '
+        '(every meeting 2024-26 had one)')
+for end, label in sorted(meet.items()):
+    md = end + timedelta(days=21)
+    if (md.year, md.month) in FED_MON:
+        listed = [r for r in rows if r['event'] == 'FOMC minutes (Fed)' and r['et_date'] == md.isoformat()]
+        if D0 <= md <= D1 and not listed:
+            problems.append(f'Fed: minutes of {label} expected {md} (three-week rule) not in the monthly calendar')
+        continue
+    add(md, (14, 0), 'FOMC minutes (Fed)', FOMC_URL,
+        f'rule (publisher-stated): "{MIN_RULE}" (fomccalendars.htm); decision {end} ("{label}"); 14:00 ET = README rule '
+        '(time of every minutes release in the monthly calendars 2024-26)')
+for r in rows:                                    # minutes listed in the monthly calendars: check the three-week rule
+    if r['event'] == 'FOMC minutes (Fed)' and 'monthly calendar' in r['note']:
+        d = date.fromisoformat(r['et_date'])
+        if d - timedelta(days=21) not in meet:
+            problems.append(f'Fed: minutes {d} are not three weeks after a decision')
+
+# ====================================================================== Treasury 10-y / 30-y auctions
+FD_URL = ('https://api.fiscaldata.treasury.gov/services/api/fiscal_service/v1/accounting/od/auctions_query?fields=record_date,'
+          'cusip,security_type,security_term,auction_date,issue_date,maturity_date,closing_time_comp,closing_time_noncomp,'
+          'original_security_term,reopening,inflation_index_security,floating_rate,high_yield,offering_amt,announcemt_date,'
+          'pdf_filenm_comp_results,original_issue_date&filter=auction_date:gte:2026-09-01,security_type:in:(Note,Bond)'
+          '&sort=auction_date&page%5Bsize%5D=1000')
+fd = json.loads(rd(DL / 'ust/fd_notes_bonds_from_2026-09-01.json'))['data']
+fd_seen = {}
+for r in fd:
+    if r['inflation_index_security'] != 'No' or r['floating_rate'] != 'No':
+        continue
+    if r['security_type'] == 'Note' and r['original_security_term'] == '10-Year':
+        ev = '10-y Note Auction (Treasury)'
+    elif r['security_type'] == 'Bond' and r['original_security_term'] == '30-Year':
+        ev = '30-y Bond Auction (Treasury)'
+    else:
+        continue
+    d = date.fromisoformat(r['auction_date'])
+    ct = datetime.strptime(r['closing_time_comp'], '%I:%M %p')
+    held = r['high_yield'] not in (None, 'null', '')
+    if d < TODAY and not held:
+        problems.append(f'Treasury {ev} {d}: past auction without results')
+    fd_seen[(ev, d)] = 1
+    add(d, (ct.hour, ct.minute), ev, FD_URL, ('release: auction held, high yield ' + r['high_yield'] if held else
+        'published schedule: announced auction (fiscaldata, no results yet)') +
+        f'; {r["security_type"]} {r["security_term"]}, CUSIP {r["cusip"]}, {"reopening" if r["reopening"] == "Yes" else "new issue"}, '
+        f'announced {r["announcemt_date"]}; competitive close {r["closing_time_comp"]} (closing_time_comp)' +
+        ('' if (ct.hour, ct.minute) == (13, 0) else ' NON-STANDARD') +
+        (f'; results {r["pdf_filenm_comp_results"]}' if r['pdf_filenm_comp_results'] not in (None, 'null') else ''))
+TAS_URL = 'https://home.treasury.gov/system/files/221/Tentative-Auction-Schedule.pdf'
+tas = pdftext(DL / 'ust/Tentative-Auction-Schedule.pdf')
+DAY = r'([A-Z][a-z]+day, [A-Z][a-z]+ \d{2}, \d{4})'
+tas_rows = re.findall(r'^\s*(10-Year NOTE|30-Year BOND)\s+(R?)\s*' + DAY + r'\s+' + DAY + r'\s+' + DAY, tas, flags=re.M)
+tas_cpn = re.findall(r'^\s*\d+-Year (?:NOTE|BOND|TIPS|FRN)\s+(?:R?\s*T?)\s*' + DAY + r'\s+' + DAY, tas, flags=re.M)
+tas_last = max(datetime.strptime(a, '%A, %B %d, %Y').date() for _, a in tas_cpn)   # last coupon auction date listed
+for sec, reo, ann, auc, sett in tas_rows:
+    ev = '10-y Note Auction (Treasury)' if sec.startswith('10') else '30-y Bond Auction (Treasury)'
+    d = datetime.strptime(auc, '%A, %B %d, %Y').date()
+    if (ev, d) in fd_seen:
+        continue
+    if d < TODAY and D0 <= d:
+        problems.append(f'Treasury {ev} {d}: tentative-schedule date before {TODAY} not in fiscaldata')
+    add(d, (13, 0), ev, TAS_URL, f'published schedule: Treasury Tentative Auction Schedule ({"reopening" if reo else "new issue"}; '
+        f'announcement {datetime.strptime(ann, "%A, %B %d, %Y").date()}, settlement {datetime.strptime(sett, "%A, %B %d, %Y").date()}); '
+        '13:00 ET = README rule (competitive close of every 10-y / 30-y auction 2024-26); the auction announcement states it')
+for (ev, d) in fd_seen:
+    if D0 <= d and not any(datetime.strptime(a, '%A, %B %d, %Y').date() == d and (s.startswith('10') == ev.startswith('10'))
+                           for s, _, _, a, _ in tas_rows):
+        problems.append(f'Treasury {ev} {d}: in fiscaldata but not in the tentative schedule')
+
+# ====================================================================== Treasury FX report (only if announced)
+fx = ' '.join(page_lines(rd(DL / 'ust/ust_fxreport_page.htm')))
+fx_reports = re.findall(r'(January|February|March|April|May|June|July|August|September|October|November|December) (20\d\d) Report', fx)
+fx_latest = max(((int(y), MON[m]) for m, y in fx_reports), default=None)
+
+# ====================================================================== write
+rows.sort(key=lambda r: (r['utc_minute'], r['event']))
+seen, allrows = set(), []
+for r in rows:
+    k = (r['utc_minute'], r['event'])
+    if k not in seen:
+        seen.add(k); allrows.append(r)
+fwd = [r for r in allrows if F0 <= date.fromisoformat(r['et_date']) <= F1]
+sep = [r for r in allrows if S0 <= date.fromisoformat(r['et_date']) <= S1]
+with open(OUT / 'usd_high_fwd.csv', 'w', newline='') as f:
+    w = csv.writer(f); w.writerow(['utc_minute', 'event', 'source'])
+    for r in fwd:
+        w.writerow([r['utc_minute'], r['event'], r['source']])
+with open(OUT / 'usd_high_fwd_detail.csv', 'w', newline='') as f:
+    w = csv.DictWriter(f, fieldnames=['utc_minute', 'et_date', 'et_time', 'event', 'source', 'note'])
+    w.writeheader(); w.writerows(fwd)
+
+
+def etype(e):
+    return ('Fed Chair testifies' if 'testifies' in e else 'Fed Chair speaks') if e.startswith('Fed Chair') else e
+
+
+# ---------------------------------------------------------------- sanity.txt
+reg = list(csv.DictReader(open(REG, newline='')))
+reg_sep = [r for r in reg if '2026-09-01' <= datetime.strptime(r['utc_minute'], '%Y-%m-%dT%H:%M').replace(tzinfo=UTC)
+           .astimezone(NY).date().isoformat() <= '2026-09-30']
+A = {(r['utc_minute'], r['event']): r['source'] for r in reg_sep}
+B = {(r['utc_minute'], r['event']): r['source'] for r in sep}
+L = ['SANITY CHECK: 2026-09-01 .. 2026-09-30 (ET dates) rebuilt by build_fwd.py from the r30 downloads, against the',
+     f'registered {REG}', '',
+     f'rows: registered {len(A)}, rebuilt {len(B)}; unique minutes: registered {len({k[0] for k in A})}, rebuilt {len({k[0] for k in B})}',
+     f'only in registered: {len(set(A) - set(B))}', *[f'  {k[0]}  {k[1]}' for k in sorted(set(A) - set(B))],
+     f'only in rebuilt:    {len(set(B) - set(A))}', *[f'  {k[0]}  {k[1]}' for k in sorted(set(B) - set(A))]]
+sd = sorted(k for k in set(A) & set(B) if A[k] != B[k])
+L += [f'same (utc_minute, event), different source URL: {len(sd)} (shown from the first differing character)']
+for k in sd:
+    i0 = next((i for i, (a, b) in enumerate(zip(A[k], B[k])) if a != b), min(len(A[k]), len(B[k])))
+    L += [f'  {k[0]}  {k[1]}', f'      registered: ...{A[k][max(0, i0 - 40):]}', f'      rebuilt:    ...{B[k][max(0, i0 - 40):]}']
+if sd and all('fiscaldata' in A[k] for k in sd):
+    L += ['  -> the same fiscaldata auctions_query with a different auction_date filter (registered: 2024-01-01 .. 2026-09-30;',
+          '     r30: from 2026-09-01); same auctions, same closing_time_comp.']
+L += ['', 'rebuilt September rows (utc_minute, event, basis of the row):']
+L += [f'  {r["utc_minute"]}  {r["event"]:58s} {r["note"][:120]}' for r in sep]
+
+
+def month_counts(rr):
+    c = Counter()
+    for r in rr:
+        c[r['et_date'][:7]] += 1
+    return c
+
+
+def type_month(rr):
+    c = Counter()
+    for r in rr:
+        c[(etype(r['event']), r['et_date'][:7])] += 1
+    return c
+
+
+reg_et = [dict(r, et_date=datetime.strptime(r['utc_minute'], '%Y-%m-%dT%H:%M').replace(tzinfo=UTC).astimezone(NY).date().isoformat())
+          for r in reg]
+prev = [r for r in reg_et if r['et_date'] < '2026-10-01'] + fwd   # a year earlier: registered to 2026-09, then this file
+cm, cp = month_counts(fwd), month_counts(prev)
+L += ['', 'PER-MONTH ROW COUNTS: this file vs the same month a year earlier (registered file through 2026-09, this file for',
+      '2026-10 .. 2026-12). Rows / unique minutes.']
+mins = defaultdict(set)
+for r in fwd + prev:
+    mins[r['et_date'][:7]].add(r['utc_minute'])
+for y, m in months(F0, F1):
+    ym, py = f'{y}-{m:02d}', f'{y - 1}-{m:02d}'
+    L.append(f'  {ym}: {cm[ym]:3d} rows {len(mins[ym]):3d} min    {py}: {cp[py]:3d} rows {len(mins[py]):3d} min    diff {cm[ym] - cp[py]:+d}')
+tm, tp = type_month(fwd), type_month(prev)
+types = sorted({k[0] for k in tm} | {k[0] for k in tp if k[1] >= '2025-10'})
+mlist = [f'{y}-{m:02d}' for y, m in months(F0, F1)]
+L += ['', 'BY TYPE: count in this file, (count a year earlier). Months 2026-10 .. 2027-12 vs 2025-10 .. 2026-12.',
+      '  ' + ' ' * 40 + ' '.join(x[2:] for x in mlist)]
+for ty in types:
+    cells = []
+    for ym in mlist:
+        py = f'{int(ym[:4]) - 1}{ym[4:]}'
+        cells.append(f'{tm[(ty, ym)]}({tp[(ty, py)]})'.rjust(5))
+    L.append(f'  {ty[:40]:40s}' + ' '.join(cells))
+(OUT / 'sanity.txt').write_text('\n'.join(L) + '\n')
+
+# ---------------------------------------------------------------- coverage.txt
+fl = defaultdict(list)
+for r in fwd:
+    fl[etype(r['event'])].append(r)
+
+
+def last(ty, word=None):
+    x = [r['et_date'] for r in fl.get(ty, []) if word is None or r['note'].startswith(word)]
+    return max(x) if x else '-'
+
+
+def basis_of(note):
+    for k in ('release', 'published schedule', 'rule'):
+        if note.startswith(k):
+            return k + (' UNCERTAIN' if 'UNCERTAIN' in note or 'UNCONFIRMED' in note else '') + \
+                (' NOT CONFIRMED' if 'NOT CONFIRMED' in note else '')
+    return 'other'
+
+
+def basis(ty):
+    c = Counter(basis_of(r['note']) for r in fl.get(ty, []))
+    return ', '.join(f'{k} {v}' for k, v in sorted(c.items()))
+
+
+KNOWN = {   # type -> (known through, source, remarks); known through = every release of the type up to that date is in the file
+    'Employment Situation: NFP, AHE, unemployment rate (BLS)': (date(2027, 12, 31), 'BLS 2026 and 2027 release calendars',
+        'October 2026 release confirmed in the BLS archive; 2027 = OMB PFEI 2027.'),
+    'CPI (BLS)': (date(2027, 12, 31), 'BLS 2026 and 2027 release calendars', 'as above.'),
+    'PPI (BLS)': (date(2027, 12, 31), 'BLS 2026 and 2027 release calendars', 'as above.'),
+    'Employment Cost Index (BLS)': (date(2027, 12, 31), 'BLS 2026 and 2027 release calendars', 'as above.'),
+    'JOLTS job openings (BLS)': (date(2026, 12, 31), 'BLS 2026 release calendar',
+        f'last listed 2026 release {bls_last["jolts"]}. The 2027 BLS calendar so far lists only the PFEI releases '
+        '(no JOLTS); the next JOLTS (November 2026 data, early January 2027) is not published. Stopped. The JOLTS '
+        'schedule page omits the 2026-11-03 release that the 2026 calendar lists (kept: yearly calendar).'),
+    'GDP (BEA)': (date(2027, 12, 31), 'BEA release_dates.json = bea.gov schedule 2026 and next-year (2027) pages = OMB PFEI 2027',
+        'BEA now releases GDP and Personal Income and Outlays together (same minute every month).'),
+    'Personal income and outlays, core PCE (BEA)': (date(2027, 12, 31), 'as GDP', 'as GDP.'),
+    RS: (date(2027, 12, 31), 'Census release schedule page (web.archive.org capture ' + snap_ts + ') for 2026; OMB PFEI 2027 for 2027',
+        'census.gov blocks scripts, so the 2026 dates come from an archive capture (the latest one, 2026-10-05). The '
+        '2026-10-15 release is confirmed by FRED\'s RSAFS update stamp (Oct 15 7:38 AM CDT); FRED\'s next release date '
+        '(Nov 17) matches the Census page. The January 2027 date (Dec 2026 data) is OMB\'s; the Census page capture still '
+        'showed it "To be announced". 2027 times: 08:30 by the Census page header.'),
+    CL: (date(2027, 12, 31), 'DOL release PDFs (to 2026-10-15); DOL "Publication Schedule" rule + its exception list',
+        'Every Thursday 08:30; DOL lists Wed 2026-11-25, 2027-11-10, 2027-11-24 (Thanksgiving / Veterans Day), which '
+        'matches the OPM holiday tables. Not covered: ad-hoc closures by executive order (e.g. a Christmas Eve closure on '
+        'Thu 2026-12-24 could move that week\'s release to Wed 2026-12-23, as in 2020) and any future lapse in appropriations.'),
+    ADPEV: (adp_last_shown, 'ADP NER calendar (adpemploymentreport.com, ner_production.json)',
+        f'monthly dates listed: {", ".join(x.isoformat() for x in fut)}; the calendar shows items (incl. weekly pulse) through '
+        f'{adp_last_shown}; the January 2027 date (December data) is not listed. Time 08:15 = README rule.'),
+    'ISM Manufacturing PMI': (date(2026, 12, 31), 'ISM release calendar 2026 (web.archive.org capture ' +
+        (max(ism_cal.values())[0] if ism_cal else '?') + ')',
+        'published calendar through 2026-12 (Oct dates confirmed by the PR Newswire releases). All 2027 rows are RULE-BASED: '
+        'ISM\'s published rule "first business day of the month at 10:00 a.m." (business days = weekdays without federal '
+        'holidays and Good Friday), January one business day later as in 2024-26 (2027-01-05). ismworld.org shows '
+        'scripts a captcha and web.archive.org answered HTTP 429 all session, so a 2027 ISM calendar published after '
+        '2026-09-30 (if any) was not seen; replace the rule rows when it is.'),
+    'ISM Services PMI': (date(2026, 12, 31), 'as ISM Manufacturing',
+        'as Manufacturing; 2027 rows RULE-BASED: "third business day of the month at 10:00 a.m.", January one business '
+        'day later (2027-01-07).'),
+    CBEV: (date(2026, 11, 30), 'CB statement "at 10 a.m. ET on the last Tuesday of every month" (rule; CB release text)',
+        'conference-board.org blocks scripts and WebFetch (HTTP 404 "Blocked"), so CB\'s own calendar and its "next release" '
+        'line could not be read; every row from 2026-10 is a RULE date. December dates (2026-12-29, 2027-12-28) are '
+        'UNCERTAIN: CB moved December to the 23rd in 2024 and 2025. Known (by rule) through 2026-11-30.'),
+    'UoM Consumer Sentiment (prelim)': (sca_known, f'SCA release-date table (docid 75443, last updated {sca_upd.group(1) if sca_upd else "?"})',
+        f'the table lists every month through {max(sca)[0]}-{max(sca)[1]:02d} (last release {sca_last}); times: 10am ET per the '
+        'SCA home page for the next release, README rule for the rest. Note the final of 2027-03-25 (Thu; Good Friday '
+        '2027-03-26).'),
+    'UoM Consumer Sentiment (final)': (sca_known, 'as prelim', 'as prelim.'),
+    SPEV: (sp_last_shown, 'S&P Global PMI release calendar (pmi.spglobal.com/Public/Release/ReleaseDates)',
+        f'the calendar lists releases only through {sp_last_shown}; next flash US PMI (November, ~3rd week) not yet listed. '
+        'Stopped.'),
+    'Empire State Manufacturing': (date(emp_last_year, 12, 31), f'NY Fed Empire State release table {emp_last_year}',
+        'the NY Fed has not posted 2027 dates and states no date rule. Stopped.'),
+    'FOMC statement, rate decision (Fed)': (date(2027, 12, 31), 'Fed monthly calendars (2026) and fomccalendars.htm (2027)',
+        '2027 meeting dates are tentative until confirmed at the preceding meeting; times 14:00 by the README rule.'),
+    'FOMC statement, rate decision, SEP (Fed)': (date(2027, 12, 31), 'as above', 'SEP at the * meetings.'),
+    'FOMC press conference (Fed)': (date(2027, 12, 31), 'Fed monthly calendars (2026); README rule for 2027',
+        '2027 press conferences are UNCONFIRMED (not listed until the monthly calendars appear).'),
+    'FOMC minutes (Fed)': (date(2027, 12, 31), 'Fed monthly calendars (2026); Fed three-week rule for 2027', '14:00 ET.'),
+    '10-y Note Auction (Treasury)': (tas_last, 'fiscaldata (held / announced) + Treasury Tentative Auction Schedule',
+        f'the tentative schedule (refunding of 2026-08-05) covers auctions through {tas_last}; the next one (February '
+        '2027 refunding) is not yet scheduled. 13:00 by the README rule for unannounced auctions.'),
+    '30-y Bond Auction (Treasury)': (tas_last, 'as 10-y', 'as 10-y.'),
+}
+order = list(KNOWN)
+crs = ' '.join(page_lines(rd(DL / 'misc/crs_R49353_everycrsreport.htm')))
+cr_end = re.search(r'provides continuing appropriations for FY2027 through ([A-Z][a-z]+ \d{1,2}, \d{4})', crs)
+past = [r for r in fwd if r['et_date'] < TODAY.isoformat()]
+past_rel = [r for r in past if basis_of(r['note']) == 'release']
+past_not = [f'{r["et_date"]} {r["event"]}' for r in past if r not in past_rel]
+C_ = [f'COVERAGE of usd_high_fwd.csv (2026-10-01 .. 2027-12-31), built {TODAY} from the downloads in {DL}.',
+      'Known through = every release of that type on or before that date is in the file, from a published schedule, a',
+      'publisher-stated rule (counted as known unless the row is flagged UNCERTAIN), or the release itself. Rows after it',
+      'exist only where a publisher-stated rule gives them (see remarks).', '',
+      'GENERAL',
+      f'- 2026-10-01 .. 10-17 (past): {len(past)} rows; {len(past_rel)} confirmed from the release or the publisher\'s record '
+      'of it (news-release archive, embargo line, PR Newswire stamp, linked report, Fed calendar of the month, FRED '
+      'update stamp for Census); not '
+      f'confirmed: {"; ".join(past_not) or "none"}. Every confirmed release came on its scheduled date (no lapse effect).',
+      '- Appropriations: the FY2027 continuing resolution (P.L. 119-103, Division A) funds agencies through '
+      f'{cr_end.group(1) if cr_end else "?"} (CRS R49353, read from the EveryCRSReport copy; congress.gov answered 403). A '
+      'funding gap from 2026-12-12 would cancel or move BLS, BEA, Census and DOL releases, as in October-November 2025. '
+      'Treasury auctions, the Fed and the private publishers (ADP, ISM, CB, UMich, S&P Global, NY Fed) kept their '
+      'schedules in 2025. Rebuild if a lapse starts.',
+      '- Times: where a schedule gives only a date, the time is the README time for that type (stated in each note).', '']
+for ty in order:
+    kt, src, rem = KNOWN[ty]
+    n = len(fl.get(ty, []))
+    C_ += [f'{ty}', f'    rows {n}; last row {last(ty)}; basis: {basis(ty)}', f'    known through {kt}  source: {src}',
+           f'    {rem}']
+C_ += ['Fed Chair speeches / testimony (unscheduled; not in valid_through)',
+       f'    rows {len(fl.get("Fed Chair speaks", [])) + len(fl.get("Fed Chair testifies", []))}; '
+       f'items listed in the Fed monthly calendars through {max(chair_items) if chair_items else "-"}; the latest '
+       f'Speeches/Testimony item of anyone is dated {any_speech_last}; monthly pages exist through '
+       f'{fed_cal_last_month[0]}-{fed_cal_last_month[1]:02d} (Nov and Dec 2026 list FOMC items only, no speeches).',
+       '    So on 2026-10-18 the calendar lists no Chair item ahead at all: zero days of look-ahead. No speaking engagement of',
+       '    any official is listed after 2026-10-15 (the next FOMC meeting is 2026-10-27/28).',
+       '    Not in the file until the Fed lists them: the semiannual Monetary Policy Report testimony (registered list: Mar',
+       '    and Jul 2024, Feb and Jun 2025, Jul 2026), Jackson Hole (late August) and any other Chair appearance.',
+       'Treasury FX Report (unscheduled; only if a date is announced)',
+       f'    the Treasury FX-report page lists {MONTHS[fx_latest[1] - 1] if fx_latest else "?"} {fx_latest[0] if fx_latest else ""} '
+       'as the latest report, so none came 2026-10-01 .. 10-17; no future date is announced (Treasury press releases '
+       '2026-10-08 .. 10-16, page 1, have none). No row.', '']
+sched_types = [t_ for t_ in order]
+vt = min(KNOWN[t_][0] for t_ in sched_types)
+binding = [t_ for t_ in sched_types if KNOWN[t_][0] == vt]
+C_ += [f'binding type(s): {", ".join(binding)} (known through {vt}). Next limits:']
+C_ += [f'    {KNOWN[t_][0]}  {t_}' for t_ in sorted(sched_types, key=lambda x: (KNOWN[x][0], x)) if KNOWN[t_][0] > vt][:8]
+C_ += ['    (all other types are known through 2027-12-31)', '']
+C_ += ['build checks (problems found by build_fwd.py):'] + ([f'  {p}' for p in problems] or ['  none']) + ['']
+C_ += [f'valid_through={vt.isoformat()}']
+(OUT / 'coverage.txt').write_text('\n'.join(C_) + '\n')
+
+# ---------------------------------------------------------------- console summary
+c = Counter(etype(r['event']) for r in fwd)
+print(f'forward rows {len(fwd)}, unique minutes {len({r["utc_minute"] for r in fwd})}; september rows {len(sep)}')
+for k in sorted(c):
+    print(f'  {k:58s} {c[k]:4d}')
+print('valid_through', vt, 'binding', binding)
+print('problems:'); print('\n'.join('  ' + p for p in problems) or '  none')

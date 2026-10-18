@@ -114,7 +114,8 @@ AgentFxTrading/
 ├── cBot/                        cTrader cBots (C#), one file per bot
 │   ├── GotobiBot.cs             Gotobi Tokyo fix
 │   ├── EcbWindowBot.cs          ECB-fix window on EURUSD (rules F3, E1)
-│   └── seeds/                   quote seeds a cBot reads at start (ecb_usd_top_seed.csv)
+│   ├── GoldLevelBot.cs          stop orders past fresh $50 gold levels
+│   └── seeds/                   data a cBot reads at start (ecb_usd_top_seed.csv, usd_high_calendar.csv)
 ├── templates/dashboard.html     dashboard page
 ├── static/                      dashboard JS (js/), CSS (css/), favicon
 ├── scripts/                     VPS installer, PostgreSQL backup, SQLite → PostgreSQL migration

@@ -1,7 +1,7 @@
-# 🐳 Docker Instance Catalog — all 5 presets
+# 🐳 Docker Instance Catalog — all 6 presets
 
-Every instance AgentFxTrading ships: the Gotobi Fix bot on its three JPY pairs and the ECB window bot's two rules on
-EURUSD = **5 `docker run` commands**, written out in full.
+Every instance AgentFxTrading ships: the Gotobi Fix bot on its three JPY pairs, the ECB window bot's two rules on
+EURUSD and the gold level bot on XAUUSD = **6 `docker run` commands**, written out in full.
 
 This file is the long form of the dashboard's **Docker Bot Management → Setup Instances** grid. Ticking a cell there
 runs exactly the command printed here. Both come from [`app/cbot_presets.py`](../app/cbot_presets.py), which is the
@@ -10,7 +10,8 @@ drift apart.
 
 > **Prerequisites live in [deployment.md](deployment.md).** Install the server, write the cTID password file and build
 > the `.algo` package first: [Building the cBots](deployment.md#building-the-cbots) and
-> [Running bots](deployment.md#running-bots). Come back here once `cBot/GotobiBot.algo` and `cBot/EcbWindowBot.algo` exist.
+> [Running bots](deployment.md#running-bots). Come back here once `cBot/GotobiBot.algo`, `cBot/EcbWindowBot.algo` and
+> `cBot/GoldLevelBot.algo` exist.
 
 ---
 
@@ -18,9 +19,10 @@ drift apart.
 
 - [Adapting a block](#-adapting-a-block)
 - [Container naming](#-container-naming)
-- [The 5-cell grid](#-the-5-cell-grid)
+- [The 6-cell grid](#-the-6-cell-grid)
 - [Gotobi Fix — `GotobiBot.algo`](#-gotobi-fix--gotobibotalgo)
 - [ECB Window — `EcbWindowBot.algo`](#-ecb-window--ecbwindowbotalgo)
+- [Gold $50 Levels — `GoldLevelBot.algo`](#-gold-50-levels--goldlevelbotalgo)
 - [Running demo and live side by side](#-running-demo-and-live-side-by-side)
 
 ---
@@ -57,23 +59,26 @@ same scheme with `demo` as the slug:
 | Gotobi Fix | `cbot-<slug>-<symbol>-fix-gotobi` | `cbot-demo-usdjpy-fix-gotobi` |
 | ECB Window F3 | `cbot-<slug>-eurusd-ecb-f3` | `cbot-live-eurusd-ecb-f3` |
 | ECB Window E1 | `cbot-<slug>-eurusd-ecb-e1` | `cbot-demo-eurusd-ecb-e1` |
+| Gold $50 Levels | `cbot-<slug>-xauusd-levels-gold50` | `cbot-demo-xauusd-levels-gold50` |
 
 The name doubles as `--BotId`, so `docker ps` tells you the account, symbol, session and strategy of every bot without
 opening its flags — and the dashboard can match a running container back to its config row.
 
 ---
 
-## 🗺️ The 5-cell grid
+## 🗺️ The 6-cell grid
 
 `period` · session for each cell. 🔬 = passed a pre-registered LIVE holdout (Gotobi on the JPY pairs); 🧪 = a candidate
-the research runs to measure it (F3 passed its holdout only at the RELAXED tier, E1 is a weak DEMO candidate).
+the research runs to measure it (F3 passed its holdout only at the RELAXED tier, E1 is a weak DEMO candidate, the gold
+levels passed theirs at the DEMO tier).
 
-| Symbol | Gotobi Fix | ECB Window F3 | ECB Window E1 |
-| :--- | :--- | :--- | :--- |
-| **USDJPY** | 🔬 `m15` · Tokyo fix | – | – |
-| **EURJPY** | 🔬 `m15` · Tokyo fix | – | – |
-| **GBPJPY** | 🔬 `m15` · Tokyo fix | – | – |
-| **EURUSD** | – | 🧪 `m15` · ECB fix window | 🧪 `m15` · ECB fix window |
+| Symbol | Gotobi Fix | ECB Window F3 | ECB Window E1 | Gold $50 Levels |
+| :--- | :--- | :--- | :--- | :--- |
+| **USDJPY** | 🔬 `m15` · Tokyo fix | – | – | – |
+| **EURJPY** | 🔬 `m15` · Tokyo fix | – | – | – |
+| **GBPJPY** | 🔬 `m15` · Tokyo fix | – | – | – |
+| **EURUSD** | – | 🧪 `m15` · ECB fix window | 🧪 `m15` · ECB fix window | – |
+| **XAUUSD** | – | – | – | 🧪 `m15` · Round levels |
 
 ---
 
@@ -273,6 +278,60 @@ docker run -d \
   --UsdTopOnly=false \
   --Lots=0.1 \
   --EmergencyStopPips=100.0
+```
+
+---
+
+## 🥇 Gold $50 Levels — `GoldLevelBot.algo`
+
+Rests a stop order just past a fresh $50 gold level and closes 30 minutes after it triggers: stop-loss orders cluster
+beyond round numbers, so a break that sets them off tends to carry on. The rule is G1-XAU50 of the research
+([`PREREG_G_gold_round50_cascade.md`](../research/results/portfolio/round27_levels_opens/PREREG_G_gold_round50_cascade.md)),
+which passed its 2025-2026 holdout at the DEMO tier (net +2.87 bp per trade, t 1.43, 228 trades) but not LIVE, so the
+preset runs on a demo account at the minimum lot (`--Lots=0.01`, 1 oz). Its stop and promotion rules are in that file.
+
+- **Levels.** The rule runs on every $10 level and trades only the multiples of $50. A level arms when the mid comes
+  within $2 of it and it lies beyond the highest (or lowest) tick mid of the last 24 hours; the order is a buy stop
+  0.5 x the 60-minute median spread above it (a sell stop below a lower level). The other $10 levels are armed and
+  triggered without an order, since their triggers also start the 60-minute busy window and the 24-hour level memory.
+- **When.** Arming runs from 18:10 New York to 15:54 New York the next day, never within 15 minutes of a High-impact
+  USD release and never in the 15 minutes after the session's first tick or a tick gap of over an hour. The releases
+  come from [`cBot/seeds/usd_high_calendar.csv`](../cBot/seeds/usd_high_calendar.csv) (official schedules,
+  `python -m research.tools.usd_high_calendar_seed`). Arming stops after the file's `valid_through` day, so the seed must
+  be extended before then.
+- **Exit.** At market 30 minutes after the trigger; the rule has no stop. The broker gets a far guard stop
+  (`--EmergencyStopUsd=100`): no 2016-2026 trade moved more than $54 against its entry before the exit
+  ([`gold_level_cbot_2026-10-18.md`](../research/results/portfolio/gold_level_cbot_2026-10-18.md)).
+- **Restarts.** At start the bot replays about two days of tick history through the rule without trading, so it
+  resumes with the rule's own state.
+- **Evidence.** Each traded trigger is written to `/root/ctrader_data/<BotId>_trades.csv` with the research fill
+  model's prices (the first tick 250 ms after the trigger and after the exit) next to the real fill and close;
+  `python -m research.tools.gold_demo_check` scores it against the registered stop and promotion rules.
+
+### XAUUSD — Gold $50 Levels
+
+`m15` · Round levels
+
+```bash
+docker run -d \
+  --name cbot-demo-xauusd-levels-gold50 \
+  --restart unless-stopped \
+  --network host \
+  -v $(pwd):/workspace \
+  -v /root:/root \
+  ghcr.io/spotware/ctrader-console:latest \
+  run /workspace/cBot/GoldLevelBot.algo \
+  --ctid=your_email@example.com \
+  --pwd-file=/root/ctrader_data/ctid_pwd \
+  --account=YOUR_ACCOUNT_ID \
+  --symbol=XAUUSD \
+  --period=m15 \
+  --full-access \
+  --BotId="cbot-demo-xauusd-levels-gold50" \
+  --ApiUrl="http://127.0.0.1:8000/trade" \
+  --AccountLabel="demo" \
+  --Lots=0.01 \
+  --EmergencyStopUsd=100.0
 ```
 
 ---

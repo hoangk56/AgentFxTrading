@@ -1,0 +1,38 @@
+"""Descriptive breakdown of the registered gold HOLD run (information only; the verdict is the summary line)."""
+import csv, math, sys
+from collections import defaultdict
+def rows(p):
+    with open(p, newline='') as f:
+        return list(csv.DictReader(f))
+def ct(x, day):
+    n = len(x); m = sum(x) / n
+    by = defaultdict(float)
+    for v, d in zip(x, day): by[d] += v - m
+    se = math.sqrt(sum(v * v for v in by.values())) / n
+    return m, m / se
+H, IS = rows(sys.argv[1]), rows(sys.argv[2])
+q = sorted(float(r['net_250']) for r in IS)
+lo, hi = q[int(0.01 * (len(q) - 1))], q[int(0.99 * (len(q) - 1))]
+x = [float(r['net_250']) for r in H]; day = [int(r['trigger_ms']) // 86400000 for r in H]
+print(f'HOLD n {len(x)} mean {sum(x)/len(x):+.2f}; IS 1/99% quantiles {lo:+.1f} / {hi:+.1f}')
+xc = [min(max(v, lo), hi) for v in x]
+print(f'  clipped at the IS 1/99%% quantiles: mean {ct(xc, day)[0]:+.2f} (t {ct(xc, day)[1]:+.2f})')
+s = sorted(x, reverse=True)
+print(f'  top 5 trades {sum(s[:5]):+.1f} of total {sum(x):+.1f} bp; without top 5 mean {sum(s[5:])/len(s[5:]):+.2f}')
+for side in ('1', '-1'):
+    m = [i for i, r in enumerate(H) if r['side'] == side]
+    a = [x[i] for i in m]; d = [day[i] for i in m]
+    print(f'  side {side:>2}: n {len(a)} mean {ct(a, d)[0]:+.2f} (t {ct(a, d)[1]:+.2f})')
+by = defaultdict(list)
+for i, r in enumerate(H):
+    y, mo = r['trigger_utc'][:4], int(r['trigger_utc'][5:7])
+    by[f'{y}H{1 if mo <= 6 else 2}'].append(i)
+for k in sorted(by):
+    a = [x[i] for i in by[k]]; lv = [float(H[i]['level']) for i in by[k]]
+    print(f'  {k}: n {len(a)} mean {sum(a)/len(a):+.2f}  level range {min(lv):.0f}-{max(lv):.0f}')
+m100 = [i for i, r in enumerate(H) if r['mod100'] == '1']
+a = [x[i] for i in m100]; d = [day[i] for i in m100]
+print(f'  $100 levels: n {len(a)} mean {ct(a, d)[0]:+.2f} (t {ct(a, d)[1]:+.2f})')
+for nm, rr in (('IS', IS), ('VAL', rows(sys.argv[3]))):
+    lv = [float(r['level']) for r in rr]
+    print(f'  {nm}: level mean {sum(lv)/len(lv):.0f}, trades {len(rr)}')

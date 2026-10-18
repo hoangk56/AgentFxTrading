@@ -7,8 +7,8 @@ from pathlib import Path
 import pytest
 
 from app.cbot_presets import (
-    DEFAULT_IMAGE, ECB_BROKER_STOP_PIPS, GOTOBI_SKIP_DATES, PRESETS, SESSION_SLUGS, STRATEGIES, SYMBOLS,
-    build_run_command, container_name, describe_cell, installed_cells, presets_payload,
+    DEFAULT_IMAGE, ECB_BROKER_STOP_PIPS, GOLD_BROKER_STOP_USD, GOTOBI_SKIP_DATES, PRESETS, SESSION_SLUGS, STRATEGIES,
+    SYMBOLS, build_run_command, container_name, describe_cell, installed_cells, presets_payload,
 )
 from tests._paths import REPO_ROOT, CBOT_DIR
 
@@ -20,22 +20,24 @@ LIVE = {"id": 2, "slug": "live-ic", "ctid_email": "me@example.com", "account_num
         "account_type": "live", "label": "IC", "pwd_file": "/root/ctrader_data/ctid_live-ic_pwd"}
 
 # The matrix: Gotobi on the three JPY pairs the research validated
-# (research/results/portfolio/swing_lab_v2_2026-09-27.md) and the ECB window's two rules on EURUSD = 5 cells.
+# (research/results/portfolio/swing_lab_v2_2026-09-27.md), the ECB window's two rules on EURUSD and the gold level
+# rule on XAUUSD = 6 cells.
 GOTOBI_SYMBOLS = ("USDJPY", "EURJPY", "GBPJPY")
-EXPECTED_MATRIX = {**{sym: {"gotobi"} for sym in GOTOBI_SYMBOLS}, "EURUSD": {"ecb_f3", "ecb_e1"}}
+EXPECTED_MATRIX = {**{sym: {"gotobi"} for sym in GOTOBI_SYMBOLS}, "EURUSD": {"ecb_f3", "ecb_e1"},
+                   "XAUUSD": {"gold_levels"}}
 
 
 def test_matrix_covers_every_strategy_on_its_symbols():
-    assert len(PRESETS) == 5
+    assert len(PRESETS) == 6
     actual = {}
     for strategy, symbol in PRESETS:
         actual.setdefault(symbol, set()).add(strategy)
     assert actual == EXPECTED_MATRIX
-    assert SYMBOLS == ["USDJPY", "EURJPY", "GBPJPY", "EURUSD"]
+    assert SYMBOLS == ["USDJPY", "EURJPY", "GBPJPY", "EURUSD", "XAUUSD"]
 
 
 def test_every_cell_is_well_formed():
-    assert set(STRATEGIES) == {"gotobi", "ecb_f3", "ecb_e1"}
+    assert set(STRATEGIES) == {"gotobi", "ecb_f3", "ecb_e1", "gold_levels"}
     for (strategy, symbol), cell in PRESETS.items():
         assert strategy in STRATEGIES
         assert symbol == symbol.upper()
@@ -89,6 +91,26 @@ def test_ecb_cells_differ_only_in_the_rule_and_the_lot():
     assert STRATEGIES["ecb_f3"]["algo"] == STRATEGIES["ecb_e1"]["algo"] == "EcbWindowBot.algo"
 
 
+def test_gold_golden_command():
+    cmd = build_run_command(DEMO, "gold_levels", "XAUUSD", ROOT, HOME)
+    assert cmd == (
+        "docker run -d --name cbot-demo-main-xauusd-levels-gold50 --restart unless-stopped --network host "
+        f"-v {ROOT}:/workspace -v {HOME}:/root {DEFAULT_IMAGE} run /workspace/cBot/GoldLevelBot.algo "
+        "--ctid=me@example.com --pwd-file=/root/ctrader_data/ctid_demo-main_pwd --account=10101649 "
+        "--symbol=XAUUSD --period=m15 --full-access "
+        '--BotId="cbot-demo-main-xauusd-levels-gold50" --ApiUrl="http://127.0.0.1:8000/trade" --AccountLabel="Demo Main" '
+        "--Lots=0.01 --EmergencyStopUsd=100.0"
+    )
+
+
+def test_gold_cell_carries_only_the_lot_and_the_broker_stop():
+    """The rule (levels, band, offset, hold, windows, calendar) is the registered one, i.e. the cBot's defaults; the cell
+    sets the demo's minimum lot and the far broker guard, which is not part of the rule."""
+    params = PRESETS[("gold_levels", "XAUUSD")]["params"]
+    assert params == {"Lots": 0.01, "EmergencyStopUsd": GOLD_BROKER_STOP_USD}
+    assert STRATEGIES["gold_levels"]["algo"] == "GoldLevelBot.algo"
+
+
 def _is_gotobi(d: date) -> bool:
     """GotobiBot.IsGotobi: the 5th/10th/15th/20th/25th or the month's last day, a weekend one moved to the Friday before."""
     last = calendar.monthrange(d.year, d.month)[1]
@@ -118,6 +140,7 @@ def test_container_name_carries_the_session():
     assert container_name("live-ic", "gotobi", "GBPJPY") == "cbot-live-ic-gbpjpy-fix-gotobi"
     assert container_name("live-live", "ecb_f3", "EURUSD") == "cbot-live-live-eurusd-ecb-f3"
     assert container_name("demo-demo", "ecb_e1", "EURUSD") == "cbot-demo-demo-eurusd-ecb-e1"
+    assert container_name("demo-demo", "gold_levels", "XAUUSD") == "cbot-demo-demo-xauusd-levels-gold50"
 
 
 def test_every_preset_session_has_a_slug_in_its_name():
@@ -159,7 +182,7 @@ def test_presets_payload_shape():
     payload = presets_payload()
     assert payload["strategies"] == STRATEGIES
     assert payload["symbols"] == SYMBOLS
-    assert len(payload["cells"]) == 5
+    assert len(payload["cells"]) == 6
     cell = next(c for c in payload["cells"] if c["symbol"] == "GBPJPY")
     assert cell == {"symbol": "GBPJPY", "strategy": "gotobi", "period": "m15", "session": "Tokyo fix"}
     for c in payload["cells"]:
@@ -190,7 +213,7 @@ def test_installed_cells_is_empty_without_accounts_or_configs():
 
 
 # --- docs ↔ preset drift guard ---------------------------------------------------
-# docs/docker-instances.md spells out all 3 cells as `docker run` commands. Those blocks are what a
+# docs/docker-instances.md spells out all 6 cells as `docker run` commands. Those blocks are what a
 # user copies by hand, so a preset edit that forgets them ships docs that silently disagree with what
 # the dashboard generates. Compare the strategy flags only: the doc uses placeholder credentials and a
 # `demo` account slug.
@@ -241,7 +264,7 @@ def test_instances_doc_exists():
 
 def test_instances_doc_covers_every_cell():
     assert set(_documented_cells(INSTANCES_DOC)) == set(PRESETS), (
-        "docs/docker-instances.md must document all 5 preset cells, no more and no fewer")
+        "docs/docker-instances.md must document all 6 preset cells, no more and no fewer")
 
 
 @pytest.mark.parametrize(("strategy", "symbol"), sorted(PRESETS), ids=lambda v: v)
@@ -261,7 +284,7 @@ _SYMBOL_BRANCH = re.compile(
     r'Contains\("(XAU|GOLD|XAG|SILVER|JPY|US30|DJ30|USTEC|NAS100|DE40|GER40|UK100|GB100|BTC|ETH)"\)')
 
 
-@pytest.mark.parametrize("cs_name", ["GotobiBot.cs", "EcbWindowBot.cs"])
+@pytest.mark.parametrize("cs_name", ["GotobiBot.cs", "EcbWindowBot.cs", "GoldLevelBot.cs"])
 def test_cbots_do_not_branch_on_the_symbol_name(cs_name):
     src = (CBOT_DIR / cs_name).read_text(encoding="utf-8")
     hits = [m.group(0) for m in _SYMBOL_BRANCH.finditer(src)]

@@ -122,7 +122,7 @@ def test_close_returns_false_when_no_position_matched(tmp_path):
 
 
 
-@pytest.mark.parametrize("cs_name", ["GotobiBot.cs", "EcbWindowBot.cs"])
+@pytest.mark.parametrize("cs_name", ["GotobiBot.cs", "EcbWindowBot.cs", "GoldLevelBot.cs"])
 @pytest.mark.parametrize("action", ["open", "close"])
 def test_bot_sends_ctrader_id_with_every_position_report(cs_name, action):
     """The server-side narrowing is inert unless the bot actually sends the id."""

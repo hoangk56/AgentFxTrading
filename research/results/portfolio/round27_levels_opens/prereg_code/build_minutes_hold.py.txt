@@ -1,0 +1,95 @@
+"""Pass 1 (no returns) of round 27 stream G for a date range: per-minute envelopes of the IC tick mid.
+A copy of r27/G/code/build_minutes.py whose only change is the range: UTC days START..END (inclusive) instead of the
+fixed 2015-12-28..2024-12-31. Minute index m = (ts - T0M) // 60000 with T0M = START 00:00 UTC. Arrays (float64, NaN =
+no tick):
+  mmax, mmin = max / min tick mid in the minute; last = last tick mid; lspr = last tick spread (ask - bid);
+  n = tick count. Derived (causal): W_up[m] = max(mmax[m-1440 : m]), W_dn[m] = min(mmin[m-1440 : m]) (the 24-h
+  max / min of the mid over the 1,440 clock minutes before minute m), s60[m] = nanmedian(lspr[m-60 : m]).
+Start at least 3 days before the first session day (warm-up): the windows then hold the same values as one long array.
+Days >= 2025-01-01 are refused unless HOLD_RUN=1 (gcommon's loader asserts; HOLD_RUN=1 allows up to 2026-09-24).
+usage: python build_minutes_hold.py SYM START END      (dates YYYY-MM-DD)
+Output: out/min_<SYM>_<START>_<END>.npz (START / END as YYYYMMDD)."""
+import sys
+from datetime import date, timedelta
+
+import numpy as np
+
+sys.path.insert(0, str(__import__('pathlib').Path(__file__).parent))
+import gcommon as gc
+
+
+def rolling_max_excl(x, w):
+    """out[m] = nanmax(x[m-w : m]) (exclusive of m); NaN-aware via -inf fill (van Herk / Gil-Werman blocks)."""
+    v = np.where(np.isnan(x), -np.inf, x)
+    n = len(v)
+    pad = (-n) % w
+    vp = np.concatenate([v, np.full(pad, -np.inf)])
+    B = vp.reshape(-1, w)
+    pre = np.maximum.accumulate(B, axis=1).ravel()
+    suf = np.maximum.accumulate(B[:, ::-1], axis=1)[:, ::-1].ravel()
+    # window [j, j+w-1] max = max(suf[j], pre[j+w-1])
+    j = np.arange(n + pad - w + 1)
+    win = np.maximum(suf[j], pre[j + w - 1])        # window starting at j
+    out = np.full(n, -np.inf)
+    # out[m] = window starting at m-w  (covers m-w .. m-1)
+    m = np.arange(w, n)
+    out[w:] = win[m - w]
+    out[:w] = np.maximum.accumulate(np.concatenate([[-np.inf], v[:w - 1]]))
+    return out
+
+
+def out_path(sym, d0, d1):
+    return gc.OUT / f'min_{sym}_{d0:%Y%m%d}_{d1:%Y%m%d}.npz'
+
+
+def main(sym, d0, d1):
+    assert d0 <= d1
+    assert d1 < gc.LIMIT_DAY, f'HOLD day requested: {d1} (HOLD_RUN={gc.HOLD_RUN})'
+    T0M = gc.day_ms(d0)
+    NM = (gc.day_ms(d1 + timedelta(days=1)) - T0M) // 60000
+    L = gc.DayLoader(sym)
+    mmax = np.full(NM, np.nan); mmin = np.full(NM, np.nan); last = np.full(NM, np.nan)
+    lspr = np.full(NM, np.nan); cnt = np.zeros(NM, np.int32)
+    d = d0
+    while d <= d1:
+        ts, b, a = L.load(d)
+        if len(ts):
+            mid = 0.5 * (a + b)
+            mi = (ts - T0M) // 60000
+            st = np.flatnonzero(np.r_[True, mi[1:] != mi[:-1]])
+            en = np.r_[st[1:], len(mi)] - 1
+            mm = mi[st]
+            mmax[mm] = np.maximum.reduceat(mid, st)
+            mmin[mm] = np.minimum.reduceat(mid, st)
+            last[mm] = mid[en]
+            lspr[mm] = (a - b)[en]
+            cnt[mm] = (en - st + 1)
+        d += timedelta(days=1)
+    W_up = rolling_max_excl(mmax, 1440)
+    W_dn = -rolling_max_excl(-mmin, 1440)
+    # s60: nanmedian of the last-tick spread over the 60 clock minutes before m
+    from numpy.lib.stride_tricks import sliding_window_view
+    s60 = np.full(NM, np.nan)
+    sw = sliding_window_view(lspr, 60)            # sw[j] = lspr[j : j+60]
+    CH = 200000
+    for j0 in range(0, len(sw), CH):
+        blk = sw[j0:j0 + CH]
+        with np.errstate(all='ignore'):
+            import warnings
+            with warnings.catch_warnings():
+                warnings.simplefilter('ignore')
+                med = np.nanmedian(blk, axis=1)
+        s60[j0 + 60: j0 + 60 + len(med)] = med[:max(0, min(len(med), NM - (j0 + 60)))]
+    # carry forward s60 where NaN (no tick in the last hour)
+    idx = np.where(~np.isnan(s60), np.arange(NM), 0)
+    np.maximum.accumulate(idx, out=idx)
+    s60 = s60[idx]
+    gc.OUT.mkdir(parents=True, exist_ok=True)
+    np.savez(out_path(sym, d0, d1), T0M=T0M, mmax=mmax, mmin=mmin, last=last, lspr=lspr, n=cnt,
+             W_up=W_up, W_dn=W_dn, s60=s60)
+    ok = cnt > 0
+    print(sym, d0, d1, 'minutes with ticks', int(ok.sum()), 'ticks', int(cnt.sum()), '->', out_path(sym, d0, d1))
+
+
+if __name__ == '__main__':
+    main(sys.argv[1], date.fromisoformat(sys.argv[2]), date.fromisoformat(sys.argv[3]))

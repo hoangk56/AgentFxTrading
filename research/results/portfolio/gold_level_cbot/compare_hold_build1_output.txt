@@ -1,0 +1,7 @@
+engine 228, bot 228, matched on trigger time 228, engine only 0, bot only 0
+matched trades with a different arm time / level / side: 0
+Traceback (most recent call last):
+  File "/private/tmp/claude-501/-Users-hoangbk-00-code-base-105-AgentFxTrading/cff348f1-534e-440d-88da-40c31dade827/scratchpad/r30/gold/compare_bt.py", line 20, in <module>
+    f_net = np.array([float(bot[k]['fill_net_bp']) for k in both]); e_l0 = np.array([float(eng[k]['net_L0']) for k in both])
+                      ~~~~~^^^^^^^^^^^^^^^^^^^^^^^
+ValueError: could not convert string to float: ''

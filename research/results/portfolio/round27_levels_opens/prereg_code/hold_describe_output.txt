@@ -1,0 +1,12 @@
+HOLD n 228 mean +2.87; IS 1/99% quantiles -58.4 / +113.7
+  clipped at the IS 1/99%% quantiles: mean +3.18 (t +1.64)
+  top 5 trades +517.9 of total +654.8 bp; without top 5 mean +0.61
+  side  1: n 137 mean +0.92 (t +0.48)
+  side -1: n 91 mean +5.81 (t +1.42)
+  2025H1: n 60 mean -1.87  level range 2650-3500
+  2025H2: n 66 mean +3.23  level range 3300-4500
+  2026H1: n 70 mean +7.02  level range 4000-5500
+  2026H2: n 32 mean +1.94  level range 4000-4650
+  $100 levels: n 108 mean +5.73 (t +2.11)
+  IS: level mean 1537, trades 271
+  VAL: level mean 2101, trades 187
