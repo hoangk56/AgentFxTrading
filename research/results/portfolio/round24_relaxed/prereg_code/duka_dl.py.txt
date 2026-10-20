@@ -1,0 +1,150 @@
+# Dukascopy M1 bid+ask downloader (stream B, round 24). Resumable per symbol-year.
+# usage: python -I duka_dl.py OUTDIR SYM:Y0-Y1[,SYM:Y0-Y1...] [nthreads=4] [months=1-12]
+# Writes OUTDIR/<SYM>_<YYYY>.npz (ts ms int64, bc/ac float64 close, bv/av float32 volume) and OUTDIR/requests.log.
+import sys, os, time, random, lzma, struct, threading, queue, datetime as dt, http.client
+import numpy as np
+
+OUT = sys.argv[1]
+SPEC = sys.argv[2]
+NT = int(sys.argv[3]) if len(sys.argv) > 3 else 4
+MONTHS = (1, 12)
+if len(sys.argv) > 4 and sys.argv[4] != "-":
+    a, b = sys.argv[4].split("-"); MONTHS = (int(a), int(b))
+DAYSEL = sys.argv[5] if len(sys.argv) > 5 else "all"        # all (no Saturday) | wd (Mon-Fri) | wed (Wednesday)
+BIDONLY_UNTIL = int(sys.argv[6]) if len(sys.argv) > 6 else 0  # skip ASK files for years <= this
+LAST = dt.date.fromisoformat(os.environ["DUKA_LAST"])
+UA = ("Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) "
+      "Chrome/124.0 Safari/537.36")
+HOST = "datafeed.dukascopy.com"
+os.makedirs(OUT, exist_ok=True)
+LOG = open(os.path.join(OUT, "requests.log"), "a", buffering=1)
+LOCK = threading.Lock()
+
+
+def parse(raw, day0_ms):
+    if not raw:
+        return None
+    d = lzma.decompress(raw)
+    n = len(d) // 24
+    a = np.frombuffer(d[: n * 24], dtype=np.dtype([("t", ">i4"), ("o", ">i4"), ("c", ">i4"), ("l", ">i4"),
+                                                     ("h", ">i4"), ("v", ">f4")]))
+    return (day0_ms + a["t"].astype(np.int64) * 1000, a["c"].astype(np.int64), a["v"].astype(np.float32))
+
+
+class Worker(threading.Thread):
+    def __init__(self, q, res):
+        super().__init__(daemon=True); self.q = q; self.res = res; self.conn = None
+
+    def connect(self):
+        if self.conn is not None:
+            try:
+                self.conn.close()
+            except Exception:
+                pass
+            self.conn = None
+        delay = 2.0
+        for k in range(40):
+            t0 = time.time()
+            try:
+                c = http.client.HTTPSConnection(HOST, timeout=45); c.connect()
+                LOG.write(f"{t0:.1f}\t{time.time()-t0:.2f}\tCONNECT\t0\t-\n")
+                self.conn = c; return
+            except Exception as e:
+                LOG.write(f"{t0:.1f}\t{time.time()-t0:.2f}\tCONNFAIL:{type(e).__name__}\t0\t-\n")
+                time.sleep(delay * (0.5 + random.random())); delay = min(delay * 1.5, 60.0)
+        raise RuntimeError("cannot connect")
+
+    def get(self, path):
+        n503 = 0
+        for attempt in range(14):
+            if self.conn is None:
+                self.connect()
+            t0 = time.time()
+            try:
+                self.conn.request("GET", path, headers={"User-Agent": UA, "Accept": "*/*"})
+                r = self.conn.getresponse(); body = r.read(); st = r.status
+            except Exception as e:
+                st = f"ERR:{type(e).__name__}"; body = b""
+            LOG.write(f"{time.time():.1f}\t{time.time()-t0:.2f}\t{st}\t{len(body)}\t{path}\n")
+            if st == 200:
+                time.sleep(0.05); return body
+            if st == 404:
+                return b""
+            if st == 503:
+                n503 += 1
+                if n503 >= 5:   # 503 on 5 fresh connections = file missing
+                    return b""
+            if st == 429:
+                time.sleep(10 * (attempt + 1))
+            self.connect()      # a 503 / error is sticky to a connection: replace it
+        LOG.write(f"{time.time():.1f}\t0\tGIVEUP\t0\t{path}\n")
+        return None
+
+    def run(self):
+        while True:
+            item = self.q.get()
+            if item is None:
+                self.q.task_done(); return
+            sym, d = item
+            day0 = int(dt.datetime(d.year, d.month, d.day, tzinfo=dt.timezone.utc).timestamp() * 1000)
+            out = {}
+            for side in ("BID", "ASK"):
+                if side == "ASK" and d.year <= BIDONLY_UNTIL:
+                    out[side] = None; continue
+                p = f"/datafeed/{sym}/{d.year}/{d.month-1:02d}/{d.day:02d}/{side}_candles_min_1.bi5"
+                body = self.get(p)
+                out[side] = ("FAIL" if body is None else parse(body, day0))
+            with LOCK:
+                self.res[(sym, d)] = out
+            self.q.task_done()
+
+
+def main():
+    jobs = []
+    for part in SPEC.split(","):
+        sym, yy = part.split(":"); y0, y1 = map(int, yy.split("-"))
+        for y in range(y0, y1 + 1):
+            jobs.append((sym, y))
+    for sym, y in jobs:
+        fn = os.path.join(OUT, f"{sym}_{y}.npz")
+        if os.path.exists(fn):
+            print("skip", fn, flush=True); continue
+        days = []
+        d = dt.date(y, MONTHS[0], 1)
+        end = dt.date(y + 1, 1, 1) if MONTHS[1] == 12 else dt.date(y, MONTHS[1] + 1, 1)
+        while d < end and d <= LAST:
+            wdy = d.weekday()
+            if (DAYSEL == "all" and wdy != 5) or (DAYSEL == "wd" and wdy < 5) or (DAYSEL == "wed" and wdy == 2):
+                days.append(d)
+            d += dt.timedelta(days=1)
+        q = queue.Queue(); res = {}
+        ws = [Worker(q, res) for _ in range(NT)]
+        for w in ws:
+            w.start()
+        for d in days:
+            q.put((sym, d))
+        for _ in ws:
+            q.put(None)
+        t0 = time.time(); q.join()
+        ts, bc, ac, bv, av = [], [], [], [], []
+        nfail = 0; nmiss = 0
+        for d in days:
+            o = res[(sym, d)]
+            if o["BID"] == "FAIL" or o["ASK"] == "FAIL":
+                nfail += 1; continue
+            if o["BID"] is None:
+                nmiss += 1; continue
+            tb, cb, vb = o["BID"]
+            if o["ASK"] is None or len(o["ASK"][0]) != len(tb) or not np.array_equal(o["ASK"][0], tb):
+                ca = np.full(len(tb), -1, np.int64); va = np.zeros(len(tb), np.float32)
+            else:
+                ca = o["ASK"][1]; va = o["ASK"][2]
+            ts.append(tb); bc.append(cb); ac.append(ca); bv.append(vb); av.append(va)
+        if nfail:
+            print(f"{sym} {y}: {nfail} days FAILED, not saving (rerun)", flush=True); continue
+        np.savez_compressed(fn, ts=np.concatenate(ts), bci=np.concatenate(bc), aci=np.concatenate(ac),
+                            bv=np.concatenate(bv), av=np.concatenate(av))
+        print(f"{sym} {y}: {len(days)} days, {nmiss} missing, {time.time()-t0:.0f}s", flush=True)
+
+
+main()

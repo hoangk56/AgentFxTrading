@@ -1,0 +1,10 @@
+B3: NAV days 66 after dropping 25 gotobi days; trades 66; skipped (no quote) []
+A1: trades 677; skipped {'no flow row': 0, 'zero flow': 0, 'no quote': 0}; last flow row 2026-09-24
+B3 DISC: n 32 | mid +2.07 (t +0.37) | net +1.27 (t +0.22) | x1.5 +0.77 (t +0.13) | +1min +0.63 (t +0.11)
+B3 TEST: n 34 | mid +6.15 (t +2.72) | net +5.10 (t +2.35) | x1.5 +4.72 (t +2.20) | +1min +4.30 (t +1.97)
+B3 FWD: n 0
+B3 by year (net): 2024 +0.0 (n 19), 2025 +6.1 (n 27), 2026 +2.5 (n 20)
+A1 DISC: n 366 | mid +4.29 (t +1.24) | net +1.61 (t +0.46) | x1.5 +0.27 (t +0.08) | +1min +0.18 (t +0.05)
+A1 TEST: n 311 | mid +6.80 (t +2.63) | net +5.36 (t +2.07) | x1.5 +4.64 (t +1.79) | +1min +3.30 (t +1.29)
+A1 FWD: n 0
+A1 by year (net): 2024 +0.7 (n 244), 2025 +4.3 (n 250), 2026 +5.5 (n 183)

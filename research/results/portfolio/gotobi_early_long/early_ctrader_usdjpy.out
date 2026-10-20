@@ -1,0 +1,18 @@
+A: 5 reports, long n 341 R +0.1057 (t +3.5) $36,060 | short n 339 R +0.0529 $17,931
+   legs per pair-year: USD15:138 USD16:136 USD17:136 USD18:135 USD19:135
+B: 5 reports, long n 341 R +0.1037 (t +3.1) $35,350 | short n 339 R +0.0529 $17,931
+   legs per pair-year: USD15:138 USD16:136 USD17:136 USD18:135 USD19:135
+C: 5 reports, long n 341 R +0.1115 (t +3.3) $38,011 | short n 339 R +0.0529 $17,931
+   legs per pair-year: USD15:138 USD16:136 USD17:136 USD18:135 USD19:135
+D: 5 reports, long n 341 R +0.1084 (t +3.6) $36,967 | short n 339 R +0.0529 $17,931
+   legs per pair-year: USD15:138 USD16:136 USD17:136 USD18:135 USD19:135
+
+B - A (long legs): matched 341 (only A 0, only B 0)  mean -0.0021 R/leg (t -0.16)  $-710
+   by year (R summed): 2015 -2.04  2016 +1.12  2017 +1.50  2018 -1.51  2019 +0.21  -> 3/5 > 0
+   by pair: USDJPY -0.0021 (t -0.2)
+   PRE-REGISTERED VERDICT: FAIL (mean>0: False, t>=2: False, years>=4/6: False)
+
+C - D (long legs): matched 341 (only D 0, only C 0)  mean +0.0031 R/leg (t +0.23)  $+1,044
+   by year (R summed): 2015 +0.27  2016 +1.24  2017 -0.08  2018 -1.74  2019 +1.35  -> 3/5 > 0
+   by pair: USDJPY +0.0031 (t +0.2)
+0332227e

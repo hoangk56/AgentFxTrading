@@ -28,7 +28,12 @@ KHÔNG BAO GIỜ DỪNG trước khi có một ứng viên bậc live đạt hol
 Dữ liệu (research/data/, git-ignore):
 - 26 mã IC, M1 trong data/m1/*.npz, 2016 đến nay (năng lượng từ 2018).
 - 6 mã IC mới ở vòng 7: ES35, F40, IT40, STOXX50, US2000, USDCNH (M1 bid). Cache của DOGEUSD rỗng.
+- Vòng 30 thêm 6 mã FX: tick IC 2016-2024 của USDCNH, USDMXN, USDSGD, EURNOK, USDNOK, EURSEK trong data/<mã>/t1
+  (2025-26 = holdout và forward chỉ nằm trong cache backtest trên VPS, chưa tải về); Dukascopy M1 2004-15 của 6 mã đó
+  trong data/duka/m1_r30/ (ask sớm là rác, USDMXN từ 2007, USDCNH từ 2012).
 - Dukascopy 2004-2015 trong data/duka/: M1 bid/ask của USDJPY, EURJPY, GBPJPY, USDCHF, EURUSD; H1 của 11 mã.
+  Vòng 24 thêm data/duka/m1c/ (npz gọn): AUDUSD, NZDUSD (Chủ nhật-thứ Sáu), XAUUSD, XAGUSD (thứ Hai-thứ Sáu),
+  GBPUSD, USDCAD (chỉ thứ Tư); kim loại 2004-09 chỉ có bid. Bạc Dukascopy trước 2008 thưa, không tin được.
 
 Ràng buộc cố định (chỉ những điều này):
 - Lot không phụ thuộc vốn; thuật toán được tăng giảm lot quanh một lot/rủi ro mặc định.
@@ -36,7 +41,9 @@ Ràng buộc cố định (chỉ những điều này):
 - Một bot giữ tối đa 3 lệnh cùng lúc.
 Mọi thứ khác tôi không nói đều được tự đổi: mã, khung thời gian, cách vào/thoát lệnh, engine, số mã mỗi bot...
 
-Đọc trước để không test lại (22 vòng đã chạy, chỉ C3 đạt bậc live; vòng mới nhất ở đầu JOURNAL):
+Đọc trước để không test lại (30 vòng đã chạy, chỉ C3 đạt bậc live; vòng mới nhất ở đầu JOURNAL; tạm dừng sau vòng 29
+theo yêu cầu của tôi, rồi ngày 2026-10-18 tôi duyệt quyết định 1, 2, 4: luật vàng chạy demo, vòng 30 trên 6 mã FX mới,
+chạy lại log forward; hiện trạng ở cuối báo cáo vòng 30):
 - research/JOURNAL.md (toàn bộ) và research/README.md
 - research/results/portfolio/swing_lab_v2_2026-09-27.md ("What was tried"), prereg_swing_v2.md
 - research/results/portfolio/flow_search_2026-09-27.md, flow_search_round4_2026-09-27.md
@@ -74,7 +81,38 @@ Mọi thứ khác tôi không nói đều được tự đổi: mã, khung thờ
 - research/results/portfolio/round21_fed_events_2026-10-06.md (luật USD ngày FOMC áp cho biên bản, điều trần,
   Jackson Hole, refunding: không có)
 - research/results/portfolio/round22_residual_2026-10-06.md và round22_residual/TRIAGE_R.md (mọi ý tưởng còn mở của
-  vòng 3-21, đã phân loại: cần tôi quyết / đã test / hậu kiểm / dưới phí) và báo cáo các vòng sau nếu có (xem JOURNAL)
+  vòng 3-21, đã phân loại: cần tôi quyết / đã test / hậu kiểm / dưới phí)
+- research/results/portfolio/round23_recent_2026-10-15.md và thư mục round23_recent/ (tài liệu 2025-26: bản đồ 40 bài
+  ở STREAM_N.md, cách tìm qua Crossref theo ISSN / DOI prefix và arXiv; dòng tiền sell-side 2023-26 ở STREAM_P.md)
+- research/results/portfolio/round24_relaxed_2026-10-15.md và thư mục round24_relaxed/ (điều kiện nới: bậc RELAXED,
+  luật kỷ mới cho cơ chế từ 2024, Dukascopy 2004-15 cho AUD/NZD/XAU/XAG; STREAM_C.md chấm lại 60 hiệu ứng cũ kèm phí
+  cần để đạt live; F3 đạt holdout, FOMC trượt)
+- research/results/portfolio/round25_surprises_2026-10-17.md và thư mục round25_surprises/ (consensus công bố từ lịch
+  ForexFactory 2007-24 và cách sửa giờ của nó ở STREAM_B.md; tổng điều tra tài liệu 2000-17 và kinh nghiệm tiếng Nhật /
+  Trung / Hàn / Đức ở STREAM_C.md; STREAM_A.md định giá từng quyết định đang chờ tôi, kèm giả thuyết khai báo sẵn trong
+  HYPOTHESES_A.md)
+- research/results/portfolio/round26_tick_events_2026-10-17.md và thư mục round26_tick_events/ (mô hình khớp lệnh ở
+  mức tick: độ trễ, stop phía server, limit chỉ khớp khi giá đi xuyên qua; straddle khi ra tin, cú nhảy ngoài lịch tin;
+  danh sách phút giờ cố định có cú nhảy ở STREAM_J.md)
+- research/results/portfolio/round27_levels_opens_2026-10-17.md và thư mục round27_levels_opens/ (vàng phá mốc tròn với
+  lệnh stop chờ: chỉ mốc $50 / $100 có hiệu ứng, bậc DEMO, PREREG_DRAFT_G_gold_round50_cascade.md; chiều cú nhảy lúc sàn
+  mở: có thông tin ở mid, không có gì sau phí)
+- research/results/portfolio/round28_round_levels_2026-10-17.md và thư mục round28_round_levels/ (luật mốc tròn của vàng
+  áp cho mốc lớn của 21 mã khác, gộp book: không có gì ngoài vàng; hiệu chỉnh khớp stop giữa dữ liệu phút và tick ở
+  STREAM_R1.md)
+- research/results/portfolio/round27_levels_opens/PREREG_G_gold_round50_cascade.md (holdout đã đăng ký của luật vàng
+  mốc $50: qua bậc DEMO; lịch tin USD chính thức 2024-26 trong prereg_code/usd_high_2024_2026.csv, dùng lại được)
+- research/results/portfolio/round29_fades_opens_2026-10-18.md và thư mục round29_fades_opens/ (fade mốc tròn nhỏ ở
+  ES35 / F40 / IT40 / STOXX50 / US2000, chiều vài giây đầu ở giờ mở cửa ASX / TSE / A-share / HKEX / phiên đêm SGE:
+  không có gì; sửa lỗi "đảo chiều" của vòng 28; mục "State at the pause" liệt kê thuật toán đang chạy, ứng viên, log
+  forward và các quyết định chờ tôi theo thứ tự giá trị)
+- research/results/portfolio/gold_level_cbot_2026-10-18.md (luật vàng mốc $50 thành cBot GoldLevelBot: backtest cTrader
+  trên holdout trùng 228/228 lệnh của engine; stop bảo vệ $100; lịch tin USD chính thức kéo dài tới 2027 trong
+  cBot/seeds/usd_high_calendar.csv, hiệu lực tới 2026-12-11; chạy demo từ 2026-10-18)
+- research/results/portfolio/round30_fix_flows_2026-10-18.md và thư mục round30_fix_flows/ (6 mã FX mới: dòng tiền NOK
+  của Norges Bank, fix Banxico của USDMXN, VWAP ABS của USDSGD, đóng cửa CFETS của USDCNH ở spread thật: không có gì;
+  cách kéo tick IC qua backtest cTrader trên VPS)
+  và báo cáo các vòng sau nếu có (xem JOURNAL)
 
 Những họ đã cạn, đừng quét lại kiểu cũ (chỉ làm lại nếu cách dựng khác hẳn và nói rõ khác ở đâu):
 - quét theo giờ / lịch không điều kiện: 90k ô lịch x khung (vòng 3), 48k ô quanh 19 mốc fix/mở cửa (vòng 4),
@@ -109,7 +147,50 @@ Những họ đã cạn, đừng quét lại kiểu cũ (chỉ làm lại nếu 
   12 K + 19 T, ~64 bài): các hiệu ứng có chiều trong bài hoặc đã chết sau khi công bố hoặc dưới phí;
 - carry ngày ngân hàng trung ương (vòng 20): chỉ chân USD ngày FOMC còn sống (net IS t 1.90, VAL 2.40, gộp 2004-24 t
   3.25) nhưng 8 lần/năm nên không qua ngưỡng; đấu giá tất toán đáo hạn chỉ số (Mỹ, Nhật, châu Âu, HK): đã cạn;
-  phần bù chỉ có ở chính quyết định FOMC, không nhân lên được bằng các sự kiện Fed khác (vòng 21).
+  phần bù chỉ có ở chính quyết định FOMC, không nhân lên được bằng các sự kiện Fed khác (vòng 21);
+- tài liệu mới 2025-01..2026-10 (vòng 23 N, 23.9k bản ghi, 40 bài có chiều + cửa sổ): fade gap mở lại 17:00 NY có
+  thật ở mid mọi cặp mọi năm nhưng dưới phí 3-5 bp (spread giờ rollover), đảo chiều bất đối xứng trong ngày, BTC quanh
+  ngày lễ NYSE, pre-market US500: không có. Vàng quanh Giáng sinh chỉ là mùa vụ cuối năm (1/1, EURUSD, bạc cùng chiều);
+- dòng tiền sell-side 2023-26 (vòng 23 P): vol-control, tái cân bằng theo ngưỡng (chân cổ phiếu), CTA đổi tín hiệu
+  21/63/252 ngày, buyback blackout, tuần sau đáo hạn quyền chọn, quỹ hưu trí cuối quý: không thấy ở lợi suất 1-5 ngày
+  của chỉ số; dòng tiền có ngưỡng công bố trước và thực hiện tuỳ ý trong nhiều giờ thì đã bị chạy trước;
+- cơ chế chỉ có từ 2024 (vòng 24 A, kỷ mới): ETF BTC/ETH spot vào NAV 15-16 ET (kể cả ký theo dòng tiền cùng ngày:
+  không có chiều), NISA mới (USDJPY/EURJPY vào fix sau ngày đặt lệnh), US T+1, "BTC dump 10 giờ": đều trượt ở
+  DISCOVERY; ETH ở IC phí 23-26 bp;
+- lịch sử dài 2004-15 (vòng 24 B): V mở phiên Sydney chỉ xuất hiện từ ~2011 (PRE net âm), các mốc fix LBMA vàng/bạc,
+  COMEX mở, phiên vàng Trung Quốc: dưới phí; mùa vụ cuối năm vàng + USD (15/12 đến cuối tháng 12) chỉ là chuỗi
+  2016-23, PRE t 0.69, VAL t 0.04; vàng tháng 9 + 11 (Baur) đảo chiều sau 2010; vàng tháng 1, Santa Claus, USD hồi
+  tháng 1: không có;
+- chấm lại 60 hiệu ứng cũ theo bậc RELAXED (vòng 24 C): chỉ còn cửa sổ ECB EURUSD (F1-F5, F20) và USD ngày FOMC; ghép
+  book không có power holdout (~0.7) vì các chân đã biết holdout yếu. USD ngày FOMC đã trượt holdout (vòng 24);
+- phần bất ngờ đoán trước được của tin vĩ mô theo consensus công bố (vòng 25 B, 144 ô): neo vào số kỳ trước (Campbell &
+  Sharpe), chỉ báo sớm so với consensus cũ (ADP, khảo sát Fed vùng, CPI các nước -> HICP, CPI Tokyo, claims, PMI
+  flash), nowcast Cleveland Fed / GDPNow: consensus đoán được nhưng FX đã định giá trước giờ ra tin, gộp lại <= ~1 bp so
+  với phí khứ hồi 0.8-1.9 bp ở phút ra tin;
+- tài liệu 2000-17 và kinh nghiệm thực chiến không phải tiếng Anh (vòng 25 C: 13.7k bản ghi, 39 họ, 27 họ đã test):
+  thứ Hai sau thứ Sáu giảm, phá mốc tròn ở chỉ số, ngày giao dịch đầu / cuối tháng ở Tokyo: không có. Mốc $10 của vàng
+  là rào cản thật ở mọi kỷ từ 2004 (đi tiếp sau khi phá) nhưng net chỉ bằng nửa phí IC; lát giờ COMEX là chọn sau khi
+  nhìn, power 1.68 ở cỡ VAL;
+- thực thi theo tick quanh thông tin (vòng 26): straddle stop OCO đặt 2 phút trước tin, limit bắt cú vọt, fade sau 1
+  phút (630 ô): giá đi tiếp sau khi stop khớp +0.2-1.6 bp gross, dưới phí khứ hồi phút ra tin 1.1-3.0 bp (dầu 3.6-7.9,
+  khí 25-57); cú nhảy vài giây ngoài lịch tin (7.8k ô): theo thì trượt, fade cú nhảy chỉ một mã có thật ở mid (+0.6-3.5
+  bp) nhưng dưới phí 1.6-1.9 bp. Độ trễ 250 ms không phải ràng buộc, spread mới là ràng buộc;
+- chiều cú nhảy vài giây đầu ở 8 mốc giờ sàn (mở cửa SHFE / SGE, fix CNY, mở cửa châu Âu, 07:00 NZ, imbalance 15:50 NY,
+  settlement; vòng 27 V, 3.9k ô): có thông tin ở mid vượt ngẫu nhiên, nhưng net chỉ như ngẫu nhiên; mốc vàng $10 thường
+  (vòng 27 G): không có cú dồn stop nhanh; bạc và bạch kim không có rào cản ở mốc tròn;
+- mốc tròn lớn (cùng luật với vàng $50, khoảng cách {1, 5} x 10^k gần 3.4 % giá) ở FX, cặp JPY, chỉ số Mỹ / châu Âu /
+  châu Á, dầu, BTC (vòng 28, 22 mã, book gộp IS t -6.55): không đi tiếp ở mã nào ngoài vàng. "Mốc nhỏ của chỉ số đảo
+  chiều" mà vòng 28 ghi là sai đo: số mid của R2 tính từ giá khớp stop nên chứa trượt giá mô hình (vòng 29 F);
+- fade sau khi phá mốc tròn nhỏ "tươi" ở 4 chỉ số châu Âu chưa dùng (ES35, F40, IT40, STOXX50) và US2000 (vòng 29 F):
+  lỗ mọi mã, book IS t -4.96; giá chỉ về +0.7-1.2 bp sau 30 phút so với phí khứ hồi 3.9-4.8 bp; không phí thì power
+  tối đa 1.46;
+- chiều vài giây đầu ở giờ mở cửa ASX, TSE, A-share / HKEX sáng và chiều, phiên đêm SGE (vòng 29 O, 2.8k ô): có chiều ở
+  mid (cụm 00:00 UTC) nhưng 0.4-1.5 bp so với phí 1.4-2 bp; net max t 2.01, p 0.63;
+- fix EM và dòng tiền NOK trên 6 mã mới (vòng 30, giả thuyết khai báo từ vòng 25): USDMXN vào fix Banxico có ở PRE
+  2007-15 (mid +2.28, t 2.87) nhưng đảo dấu từ 2016 (net IS -2.69, VAL -4.28); USDSGD vào VWAP ABS: không có; đóng cửa
+  CFETS của USDCNH có thật ở mid (t 4.6) nhưng net ở spread IC +0.08 bp (cần phí khứ hồi <= 0.70 bp, IC 1.15); EURNOK theo
+  chiều Norges Bank: IS +2.33 (t 1.65), VAL -4.99, độ dốc theo cỡ dòng tiền mất ở VAL; giá EURNOK của IC nhảy +2.3 bp
+  vào phút 09:00 Oslo rồi về (lỗi giá chào, tính vào phí nếu vào lệnh ở phút đó).
 
 Kết luận chung của các vòng 3-9: các dòng lệnh có thật ngoài gotobi chỉ 0.02-3 bp, cỡ spread + commission của IC;
 premia nhiều tuần thua phí qua đêm (financing markup) của IC; thông tin giữa các mã được định giá trong phút đầu;
@@ -129,9 +210,20 @@ Bảng giá trị quyết định (vòng 16, STREAM_X): ở phí IC không hiệ
 hoặc venue phí thấp đưa 2-3 hiệu ứng (Sydney V, slot trước fix ECB) lên mức live nếu chúng thôi suy giảm (Sydney giữ
 0.31 cỡ VAL ở holdout, cần ~0.7). Cách rẻ nhất để định giá quyết định đó: Dukascopy AUD/NZD (và XAU/XAG) M1 2004-15,
 rồi dữ liệu sau 2026-09-24.
-Sau vòng 22: danh sách ý tưởng không cần tôi quyết đã cạn (TRIAGE_R). Phiên mới nên bắt đầu từ quyết định của tôi
-(xem "Hướng cần tôi quyết"); nếu tôi chưa quyết gì mà vẫn yêu cầu chạy tiếp, chỉ mở hướng thật sự mới về cơ chế, khai
-báo trước toàn bộ, không quét lại.
+Sau vòng 22: danh sách ý tưởng không cần tôi quyết đã cạn (TRIAGE_R). Vòng 23 (tài liệu và dòng tiền mới nhất) cũng
+không có ứng viên live. Vòng 24 (điều kiện nới, tôi cho phép) cũng không có live: nới ngưỡng không tạo ra cơ chế mới,
+chỉ F3 (lọc của E1) qua được holdout ở bậc RELAXED, và đang yếu đi ở 2026. Vòng 25 (bậc gốc, không RELAXED): thông tin
+công khai đã nằm trong giá trước khi bot kịp hành động, kể cả phần bất ngờ đoán trước được của tin vĩ mô; tài liệu cũ đã
+map hết; và theo STREAM_A, không quyết định nào đang chờ có kỳ vọng ra ứng viên live (cao nhất 3-5 %). Vòng 26: thực thi
+ở mức tick (straddle khi ra tin, fade / theo cú nhảy) không cứu được kênh thông tin; họ "thông tin công khai" đã đóng ở
+mọi thời điểm (trước, trong, sau tin, và ngoài lịch tin). Vòng 27-28: cơ chế mới duy nhất có bằng chứng dương ở cả bốn
+kỷ là cú dồn stop khi vàng phá mốc $50 "tươi" (qua holdout bậc DEMO 2026-10-18, power 1.40), chỉ có ở vàng. Vòng 29:
+fade mốc tròn ở chỉ số và giờ mở cửa châu Á đều dưới phí. Đã tạm dừng sau vòng 29 theo yêu cầu của tôi. Vòng 30 (tôi
+duyệt dữ liệu 6 mã FX mới): mọi giả thuyết khai báo trước đều trượt, fix Banxico đảo dấu sau 2015, dòng tiền NOK suy
+giảm như mọi dòng tiền khác, đóng cửa CFETS dưới phí IC. Luật vàng mốc $50 đã chạy demo (2026-10-18). Phiên mới nên bắt
+đầu từ quyết định của tôi (xem "Hướng cần tôi quyết" và mục "State after round 30" của báo cáo vòng 30); nếu tôi chưa
+quyết gì mà vẫn yêu cầu chạy tiếp, chỉ mở hướng thật sự mới về cơ chế hoặc cách thực thi, khai báo trước toàn bộ,
+không quét lại.
 Hệ quả để chọn hướng (cập nhật sau vòng 15): bậc live cần edge net khoảng gấp đôi E1 với 1 lệnh/ngày; ghép book,
 lọc điều kiện và cửa sổ ngắn đều không tới được (vòng 14-15). Sau 15 vòng, thứ chặn là phí của IC (commission 0.6 bp
 FX/kim loại, spread chỉ số và kim loại ở các phút mốc), không phải thiếu hiệu ứng: hàng trăm ô có thật ở giá mid. Hướng
@@ -156,16 +248,68 @@ Hướng cần tôi quyết (ghi lại, đừng tự làm): kéo thêm mã IC (c
 0.6 bp, Dukascopy M1 2004-15 cho thêm mã (GBPUSD, AUDUSD, NZDUSD, USDCAD, AUDJPY, XAU, XAG; chỉ số US30/US500),
 dữ liệu ngoài trả phí (OI/gamma Deribit, AUM quỹ ETF đòn bẩy, premium SGE), chạy demo cho các ứng viên DEMO, và có
 cho phép tính net IS của chỉ số theo phí hiện tại hay không (là đổi ngưỡng, chưa áp dụng). Dữ liệu quyền chọn FX công khai của DTCC chỉ tải được từ 2024-12 (trước đó nằm ở Deep
-Archive), tức là trùng holdout.
+Archive), tức là trùng holdout. Thêm từ vòng 23: chạy demo 1 lệnh/năm cho vàng quanh Giáng sinh hay test một luật cuối
+năm vàng / USD khai báo trước trên dữ liệu sau 2026-09-24; các cơ chế chỉ có từ 2024 (dòng tiền ETF BTC/ETH spot vào
+NAV 16:00 ET, BTC vào khung benchmark NY, NISA mới bán yên đầu tháng, gamma 0DTE) cần luật kỷ mới hoặc dữ liệu mới; dữ
+liệu trái phiếu (lợi suất 10 năm / T-note) cho chân trái phiếu của tái cân bằng; bài trả phí Ewald et al. 2025 (giờ
+long/short trong ngày của Brent) và truy cập SSRN. Thêm từ vòng 24: chạy demo F3 (và E1) theo luật dừng / lên live
+trong round24_relaxed/PREREG_DRAFT_C_ecb_window_variants.md (cần cBot). Dữ liệu sau 2026-09-24: tôi đã chọn tải
+(Dukascopy); F3 / E1 có log forward đã đăng ký (round24_relaxed/PREREG_R24_forward.md, chạy lại
+prereg_code/fwd_r24.py.txt với ngày mới hơn, nối kết quả bên dưới), lát đầu 25/09-14/10 quá ít lệnh. Từ 2026-10-16 cũng có log forward cho B3 (long EURJPY vào fix ngày NAV
+NISA) và A1 (BTCUSD 15-16 NY theo dòng tiền ETF hôm trước), hai luật trượt DISCOVERY nhưng mạnh ở TEST
+(round24_relaxed/PREREG_R24_forward_B3_A1.md; chạy lại fwd_b3a1.py.txt khi có capture Farside mới, mốc B3 n 30 /
+A1 n 250, đạt khi FWD t >= 2.0); lát đầu B3 n 2 +10.9 bp, A1 n 12 -7.3 bp. Lát 2 của F3 / E1 (đến 16/10, vòng 25): F3
+vẫn 2 lệnh, E1 16 lệnh net -2.27 bp. Thêm từ vòng 25 (STREAM_A.md xếp hạng theo khả năng ra ứng viên live): đã làm ở vòng 30 phần kéo
+tick IC + Dukascopy cho USDCNH, USDMXN, USDSGD, EURNOK, USDNOK, EURSEK (không ra ứng viên). Còn lại: có chấp nhận nền
+tảng khác cTrader không (cổ phiếu CFD của IC chỉ có trên MT5), trước khi dựng engine cổ phiếu từ dữ liệu miễn phí
+(Dukascopy US stock CFD 2017-24 + SEC EDGAR; luật bán sau khi hết blackout lợi nhuận, live ~3-5 %); có log forward luật
+mốc $10 của vàng (STREAM_C.md) trên dữ liệu sau 2026-09-24 không (demo là tối đa). Luật vàng mốc $50 đã chạy demo từ
+2026-10-18 (xem "Đang chạy trên VPS"). Việc định kỳ không cần tôi quyết: dựng lại lịch tin USD của bot vàng trước
+2026-12-11 (gold_level_cbot/calendar/, rồi research.tools.usd_high_calendar_seed và deploy; quá hạn thì bot ngừng đặt
+lệnh); chạy lại hai log forward khi có ngày mới (B3 / A1 cần capture Farside trên Internet Archive, ngày 18/10 bị 429
+suốt). Không khuyến nghị: cross
+FX, EM khác (PLN, CZK, HUF, ZAR, TRY, HKD), softs, đổi sàn chỉ để research, dữ liệu trả phí, tick IC cho chỉ số châu
+Âu / châu Á (vòng 28-29: hiệu ứng mốc tròn và giờ mở cửa đều dưới phí). Luật cuối năm
+tháng 12/2026 và V Sydney sau 2024 cần đăng ký riêng trước khi xem; hướng venue phí thấp (vòng 16) giờ giá trị thấp hơn vì V Sydney chỉ
+có từ ~2011.
+
+Điều kiện nới tôi đã cho phép ở vòng 24 (round24_relaxed/BRIEF.md), dùng lại được nếu tôi cho phép tiếp:
+- Bậc RELAXED (chỉ demo, không bao giờ live nếu chưa đạt bậc LIVE hoặc luật lên live đã đăng ký): net t >= 1.5 ở kỷ
+  thiết kế; net > 0 với t >= 1.0 ở kỷ kiểm; dương khi spread x1.5 và trễ 1 phút; thắng >= 80 % lệnh ngẫu nhiên;
+  power theo cỡ ở kỷ kiểm >= 1.5; có cơ chế kinh tế. Được mở holdout một lần sau khi có PREREG_DRAFT.
+- Cơ chế chỉ có từ 2023-24: DISCOVERY = từ khi có..2025-06-30, TEST = 2025-07-01..ngày mới nhất; mỗi luật xem TEST
+  một lần.
+- Được tải dữ liệu (Dukascopy, bảng dòng tiền công khai); luật mùa vụ / dòng tiền khai báo trước được giữ đến 20
+  ngày giao dịch (tính swap).
+- Không nới: chiều lệnh từ cơ chế / nguồn, khai báo trước số liệu, phí thực thi được, benchmark ngẫu nhiên theo số ô.
 
 Đang chạy trên VPS (đã có cBot, backtest cTrader và deploy; preset ở app/cbot_presets.py):
 - C3 Gotobi JPY basket (cBot/GotobiBot.cs), thuật toán duy nhất đang chạy: USDJPY, EURJPY, GBPJPY, mỗi cặp một
   container, chart m15. Vào lệnh theo lịch gotobi quanh fix Tokyo, stop 3 x ATR20(H1), bỏ các ngày gotobi không có
   fix (ngày lễ Nhật, 31/12). Đạt holdout 2025-26 (R +0.042, t 2.9) và kỷ Dukascopy 2004-2015 (R +0.038, t 4.8).
-- Ứng viên DEMO chờ tôi quyết (chưa có cBot, có luật dừng / lên live trong file đăng ký; đừng tối ưu lại):
+- EcbWindowBot (cBot/EcbWindowBot.cs, deploy 2026-10-16, PR #16): F3 chạy live 0.01 lot (cbot-live-live-eurusd-ecb-f3),
+  E1 chạy demo 0.1 lot (cbot-demo-demo-eurusd-ecb-e1, ghi cờ USD-TOP để chấm cả F3 trên demo). Chấm theo luật dừng /
+  lên live trong round24_relaxed/PREREG_DRAFT_C_ecb_window_variants.md; đừng tối ưu lại. 3 bot Gotobi demo đã xoá 10-16.
+- GoldLevelBot (cBot/GoldLevelBot.cs, deploy 2026-10-18, PR #18): luật vàng mốc $50 chạy demo 0.01 lot
+  (cbot-demo-demo-xauusd-levels-gold50), stop bảo vệ $100 ngoài luật. Log từng lệnh kèm giá theo mô hình ở
+  /home/forge/ctrader/ctrader_data/<BotId>_trades.csv trên VPS; chấm bằng `python -m research.tools.gold_demo_check`
+  (luật dừng / lên live trong PREREG_G_gold_round50_cascade.md); đừng tối ưu lại. Lịch tin trong
+  cBot/seeds/usd_high_calendar.csv hiệu lực tới 2026-12-11.
+- Ứng viên DEMO chờ tôi quyết (có luật dừng / lên live trong file đăng ký; đừng tối ưu lại; E1 / F3 giờ đã chạy, xem trên):
   vàng theo chiều ngày vào settlement COMEX ngày biến động top 10 %
   (round12_flows_execution/PREREG_L_gold_settlement_bigday.md); bán EURUSD 11:00-13:00 London mỗi ngày
-  (round13_structural/PREREG_M_eurusd_midday.md).
+  (round13_structural/PREREG_M_eurusd_midday.md). Ứng viên bậc RELAXED đã đạt holdout (vòng 24): F3, bán EURUSD
+  11:00-13:00 London chỉ ngày USD mạnh từ tối hôm trước (round24_relaxed/PREREG_R24_relaxed_hold.md: holdout +2.00
+  bp/lệnh, t 2.16, ~65 lệnh/năm; năm 2026 -0.91; forward 25/09-14/10: 2 lệnh, -9.2 bp; holdout + forward t 1.89). USD giảm ngày FOMC đã trượt holdout (-34.6 bp, t -2.36): bỏ.
+  Ứng viên DEMO mới đã qua holdout (2026-10-18), nay đang chạy demo: vàng đi tiếp sau khi phá mốc $50 "tươi", stop chờ ở mốc + nửa
+  spread, thoát sau 30 phút (round27_levels_opens/PREREG_G_gold_round50_cascade.md, có luật dừng / lên live): IS +5.99
+  bp (t 2.66), VAL +3.27 (t 1.81), 9/9 năm dương, PRE (đã sửa lỗi nhìn trước một nến ở vòng 28) +3.90 (t 2.50);
+  holdout n 228, net +2.87 bp (t 1.43), x1.5 +2.71, +1 phút +1.81, 2025 +0.80, 2026 +5.43. Không lên live được vì
+  power 1.40 (Sharpe/lệnh 0.093). Cơ chế không có ở mã nào khác (vòng 28) nên không gộp được book. Số lệnh holdout gấp
+  đôi dự kiến vì giá vàng tăng gấp đôi (mốc cố định theo đô la dày hơn theo %); 5 lệnh lớn nhất chiếm 518 / 655 bp.
+  Đừng tối ưu lại (mốc $100, chỉ chiều giảm, mốc theo % giá đều là chọn sau khi xem holdout).
+  Bản nháp, không khuyến nghị: vàng long quanh Giáng sinh (round23_recent/PREREG_DRAFT_N_gold_christmas.md) và luật
+  cuối năm vàng + USD (round24_relaxed/PREREG_DRAFT_B_turn_of_year.md), 1 lệnh/năm, PRE và VAL yếu.
 - C1 Crypto Donchian H4 đã trượt holdout và bị gỡ khỏi VPS ngày 2026-10-03. Đừng tối ưu lại C1 hay test
   Donchian/breakout xu hướng trên mã khác (đã âm ở crypto, chỉ số, kim loại, năng lượng, FX).
 Muốn thuật toán MỚI, khác cơ chế với C3 (không phải lịch gotobi/fix JPY), ít tương quan với lợi nhuận ngày của C3:
@@ -209,7 +353,13 @@ phải vào sau tín hiệu (nếu không sẽ chứa luôn cú chạy dùng đ�
 `date -u`, không ước lượng; ngày lễ phải cluster theo khối ngày và có placebo
 nước khác; lệnh vào ngẫu nhiên cho luật có chiều phụ thuộc dữ liệu phải tính lại chiều tại thời điểm ngẫu nhiên; giờ
 rollover của IC (17:00-18:00 New York) làm phí theo mùa ở các mốc giờ châu Á; nhãn phút đầu nến / cuối nến; kiểm cả hai
-lệnh trễ 1 phút cho luật momentum vào một mốc giá.
+lệnh trễ 1 phút cho luật momentum vào một mốc giá. Thêm từ vòng 25: spread IC gấp đôi trong phút cuối trước giờ ra tin
+(vào lệnh sớm ít nhất 2 phút); lịch ForexFactory (Hugging Face Ehsanrs2/Forex_Factory_Calendar) mất giờ ở các dòng cùng
+khung giờ (nằm ở 00:00 giờ Tehran) và nhãn +04:30 sai ở mùa hè 2023-24, nên lấy giờ từ lịch chính thức và kiểm bằng
+đỉnh hoạt động ở phút ra tin; cột "Previous" là số đã sửa (nhìn trước), dùng số công bố lần đầu; Dukascopy có thể mất
+nguyên ngày vì HTTP 503 khi server bận: kiểm từng ngày forward và tải lại vào thư mục mới trước khi chạy log đã đăng ký;
+mỗi phiên chỉ có ~200 lượt web search dùng chung và OpenAlex miễn phí hết hạn mức trong ngày, nên chia ngân sách cho các
+nhánh tài liệu; không bao giờ đưa email của tôi vào request (tham số mailto / contact).
 
 Cách chạy một vòng (đã dùng từ vòng 10): viết BRIEF.md cho vòng (copy round12_flows_execution/BRIEF.md, sửa phần
 hướng), chạy 3-4 nhánh song song bằng subagent, mỗi nhánh ghi giả thuyết kèm giờ UTC vào HYPOTHESES_<nhánh>.md

@@ -1,0 +1,44 @@
+# Forward panel: IC M1 (research/data/m1) for ts < CUT, Dukascopy M1 (fetched npz) for CUT <= ts < T1.
+# mid = (bid c + ask c)/2, spr = ask c - bid c; Dukascopy zero-volume minutes = no bar (NaN).
+# Writes two panels sharing mid/n: OUT/duka (Dukascopy spreads after CUT) and OUT/icspr (after CUT, spread = IC median
+# spread at the same UTC minute-of-day over ICREF0..CUT).
+# usage: build_panel_fwd.py OUT DUKADIR T0_ms CUT_ms T1_ms ICREF0_ms
+import json, os, sys, numpy as np
+OUT, DK = sys.argv[1], sys.argv[2]
+T0, CUT, T1, REF0 = map(int, sys.argv[3:7])
+SYMS = ["EURUSD", "USDJPY", "USDCHF"]
+SCALE = {"EURUSD": 1e5, "USDCHF": 1e5, "USDJPY": 1e3}
+N = (T1 - T0) // 60000
+for sub in ("duka", "icspr"):
+    os.makedirs(f"{OUT}/{sub}", exist_ok=True)
+mid = np.full((len(SYMS), N), np.nan, np.float32); spr_d = mid.copy(); spr_i = mid.copy()
+cnt = np.zeros((len(SYMS), N), np.uint16)
+for i, s in enumerate(SYMS):
+    z = np.load(f"research/data/m1/{s}.npz"); ts = z["ts"]; k = (ts >= T0) & (ts < CUT)
+    idx = (ts[k] - T0) // 60000; c = z["c"][k]; ca = z["ca"][k]
+    mid[i, idx] = (c + ca) / 2; spr_d[i, idx] = ca - c; spr_i[i, idx] = ca - c
+    cnt[i, idx] = np.minimum(z["n"][k], 65535)
+    r = (ts >= REF0) & (ts < CUT); mod = (ts[r] // 60000) % 1440; sp = (z["ca"][r] - z["c"][r]).astype(np.float64)
+    med = np.full(1440, np.nan)
+    for m in range(1440):
+        v = sp[mod == m]
+        if v.size:
+            med[m] = np.median(v)
+    parts = []
+    for y in sorted({int(x) for x in range(2020, 2031)}):
+        fn = f"{DK}/{s}_{y}.npz"
+        if os.path.exists(fn):
+            parts.append(np.load(fn))
+    dts = np.concatenate([p["ts"] for p in parts]); b = np.concatenate([p["bci"] for p in parts])
+    a = np.concatenate([p["aci"] for p in parts]); v = np.concatenate([p["bv"] for p in parts])
+    k = (dts >= CUT) & (dts < T1) & (v > 0) & (a > 0)
+    idx = (dts[k] - T0) // 60000; bb = b[k] / SCALE[s]; aa = a[k] / SCALE[s]
+    mid[i, idx] = (bb + aa) / 2; spr_d[i, idx] = aa - bb
+    spr_i[i, idx] = med[(dts[k] // 60000) % 1440]
+    cnt[i, idx] = 1
+    print(s, "IC bars", int(((ts >= T0) & (ts < CUT)).sum()), "duka bars", int(k.sum()), flush=True)
+for sub, spr in (("duka", spr_d), ("icspr", spr_i)):
+    np.save(f"{OUT}/{sub}/mid.npy", mid); np.save(f"{OUT}/{sub}/spr.npy", spr); np.save(f"{OUT}/{sub}/n.npy", cnt)
+    json.dump({"symbols": SYMS, "T0_ms": T0, "T1_ms_exclusive": T1, "minutes": int(N), "cut_ms": CUT,
+               "note": f"IC m1 before cut, Dukascopy after ({sub} spreads); bar-start labels; NaN = no bar"},
+              open(f"{OUT}/{sub}/meta.json", "w"), indent=1)

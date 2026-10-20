@@ -1,0 +1,36 @@
+# Dukascopy vs IC on 2026-08-03..2026-09-24 (before FWD): per-minute mid difference and the rule-window mid return
+# (BTCUSD 15:00->16:00 NY on weekdays; EURJPY 18:00 -> 00:55 UTC next weekday). Information only.
+import sys, datetime as dt, zoneinfo, numpy as np
+DK = sys.argv[1]; UTC = dt.timezone.utc; NY = zoneinfo.ZoneInfo("America/New_York")
+C0 = int(dt.datetime(2026, 8, 3, tzinfo=UTC).timestamp() * 1000); CUT = int(dt.datetime(2026, 9, 25, tzinfo=UTC).timestamp() * 1000)
+SC = {"EURJPY": 1e3, "BTCUSD": 10.0}
+for s in SC:
+    z = np.load(f"research/data/m1/{s}.npz"); k = (z["ts"] >= C0) & (z["ts"] < CUT)
+    ic = {t: (b + a) / 2 for t, b, a in zip(z["ts"][k], z["c"][k], z["ca"][k])}
+    icsp = {t: (a - b) / ((a + b) / 2) * 1e4 for t, b, a in zip(z["ts"][k], z["c"][k], z["ca"][k])}
+    p = np.load(f"{DK}/{s}_2026.npz"); q = (p["ts"] >= C0) & (p["ts"] < CUT) & (p["bv"] > 0) & (p["aci"] > 0)
+    dk = {t: (b + a) / 2 / SC[s] for t, b, a in zip(p["ts"][q], p["bci"][q], p["aci"][q])}
+    dsp = {t: (a - b) / ((a + b) / 2) * 1e4 for t, b, a in zip(p["ts"][q], p["bci"][q], p["aci"][q])}
+    com = sorted(set(ic) & set(dk)); d = np.array([(dk[t] / ic[t] - 1) * 1e4 for t in com])
+    print(f"{s}: matched minutes {len(com)}, median |mid diff| {np.median(abs(d)):.2f} bp, mean {d.mean():+.2f}; "
+          f"median spread duka {np.median([dsp[t] for t in com]):.2f} bp / IC {np.median([icsp[t] for t in com]):.2f}")
+    def px(m, tau):
+        ks = [t for t in range(tau - 600000, tau, 60000) if t in m]
+        return m[ks[-1]] if ks else None
+    r = []
+    day = dt.date(2026, 8, 3)
+    while day < dt.date(2026, 9, 24):
+        if day.weekday() < 5:
+            if s == "BTCUSD":
+                a = int(dt.datetime(day.year, day.month, day.day, 15, tzinfo=NY).timestamp() * 1000); b = a + 3600000
+            else:
+                a = int(dt.datetime(day.year, day.month, day.day, 18, tzinfo=UTC).timestamp() * 1000)
+                nd = day + dt.timedelta(days=1 if day.weekday() < 4 else 3)
+                b = int(dt.datetime(nd.year, nd.month, nd.day, 0, 55, tzinfo=UTC).timestamp() * 1000)
+            x = [px(ic, a), px(ic, b), px(dk, a), px(dk, b)]
+            if None not in x:
+                r.append(((x[1] / x[0] - 1) * 1e4, (x[3] / x[2] - 1) * 1e4))
+        day += dt.timedelta(days=1)
+    r = np.array(r)
+    print(f"   window returns: n {len(r)}, corr {np.corrcoef(r.T)[0, 1]:.4f}, median |diff| {np.median(abs(r[:, 0] - r[:, 1])):.2f} bp, "
+          f"mean IC {r[:, 0].mean():+.2f} / duka {r[:, 1].mean():+.2f}")
