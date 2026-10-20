@@ -1,0 +1,86 @@
+"""Round 24 forward read: F3 and E1 (rules exactly as hold_r24.py / PREREG_M) on data after 2026-09-24.
+usage: R24_PANEL=<panel> fwd_r24.py <last-date YYYY-MM-DD>
+Eras: FWD = 2026-09-25..last; HOLD+FWD = 2025-01-01..last (HOLD part from IC, FWD part from Dukascopy)."""
+import sys, os, datetime as dt
+H = os.path.dirname(os.path.abspath(__file__))
+SCR = "/private/tmp/claude-501/-Users-hoangbk-00-code-base-105-AgentFxTrading/4b8ace6a-8940-44d5-a772-50d419f9fb6d/scratchpad"
+sys.path.insert(0, SCR + "/r24/lead/hold"); sys.path.insert(1, SCR + "/r24/C")
+import numpy as np
+from clib import loc_ms, price, cl_t, day_of, year_of
+from eng import legs_to_trades
+
+LAST = dt.date.fromisoformat(sys.argv[1])
+D0 = dt.date(2024, 1, 1)
+ERAS = [("FWD", dt.date(2026, 9, 25), LAST), ("HOLD", dt.date(2025, 1, 1), dt.date(2026, 9, 24)),
+        ("HOLD+FWD", dt.date(2025, 1, 1), LAST)]
+
+
+def xmas(d):
+    return (d.month == 12 and d.day >= 24) or (d.month == 1 and d.day <= 1)
+
+
+def prev_wkd(d):
+    p = d - dt.timedelta(days=1)
+    while p.weekday() >= 5:
+        p -= dt.timedelta(days=1)
+    return p
+
+
+def arr(x):
+    return np.asarray(x, dtype=np.int64)
+
+
+WKD = [D0 + dt.timedelta(days=i) for i in range((LAST - D0).days + 1)]
+WKD = [d for d in WKD if d.weekday() < 5]
+
+
+def top_select(sym_list, d_list, t0_fn, t1_fn, q, hist=250, mn=60):
+    U = np.zeros(len(d_list))
+    for s in sym_list:
+        U += np.log(price(s, arr([t1_fn(d) for d in d_list])) / price(s, arr([t0_fn(d) for d in d_list])))
+    U /= len(sym_list)
+    sel = np.zeros(len(d_list), bool)
+    for i in range(len(d_list)):
+        h = U[max(0, i - hist):i]; h = h[~np.isnan(h)]
+        if len(h) >= mn and not np.isnan(U[i]):
+            sel[i] = U[i] >= np.percentile(h, q)
+    return sel, U
+
+
+sel, U = top_select(["USDJPY", "USDCHF"], WKD, lambda d: loc_ms(prev_wkd(d), 18, 0, "NY"),
+                    lambda d: loc_ms(d, 7, 0, "LON"), 67)
+F3D = [d for d, s in zip(WKD, sel) if s and not xmas(d)]
+E1D = [d for d in WKD if not xmas(d)]
+
+
+def build(dates):
+    A = arr([loc_ms(d, 11, 0, "LON") for d in dates]); B = arr([loc_ms(d, 13, 0, "LON") for d in dates])
+    return [dict(sym="EURUSD", side=-1, ms_in=A, ms_out=B, grp=np.arange(len(dates)))]
+
+
+def report(name, T):
+    for era, a, b in ERAS:
+        lo = loc_ms(a, 0, 0, "UTC"); hi = loc_ms(b + dt.timedelta(days=1), 0, 0, "UTC")
+        s = (T["ms_in"] >= lo) & (T["ms_in"] < hi)
+        n = int(s.sum())
+        if n == 0:
+            print(name, era, "n 0"); continue
+        d = day_of(T["ms_in"][s])
+        out = [f"{name} {era} n {n}"]
+        for k, lab in (("gross", "mid"), ("net", "net"), ("net15", "x1.5"), ("net1", "+1min")):
+            if n >= 2:
+                m, t = cl_t(T[k][s], d); out.append(f"{lab} {m:+.2f} (t {t:+.2f})")
+            else:
+                out.append(f"{lab} {T[k][s].mean():+.2f}")
+        x = T["net"][s]
+        out.append(f"cost {np.mean(T['gross'][s]-T['net'][s]):.2f}")
+        if era == "FWD":
+            out.append("trades " + " ".join(f"{dt.datetime.utcfromtimestamp(m/1000):%m-%d}:{v:+.1f}"
+                                            for m, v in zip(T["ms_in"][s], x)))
+        print(" | ".join(out), flush=True)
+
+
+fwd_days = [d for d in WKD if d >= ERAS[0][1]]
+print("FWD weekdays", len(fwd_days), "F3 days", [f"{d:%m-%d}" for d in F3D if d >= ERAS[0][1]])
+report("F3", legs_to_trades(build(F3D)))
+report("E1", legs_to_trades(build(E1D)))

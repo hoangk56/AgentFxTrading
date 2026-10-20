@@ -6,17 +6,120 @@ detail. The numbers are copied from those files, and the file wins if the two ev
 When you write a new result file, add a row to that day's entry (or start a new entry) and link the file. Don't
 repeat its tables here.
 
-## 2026-10-16: EcbWindowBot (F3 / E1) checked against the registered code
+## 2026-10-18: round 30, the fix and flow hypotheses declared for the six FX symbols the user approved. No LIVE or DEMO candidate
+
+| tested | verdict | detail |
+|---|---|---|
+| H-EMFIX as declared in round 25: MX-1 long USDMXN into the Banxico FIX (09:00 -> 12:00 Mexico City), SG-1 USDSGD into the ABS VWAP, the 3-leg BOOK, and the information cells (rebound, FIX-less holidays, WMR split, clock test, 2015 auctions); IC ticks 2016-24, Dukascopy M1 PRE | **none**: MX-1 PRE mid +2.28 (t 2.87) but IS -0.82 / VAL -2.55, net -2.69 (t -2.64) / -4.28 (t -3.37), 0 / 9 years; SG-1 no effect; BOOK net t -4.40 / -3.07; after WMR the USD reverses (Krohn-Mueller-Whelan), the FIX leaves no trace | [round30_fix_flows_2026-10-18.md](results/portfolio/round30_fix_flows_2026-10-18.md), [STREAM_E.md](results/portfolio/round30_fix_flows/STREAM_E.md) |
+| H-CNH: round 19's CNY-close cell (long USDCNH 06:30 -> 08:30 UTC) at IC's real bid / ask | **fails DEMO**: mid IS +1.23 (t 4.61), VAL +1.71 (t 4.16), but net +0.08 (t 0.30) / +0.65 (t 1.58); DEMO needs an IS round trip <= 0.70 bp, IC's is 1.15; none in PRE 2012-15 | [STREAM_E.md](results/portfolio/round30_fix_flows/STREAM_E.md) |
+| H-NOK as declared: NOK-1 EURNOK in Norges Bank's announced direction 09:00 -> 16:00 Oslo sized by the amount, NOK-D dose regression, NOK-A announcement, holiday placebo | **none**: NOK-1 net IS +2.33 (t 1.65), VAL -4.99 (t -2.24); dose slope +6.00 (t 2.80) IS -> +0.34 (t 0.22) VAL; the announcement is priced in its first minute; IC's EURNOK quote jumps +2.3 bp into 09:00 Oslo and back (a quote artefact); the USDNOK replica fails too (IS net t 1.04, VAL -3.39) and the EURSEK placebo is about 0 at mid in every era, so the IS move was NOK-specific but gone in 2022-24 | [STREAM_N.md](results/portfolio/round30_fix_flows/STREAM_N.md) |
+
+Standing: C3 is the only LIVE algorithm; the gold $50 rule runs on demo. Forward logs: F3 / E1 have no new day yet,
+and B3 / A1 are blocked by the Internet Archive's rate limit.
+
+## 2026-10-18: the gold $50-level rule as a cBot (GoldLevelBot), now on the demo account
+
+| tested | verdict | detail |
+|---|---|---|
+| `cBot/GoldLevelBot.cs`, the registered G1-XAU50 rule on ticks, backtested in cTrader on IC ticks over the whole holdout 2025-01..2026-09; broker guard stop sized on 2016-26 adverse moves; release calendar extended from official schedules to 2027 | **reproduces the engine**: all 228 holdout triggers to the millisecond, the 250 ms model net equal to the engine's on every trade (+2.87 bp), the backtester's fills +2.86 vs +2.84 at zero latency. A first build missed 7 triggers through `MarketHours.IsOpened()` in the summer reopen hour (fixed). Guard $100 (largest adverse move before the exit $54). Deployed 2026-10-18 10:07 UTC on demo at 0.01 lot (PR #18); the seed calendar is valid through 2026-12-11 | [gold_level_cbot_2026-10-18.md](results/portfolio/gold_level_cbot_2026-10-18.md) |
+
+Standing: C3 is the only LIVE algorithm. The gold rule runs on demo under its registered stop and promotion rules
+(`python -m research.tools.gold_demo_check`).
+
+## 2026-10-18: round 29, fading fresh round levels on index CFDs no round had used; the Asian venue opens. No LIVE or DEMO candidate; research paused at the user's request
+
+| tested | verdict | detail |
+|---|---|---|
+| F: fade a break of a fresh minor round level (round 28's event, the opposite side at market at the trigger minute's close, 30-min exit; limit, +1 min, x1.5 variants) on ES35, F40, IT40, STOXX50 (never used for levels) with US2000 as the control; IC M1 bid bars with published spreads x an hour-of-day factor | **none**: book IS -3.60 bp (t -4.96), VAL -3.25 (t -3.86), 0 / 9 years; the price comes back only +1.2 / +0.65 bp by 30 minutes against a 3.9-4.8 bp round trip; even at zero cost power is at most 1.46. Round 28's "minor index levels revert" was its modelled stop slippage counted in the mid (round 28's report and row corrected) | [round29_fades_opens_2026-10-18.md](results/portfolio/round29_fades_opens_2026-10-18.md), [STREAM_F.md](results/portfolio/round29_fades_opens/STREAM_F.md) |
+| O: round 27 V's first-seconds direction at the ASX 10:00 Sydney, TSE 09:00, A-share / HKEX 09:30 and 13:00 and SGE 20:00 night clocks (2,808 cells; AUD, NZD, gold, silver, US30, USTEC ticks) | **none**: max IS net t 2.01 against a null median of 2.12 (p 0.63); direction at mid exists at the 00:00 UTC cluster (+0.9-1.5 bp fade) but is below the 1.4-2 bp round trip | [STREAM_O.md](results/portfolio/round29_fades_opens/STREAM_O.md) |
+
+Standing: C3 is the only LIVE algorithm. Research paused after round 29 at the user's request. The state at the pause
+and the decisions only the user can take are at the end of the round 29 report.
+
+## 2026-10-18: the registered HOLD look for gold's $50-level rule (round 27 G1-XAU50). Passes at DEMO, not LIVE
+
+| tested | verdict | detail |
+|---|---|---|
+| Round 27's gold rule exactly as drafted (resting stop at a fresh $50 level + 0.5 x spread, 30-min exit, no stop), registered at DEMO tier with hashed code before any 2025-26 gold price was loaded; release calendar from 2024 on built from the publishers' official schedules (ForexFactory's file ends 2024; on 2024 the arming minutes differ by 0.49 %, VAL becomes +3.62, t 2.05); one run on HOLD 2025-01-02..2026-09-24 | **passes the DEMO bar (net > 0)**: n 228, net +2.87 bp (t 1.43), mid +3.80 (t 1.89), x1.5 +2.71, +1 min +1.81, 2025 +0.80, 2026 +5.43; keeps 0.88 of round 27's VAL net; per-trade Sharpe 0.093, power 1.40, so not LIVE. Twice the expected trades because gold's price doubled; the top 5 trades make 518 of the 655 bp; downward breaks carry it again (+5.81 vs +0.92) | [PREREG_G_gold_round50_cascade.md](results/portfolio/round27_levels_opens/PREREG_G_gold_round50_cascade.md) |
+
+Standing: C3 is the only LIVE algorithm. A new DEMO candidate has passed its HOLD: gold $50-level breaks (running it on
+demo is the user's decision).
+
+## 2026-10-17: round 28, the gold round-level rule on the major round levels of 21 other symbols. No LIVE; the effect is gold-only
+
+| tested | verdict | detail |
+|---|---|---|
+| One declared rule (spacings {1, 5} x 10^k nearest 3.4 % of each IS median price; round 27's resting-stop logic; 30-min exit; 200 shifted-grid placebos per symbol) on FX majors, JPY crosses, US / European / Asian indices, oil and BTC (ticks where available, a calibrated minute fill model elsewhere), PRE 2004-15 for 7 FX pairs and gold; book pooled at equal risk with a script written before the results | **none outside gold**: book IS -0.093 sd per trade (t -6.55), VAL -0.024 (t -1.85), 0/6 IS years > 0; without gold IS t -7.33; no class positive in IS; no dose response; gold under this rule +4.97 / +2.80 bp (t 2.28 / 1.59). Round 27's PRE script had a one-bar look-ahead: corrected gold PRE +3.90 (t 2.50). Info only, corrected 2026-10-18 by round 29 F: the apparent reversion at minor index levels (UK100 15-min "mid" -2.96 bp) is the modelled stop slippage that R2 counted in its mid, not a price move | [round28_round_levels_2026-10-17.md](results/portfolio/round28_round_levels_2026-10-17.md), [STREAM_R1.md](results/portfolio/round28_round_levels/STREAM_R1.md), [STREAM_R2.md](results/portfolio/round28_round_levels/STREAM_R2.md) |
+
+Standing: C3 is the only LIVE algorithm. Gold $50-level breaks (round 27) go to registration as a DEMO candidate.
+
+## 2026-10-17: round 27, gold's round-number cascade with resting stops; direction of venue-open jumps. New DEMO-tier result: gold breaks of fresh $50 levels
+
+| tested | verdict | detail |
+|---|---|---|
+| G: resting stops beyond fresh round levels in gold on IC ticks (384 declared cells: offsets, exits 5-60 min, dose $10 / $50 / $100, first vs repeat touch), the first-touch fade, silver / platinum, $5 and random-offset placebos, minute-level PRE 2004-15 | **DEMO numbers, not LIVE**: ordinary $10 levels ~0; **$50 levels, stop at L + 0.5 spread, 30-min exit: net +5.99 bp (t 2.66) IS, +3.27 (t 1.81) VAL, 9 / 9 years > 0, PRE +5.35 (t 3.12), random grids beaten 96 / 99.5 %**, $5 placebo < 0; power 1.45 (~60 trades a year); dose response monotone in IS, VAL and PRE; the 30-min hold picked after looking; fade fails; silver / platinum fail. HOLD not opened: round 28 tests the mechanism on other symbols first | [round27_levels_opens_2026-10-17.md](results/portfolio/round27_levels_opens_2026-10-17.md), [STREAM_G.md](results/portfolio/round27_levels_opens/STREAM_G.md), [PREREG_DRAFT_G_gold_round50_cascade.md](results/portfolio/round27_levels_opens/PREREG_DRAFT_G_gold_round50_cascade.md) |
+| V: follow / fade the first-seconds move at 8 venue clocks (SHFE/SGE opens, CNY fix, European cash opens, 07:00 NZ, 15:50 NY imbalance, settlements), 3,924 declared cells, holiday and shifted-clock placebos | **none**: direction carries information at mid beyond chance (max mid t p 0.009) but nothing net (best net t 2.23 below the null median 2.31); EU-open index fades meet DEMO numbers, within chance and carried by March-April 2020: drafted, not registered | [STREAM_V.md](results/portfolio/round27_levels_opens/STREAM_V.md) |
+
+Standing: C3 is the only LIVE algorithm. New DEMO-tier result (not registered yet): gold $50-level breaks.
+
+## 2026-10-17: round 26, information events at the tick level (release straddles, unscheduled jumps). No LIVE candidate
+
+| tested | verdict | detail |
+|---|---|---|
+| S: on IC ticks with a fill model (latency 0 / 250 / 1000 ms, server-side stops, limits filled only when traded through): OCO stop straddles placed 2 min before High-impact releases, resting-limit and market fades of the overshoot; USD releases on AUDUSD, NZDUSD, gold, US30, USTEC; AUD / NZD releases; EIA crude; gas storage; 630 declared cells | **none**: after a stop triggers the price keeps going +0.2 to +1.6 bp gross, below IC's 1.1-3.0 bp release-minute round trip (oil 3.6-7.9, gas 25-57); 52-96 % of tight-stop triggers come before the number; limit fades are picked off; placebo days lose about as much as release days; best IS net t +0.59 (US30) | [round26_tick_events_2026-10-17.md](results/portfolio/round26_tick_events_2026-10-17.md), [STREAM_S.md](results/portfolio/round26_tick_events/STREAM_S.md) |
+| J: jumps of k x local sd within 10-60 s outside the timed calendar and fixed clock minutes, follow or fade, 10 tick instruments, 7,776 declared cells (108 primary) | **none**: following fails everywhere; fading single-instrument jumps is real at mid (+0.6 to +3.5 bp, IS t up to 8.6) but below the 1.6-1.9 bp round trip; a metals co-move Asian fade meets DEMO numbers (+12.2 / +18.5 bp net, n 46 / 7) but is within chance (13.8 % of null draws beat it), against the declared side and ~2 events a year since 2018: drafted, not registered | [STREAM_J.md](results/portfolio/round26_tick_events/STREAM_J.md), [PREREG_DRAFT_J_metals_comove_fade.md](results/portfolio/round26_tick_events/PREREG_DRAFT_J_metals_comove_fade.md) |
+
+Standing: unchanged. C3 is the only LIVE algorithm.
+
+## 2026-10-17: round 25, predictable release surprises, an older-literature census, the value of each data decision. No LIVE or DEMO candidate
+
+| tested | verdict | detail |
+|---|---|---|
+| B: first use of published consensus forecasts (ForexFactory calendar 2007-2024, re-timed from official schedules): 144 declared cells on the release minute, anchoring of the consensus to the previous print (Campbell & Sharpe 2009), early indicators against a stale consensus (ADP, Fed surveys, national CPIs, Tokyo CPI, claims, flash PMIs), Cleveland Fed / GDPNow nowcasts; PRE 2007-15, IS, VAL | **none**: the consensus is predictable (anchoring calls the surprise 54-57 %, national CPIs call the euro-area HICP surprise 76-92 %) but FX prices that part before the release (predictor coefficient -0.58 / -0.41, rational -0.32 / -0.29); pooled gross <= ~1 bp against a 0.8-1.9 bp release-minute round trip; IC's spread doubles in the last minute before a release (enter >= 2 min early) | [round25_surprises_2026-10-17.md](results/portfolio/round25_surprises_2026-10-17.md), [STREAM_B.md](results/portfolio/round25_surprises/STREAM_B.md) |
+| C: census of the 2000-2017 literature (13,748 records, 353 mapped into 39 families, 27 already tested) and Japanese / Chinese / Korean / German practitioner lore (59 claims); 10 declared cells: Monday after a down Friday, round-level breaks in indices and gold, first / last Tokyo trading day | **none**: Monday effect gone; index round levels = crossing momentum (half-level placebo matches); gold's $10 levels are real barriers in every era (PRE +3.50 bp mid, t 4.86) but net about half of IC's cost; a post-hoc COMEX-hours slice nets ~+3 bp in all three eras, power 1.68 at the VAL size, information only | [STREAM_C.md](results/portfolio/round25_surprises/STREAM_C.md) |
+| A: what each pending user decision is worth (no price fetched): EM fixes, FX crosses, share CFDs, softs, a cheaper venue, paid data; declared cells written before any of their data | **no decision has an expected LIVE candidate**: share CFDs after the earnings blackout ~3-5 % LIVE / ~25 % DEMO (IC share CFDs are MT5-only), EM fix book led by USDMXN ~2 %, Norges Bank NOK flow ~1 %, cheaper venue ~1 %, USDCNH ticks 0 % LIVE; crosses, softs, other EM ~0 | [STREAM_A.md](results/portfolio/round25_surprises/STREAM_A.md) |
+| F3 / E1 forward log, slice 2 (Dukascopy to 2026-10-16, registered code unchanged) | too few trades: F3 n 2 (none since 7 October), E1 n 16 net -2.27 (t -0.71); HOLD + FWD F3 +1.81 (t 1.89) | [PREREG_R24_forward.md](results/portfolio/round24_relaxed/PREREG_R24_forward.md) |
+
+Standing: C3 is the only LIVE algorithm. Demo: F3 (live at 0.01 lot as a fill measurement) and E1 on the demo
+account; the gold settlement big-day rule (DEMO) awaits the user.
+
+## 2026-10-16: EcbWindowBot (F3 / E1) checked against the registered code; forward log for B3 and A1
 
 | tested | verdict | detail |
 |---|---|---|
 | `cBot/EcbWindowBot.cs` (F3 live at 0.01 lot, E1 on demo, at the user's request) checked against the registered code: rebuilt F3 / E1, the selector's quote convention (Mondays never qualify; quote = M1 bar ending at the minute or up to 10 bars before), bid bars vs mids, a seed of research quotes, a Python port of the cBot's decision, cTrader backtests of the built bot, and a broker guard stop | **matches**: bid bars would change 46 of 714 F3 days, so the bot scores on recorded mids + a seed; port 48/48 F3 days of 2026; cTrader F3 2026-06..09 19/19 days at 11:00:00 -> 13:00:00 London, E1 every weekday; guard stop 100 pips moves no F3 number (touches 0.11 % of E1 trades) | [ecb_window_cbot_2026-10-16.md](results/portfolio/ecb_window_cbot_2026-10-16.md) |
+| Registered before any price after 2026-09-24 was loaded: B3 (long EURJPY into the Tokyo fix on NISA NAV days) and A1 (BTCUSD 15-16 NY, side from the previous day's BTC ETF flow), rules as HYPOTHESES_A declared, code rebuilt and reproducing stream A exactly. Both failed DISCOVERY and were picked for their TEST, so FWD alone decides (checkpoints B3 n 30, A1 n 250; confirmed at t >= 2.0). Slice 1 on Dukascopy M1 2026-09-25..10-15, IC-equivalent spreads | **too few trades to read**: B3 n 2, net +10.9 bp; A1 n 12, net -7.3 (t -0.75), -11.4 at Dukascopy's spread. Expected checkpoint t ~0.5 at round 18's 1/4 retention, ~2 only if TEST's size holds | [PREREG_R24_forward_B3_A1.md](results/portfolio/round24_relaxed/PREREG_R24_forward_B3_A1.md) |
+
+## 2026-10-15: round 24, relaxed conditions (fetched data, a new-era split, a RELAXED tier). No LIVE; F3 passes HOLD as a RELAXED demo candidate
+
+| tested | verdict | detail |
+|---|---|---|
+| User allowed relaxing the conditions; BRIEF fixed the relaxation before numbers (new RELAXED tier: design t >= 1.5, check net > 0 with t >= 1.0, power >= 1.5, demo only). A: 2024+ mechanisms on DISCOVERY ..2025-06 / TEST 2025-07.. (BTC/ETH ETF NAV window, NISA, US T+1, BTC 10 a.m.), 10 cells. B: Dukascopy 2004-15 for AUD, NZD, XAU, XAG (+GBP, CAD) and 20 declared cells (Sydney V, gold fixes / SGE / settlement on PRE, turn-of-year gold + USD, seasonals up to 20 days). C: 60 existing rows rescored on the RELAXED tier | **no LIVE**. A: every cell fails at DISCOVERY (ETF flow, even same-day, does not move BTC's 15-16 ET price). B: the Sydney V starts only ~2011 (PRE net -0.6 to -0.9); turn-of-year B4 IS +99.8 bp (t 4.08) but PRE +26.8 (t 0.69), VAL +3.7: fails RELAXED, not opened; gold settlement big days present only after gold LETFs (2009-15 net +1.35, 2004-08 placebo flat). C: RELAXED survivors are the ECB-window EURUSD rows (F1 = E1, F2-F5, F20 = J5c) and the FOMC dollar short | [round24_relaxed_2026-10-15.md](results/portfolio/round24_relaxed_2026-10-15.md), [round24_relaxed/](results/portfolio/round24_relaxed/) |
+| HOLD 2025-01..2026-09 opened once for FOMC A4 and F3 (E1 only on USD-TOP days), registered with hashed code | **A4 rejected**: n 10, net -34.63 bp (t -2.36). **F3 passes**: n 117, net +2.00 bp (t 2.16), x1.5 +1.98, +1 min +1.40; 2025 +4.02, 2026 -0.91 (weakening); 0.66 of VAL; C3 corr +0.05 daily. RELAXED demo candidate only; LIVE needs HOLD + demo pooled t >= 2.5 | [PREREG_R24_relaxed_hold.md](results/portfolio/round24_relaxed/PREREG_R24_relaxed_hold.md) |
+| User chose to fetch data after 2026-09-24: F3 and E1 on Dukascopy M1 2026-09-25..10-14 (registered before the fetch; IC-equivalent costs; rolling forward log, no gate) | **too few trades to read**: F3 n 2, net -9.18 bp; E1 n 14, net -2.95 (t -0.82). HOLD + FWD: F3 +1.81 (t 1.89, n 119), E1 +0.53 (t 0.83, n 458) | [PREREG_R24_forward.md](results/portfolio/round24_relaxed/PREREG_R24_forward.md) |
+
+Standing: C3 is the only LIVE algorithm. Demo candidates awaiting the user: F3 (RELAXED, passed HOLD), E1 and the gold
+settlement big-day rule (DEMO, weak). The FOMC dollar short is out.
+
+## 2026-10-15: round 23, recent strategies and hypotheses (2025-26 papers, 2023-26 practitioner flows). No LIVE candidate
+
+| tested | verdict | detail |
+|---|---|---|
+| Declared-only. N: the newest literature (Crossref 30 journals + NBER/Fed prefixes + arXiv q-fin, 23,880 records, 40 mapped), 10 cells: reopen-gap fade, intraday-asymmetry reversal, festival gold, BTC around NYSE holidays, pre-market reversal. P: practitioner flows, 18 cells: vol control, threshold rebalancing (NBER w33554), CTA signal flips, buyback blackout, post-expiry week, quarter-end pensions | **no LIVE**. Only N3b (gold long 2 days around Christmas, Vojtko & Dujava 2025) meets the DEMO numbers on IS: net +81.8 bp (t 3.61, n 6), VAL +75.8 (n 3), but 1 trade a year, VAL random control 82 %, the paper picked Christmas on our eras, and 1 January / EURUSD / silver move the same way (turn-of-year seasonal); draft only, HOLD not opened. The reopen-gap fade is real at mid in every pair and year but 3-5 bp below cost (17:00 NY rollover spreads). Sell-side flows do not show in 1-5 day index returns | [round23_recent_2026-10-15.md](results/portfolio/round23_recent_2026-10-15.md), [round23_recent/](results/portfolio/round23_recent/) |
 
 ## 2026-10-15: GotobiBot camouflage split. The tight broker stop costs ~1.4 %; the entry jitter helps
 
 | tested | verdict | detail |
 |---|---|---|
 | Prod GotobiBot.algo, 3 pairs, 2020-01..2026-10-08, $1,000 risk, same setup as 10-09: defaults (twice, for noise) vs broker stop 1.0x vs broker stop 1.0x + no entry jitter, legs paired by pair/side/day | **broker stop 0.8-1.0x → 1.0x: +$2.1-2.4k (+1.3-1.5 %, t 1.1-1.2)**, noise between identical runs $293; the 09-30 −5.9 % does not reproduce. **Dropping the jitter (long at 18:00 sharp) loses −$10,680 (−6.5 %, t −2.3)**, all on the long leg; the gain comes from legs jittered 20-60 min early (+0.021R, t 2.9). Keep the jitter; an earlier long entry is an in-sample hint to test on 2014-2019 first | [gotobi_broker_stop_jitter_2026-10-15.md](results/portfolio/gotobi_broker_stop_jitter_2026-10-15.md) (Vietnamese) |
+| Pre-registered: GotobiBot long leg at 17:00 vs 18:00 UTC on 2014-2019. cTrader has no USDJPY ticks before 2014-12-29, so 2014 was dropped; the cTrader batch was stopped after USDJPY and the verdict taken from an offline m1 test (Dukascopy ≤ 2015, IC ≥ 2016; B − A = ask(18:00) − ask(17:00), stops ignored) | **failed, keep 18:00**: 2015-2019 pooled +0.06 pip/leg (t 0.11), 3/5 years > 0; 2020-2026 +1.83 pip (t 3.5) does not repeat. cTrader USDJPY 2015-2019 agrees: −0.0021 R/leg (t −0.16), same sign every year | [gotobi_early_long_2014-2019_2026-10-15.md](results/portfolio/gotobi_early_long_2014-2019_2026-10-15.md) (Vietnamese), [gotobi_early_long/](results/portfolio/gotobi_early_long/) |
+| Pre-registered, offline m1 2004-2026: close a Gotobi leg earlier than the bot (long before the 00:55 fix, short before 02:55), 4 primary cells, stops ignored | **failed, keep the exit times**. Long: earlier is worse in every era, 00:50 −1.30 pip (day-clustered t −5.4) on 2004-2019, even 00:54 −0.42 (t −3.2); price keeps rising into the fix. Short: every exit from 01:00 to 02:50 is negative on 2004-2019 | [gotobi_early_exit_2026-10-15.md](results/portfolio/gotobi_early_exit_2026-10-15.md) (Vietnamese), [gotobi_early_exit/](results/portfolio/gotobi_early_exit/) |
+
+## 2026-10-09: GotobiBot compounding at balance/3 per leg with top-ups to $1,000. Far above Kelly; wipes most years
+
+| tested | verdict | detail |
+|---|---|---|
+| Fresh cTrader backtest of the prod GotobiBot.algo (PR #13, camouflage on, JP holidays skipped), 3 pairs, 2020-01..2026-10-08, $1,000 risk uncapped; then a sim that sizes every leg at balance/3 per gotobi day and tops the balance up to $1,000 | baseline R/leg **+0.061** (2,686 legs). Uncapped balance/3: 8 days with a summed loss ≥ 3R wipe the account, $13,994 deposited for +$7,269 net, and the result is path luck (2021 +$355k, 2022 −$357k). With the bot's 5-lot cap: $1,537 deposited, $401k at the end, but the cap makes it fixed small risk from mid-2020 on. Edge halved, uncapped: −$16,920 net. Hold variant (uncapped; once at $10k, reset to $10k each gotobi day, withdrawing profit and refilling losses), each year from $1,000: $10k reached by 15/07 every year, net +$31.6k..+$78.6k per year, peak out-of-pocket up to $20.6k (2024), 0-3 wipes of $10k a year | [gotobi_compound_third_2026-10-09.md](results/portfolio/gotobi_compound_third_2026-10-09.md) (Vietnamese) |
 
 ## 2026-10-06: GotobiBot live fills vs IC ticks and the cTrader backtest. Execution matches; the fix-time short pays latency
 

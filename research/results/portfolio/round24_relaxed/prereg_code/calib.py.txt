@@ -1,0 +1,24 @@
+# Dukascopy vs IC on the overlap (CAL0..CUT, before FWD): mid difference and spread at 11:00 / 13:00 London quotes
+# (bar labelled 10:59 / 12:59 London) and at 07:00 London / 18:00 NY for USDJPY, USDCHF.
+# usage: calib.py DUKADIR CAL0_ms CUT_ms
+import sys, os, zoneinfo, datetime as dt, numpy as np
+DK = sys.argv[1]; C0, CUT = int(sys.argv[2]), int(sys.argv[3])
+SCALE = {"EURUSD": 1e5, "USDCHF": 1e5, "USDJPY": 1e3}
+LON = zoneinfo.ZoneInfo("Europe/London")
+for s in SCALE:
+    z = np.load(f"research/data/m1/{s}.npz"); ts = z["ts"]; k = (ts >= C0) & (ts < CUT)
+    ic = dict(zip(ts[k], zip(z["c"][k], z["ca"][k])))
+    p = np.load(f"{DK}/{s}_2026.npz"); dts = p["ts"]; kk = (dts >= C0) & (dts < CUT) & (p["bv"] > 0) & (p["aci"] > 0)
+    dd, sd, sc, lab = [], [], [], []
+    for t, b, a in zip(dts[kk], p["bci"][kk] / SCALE[s], p["aci"][kk] / SCALE[s]):
+        if t in ic:
+            cb, ca = ic[t]; m_ic = (cb + ca) / 2; m_d = (b + a) / 2
+            dd.append((m_d / m_ic - 1) * 1e4); sd.append((a - b) / m_d * 1e4); sc.append((ca - cb) / m_ic * 1e4)
+            lt = dt.datetime.fromtimestamp(t / 1000, LON); lab.append(lt.hour * 60 + lt.minute)
+    dd, sd, sc, lab = map(np.array, (dd, sd, sc, lab))
+    print(f"{s}: matched minutes {dd.size}, median |mid diff| {np.median(abs(dd)):.3f} bp, mean diff {dd.mean():+.3f}")
+    for mm, name in ((10 * 60 + 59, "10:59 LON"), (12 * 60 + 59, "12:59 LON"), (6 * 60 + 59, "06:59 LON")):
+        q = lab == mm
+        if q.any():
+            print(f"   {name}: n {q.sum()}, spread duka {np.median(sd[q]):.3f} bp / IC {np.median(sc[q]):.3f} bp, "
+                  f"median |mid diff| {np.median(abs(dd[q])):.3f}")

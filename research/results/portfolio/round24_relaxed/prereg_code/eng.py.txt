@@ -1,0 +1,195 @@
+"""Evaluation of one rule: legs -> trades -> era stats, random control, tiers, LIVE cost.
+
+A rule is a builder(dates, shift_min) -> list of legs, each leg a dict(sym, side, ms_in, ms_out, w, grp) of arrays
+(side/w may be scalars). grp = id of the trade (several legs with one grp form one basket trade, net = sum w*net).
+The random control calls the same builder with shifted times (time control) or other dates (day control); sides that
+depend on data are recomputed inside the builder, so the control is look-ahead-free in the same way as the rule."""
+import pickle, datetime as dt
+import numpy as np
+from clib import trades, cl_t, day_of, year_of, VAL0, T0, in_roll
+
+OUTD = "/private/tmp/claude-501/-Users-hoangbk-00-code-base-105-AgentFxTrading/4b8ace6a-8940-44d5-a772-50d419f9fb6d/scratchpad/r24/C/out/"
+
+
+def legs_to_trades(legs, swap=True):
+    cols = {k: [] for k in ("grp", "ms_in", "net", "net15", "net1", "gross", "hs", "swap", "comm", "w")}
+    for L in legs:
+        n = len(np.atleast_1d(L["ms_in"]))
+        if n == 0:
+            continue
+        ms_in = np.atleast_1d(np.asarray(L["ms_in"], dtype=np.int64)); ms_out = np.atleast_1d(np.asarray(L["ms_out"], dtype=np.int64))
+        if L.get("excl_roll"):
+            keep = ~in_roll(ms_in, ms_out)
+            L = dict(L, side=np.broadcast_to(np.asarray(L["side"], float), ms_in.shape)[keep],
+                     w=np.broadcast_to(np.asarray(L.get("w", 1.0), float), ms_in.shape)[keep],
+                     grp=np.atleast_1d(L["grp"])[keep])
+            ms_in = ms_in[keep]; ms_out = ms_out[keep]
+            if ms_in.size == 0:
+                continue
+        r = trades(L["sym"], L["side"], ms_in, ms_out, swap=swap, back=L.get("back", 10))
+        w = np.broadcast_to(np.asarray(L.get("w", 1.0), dtype=float), ms_in.shape)
+        ok = r["ok"]
+        cols["grp"].append(np.atleast_1d(L["grp"])[ok]); cols["ms_in"].append(ms_in[ok]); cols["w"].append(w[ok])
+        for k in ("net", "net15", "net1", "gross", "hs", "swap", "comm"):
+            cols[k].append(r[k][ok])
+    if not cols["grp"]:
+        return None
+    c = {k: np.concatenate(v) for k, v in cols.items()}
+    u, inv = np.unique(c["grp"], return_inverse=True)
+    out = {"grp": u}
+    out["ms_in"] = np.full(u.size, np.iinfo(np.int64).max)
+    np.minimum.at(out["ms_in"], inv, c["ms_in"])
+    for k in ("net", "net15", "net1", "gross", "hs", "swap", "comm"):
+        out[k] = np.bincount(inv, weights=c[k] * c["w"], minlength=u.size)
+    out["nlegs"] = np.bincount(inv, minlength=u.size)
+    out["cost"] = out["gross"] - out["net"]          # spread + commission - swap
+    return out
+
+
+def era_mask(ms, era):
+    return ms < VAL0 if era == "IS" else ms >= VAL0
+
+
+def stats(T, era, years):
+    sel = era_mask(T["ms_in"], era)
+    if sel.sum() < 2:
+        return None
+    d = day_of(T["ms_in"][sel])
+    x = T["net"][sel]
+    r = dict(n=int(sel.sum()), per_yr=sel.sum() / years)
+    r["mid"], r["t_mid"] = cl_t(T["gross"][sel], d)
+    r["net"], r["t"] = cl_t(x, d)
+    r["cost"] = float(np.mean(T["cost"][sel]))
+    r["rt_cost"] = float(np.mean(T["hs"][sel] + T["comm"][sel]))   # spread + commission (round trip)
+    r["swap"] = float(np.mean(T["swap"][sel]))
+    r["x15"], r["t15"] = cl_t(T["net15"][sel], d)
+    r["lat"], r["tlat"] = cl_t(T["net1"][sel], d)
+    sd = x.std(ddof=1) if x.size > 1 else np.nan
+    r["sd"] = sd
+    r["sharpe"] = x.mean() / sd if sd > 0 else np.nan
+    r["power"] = r["sharpe"] * np.sqrt(1.73 * r["per_yr"])
+    # day-cluster power (units = days)
+    u, inv = np.unique(d, return_inverse=True)
+    dsum = np.bincount(inv, weights=x)
+    r["n_days"] = u.size
+    r["power_day"] = (dsum.mean() / dsum.std(ddof=1) * np.sqrt(1.73 * u.size / years)) if u.size > 2 else np.nan
+    yrs = year_of(T["ms_in"][sel])
+    r["years"] = {int(y): (float(x[yrs == y].mean()), int((yrs == y).sum())) for y in np.unique(yrs)}
+    r["yrs_pos"] = sum(1 for v in r["years"].values() if v[0] > 0)
+    r["yrs_n"] = len(r["years"])
+    # winsorised (1/99 % of the era) mean, information only
+    lo, hi = np.percentile(x, [1, 99]) if x.size >= 20 else (x.min(), x.max())
+    r["net_w"] = float(np.clip(x, lo, hi).mean())
+    return r
+
+
+def live_cost(sIS, sVAL, T):
+    """Round-trip cost (spread + commission, swap kept) at which IS t >= 2.5, VAL t >= 1.5 and VAL-size power >= 3."""
+    out = {}
+    for era, s in (("IS", sIS), ("VAL", sVAL)):
+        sel = era_mask(T["ms_in"], era)
+        g = T["gross"][sel] + T["swap"][sel]
+        d = day_of(T["ms_in"][sel])
+        m, t = cl_t(g, d)
+        out[era] = (m, m / t if t and not np.isnan(t) else np.nan, g.std(ddof=1))
+    mI, seI, _ = out["IS"]; mV, seV, sdV = out["VAL"]
+    c1 = mI - 2.5 * seI
+    c2 = mV - 1.5 * seV
+    c3 = mV - 3 * sdV / np.sqrt(1.73 * sVAL["per_yr"])
+    return min(c1, c2, c3), (c1, c2, c3)
+
+
+def pct(actual, draws):
+    draws = np.asarray(draws, float); draws = draws[~np.isnan(draws)]
+    if draws.size == 0 or np.isnan(actual):
+        return np.nan
+    return float((draws < actual).mean() * 100)
+
+
+def tiers(sIS, sVAL, rIS, rVAL, mech=True):
+    """LIVE / DEMO / RELAXED gates (each also reports which gate failed)."""
+    fails = {}
+    if sIS is None or sVAL is None:
+        return {"LIVE": False, "DEMO": False, "RELAXED": False}, {"all": "no data"}
+    x15 = sIS["x15"] > 0 and sVAL["x15"] > 0
+    lat = sIS["lat"] > 0 and sVAL["lat"] > 0
+    yrs = (sIS["yrs_pos"] + sVAL["yrs_pos"]) >= 2 / 3 * (sIS["yrs_n"] + sVAL["yrs_n"])
+    live = dict(is_t=sIS["t"] >= 2.5, val_t=sVAL["t"] >= 1.5, years=yrs, rand=min(rIS, rVAL) >= 95,
+                power=sVAL["power"] >= 3, x15=x15, lat=lat, net=sIS["net"] > 0 and sVAL["net"] > 0)
+    demo = dict(is_t=sIS["t"] >= 2.0, val_net=sVAL["net"] > 0, rand=min(rIS, rVAL) >= 90, x15=x15, lat=lat,
+                is_net=sIS["net"] > 0)
+    relaxed = dict(is_t=sIS["t"] >= 1.5, val_t=(sVAL["net"] > 0) and sVAL["t"] >= 1.0, x15=x15, lat=lat,
+                   rand=min(rIS, rVAL) >= 80, power=sVAL["power"] >= 1.5, mech=mech)
+    res = {"LIVE": all(live.values()), "DEMO": all(demo.values()), "RELAXED": all(relaxed.values())}
+    fails = {"LIVE": [k for k, v in live.items() if not v], "DEMO": [k for k, v in demo.items() if not v],
+             "RELAXED": [k for k, v in relaxed.items() if not v]}
+    return res, fails
+
+
+def run(name, build, dates, ctrl, seeds=200, years=(6.0, 3.0), mech=True, rng_seed=7, info="", roll_excl=True):
+    """ctrl: ('time', band_min) -> same dates, both times shifted by a uniform integer offset in [-band, band] min
+    (offset != 0), one offset per trade; ('day', pool_dates) -> each trade's date replaced by a random pool date with
+    the same weekday and era (dates = event dates); pool excludes the event dates."""
+    legs = build(dates, None)
+    T = legs_to_trades(legs)
+    sIS = stats(T, "IS", years[0]); sVAL = stats(T, "VAL", years[1])
+    rng = np.random.default_rng(rng_seed)
+    rand = {"IS": [], "VAL": []}
+    for s in range(seeds):
+        if ctrl[0] == "time":
+            band = ctrl[1]
+            off = rng.integers(1, band + 1, size=len(dates))
+            if not (len(ctrl) > 2 and ctrl[2] == "fwd"):
+                off = off * rng.choice([-1, 1], size=len(dates))
+            Lr = build(dates, off)
+            if roll_excl:
+                Lr = [dict(L, excl_roll=True) for L in Lr]
+        else:
+            pool = ctrl[1]
+            Lr = build(draw_days(dates, pool, rng, ctrl[2] if len(ctrl) > 2 else True), None)
+        Tr = legs_to_trades(Lr, swap=True) if ctrl[0] == "day" else legs_to_trades(Lr, swap=False)
+        if Tr is None:
+            continue
+        if ctrl[0] == "time":     # same nights as the rule: add the rule's mean swap per trade
+            Tr["net"] = Tr["net"] + (np.mean(T["swap"]) if T["swap"].size else 0)
+        for era in ("IS", "VAL"):
+            sel = era_mask(Tr["ms_in"], era)
+            rand[era].append(Tr["net"][sel].mean() if sel.any() else np.nan)
+    rIS = pct(sIS["net"], rand["IS"]) if sIS else np.nan
+    rVAL = pct(sVAL["net"], rand["VAL"]) if sVAL else np.nan
+    tr, fails = tiers(sIS, sVAL, rIS, rVAL, mech)
+    lc = live_cost(sIS, sVAL, T) if (sIS and sVAL) else (np.nan, ())
+    res = dict(name=name, IS=sIS, VAL=sVAL, randIS=rIS, randVAL=rVAL, rand_means={k: float(np.nanmean(v)) if v else np.nan for k, v in rand.items()},
+               tiers=tr, fails=fails, live_cost=lc, info=info, mech=mech)
+    pickle.dump(dict(res=res, T=T), open(OUTD + f"rule_{name}.pkl", "wb"))
+    return res
+
+
+def draw_days(dates, pool, rng, match=True):
+    """random replacement dates: same weekday (if match) and same era (IS < 2022 <= VAL)."""
+    out = []
+    by = {}
+    for p in pool:
+        by.setdefault((p.weekday() if match else 0, p.year >= 2022), []).append(p)
+    for d in dates:
+        c = by.get((d.weekday() if match else 0, d.year >= 2022))
+        out.append(c[rng.integers(len(c))] if c else d)
+    return out
+
+
+def fmt(res):
+    s = [f"== {res['name']}  {res['info']}"]
+    for era in ("IS", "VAL"):
+        r = res[era]
+        if r is None:
+            s.append(f"  {era}: none"); continue
+        s.append(f"  {era}: n {r['n']} ({r['per_yr']:.1f}/yr) mid {r['mid']:+.2f} (t {r['t_mid']:+.2f}) rt-cost {r['rt_cost']:.2f} "
+                 f"swap {r['swap']:+.2f} net {r['net']:+.2f} (t {r['t']:+.2f}) x1.5 {r['x15']:+.2f} +1m {r['lat']:+.2f} "
+                 f"sd {r['sd']:.1f} Sh {r['sharpe']:+.3f} power {r['power']:+.2f} (day {r['power_day']:+.2f}) "
+                 f"yrs+ {r['yrs_pos']}/{r['yrs_n']} wins {r['net_w']:+.2f}")
+        s.append("     by year: " + " ".join(f"{y}:{v[0]:+.2f}({v[1]})" for y, v in r["years"].items()))
+    s.append(f"  random beaten IS {res['randIS']:.1f}% VAL {res['randVAL']:.1f}%  (random means IS {res['rand_means']['IS']:+.2f} VAL {res['rand_means']['VAL']:+.2f})")
+    lc = res["live_cost"]
+    s.append(f"  LIVE cost (rt bp) {lc[0]:+.2f}  [IS t2.5 {lc[1][0]:+.2f} | VAL t1.5 {lc[1][1]:+.2f} | VAL power3 {lc[1][2]:+.2f}]" if lc[1] else "  LIVE cost n/a")
+    s.append(f"  tiers {res['tiers']}  fails {res['fails']}")
+    return "\n".join(s)

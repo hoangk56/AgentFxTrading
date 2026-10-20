@@ -1,0 +1,191 @@
+"""Forward log of two post-hoc TEST survivors of round 24 stream A, rules exactly as HYPOTHESES_A.md declared them:
+  B3  long EURJPY 18:00 UTC of the calendar day before F -> 00:55 UTC on F, F = NAV day after a NISA card-tsumitate
+      order day (1st, 8th, 12th from 2024-09), F dropped when it is a C3 gotobi day.
+  A1  BTCUSD 15:00 -> 16:00 New York on NYSE trading day T, side = sign of the Farside BTC ETF Total of the previous
+      NYSE trading day (0 or missing: no trade).
+Prices: IC M1 (research/data/m1) before CUT = 2026-09-25 00:00 UTC; Dukascopy M1 bid/ask from CUT when --duka is given.
+Spread after CUT: "duka" = Dukascopy's own; "ic" = IC's median relative spread at the same UTC minute of day over
+2026-07-01..CUT (the IC-equivalent reading).
+usage (repo root): research/.venv/bin/python fwd_b3a1.py LAST [--duka DIR] [--spread duka|ic] --flows CSV
+"""
+import argparse, csv, datetime as dt, math, sys, zoneinfo
+import numpy as np
+import holidays
+from research.specs import rollovers
+from research.swing.swing import swap_frac, swap_frac_at
+from research.swing.swing_rules import gotobi_days
+
+ap = argparse.ArgumentParser()
+ap.add_argument("last"); ap.add_argument("--duka"); ap.add_argument("--spread", default="ic")
+ap.add_argument("--flows", required=True)
+A = ap.parse_args()
+LAST = dt.date.fromisoformat(A.last)
+UTC, NY = dt.timezone.utc, zoneinfo.ZoneInfo("America/New_York")
+MIN = 60_000
+CUT = int(dt.datetime(2026, 9, 25, tzinfo=UTC).timestamp() * 1000)
+REF0 = int(dt.datetime(2026, 7, 1, tzinfo=UTC).timestamp() * 1000)
+END = int(dt.datetime.combine(LAST + dt.timedelta(days=1), dt.time(), UTC).timestamp() * 1000)
+SCALE = {"EURJPY": 1e3, "BTCUSD": 10.0}
+COMM = {"EURJPY": 0.6, "BTCUSD": 0.0}            # bp round trip
+ERAS = {"B3": [("DISC", dt.date(2024, 1, 1), dt.date(2025, 6, 30)), ("TEST", dt.date(2025, 7, 1), dt.date(2026, 9, 24)),
+               ("FWD", dt.date(2026, 9, 25), LAST)],
+        "A1": [("DISC", dt.date(2024, 1, 12), dt.date(2025, 6, 30)), ("TEST", dt.date(2025, 7, 1), dt.date(2026, 9, 24)),
+               ("FWD", dt.date(2026, 9, 25), LAST)]}
+YEARS = range(2024, LAST.year + 1)
+
+
+def ms(d, h, m, tz):
+    return int(dt.datetime(d.year, d.month, d.day, h, m, tzinfo=tz).timestamp() * 1000)
+
+
+def load(sym):
+    z = np.load(f"research/data/m1/{sym}.npz")
+    k = z["ts"] < CUT
+    ts, bid, ask = z["ts"][k], z["c"][k].astype(np.float64), z["ca"][k].astype(np.float64)
+    if A.duka:
+        r = (ts >= REF0)
+        rel = (ask[r] - bid[r]) / ((ask[r] + bid[r]) / 2)
+        mod = (ts[r] // MIN) % 1440
+        med = np.array([np.median(rel[mod == m]) if (mod == m).any() else np.nan for m in range(1440)])
+        p = np.load(f"{A.duka}/{sym}_2026.npz")
+        q = (p["ts"] >= CUT) & (p["ts"] < END) & (p["bv"] > 0) & (p["aci"] > 0)
+        dts = p["ts"][q]; b = p["bci"][q] / SCALE[sym]; a = p["aci"][q] / SCALE[sym]
+        if A.spread == "ic":
+            mid = (a + b) / 2; h = med[(dts // MIN) % 1440] * mid / 2
+            b, a = mid - h, mid + h
+        print(f"{sym}: IC bars {k.sum()}, Dukascopy bars {q.sum()} ({A.spread} spread)", flush=True)
+        ts, bid, ask = np.concatenate([ts, dts]), np.concatenate([bid, b]), np.concatenate([ask, a])
+    return ts, bid, ask
+
+
+P = {s: load(s) for s in SCALE}
+
+
+def quote(sym, tau):
+    """bid, ask close of the last bar with tau - 10 min <= ts < tau (bar-start labels), else None."""
+    ts, b, a = P[sym]
+    i = np.searchsorted(ts, tau, "left") - 1
+    if i < 0 or ts[i] < tau - 10 * MIN:
+        return None
+    return b[i], a[i]
+
+
+def trade(sym, side, t_in, t_out):
+    q0, q1 = quote(sym, t_in), quote(sym, t_out)
+    q0b, q1b = quote(sym, t_in + MIN), quote(sym, t_out + MIN)
+    if q0 is None or q1 is None:
+        return None
+    nroll = rollovers(t_in, t_out, swap_frac(sym)[2])
+    swap = swap_frac_at(sym, side, t_in) * nroll * 1e4 if nroll else 0.0
+
+    def net(a, b, k):
+        m0, m1 = (a[0] + a[1]) / 2, (b[0] + b[1]) / 2
+        h0, h1 = (a[1] - a[0]) / 2 * k, (b[1] - b[0]) / 2 * k
+        p0, p1 = (m0 + h0, m1 - h1) if side > 0 else (m0 - h0, m1 + h1)
+        return side * (p1 / p0 - 1) * 1e4 - COMM[sym] + swap
+
+    m0, m1 = (q0[0] + q0[1]) / 2, (q1[0] + q1[1]) / 2
+    return dict(gross=side * (m1 / m0 - 1) * 1e4, net=net(q0, q1, 1.0), net15=net(q0, q1, 1.5),
+                net1=net(q0b, q1b, 1.0) if q0b and q1b else np.nan, t_in=t_in, side=side)
+
+
+# ---------------------------------------------------------------- calendars
+JP = dict(holidays.Japan(years=YEARS))
+NYSE = dict(holidays.financial_holidays("NYSE", years=YEARS))
+
+
+def jp_bd(d):
+    return d.weekday() < 5 and d not in JP and (d.month, d.day) not in ((12, 31), (1, 2), (1, 3))
+
+
+def nyse_td(d):
+    return d.weekday() < 5 and d not in NYSE
+
+
+# ---------------------------------------------------------------- B3
+GOTOBI = set(gotobi_days(dt.date(2024, 1, 1), LAST + dt.timedelta(days=7)))
+fdays, dropped = set(), 0
+for y in YEARS:
+    for m in range(1, 13):
+        for k in (1, 8, 12):
+            if k == 12 and (y, m) < (2024, 9):
+                continue
+            o = dt.date(y, m, k)
+            while not (jp_bd(o) and o not in NYSE):
+                o += dt.timedelta(days=1)
+            f = o + dt.timedelta(days=1)
+            while not jp_bd(f):
+                f += dt.timedelta(days=1)
+            if f > LAST or f < dt.date(2024, 1, 1):
+                continue
+            if f in GOTOBI:
+                dropped += 1; continue
+            fdays.add(f)
+ts_e = P["EURJPY"][0]
+B3, b3_skip = [], []
+for f in sorted(fdays):
+    e = f - dt.timedelta(days=1)
+    if e.weekday() >= 5:            # first bar at or after the Sunday open + 5 min, filled at that bar's close
+        sat = e - dt.timedelta(days=e.weekday() - 5)
+        i = np.searchsorted(ts_e, ms(sat, 0, 0, UTC))
+        j = np.searchsorted(ts_e, int(ts_e[i]) + 5 * MIN) if i < len(ts_e) else len(ts_e)
+        if j >= len(ts_e):
+            b3_skip.append(f); continue
+        t_in = int(ts_e[j]) + MIN
+    else:
+        t_in = ms(e, 18, 0, UTC)
+    t = trade("EURJPY", +1, t_in, ms(f, 0, 55, UTC))
+    if t is None:
+        b3_skip.append(f); continue
+    t["day"] = f; B3.append(t)
+print(f"B3: NAV days {len(fdays)} after dropping {dropped} gotobi days; trades {len(B3)}; skipped (no quote) "
+      f"{[str(x) for x in b3_skip]}")
+
+# ---------------------------------------------------------------- A1
+flow = {}
+with open(A.flows) as fh:
+    for r in csv.DictReader(fh):
+        flow[dt.date.fromisoformat(r["date"])] = float(r["total"]) if r["total"] else None
+A1, a1_skip = [], {"no flow row": 0, "zero flow": 0, "no quote": 0}
+d, prev = dt.date(2024, 1, 11), None
+while d <= LAST:
+    if nyse_td(d):
+        if prev is not None:
+            v = flow.get(prev)
+            if v is None:
+                a1_skip["no flow row"] += 1
+            elif v == 0:
+                a1_skip["zero flow"] += 1
+            else:
+                t = trade("BTCUSD", 1 if v > 0 else -1, ms(d, 15, 0, NY), ms(d, 16, 0, NY))
+                if t is None:
+                    a1_skip["no quote"] += 1
+                else:
+                    t["day"] = d; t["flow"] = v; A1.append(t)
+        prev = d
+    d += dt.timedelta(days=1)
+print(f"A1: trades {len(A1)}; skipped {a1_skip}; last flow row {max(flow)}")
+
+
+# ---------------------------------------------------------------- report
+def stat(x):
+    x = np.asarray([v for v in x if not math.isnan(v)])
+    if len(x) < 2:
+        return f"{x.mean():+.2f}" if len(x) else "-"
+    return f"{x.mean():+.2f} (t {x.mean() / (x.std(ddof=1) / math.sqrt(len(x))):+.2f})"
+
+
+for name, T in (("B3", B3), ("A1", A1)):
+    for era, a, b in ERAS[name]:
+        s = [t for t in T if a <= t["day"] <= b]
+        if not s:
+            print(f"{name} {era}: n 0"); continue
+        print(f"{name} {era}: n {len(s)} | mid {stat([t['gross'] for t in s])} | net {stat([t['net'] for t in s])} | "
+              f"x1.5 {stat([t['net15'] for t in s])} | +1min {stat([t['net1'] for t in s])}")
+    print(f"{name} by year (net): " + ", ".join(
+        f"{y} {np.mean([t['net'] for t in T if t['day'].year == y]):+.1f} (n {sum(t['day'].year == y for t in T)})"
+        for y in YEARS if any(t["day"].year == y for t in T)))
+    fwd = [t for t in T if t["day"] >= ERAS[name][2][1]]
+    if fwd:
+        print(f"{name} FWD trades: " + " ".join(f"{t['day']:%m-%d}{'L' if t['side'] > 0 else 'S'}:{t['net']:+.1f}"
+                                                 for t in fwd))

@@ -1,0 +1,20 @@
+# Minute panel 2016-01-01..2024-12-31 (HOLD cut at load). mid=(bid c + ask c)/2, spr=ask c - bid c, n=ticks.
+import json, sys, numpy as np
+OUT = sys.argv[1]
+SYMS = ["EURUSD","GBPUSD","AUDUSD","NZDUSD","USDJPY","USDCAD","USDCHF"]
+T0 = int(sys.argv[2]); T1 = int(sys.argv[3])
+N = (T1 - T0) // 60000
+mid = np.lib.format.open_memmap(f"{OUT}/mid.npy", "w+", np.float32, (len(SYMS), N))
+spr = np.lib.format.open_memmap(f"{OUT}/spr.npy", "w+", np.float32, (len(SYMS), N))
+cnt = np.lib.format.open_memmap(f"{OUT}/n.npy", "w+", np.uint16, (len(SYMS), N))
+for i, s in enumerate(SYMS):
+    z = np.load(f"research/data/m1/{s}.npz"); ts = z["ts"]; k = (ts >= T0) & (ts < T1)
+    idx = (ts[k] - T0) // 60000; c = z["c"][k]; ca = z["ca"][k]
+    row = np.full(N, np.nan, np.float32); row[idx] = (c + ca) / 2; mid[i] = row
+    row = np.full(N, np.nan, np.float32); row[idx] = ca - c; spr[i] = row
+    row = np.zeros(N, np.uint16); row[idx] = np.minimum(z["n"][k], 65535); cnt[i] = row
+    print(s, k.sum(), flush=True)
+mid.flush(); spr.flush(); cnt.flush()
+json.dump({"symbols": SYMS, "T0_ms": T0, "T1_ms_exclusive": T1, "minutes": int(N),
+           "note": "every calendar minute T0..T1 UTC (lead HOLD panel, 7 USD pairs), bar-start label from research/data/m1 ts; NaN = no bar"},
+          open(f"{OUT}/meta.json", "w"), indent=1)

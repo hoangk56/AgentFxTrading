@@ -1,0 +1,30 @@
+=== spread ic
+EURJPY: IC bars 3990416, Dukascopy bars 21480 (ic spread)
+BTCUSD: IC bars 3708210, Dukascopy bars 21596 (ic spread)
+B3: NAV days 68 after dropping 26 gotobi days; trades 68; skipped (no quote) []
+A1: trades 689; skipped {'no flow row': 3, 'zero flow': 0, 'no quote': 0}; last flow row 2026-10-09
+B3 DISC: n 32 | mid +2.07 (t +0.37) | net +1.27 (t +0.22) | x1.5 +0.77 (t +0.13) | +1min +0.63 (t +0.11)
+B3 TEST: n 34 | mid +6.15 (t +2.72) | net +5.10 (t +2.35) | x1.5 +4.72 (t +2.20) | +1min +4.30 (t +1.97)
+B3 FWD: n 2 | mid +11.66 (t +38.63) | net +10.89 (t +36.08) | x1.5 +10.67 (t +35.36) | +1min +10.65 (t +9.65)
+B3 by year (net): 2024 +0.0 (n 19), 2025 +6.1 (n 27), 2026 +3.3 (n 22)
+B3 FWD trades: 10-02L:+10.6 10-14L:+11.2
+A1 DISC: n 366 | mid +4.29 (t +1.24) | net +1.61 (t +0.46) | x1.5 +0.27 (t +0.08) | +1min +0.18 (t +0.05)
+A1 TEST: n 311 | mid +6.80 (t +2.63) | net +5.36 (t +2.07) | x1.5 +4.64 (t +1.79) | +1min +3.30 (t +1.29)
+A1 FWD: n 12 | mid -5.48 (t -0.56) | net -7.32 (t -0.75) | x1.5 -8.25 (t -0.84) | +1min -7.67 (t -0.90)
+A1 by year (net): 2024 +0.7 (n 244), 2025 +4.3 (n 250), 2026 +4.7 (n 195)
+A1 FWD trades: 09-25L:+3.6 09-28L:-81.8 09-29L:-7.0 09-30L:-42.9 10-01S:+12.3 10-02L:+3.4 10-05L:+5.0 10-06S:-14.2 10-07L:+1.0 10-08S:-35.3 10-09S:+15.3 10-12L:+52.6
+=== spread duka
+EURJPY: IC bars 3990416, Dukascopy bars 21480 (duka spread)
+BTCUSD: IC bars 3708210, Dukascopy bars 21596 (duka spread)
+B3: NAV days 68 after dropping 26 gotobi days; trades 68; skipped (no quote) []
+A1: trades 689; skipped {'no flow row': 3, 'zero flow': 0, 'no quote': 0}; last flow row 2026-10-09
+B3 DISC: n 32 | mid +2.07 (t +0.37) | net +1.27 (t +0.22) | x1.5 +0.77 (t +0.13) | +1min +0.63 (t +0.11)
+B3 TEST: n 34 | mid +6.15 (t +2.72) | net +5.10 (t +2.35) | x1.5 +4.72 (t +2.20) | +1min +4.30 (t +1.97)
+B3 FWD: n 2 | mid +11.66 (t +38.63) | net +10.88 (t +31.65) | x1.5 +10.66 (t +29.22) | +1min +10.69 (t +8.78)
+B3 by year (net): 2024 +0.0 (n 19), 2025 +6.1 (n 27), 2026 +3.3 (n 22)
+B3 FWD trades: 10-02L:+10.5 10-14L:+11.2
+A1 DISC: n 366 | mid +4.29 (t +1.24) | net +1.61 (t +0.46) | x1.5 +0.27 (t +0.08) | +1min +0.18 (t +0.05)
+A1 TEST: n 311 | mid +6.80 (t +2.63) | net +5.36 (t +2.07) | x1.5 +4.64 (t +1.79) | +1min +3.30 (t +1.29)
+A1 FWD: n 12 | mid -5.48 (t -0.56) | net -11.44 (t -1.17) | x1.5 -14.43 (t -1.48) | +1min -11.80 (t -1.38)
+A1 by year (net): 2024 +0.7 (n 244), 2025 +4.3 (n 250), 2026 +4.5 (n 195)
+A1 FWD trades: 09-25L:-0.5 09-28L:-85.9 09-29L:-11.1 09-30L:-47.0 10-01S:+8.3 10-02L:-0.7 10-05L:+1.0 10-06S:-18.2 10-07L:-3.1 10-08S:-39.6 10-09S:+11.0 10-12L:+48.4

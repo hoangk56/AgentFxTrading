@@ -1,0 +1,4 @@
+EURJPY: matched minutes 55779, median |mid diff| 0.05 bp, mean -0.00; median spread duka 0.44 bp / IC 0.27
+   window returns: n 38, corr 0.9999, median |diff| 0.09 bp, mean IC -0.07 / duka -0.11
+BTCUSD: matched minutes 55605, median |mid diff| 2.62 bp, mean +1.97; median spread duka 6.47 bp / IC 0.64
+   window returns: n 38, corr 0.9927, median |diff| 2.13 bp, mean IC +6.66 / duka +7.45

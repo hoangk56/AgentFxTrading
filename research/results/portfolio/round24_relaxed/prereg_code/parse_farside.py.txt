@@ -1,0 +1,48 @@
+# Farside "Bitcoin ETF Flow - All Data" HTML -> CSV date,total (US$m). A blank / "-" Total is written as empty.
+# Rows dated after MAXDATE are dropped at parse. Several captures are merged; a date present in more than one capture
+# must agree (else it is reported and the later capture wins).
+# usage: python -I parse_farside.py OUT.csv MAXDATE capture1.html [capture2.html ...]   (captures oldest first)
+import re, sys, datetime as dt
+
+OUT, MAXD = sys.argv[1], dt.date.fromisoformat(sys.argv[2])
+ROW = re.compile(r"<tr>(.*?)</tr>", re.S)
+CELL = re.compile(r"<td[^>]*>(.*?)</td>", re.S)
+TAG = re.compile(r"<[^>]+>")
+
+
+def num(s):
+    s = TAG.sub("", s).strip().replace(",", "")
+    if s in ("", "-"):
+        return None
+    neg = s.startswith("(") and s.endswith(")")
+    v = float(s.strip("()"))
+    return -v if neg else v
+
+
+rows, clash = {}, 0
+for fn in sys.argv[3:]:
+    html = open(fn, encoding="utf-8", errors="replace").read()
+    n = 0
+    for r in ROW.findall(html):
+        cells = CELL.findall(r)
+        if len(cells) < 3:
+            continue
+        try:
+            d = dt.datetime.strptime(TAG.sub("", cells[0]).strip(), "%d %b %Y").date()
+        except ValueError:
+            continue
+        if d > MAXD:
+            continue
+        v = num(cells[-1])
+        if d in rows and rows[d] is not None and v is not None and abs(rows[d] - v) > 0.05:
+            clash += 1; print("clash", d, rows[d], v, fn)
+        if v is not None or d not in rows:
+            rows[d] = v
+        n += 1
+    print(fn, "rows", n)
+with open(OUT, "w") as fh:
+    fh.write("date,total\n")
+    for d in sorted(rows):
+        fh.write(f"{d.isoformat()},{'' if rows[d] is None else rows[d]}\n")
+print("dates", len(rows), "first", min(rows), "last", max(rows), "blank", sum(v is None for v in rows.values()),
+      "clashes", clash)
