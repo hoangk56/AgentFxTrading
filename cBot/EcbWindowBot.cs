@@ -143,6 +143,10 @@ namespace cAlgo.Robots
         private readonly Dictionary<int, string> _closeReasons = new Dictionary<int, string>();
         private readonly Dictionary<int, SentQuote> _closeQuotes = new Dictionary<int, SentQuote>();
         private readonly Dictionary<int, Decision> _positionDecisions = new Dictionary<int, Decision>();
+        // The units each own position opened with (TrackOpenedUnits). A stop out or a partial close leaves the position
+        // open on fewer units; the slices it closed are History deals that Positions.Closed does not carry (23/10/2026:
+        // the broker stopped out three live Gotobi shorts in slices and -$660 of them went unreported).
+        private readonly Dictionary<int, double> _openedUnits = new Dictionary<int, double>();
         private DateTime _lastAttemptAt = DateTime.MinValue;
         private bool _orderPending;
         private DateTime _orderPendingSince;
@@ -564,6 +568,7 @@ namespace cAlgo.Robots
         {
             foreach (var pos in GetBotPositions())
             {
+                TrackOpenedUnits(pos);
                 string reason = null;
                 var exit = ExitTime(LondonDate(pos.EntryTime));
                 if (pos.EntryTime < exit && now >= exit)
@@ -912,6 +917,32 @@ namespace cAlgo.Robots
             return null;
         }
 
+        /// <summary>Records, once and while `pos` is open, the units it opened with: what it holds now plus what History
+        /// has already closed of it.</summary>
+        private void TrackOpenedUnits(Position pos)
+        {
+            if (_openedUnits.ContainsKey(pos.Id)) return;
+            _openedUnits[pos.Id] = pos.VolumeInUnits + History.Where(h => h.PositionId == pos.Id).Sum(h => h.VolumeInUnits);
+        }
+
+        /// <summary>The net of the slices taken off `pos` before its final close: its earliest History deals, up to the
+        /// units it lost while open. 0 when nothing was taken off, or when the bot never saw it open.</summary>
+        private double PartialClosesNet(Position pos)
+        {
+            if (!_openedUnits.TryGetValue(pos.Id, out var opened)) return 0;
+            _openedUnits.Remove(pos.Id);
+            double taken = opened - pos.VolumeInUnits;
+            double tolerance = Symbol.VolumeInUnitsMin / 2.0;
+            double units = 0, net = 0;
+            foreach (var h in History.Where(h => h.PositionId == pos.Id).OrderBy(h => h.ClosingTime))
+            {
+                if (units >= taken - tolerance) break;
+                units += h.VolumeInUnits;
+                net += h.NetProfit;
+            }
+            return net;
+        }
+
         private void OnPositionClosed(PositionClosedEventArgs args)
         {
             BeginInvokeOnMainThread(() =>
@@ -944,8 +975,11 @@ namespace cAlgo.Robots
                     string fillNote = _closeQuotes.TryGetValue(pos.Id, out var closeQuote)
                         ? $" @ {exitPrice}; {FillNote(pos.TradeType == TradeType.Buy ? TradeType.Sell : TradeType.Buy, exitPrice, closeQuote)}" : "";
                     _closeQuotes.Remove(pos.Id);
-                    Print($"[EcbWindow] Closed #{pos.Id} {pos.TradeType}: {reason}, net {pos.NetProfit:F2}{fillNote}");
-                    ReportPositionClosed(pos, pos.NetProfit, reason, exitPrice, pos.Pips);
+                    double slices = PartialClosesNet(pos);
+                    double net = pos.NetProfit + slices;
+                    string slicesNote = slices != 0 ? $" ({slices:F2} of it closed earlier in slices)" : "";
+                    Print($"[EcbWindow] Closed #{pos.Id} {pos.TradeType}: {reason}, net {net:F2}{slicesNote}{fillNote}");
+                    ReportPositionClosed(pos, net, reason, exitPrice, pos.Pips);
                     SendLiveTickTelemetry(force: true);
                 }
                 catch (Exception ex)
