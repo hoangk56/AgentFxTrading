@@ -73,3 +73,16 @@ def test_the_mark_survives_a_restart(tmp_path):
     path = str(tmp_path / "s.db")
     PortfolioManager(db_path=path).set_bot_stopped("cbot-a", True)
     assert PortfolioManager(db_path=path).is_bot_stopped_on_purpose("cbot-a") is True
+
+
+def test_the_mode_parameter_keeps_each_page_to_its_own_bots(pm, monkeypatch):
+    pm.add_cbot_config("bot-live", "L", RUN.replace("demo-eurusd", "live-live-eurusd"))
+    monkeypatch.setattr(watchdog_module.cbot_watchdog, "_last_health",
+                        {"bot-a": {"status": "exited"}, "bot-live": {"status": "exited"}})
+
+    def bots(query):
+        return sorted(a["bot"] for a in client.get(f"/api/dashboard/alerts?{query}").json()["alerts"] if a["kind"] == "bot_stopped")
+
+    assert bots("mode=demo") == ["cbot-demo-eurusd"]
+    assert bots("mode=live") == ["cbot-live-live-eurusd"]
+    assert len(bots("account_id=all")) == 2

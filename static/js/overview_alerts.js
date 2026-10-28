@@ -29,7 +29,9 @@
     async function refresh() {
         try {
             const account = selector ? selector.value : 'all';
-            const res = await fetch(`/api/dashboard/alerts?account_id=${encodeURIComponent(account)}`);
+            // The option's account type (demo / live) keeps a Demo page free of Real bots' alerts and the reverse.
+            const type = selector && selector.selectedOptions[0] ? selector.selectedOptions[0].dataset.type || '' : '';
+            const res = await fetch(`/api/dashboard/alerts?account_id=${encodeURIComponent(account)}&mode=${encodeURIComponent(type)}`);
             if (res.ok) render((await res.json()).alerts || []);
         } catch (e) {
             // A failed poll must not raise a false alarm; the connection pill already shows a dead link.
