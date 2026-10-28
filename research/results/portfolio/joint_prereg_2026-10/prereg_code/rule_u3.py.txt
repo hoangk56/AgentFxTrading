@@ -1,0 +1,230 @@
+"""JOINT rule U3: long after a US household-cash surprise in the Daily Treasury Statement, 3 marks (19:30 UTC).
+Round 36 stream U, family U3 (HYPOTHESES_U.md, declared 2026-10-28 01:50 UTC, EIP window amended 01:52).
+Registered cell: U3 h3 BTCUSD (the highest VAL net t of the eligible U3 cells; U3 h3 USTEC is the runner-up, run
+with --sym USTEC for information only). Code = round 36 U ucal.py (dts_signals) + marks.py + run_U.py (Sym, entries,
+cell), unchanged except that marks run to the --end date.
+
+Rule: T5(D) = refunds + SS + SSI + EIP + CTC + unemployment + VA withdrawals over the 5 DTS days D-4..D;
+x(D) = ln(T5(D) / T5 at the DTS day nearest D-365 (first DTS day on/after D-365)); signal if x(D) > the 80th percentile
+of x over the previous 250 DTS days. Entry at the 19:30 UTC IC mark of the first weekday mark on/after DTS day D+2
+(DTS for D is published ~16:00 ET on D+1); exit 3 marks later. One trade at a time. Ex-EIP: a trade is dropped if
+D-4..exit touches an EIP day (EIP >= $1 bn, or 2020-04-10..06-30 with refunds >= $5 bn) or the 5 DTS days around it.
+Long at ask, exit at bid; swap BTC -5 bp per weekday rollover (Friday x3), indices swap_frac_at.
+
+  eval:  PYTHONPATH=. research/.venv/bin/python rule_u3.py eval --end 2025-01-01 [--sym USTEC]
+  pull:  HOLD_RUN=1 ... rule_u3.py pull --end 2026-09-25     (fiscaldata DTS withdrawals 2025-01-01 .. end-1)
+  HOLD:  HOLD_RUN=1 ... rule_u3.py eval --end 2026-09-25
+"""
+import collections
+import datetime as dt
+import glob
+import json
+import os
+import re
+import sys
+
+import numpy as np
+
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import jcommon as J  # noqa: E402
+from research import m1  # noqa: E402
+from research.swing.rates import swap_frac_at  # noqa: E402
+
+END = J.parse_end(sys.argv)
+J.guard(END)
+CUT = J.ms(END)
+SYM = sys.argv[sys.argv.index("--sym") + 1] if "--sym" in sys.argv else "BTCUSD"
+H = 3
+rng = np.random.default_rng(3603)
+GROUPS = {   # round 36 U parse_dts.py
+    "refund_ind": [r"^(OW: )?IRS Tax Refunds Individual \(EFT\)$", r"^Taxes - Individual Tax Refunds \(EFT\)$"],
+    "ss": [r"^(OW: )?Social Security Benefits \(EFT\)$", r"^SSA - Benefits Payments$"],
+    "ssi": [r"^(OW: )?Supple\. Security Income Benefits \(EFT\)$", r"^SSA - Supplemental Security Income$"],
+    "eip": [r"Economic Impact Payments"],
+    "ctc": [r"Advanced Child Tax Credit"],
+    "ui": [r"^Unemployment Insurance Benefits$", r"^DOL - Unemployment Benefits$"],
+    "va": [r"^VA - Benefits$", r"^(OW: )?Veterans Benefits \(EFT\)$"],
+}
+
+
+def load_dts():
+    z = json.load(open(os.path.join(J.DATA, "u3_dts_household_to2024.json")))
+    ds = [dt.date.fromisoformat(d) for d in z["days"]]; V = [list(v) for v in z["vals"]]; G = z["groups"]
+    assert G == list(GROUPS)
+    if END > J.HOLD0:
+        rows = []
+        for p in sorted(glob.glob(os.path.join(J.HOLD_DATA, "dts", "dts_wd_p*.json"))):
+            rows += json.load(open(p))["data"]
+        daily = collections.defaultdict(lambda: collections.defaultdict(float)); days = set()
+        hits = collections.Counter()
+        for r in rows:
+            d = r["record_date"]
+            if not ("2025-01-01" <= d < END.isoformat()):
+                continue
+            days.add(d)
+            nm = r["transaction_catg"] if r["transaction_catg"] != "Other Withdrawals" else "OW: " + str(r["transaction_catg_desc"])
+            for g, pats in GROUPS.items():
+                if any(re.search(p, nm) for p in pats):
+                    hits[(g, d[:4])] += 1
+                    try:
+                        daily[d][g] += float(r["transaction_today_amt"])
+                    except (TypeError, ValueError):
+                        pass
+        print("HOLD precondition: matched DTS rows per group and year (counts only)", dict(sorted(hits.items())))
+        for g in ("refund_ind", "ss", "ssi", "ui", "va"):
+            for y in range(2025, END.year + 1):
+                if hits[(g, str(y))] == 0:
+                    sys.exit(f"STOP before any return: DTS group {g} has no matched row in {y}; ask the user")
+        for d in sorted(days):
+            ds.append(dt.date.fromisoformat(d)); V.append([daily[d][g] for g in GROUPS])
+    return ds, list(GROUPS), np.array(V)
+
+
+def rolling_q80(x, win=250):
+    s = np.zeros(len(x), bool)
+    for i in range(win, len(x)):
+        s[i] = x[i] > np.nanpercentile(x[i - win:i], 80)
+    return s
+
+
+def dts_signals():
+    ds, G, V = load_dts()
+    ri = V[:, G.index("refund_ind")]; tot = V.sum(1); n = len(ds)
+    T5 = np.array([tot[max(0, i - 4):i + 1].sum() if i >= 4 else np.nan for i in range(n)])
+    ords = np.array([d.toordinal() for d in ds])
+    j = np.clip(np.searchsorted(ords, ords - 365), 0, n - 1)
+    T5ly = np.where(ords - 365 >= ords[0] + 7, T5[j], np.nan)
+    x3 = np.log(T5 / T5ly)
+    s3 = rolling_q80(x3) & np.isfinite(x3)
+    eip = V[:, G.index("eip")]
+    e1 = np.array([(dt.date(2020, 4, 10) <= d <= dt.date(2020, 6, 30)) and ri[i] >= 5000 for i, d in enumerate(ds)])
+    eipday = (eip >= 1000) | e1
+    contam = eipday.copy()
+    for i in np.flatnonzero(eipday):
+        contam[max(0, i - 5):i + 6] = True
+    return dict(ds=ds, s3=s3, contam=contam)
+
+
+def marks(sym):
+    """marks.py: bid / ask of the first M1 bar at or after 19:30 (and 19:31) UTC within 10 min, weekdays."""
+    z = m1.load(sym); k = z["ts"] < CUT
+    ts, bid, ask = z["ts"][k], z["c"][k], z["ca"][k]
+    o = np.argsort(ts, kind="stable"); ts, bid, ask = ts[o], bid[o], ask[o]
+    d = np.arange(np.datetime64("2016-01-01"), np.datetime64(END.isoformat()))
+    d = d[((d.astype("datetime64[D]").view("int64") - 4) % 7) < 5]
+    dms = d.astype("datetime64[ms]").view("int64")
+    B = np.full((len(d), 2), np.nan); A = B.copy()
+    for jj, s in enumerate((19 * 60 + 30, 19 * 60 + 31)):
+        tgt = dms + s * 60_000
+        i = np.searchsorted(ts, tgt); i2 = np.minimum(i, len(ts) - 1)
+        ok = (i < len(ts)) & (ts[i2] < tgt + 10 * 60_000)
+        B[ok, jj] = bid[i2[ok]]; A[ok, jj] = ask[i2[ok]]
+    return [dt.date.fromisoformat(str(x)) for x in d], B, A
+
+
+class Sym:
+    def __init__(self, s):
+        dates, B, A = marks(s)
+        v = np.isfinite(B[:, 0]) & np.isfinite(A[:, 0])
+        self.d = [dates[i] for i in np.flatnonzero(v)]
+        self.ord = np.array([x.toordinal() for x in self.d])
+        self.b0, self.a0 = B[v, 0], A[v, 0]
+        b1, a1 = B[v, 1], A[v, 1]; ok1 = np.isfinite(b1) & np.isfinite(a1)
+        self.b1 = np.where(ok1, b1, self.b0); self.a1 = np.where(ok1, a1, self.a0)
+        self.K = len(self.d)
+        if s in ("BTCUSD", "ETHUSD"):
+            per = np.full(self.K, -5.0)
+        else:
+            ss = "US500" if s == "US2000" else s
+            msx = (self.ord - dt.date(1970, 1, 1).toordinal()) * 86_400_000 + 19 * 3_600_000
+            per = np.array([1e4 * swap_frac_at(ss, 1, int(m)) for m in msx])
+        k = np.arange(self.K - H); x = k + H
+        mid_e = (self.b0[k] + self.a0[k]) / 2; mid_x = (self.b0[x] + self.a0[x]) / 2
+        roll = np.array([self.rolls(self.d[i], self.d[j]) for i, j in zip(k, x)])
+        sw = roll * per[k]
+        mid = 1e4 * (mid_x / mid_e - 1)
+        half = 1e4 * ((self.a0[k] - self.b0[k]) / 2 / mid_e + (self.a0[x] - self.b0[x]) / 2 / mid_x)
+        self.tab = dict(mid=mid, net=mid - half + sw, net15=mid - 1.5 * half + sw,
+                        net1m=1e4 * (self.b1[x] / self.a1[k] - 1) + sw)
+
+    @staticmethod
+    def rolls(a, b):
+        n = 0; d = a
+        while d < b:
+            if d.weekday() < 5:
+                n += 3 if d.weekday() == 4 else 1
+            d += dt.timedelta(days=1)
+        return n
+
+    def k_onafter(self, D):
+        i = np.searchsorted(self.ord, D.toordinal())
+        return i if i < self.K and self.ord[i] <= D.toordinal() + 6 else None
+
+
+def main_eval():
+    SIG = dts_signals(); DS = SIG["ds"]
+    CONT = np.array(sorted(d.toordinal() for d, c in zip(DS, SIG["contam"]) if c))
+    sym = Sym(SYM); T = sym.tab
+    out = []
+    for i in np.flatnonzero(SIG["s3"]):
+        if i + 2 >= len(DS):
+            continue
+        k = sym.k_onafter(DS[i + 2])
+        if k is not None:
+            out.append((k, DS[max(0, i - 4)].toordinal()))
+    ws = {}
+    for k, w in out:
+        ws[k] = min(w, ws.get(k, w))
+    ks, last = [], -1
+    for k in sorted(ws):                       # nonoverlap
+        if k >= last:
+            ks.append(k); last = k + H
+    ks = [k for k in ks if k + H < sym.K]
+
+    def contaminated(a, b):
+        i = np.searchsorted(CONT, a)
+        return i < len(CONT) and CONT[i] <= b
+
+    ks = np.array([k for k in ks if not contaminated(min(ws[k], sym.ord[k]), sym.ord[k + H])], int)
+    is0 = dt.date(2016, 1, 1)
+    print(f"U3 h3 {SYM} household-cash surprise, long 3 marks; end {END}")
+    trades = {}
+    for name, a, b in J.eras(END, is0):
+        kk = np.array([k for k in ks if a <= sym.d[k] < b and sym.d[k + H] < b], int)
+        net = T["net"][kk]; n = len(kk)
+        trades[name] = [(str(sym.d[k]), float(T["mid"][k]), float(T["net"][k])) for k in kk]
+        if n < 3:
+            print(f"[{name}] n {n}"); continue
+        pool = np.array([k for k in range(sym.K - H) if a <= sym.d[k] < b and sym.d[k + H] < b
+                         and not contaminated(sym.ord[k], sym.ord[k + H])], int)
+        draws = np.array([T["net"][rng.choice(pool, n, replace=False)].mean() for _ in range(300)])
+        yr = np.array([sym.d[k].year for k in kk])
+        o = dict(n=n, mid=T["mid"][kk].mean(), net=net.mean(), t=net.mean() / (net.std(ddof=1) / np.sqrt(n)),
+                 net15=T["net15"][kk].mean(), net1=T["net1m"][kk].mean(), sd=net.std(ddof=1),
+                 sh=net.mean() / net.std(ddof=1), years={int(y): float(net[yr == y].mean()) for y in np.unique(yr)},
+                 rand=float((draws < net.mean()).mean()))
+        print(J.fmt_era(name, o))
+    json.dump(trades, open(os.path.join(J.JOINT, "out", f"trades_U3_{SYM}_{'HOLD' if END > J.HOLD0 else 'repro'}.json"), "w"))
+
+
+def main_pull():
+    """round 36 U pull_dts.py with the date filter 2025-01-01 <= record_date < END."""
+    log = os.path.join(J.HOLD_DATA, "requests.log")
+    last = (END - dt.timedelta(days=1)).isoformat()
+    B = ("https://api.fiscaldata.treasury.gov/services/api/fiscal_service/v1/accounting/dts/deposits_withdrawals_operating_cash"
+         "?fields=record_date,transaction_type,transaction_catg,transaction_catg_desc,transaction_today_amt"
+         f"&filter=transaction_type:eq:Withdrawals,record_date:gte:2025-01-01,record_date:lte:{last}"
+         "&sort=record_date&page[size]=10000&page[number]=")
+    p = 1
+    while True:
+        out = os.path.join(J.HOLD_DATA, "dts", f"dts_wd_p{p:03d}.json")
+        if J.fetch(B + str(p), out, log, gap=1.1) != 200:
+            sys.exit("pull failed")
+        if p >= json.load(open(out))["meta"]["total-pages"]:
+            break
+        p += 1
+    print("pulled", p, "pages (values not printed)")
+
+
+if __name__ == "__main__":
+    {"eval": main_eval, "pull": main_pull}[sys.argv[1]]()

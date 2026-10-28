@@ -1,0 +1,234 @@
+"""JOINT rule L3-JPY: large 5-day Treasury + RRP liquidity flows -> USDJPY, 5 marks (15:00 UTC).
+Round 32 stream L, cell "L3 k5 USDJPY" (HYPOTHESES_L.md, declared 2026-10-27 18:50-19:05 UTC). Code = round 32 L
+run_L.py (calendar, y5 / z5, daily_signal step 5, run_cell, trade table, random_control) + marks.py, restricted to
+this cell, unchanged except that the calendar and the IC marks run to the --end date.
+
+Rule: business days = DTS record dates. y1(D) = -(dTGA(D) + dRRP(D)) (USD mn; TGA = DTS operating cash balance,
+RRP = NY Fed reverse repo total accepted, carried forward); y5 = sum of y1 over the 5 business days ending D;
+z5(D) = y5(D) / sd(previous 250 y5 values). At mark m (15:00 UTC on business day m), v = z5 of business day m-2.
+Marks are taken every 5th business day from the first 2016 mark (non-overlapping grid). Trade when |v| > 1.5:
+v > 0 (liquidity added) -> SHORT USDJPY (declared risk side), v < 0 (drain) -> LONG USDJPY. Entry at the 15:00 bar
+(first bar at or after 15:00 within 10 min), exit at the 15:00 bar 5 marks later. Cost: half spread each leg +
+0.6 bp; swap swap_frac_at per rollover crossed (21:00 UTC stamp, Wednesday triple).
+
+  eval:  PYTHONPATH=. research/.venv/bin/python rule_l3.py eval --end 2025-01-01
+  pull:  HOLD_RUN=1 ... rule_l3.py pull --end 2026-09-25   (fiscaldata DTS operating cash balance; NY Fed RRP)
+  HOLD:  HOLD_RUN=1 ... rule_l3.py eval --end 2026-09-25
+"""
+import datetime as dt
+import glob
+import json
+import os
+import sys
+from functools import lru_cache
+
+import numpy as np
+
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import jcommon as J  # noqa: E402
+from research import m1  # noqa: E402
+from research.swing.rates import swap_frac_at  # noqa: E402
+
+END = J.parse_end(sys.argv)
+J.guard(END)
+CUT = J.ms(END)
+SYM, RISK, H, THR = "USDJPY", -1, 5, 1.5
+RNG = np.random.default_rng(3205)
+NS = 14   # slots: 0 = 15:00, 1 = 15:01, 2.. = 08..19 h (random control)
+SLOTS = [15 * 60, 15 * 60 + 1] + [h * 60 for h in range(8, 20)]
+
+
+def load_inputs():
+    tga = dict(json.load(open(os.path.join(J.DATA, "l3_dts_tga_to2024.json"))))
+    rrp = dict(json.load(open(os.path.join(J.DATA, "l3_rrp_daily_to2024.json"))))
+    if END > J.HOLD0:
+        e = END.isoformat()
+        rows = []
+        for p in sorted(glob.glob(os.path.join(J.HOLD_DATA, "dts_ocb", "dts_ocb_p*.json"))):
+            rows += json.load(open(p))["data"]
+        accts = sorted({r["account_type"] for r in rows if "2025-01-01" <= r["record_date"] < e})
+        print("HOLD precondition: DTS account types 2025-26", accts)
+        for r in rows:                         # round 32 L parse_dts.py
+            d = r["record_date"]
+            if not ("2025-01-01" <= d < e):
+                continue
+            a = r["account_type"]; v = r["close_today_bal"]
+            if a == "Treasury General Account (TGA) Closing Balance":
+                v = r["open_today_bal"]
+            if a in ("Federal Reserve Account", "Treasury General Account (TGA)",
+                     "Treasury General Account (TGA) Closing Balance") and v not in (None, "", "null"):
+                try:
+                    tga[d] = float(v)
+                except ValueError:
+                    pass
+        if not any(d >= "2025-01-01" for d in tga):
+            sys.exit("STOP before any return: no TGA rows parsed for 2025-26; ask the user")
+        tot = {}
+        for p in sorted(glob.glob(os.path.join(J.HOLD_DATA, "rrp", "rrp_*.json"))):   # parse_rrp.py
+            for op in json.load(open(p))["repo"]["operations"]:
+                d = op["operationDate"]
+                if "2025-01-01" <= d < e and op["operationType"] == "Reverse Repo":
+                    tot[d] = tot.get(d, 0.0) + float(op.get("totalAmtAccepted") or 0) / 1e6
+        rrp.update(tot)
+    return tga, rrp
+
+
+TGA, RRP = load_inputs()
+bdays = sorted(d for d in TGA if d < END.isoformat())
+bidx = {d: i for i, d in enumerate(bdays)}
+marks = [d for d in bdays if d >= "2009-01-01"]
+NM = len(marks)
+myear = np.array([int(d[:4]) for d in marks])
+era = np.where(myear <= 2015, "PRE", np.where(myear <= 2021, "IS", np.where(myear <= 2024, "VAL", "HOLD")))
+
+
+def todate(s):
+    return dt.date(int(s[:4]), int(s[5:7]), int(s[8:10]))
+
+
+def build_marks():
+    z = m1.load(SYM); k = z["ts"] < CUT
+    ts, bid, ask = z["ts"][k], z["c"][k], z["ca"][k]
+    o = np.argsort(ts, kind="stable"); ts, bid, ask = ts[o], bid[o], ask[o]
+    B = np.full((NM, NS), np.nan); A = B.copy()
+    dms = np.array([J.ms(todate(d)) for d in marks], dtype=np.int64)
+    for j, s in enumerate(SLOTS):
+        tgt = dms + s * 60_000
+        i = np.searchsorted(ts, tgt); i2 = np.minimum(i, len(ts) - 1)
+        ok = (i < len(ts)) & (ts[i2] < tgt + 10 * 60_000) & (myear >= 2016)
+        B[ok, j] = bid[i2[ok]]; A[ok, j] = ask[i2[ok]]
+    return B, A
+
+
+PB, PA = build_marks()
+
+
+@lru_cache(maxsize=None)
+def swap_bp(side, d0, d1):
+    a, b = todate(d0), todate(d1); tot = 0.0; x = a
+    while x < b:
+        wd = x.weekday()
+        if wd < 5:
+            mult = 3 if wd == 2 else 1
+            msx = int(dt.datetime(x.year, x.month, x.day, 21, tzinfo=dt.timezone.utc).timestamp() * 1000)
+            tot += mult * swap_frac_at(SYM, side, msx) * 1e4
+        x += dt.timedelta(days=1)
+    return tot
+
+
+TAB = {}
+
+
+def table(side, slot, spx):
+    key = (side, slot, spx)
+    if key not in TAB:
+        mid = np.full(NM, np.nan); net = np.full(NM, np.nan)
+        j = np.arange(NM) + H; ok = j < NM; i = np.flatnonzero(ok); j = j[ok]
+        be, ae, bx, ax = PB[i, slot], PA[i, slot], PB[j, slot], PA[j, slot]
+        me, mx = (be + ae) / 2, (bx + ax) / 2
+        md = side * (mx / me - 1) * 1e4
+        sc = ((ae - be) / 2 / me + (ax - bx) / 2 / mx) * 1e4 * spx
+        sw = np.array([swap_bp(side, marks[a], marks[b]) for a, b in zip(i, j)])
+        mid[i] = md; net[i] = md - sc - 0.6 + sw
+        # a pre-2025 entry whose exit mark is in 2025+ is dropped (the stream's marks ended 2024-12-31)
+        cross = (era[i] != "HOLD") & (era[j] == "HOLD")
+        mid[i[cross]] = np.nan; net[i[cross]] = np.nan
+        TAB[key] = (mid, net)
+    return TAB[key]
+
+
+def signal():
+    tg = np.array([TGA[d] for d in bdays])
+    rr = np.zeros(len(bdays)); last = 0.0
+    for i, d in enumerate(bdays):
+        if d in RRP:
+            last = RRP[d]
+        elif d < "2013-04-02":
+            last = 0.0
+        rr[i] = last
+    y1 = -(np.r_[np.nan, np.diff(tg)] + np.r_[np.nan, np.diff(rr)])
+    y5 = np.convolve(np.nan_to_num(y1), np.ones(5), "full")[:len(y1)]; y5[:6] = np.nan
+    x = np.nan_to_num(y5); z5 = np.full(len(x), np.nan)
+    for i in range(250, len(x)):
+        sd = np.std(x[i - 250:i], ddof=1)
+        if sd > 0:
+            z5[i] = x[i] / sd
+    z5[:256] = np.nan
+    v = np.full(NM, np.nan)
+    for m, d in enumerate(marks):
+        k = bidx[d] - 2
+        if k >= 0:
+            v[m] = z5[k]
+    first = int(np.argmax(myear >= 2016))
+    v = np.where((np.arange(NM) - first) % 5 == 0, v, np.nan)
+    e = np.flatnonzero(np.isfinite(v))
+    return e, v[e]
+
+
+def run_cell(ent, val, spx=1.0, slot=0):
+    out = []
+    for m, v in zip(ent, val):
+        if not np.isfinite(v) or abs(v) <= THR or v == 0:
+            continue
+        sg = (1 if v > 0 else -1) * RISK
+        mid, net = table(sg, slot, spx)
+        if np.isfinite(mid[m]) and np.isfinite(net[m]):
+            out.append((m, sg, mid[m], net[m]))
+    return out
+
+
+def main_eval():
+    ent, val = signal()
+    rows = run_cell(ent, val)
+    r15 = {r[0]: r[3] for r in run_cell(ent, val, spx=1.5)}; r1 = {r[0]: r[3] for r in run_cell(ent, val, slot=1)}
+    lk = np.full(NM, np.nan); o = np.argsort(ent)
+    for k in range(len(ent)):
+        lk[ent[o][k]:(ent[o][k + 1] if k + 1 < len(ent) else NM)] = val[o][k]
+    up = np.full((NM, NS), np.nan); dn = up.copy()
+    for sl in range(2, NS):
+        up[:, sl] = table(RISK, sl, 1.0)[1]; dn[:, sl] = table(-RISK, sl, 1.0)[1]
+    print(f"L3-JPY |z5| > 1.5, 5 marks, side short USDJPY on liquidity added; end {END}")
+    trades = {}
+    for name in ("IS", "VAL", "HOLD"):
+        sel = [r for r in rows if era[r[0]] == name]
+        trades[name] = [(marks[r[0]], r[1], float(r[2]), float(r[3])) for r in sel]
+        if name == "HOLD" and END <= J.HOLD0:
+            continue
+        n = len(sel)
+        if n < 3:
+            print(f"[{name}] n {n}"); continue
+        net = np.array([r[3] for r in sel]); mid = np.array([r[2] for r in sel])
+        yr = np.array([myear[r[0]] for r in sel])
+        pool = np.flatnonzero((era == name) & np.isfinite(lk) & (np.abs(lk) > 0))
+        pick = RNG.choice(pool, (200, n), replace=True); slots = RNG.integers(2, NS, (200, n))
+        means = np.nanmean(np.where(lk[pick] > 0, up[pick, slots], dn[pick, slots]), axis=1)
+        o_ = dict(n=n, mid=mid.mean(), net=net.mean(), t=net.mean() / (net.std(ddof=1) / np.sqrt(n)),
+                  net15=np.mean([r15[r[0]] for r in sel]), net1=np.nanmean([r1.get(r[0], np.nan) for r in sel]),
+                  sd=net.std(ddof=1), sh=net.mean() / net.std(ddof=1),
+                  years={int(y): float(net[yr == y].mean()) for y in np.unique(yr)},
+                  rand=float(np.mean(net.mean() > means)))
+        print(J.fmt_era(name, o_) + f" longs {sum(r[1] > 0 for r in sel)}")
+    json.dump(trades, open(os.path.join(J.JOINT, "out", f"trades_L3_{'HOLD' if END > J.HOLD0 else 'repro'}.json"), "w"))
+
+
+def main_pull():
+    log = os.path.join(J.HOLD_DATA, "requests.log"); last = (END - dt.timedelta(days=1)).isoformat()
+    B = ("https://api.fiscaldata.treasury.gov/services/api/fiscal_service/v1/accounting/dts/operating_cash_balance"
+         f"?filter=record_date:gte:2025-01-01,record_date:lte:{last}&sort=record_date&page[size]=10000&page[number]=")
+    p = 1
+    while True:
+        out = os.path.join(J.HOLD_DATA, "dts_ocb", f"dts_ocb_p{p}.json")
+        if J.fetch(B + str(p), out, log, gap=1.1) != 200:
+            sys.exit("pull failed")
+        if p >= json.load(open(out))["meta"]["total-pages"]:
+            break
+        p += 1
+    for y in range(2025, END.year + 1):
+        b = min(dt.date(y, 12, 31), END - dt.timedelta(days=1)).isoformat()
+        J.fetch(f"https://markets.newyorkfed.org/api/rp/reverserepo/propositions/search.json?startDate={y}-01-01&endDate={b}",
+                os.path.join(J.HOLD_DATA, "rrp", f"rrp_{y}.json"), log, gap=1.1)
+    print("pulled (values not printed)")
+
+
+if __name__ == "__main__":
+    {"eval": main_eval, "pull": main_pull}[sys.argv[1]]()

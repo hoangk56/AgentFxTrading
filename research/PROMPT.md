@@ -41,9 +41,10 @@ Ràng buộc cố định (chỉ những điều này):
 - Một bot giữ tối đa 3 lệnh cùng lúc.
 Mọi thứ khác tôi không nói đều được tự đổi: mã, khung thời gian, cách vào/thoát lệnh, engine, số mã mỗi bot...
 
-Đọc trước để không test lại (30 vòng đã chạy, chỉ C3 đạt bậc live; vòng mới nhất ở đầu JOURNAL; tạm dừng sau vòng 29
+Đọc trước để không test lại (36 vòng đã chạy, chỉ C3 đạt bậc live; vòng mới nhất ở đầu JOURNAL; tạm dừng sau vòng 29
 theo yêu cầu của tôi, rồi ngày 2026-10-18 tôi duyệt quyết định 1, 2, 4: luật vàng chạy demo, vòng 30 trên 6 mã FX mới,
-chạy lại log forward; hiện trạng ở cuối báo cáo vòng 30):
+chạy lại log forward; ngày 2026-10-27 tôi cho research tiếp và cho tìm các nguồn khác (vòng 31 trở đi: dữ liệu công
+khai không phải giá); hiện trạng ở cuối báo cáo vòng mới nhất):
 - research/JOURNAL.md (toàn bộ) và research/README.md
 - research/results/portfolio/swing_lab_v2_2026-09-27.md ("What was tried"), prereg_swing_v2.md
 - research/results/portfolio/flow_search_2026-09-27.md, flow_search_round4_2026-09-27.md
@@ -112,6 +113,21 @@ chạy lại log forward; hiện trạng ở cuối báo cáo vòng 30):
 - research/results/portfolio/round30_fix_flows_2026-10-18.md và thư mục round30_fix_flows/ (6 mã FX mới: dòng tiền NOK
   của Norges Bank, fix Banxico của USDMXN, VWAP ABS của USDSGD, đóng cửa CFETS của USDCNH ở spread thật: không có gì;
   cách kéo tick IC qua backtest cTrader trên VPS)
+- research/results/portfolio/round31_new_sources_2026-10-27.md và thư mục round31_new_sources/ (bảng dòng tiền / vị thế
+  công khai của Nhật: TFX Click 365, MoF, JPX; tổng điều tra ~1.550 chiến lược của cộng đồng thực chiến ở STREAM_P.md;
+  dòng tiền on-chain, vị thế Bitfinex / Binance, thanh lý; lượng vàng ETF nắm giữ, dự báo nhiệt độ NOAA cho khí;
+  BRIEF.md là mẫu brief cho nguồn mới, kèm luật mạng)
+- research/results/portfolio/round32_liquidity_vol_attention_2026-10-27.md và thư mục của nó (TGA / RRP / H.4.1, vol
+  ngầm định CBOE của từng tài sản, Wikipedia pageviews / Hacker News; bản nháp HN "recession" không đăng ký)
+- research/results/portfolio/round33_cross_venue_2026-10-27.md và thư mục round33_cross_venue/ (premium Coinbase /
+  kimchi, premium SGE miễn phí, chiều giao hàng Au(T+D), tiền gửi SNB)
+- research/results/portfolio/round34_china_etf_options_2026-10-28.md và thư mục của nó (xếp hạng thành viên SHFE kèm
+  tách khách hàng môi giới / thành viên khác = "COT" ngày của Trung Quốc; liều tái cân bằng ETF đòn bẩy từ lịch sử
+  ProShares; 16.5 triệu lệnh quyền chọn BTC Deribit; fade đáo hạn thứ Sáu 08:00 chỉ đúng ở VAL)
+- research/results/portfolio/round35_options_volume_asia_positioning_2026-10-28.md (put/call CBOE theo lớp nối liền
+  2006-24 qua JSON thống kê ngày; vị thế tổ chức TAIFEX 2018-24 qua FinMind, dòng tiền TWSE 2004-24)
+- research/results/portfolio/round36_asia_liquidity_household_cash_2026-10-28.md (giao dịch currency board HKMA, HIBOR /
+  SHIBOR, RRR; tiền Kho bạc Mỹ trả hộ gia đình từ DTS; mục "State after round 36 (pause)")
   và báo cáo các vòng sau nếu có (xem JOURNAL)
 
 Những họ đã cạn, đừng quét lại kiểu cũ (chỉ làm lại nếu cách dựng khác hẳn và nói rõ khác ở đâu):
@@ -190,7 +206,30 @@ Những họ đã cạn, đừng quét lại kiểu cũ (chỉ làm lại nếu 
   2007-15 (mid +2.28, t 2.87) nhưng đảo dấu từ 2016 (net IS -2.69, VAL -4.28); USDSGD vào VWAP ABS: không có; đóng cửa
   CFETS của USDCNH có thật ở mid (t 4.6) nhưng net ở spread IC +0.08 bp (cần phí khứ hồi <= 0.70 bp, IC 1.15); EURNOK theo
   chiều Norges Bank: IS +2.33 (t 1.65), VAL -4.99, độ dốc theo cỡ dòng tiền mất ở VAL; giá EURNOK của IC nhảy +2.3 bp
-  vào phút 09:00 Oslo rồi về (lỗi giá chào, tính vào phí nếu vào lệnh ở phút đó).
+  vào phút 09:00 Oslo rồi về (lỗi giá chào, tính vào phí nếu vào lệnh ở phút đó);
+- dữ liệu công khai không phải giá (vòng 31-33, 2026-10-27): bảng tuần MoF / JPX và OI TFX Click 365 của Nhật (OI cho
+  biết phía của retail, volume dự báo độ lớn, không dự báo chiều); tổng điều tra chiến lược cộng đồng (mql5, QuantConnect,
+  Quantpedia, GitHub, GogoJungle: phá đỉnh / đáy hôm trước của vàng đã suy giảm từ 2016, bình vị thế thứ Sáu sai chiều);
+  dòng tiền sàn CoinMetrics (không point-in-time), vị thế Bitfinex, tỉ lệ long/short và OI Binance (đi tiếp, không đảo),
+  thanh lý (đi tiếp); lượng nắm giữ GLD / IAU / SLV (= momentum 1 ngày), dự báo CPC cho khí (đã vào giá 24 giờ trước khi
+  đăng); net liquidity / TGA / RRP / H.4.1 (Fed tăng tài sản lại ngược chiều, đuôi rút tiền chỉ dương ở VAL); VRP và cú
+  sốc vol ngầm định từng tài sản, VVIX / SKEW (= đảo chiều 1 ngày), tương quan ngầm định; chú ý trên Wikipedia / HN (luật
+  HN "recession" -> mua US500 3 ngày chỉ ở mức ngẫu nhiên của họ, random IS 0.879); premium Coinbase (chiều ổn định nhưng
+  IS t 1.4-1.7, power <= 1.7), kimchi (sai chiều); premium SGE (độ dốc đổi dấu mỗi kỷ), chiều giao hàng Au(T+D); tiền gửi
+  SNB (chỉ có ở kỷ sàn 2009-15);
+- vòng 34 (2026-10-28): xếp hạng thành viên SHFE (top-20, ghế có tên, khách hàng vs thành viên khác) và kho SHFE / INE
+  cho vàng, bạc, dầu, AUD (chiều không ổn định giữa các kỷ); liều tái cân bằng ETF đòn bẩy / ngược (ProShares 2006-24)
+  cho chỉ số Mỹ, kim loại, năng lượng, VIX, JP225 (momentum vàng vào settlement không phải dòng ETF đòn bẩy; USTEC liều
+  cao IS t 1.38 / VAL 2.78; bạc đảo ở VAL); dòng lệnh quyền chọn BTC Deribit (delta, put, risk reversal, VRP, block,
+  gamma dealer) ở 4 giờ-5 ngày; fade đáo hạn thứ Sáu 08:00 UTC có ở VAL (+16.7 bp, t 3.24) nhưng IS t 0.80 vì phí 2017-21;
+- vòng 35-36 (2026-10-28): put/call CBOE theo lớp và khối lượng quyền chọn OCC toàn thị trường (dữ liệu miễn phí trộn
+  mở / đóng, mua / bán nên dòng lệnh có thông tin bị pha loãng); vị thế tổ chức nước ngoài TAIFEX và dòng tiền TWSE (cùng
+  chiều thị trường trong ngày, không dự báo hôm sau); giao dịch currency board HKMA, HIBOR / SHIBOR / CNH HIBOR, RRR
+  (HIBOR là tín hiệu lãi suất Mỹ qua tỉ giá neo); tiền Kho bạc trả hộ gia đình (hoàn thuế, An sinh xã hội, EIP; theo
+  lịch hay thực trả đều phẳng);
+- đăng ký chung các luật chỉ mạnh ở VAL (2026-10-28): 4 luật chọn theo VAL t của vòng 32-36 (fade đáo hạn Deribit,
+  USTEC liều ETF đòn bẩy, HN "recession", U3 tiền hộ gia đình) đều âm ở holdout (t -1.12 đến -0.25): luật trượt IS mà
+  chỉ đẹp ở VAL không giữ được; đừng gom luật kiểu này để mở holdout nữa.
 
 Kết luận chung của các vòng 3-9: các dòng lệnh có thật ngoài gotobi chỉ 0.02-3 bp, cỡ spread + commission của IC;
 premia nhiều tuần thua phí qua đêm (financing markup) của IC; thông tin giữa các mã được định giá trong phút đầu;
@@ -220,7 +259,10 @@ mọi thời điểm (trước, trong, sau tin, và ngoài lịch tin). Vòng 27
 kỷ là cú dồn stop khi vàng phá mốc $50 "tươi" (qua holdout bậc DEMO 2026-10-18, power 1.40), chỉ có ở vàng. Vòng 29:
 fade mốc tròn ở chỉ số và giờ mở cửa châu Á đều dưới phí. Đã tạm dừng sau vòng 29 theo yêu cầu của tôi. Vòng 30 (tôi
 duyệt dữ liệu 6 mã FX mới): mọi giả thuyết khai báo trước đều trượt, fix Banxico đảo dấu sau 2015, dòng tiền NOK suy
-giảm như mọi dòng tiền khác, đóng cửa CFETS dưới phí IC. Luật vàng mốc $50 đã chạy demo (2026-10-18). Phiên mới nên bắt
+giảm như mọi dòng tiền khác, đóng cửa CFETS dưới phí IC. Luật vàng mốc $50 đã chạy demo (2026-10-18). Vòng 31-33 (tôi
+cho tìm nguồn khác, 2026-10-27): 12 nguồn công khai không phải giá, không có ứng viên; thông tin có thật trong vài nguồn
+(OI retail Nhật, dự báo thời tiết, chen chúc retail trên Binance) nhưng hoặc đã vào giá trước khi công bố, hoặc chỉ dự
+báo độ lớn, hoặc chỉ 0.03-0.1 sd mỗi lệnh. Phiên mới nên bắt
 đầu từ quyết định của tôi (xem "Hướng cần tôi quyết" và mục "State after round 30" của báo cáo vòng 30); nếu tôi chưa
 quyết gì mà vẫn yêu cầu chạy tiếp, chỉ mở hướng thật sự mới về cơ chế hoặc cách thực thi, khai báo trước toàn bộ,
 không quét lại.
@@ -246,7 +288,7 @@ cho ứng viên có t holdout kỳ vọng đáng kể.
 Hướng cần tôi quyết (ghi lại, đừng tự làm): kéo thêm mã IC (cross FX, EM, softs, cổ phiếu CFD), dữ liệu sau
 2026-09-24 (Dukascopy hoặc cache IC; là holdout sạch duy nhất còn lại), một cấu trúc phí không có sàn commission
 0.6 bp, Dukascopy M1 2004-15 cho thêm mã (GBPUSD, AUDUSD, NZDUSD, USDCAD, AUDJPY, XAU, XAG; chỉ số US30/US500),
-dữ liệu ngoài trả phí (OI/gamma Deribit, AUM quỹ ETF đòn bẩy, premium SGE), chạy demo cho các ứng viên DEMO, và có
+dữ liệu ngoài trả phí (OI/gamma Deribit, AUM quỹ ETF đòn bẩy; premium SGE hoá ra miễn phí và đã test ở vòng 33), chạy demo cho các ứng viên DEMO, và có
 cho phép tính net IS của chỉ số theo phí hiện tại hay không (là đổi ngưỡng, chưa áp dụng). Dữ liệu quyền chọn FX công khai của DTCC chỉ tải được từ 2024-12 (trước đó nằm ở Deep
 Archive), tức là trùng holdout. Thêm từ vòng 23: chạy demo 1 lệnh/năm cho vàng quanh Giáng sinh hay test một luật cuối
 năm vàng / USD khai báo trước trên dữ liệu sau 2026-09-24; các cơ chế chỉ có từ 2024 (dòng tiền ETF BTC/ETH spot vào
@@ -259,7 +301,19 @@ prereg_code/fwd_r24.py.txt với ngày mới hơn, nối kết quả bên dướ
 NISA) và A1 (BTCUSD 15-16 NY theo dòng tiền ETF hôm trước), hai luật trượt DISCOVERY nhưng mạnh ở TEST
 (round24_relaxed/PREREG_R24_forward_B3_A1.md; chạy lại fwd_b3a1.py.txt khi có capture Farside mới, mốc B3 n 30 /
 A1 n 250, đạt khi FWD t >= 2.0); lát đầu B3 n 2 +10.9 bp, A1 n 12 -7.3 bp. Lát 2 của F3 / E1 (đến 16/10, vòng 25): F3
-vẫn 2 lệnh, E1 16 lệnh net -2.27 bp. Thêm từ vòng 25 (STREAM_A.md xếp hạng theo khả năng ra ứng viên live): đã làm ở vòng 30 phần kéo
+vẫn 2 lệnh, E1 16 lệnh net -2.27 bp. Lát 3 (đến 26/10, vòng 31): F3 3 lệnh net -3.47 bp, HOLD + FWD +1.86 (t 1.96);
+E1 22 lệnh net -1.31. Chạy fwd_r24.py cần PYTHONPATH=. (clib gọi research.swing); Dukascopy hay rơi ngày EURUSD vì
+lỗi kết nối: kiểm số ngày từng mã cả bid lẫn ask rồi tải lại vào thư mục mới. Thêm từ vòng 31-33 (giá trị = khả năng ra
+ứng viên live, chi tiết trong báo cáo từng vòng): order / position book OANDA cần tài khoản (DEMO ~3-5 %, LIVE ~1 %),
+vị thế retail ròng OANDA Japan / Gaitame / FFAJ (~1-2 %), dòng tiền crypto point-in-time và OI / thanh lý gộp sàn trả phí
+(~1-2 %), Google Trends / SVI (LIVE ~1 %, DEMO ~5 %), CME CVOL, OI quyền chọn theo strike, giá GBTC trước 2024 (chỉ để
+tham khảo), premium vàng Ấn Độ (đăng nhập WGC). Thêm từ vòng 34: OI / Greeks Deribit trả phí (~2 %); xếp hạng CFFEX cho HK50 (~1 %). Thêm từ vòng 35-36: dữ liệu
+quyền chọn open-close / open-buy trả phí (~2-3 %), lịch sử TAIFEX 2008-18 hoặc tài khoản KRX (~1 %), thử lại API HKMA từ
+mạng khác, quy mô OMO của PBoC (Wind / CEIC hoặc cho phép dùng pbc.gov.cn dù robots.txt cấm). Tạm dừng sau vòng 36 theo
+yêu cầu của tôi (2026-10-28). Bản đăng ký chung (joint_prereg_2026-10/PREREG_JOINT.md, tôi duyệt đổi ngưỡng, bỏ L3 /
+V1, U3 trên BTC) đã mở holdout một lần ngày 2026-10-28: fade đáo hạn Deribit, USTEC liều ETF đòn bẩy cao, HN "recession"
+-> mua US500, U3 tiền hộ gia đình -> BTC đều trượt và đều âm ở holdout; bỏ hẳn, không log forward, không đăng ký lại
+(premium Coinbase, L3, V1 không mở nhưng cũng không còn là hướng đi). Thêm từ vòng 25 (STREAM_A.md xếp hạng theo khả năng ra ứng viên live): đã làm ở vòng 30 phần kéo
 tick IC + Dukascopy cho USDCNH, USDMXN, USDSGD, EURNOK, USDNOK, EURSEK (không ra ứng viên). Còn lại: có chấp nhận nền
 tảng khác cTrader không (cổ phiếu CFD của IC chỉ có trên MT5), trước khi dựng engine cổ phiếu từ dữ liệu miễn phí
 (Dukascopy US stock CFD 2017-24 + SEC EDGAR; luật bán sau khi hết blackout lợi nhuận, live ~3-5 %); có log forward luật

@@ -1,0 +1,171 @@
+"""JOINT rule V1-VXN: long USTEC for one day (16:30 -> 16:30 New York) when the Nasdaq variance risk premium is high.
+Round 32 stream V, cell "V1 VRP(VXN) USTEC k0.5 h1" (HYPOTHESES_V.md, declared 2026-10-27 18:51 UTC). Code = round 32
+V build_panel.py (USTEC part) + common.py (zpast, rv21, net_arrays, select, stats) + run_cells.py (V1), unchanged
+except that the date list and the IC cut run to the --end date.
+
+Rule: dates = CBOE VIX trading dates. Mark = IC USTEC M1 bar starting 16:30 New York (else the last bar in
+[16:00, 16:30]); mid = (bid + ask) / 2. RV21(i) = 100 sqrt(252 mean r^2) over the 21 daily mark log returns ending at
+i-1 (>= 15). VRP(i) = VXN close(i)^2 - RV21(i)^2; z(i) = (VRP(i) - mean) / sd over the previous 252 dates (>= 200).
+Long when z > 0.5 at the 16:30 mark, exit at the next date's 16:30 mark; non-overlapping. Net = mid - half spread at
+both marks + swap_frac_at(USTEC) x rollovers (research.specs triple day).
+
+  eval:  PYTHONPATH=. research/.venv/bin/python rule_v1.py eval --end 2025-01-01
+  pull:  HOLD_RUN=1 ... rule_v1.py pull --end 2026-09-25   (cdn.cboe.com VIX_History.csv, VXN_History.csv)
+  HOLD:  HOLD_RUN=1 ... rule_v1.py eval --end 2026-09-25
+"""
+import csv
+import datetime as dt
+import json
+import os
+import sys
+from zoneinfo import ZoneInfo
+
+import numpy as np
+
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import jcommon as J  # noqa: E402
+from research import m1  # noqa: E402
+from research.specs import rollovers, SWAPS  # noqa: E402
+from research.swing.rates import swap_frac_at  # noqa: E402
+
+END = J.parse_end(sys.argv)
+J.guard(END)
+CUT = J.ms(END)
+NY = ZoneInfo("America/New_York")
+SYM, K, H = "USTEC", 0.5, 1
+RNG = np.random.default_rng(3201)
+
+
+def read_cboe(name):
+    rows = list(csv.reader(open(os.path.join(J.DATA, f"v1_cboe_{name}_to2024.csv"))))[1:]
+    if END > J.HOLD0:
+        rows += [r for r in list(csv.reader(open(os.path.join(J.HOLD_DATA, "cboe", f"{name}.csv"))))[1:]
+                 if r and 2025 <= int(r[0].split("/")[2])]
+    out = {}
+    for r in rows:
+        if not r:
+            continue
+        mm, dd, yy = map(int, r[0].split("/"))
+        d = dt.date(yy, mm, dd)
+        if d < END:
+            try:
+                v = float(r[-1])
+            except ValueError:
+                continue
+            out[d] = v
+    return out
+
+
+VIX = read_cboe("VIX")
+DATES = sorted(d for d in VIX if d.year >= 2004)
+N = len(DATES)
+YEAR = np.array([d.year for d in DATES])
+T0 = np.array([int(dt.datetime.combine(d, dt.time(16, 30), NY).timestamp() * 1000) for d in DATES], dtype=np.int64)
+
+
+def panel():
+    z = m1.load(SYM); s = z["ts"] < CUT
+    ts, b, a = z["ts"][s], z["c"][s], z["ca"][s]
+    out = {}
+    for lag in (0, 1):
+        t = T0 + lag * 60_000; tw = T0 - 30 * 60_000
+        k = np.searchsorted(ts, t, side="right") - 1
+        ok = k >= 0; kk = np.where(ok, k, 0); ok &= ts[kk] >= tw
+        out[lag] = (np.where(ok, (b[kk] + a[kk]) / 2, np.nan), np.where(ok, a[kk] - b[kk], np.nan))
+    return out
+
+
+PAN = panel()
+
+
+def zpast(x, win=252, minn=200):
+    z = np.full(N, np.nan)
+    for i in range(N):
+        a = x[max(0, i - win):i]; a = a[np.isfinite(a)]
+        if len(a) >= minn and np.isfinite(x[i]):
+            sd = a.std()
+            if sd > 0:
+                z[i] = (x[i] - a.mean()) / sd
+    return z
+
+
+def rv21(m, n=21, minn=15):
+    r = np.full(N, np.nan); r[1:] = np.log(m[1:] / m[:-1]); out = np.full(N, np.nan)
+    for i in range(N):
+        a = r[max(0, i - n):i]; a = a[np.isfinite(a)]
+        if len(a) >= minn:
+            out[i] = 100 * np.sqrt(252 * np.mean(a ** 2))
+    return out
+
+
+def era_of(i):
+    y = YEAR[i]
+    return "IS" if 2016 <= y <= 2021 else "VAL" if 2022 <= y <= 2024 else "HOLD" if y >= 2025 else None
+
+
+def net_long(variant):
+    lag = 1 if variant == "lat" else 0
+    m, s = PAN[lag]; mult = 1.5 if variant == "x15" else 1.0
+    L = np.full(N, np.nan); MID = np.full(N, np.nan)
+    trip = SWAPS.get(SYM, (0, 0, 2))[2]
+    for i in range(N - H):
+        j = i + H
+        if not (np.isfinite(m[i]) and np.isfinite(m[j])) or (era_of(i) != "HOLD" and era_of(j) == "HOLD"):
+            continue
+        g = (m[j] / m[i] - 1) * 1e4
+        c = (s[i] / 2 / m[i] + s[j] / 2 / m[j]) * 1e4 * mult
+        n = rollovers(int(T0[i]), int(T0[j]), trip)
+        MID[i] = g; L[i] = g - c + swap_frac_at(SYM, 1, int(T0[i])) * 1e4 * n
+    return L, MID
+
+
+def select(side, valid):
+    out, i = [], 0
+    while i < N:
+        if side[i] != 0 and valid[i]:
+            out.append(i); i += H
+        else:
+            i += 1
+    return np.array(out, dtype=int)
+
+
+def main_eval():
+    vxn = read_cboe("VXN")
+    iv = np.array([vxn.get(d, np.nan) for d in DATES]); iv = np.where(iv > 0, iv, np.nan)
+    z = zpast(iv ** 2 - rv21(PAN[0][0]) ** 2)
+    side = np.where(np.isfinite(z) & (z > K), 1, 0)
+    res = {v: net_long(v) for v in ("base", "x15", "lat")}
+    L, MID = res["base"]
+    valid = np.isfinite(L) & np.array([era_of(i) is not None for i in range(N)])
+    idx = select(side, valid)
+    print(f"V1-VXN long USTEC 1 day when z(VXN^2 - RV21^2) > 0.5; end {END}")
+    trades = {}
+    for e in ("IS", "VAL", "HOLD"):
+        ii = np.array([i for i in idx if era_of(i) == e], int)
+        trades[e] = [(str(DATES[i]), float(MID[i]), float(L[i])) for i in ii]
+        if e == "HOLD" and END <= J.HOLD0:
+            continue
+        n = len(ii)
+        if n < 3:
+            print(f"[{e}] n {n}"); continue
+        x = L[ii]
+        elig = np.array([i for i in range(N) if era_of(i) == e and np.isfinite(L[i])])
+        ms_ = np.array([L[RNG.choice(elig, n, replace=False)].mean() for _ in range(200)])
+        o = dict(n=n, mid=MID[ii].mean(), net=x.mean(), t=x.mean() / (x.std(ddof=1) / np.sqrt(n)),
+                 net15=np.nanmean(res["x15"][0][ii]), net1=np.nanmean(res["lat"][0][ii]), sd=x.std(ddof=1),
+                 sh=x.mean() / x.std(ddof=1), years={int(y): float(x[YEAR[ii] == y].mean()) for y in np.unique(YEAR[ii])},
+                 rand=float((ms_ < x.mean()).mean()))
+        print(J.fmt_era(e, o))
+    json.dump(trades, open(os.path.join(J.JOINT, "out", f"trades_V1_{'HOLD' if END > J.HOLD0 else 'repro'}.json"), "w"))
+
+
+def main_pull():
+    log = os.path.join(J.HOLD_DATA, "requests.log")
+    for name in ("VIX", "VXN"):
+        st = J.fetch(f"https://cdn.cboe.com/api/global/us_indices/daily_prices/{name}_History.csv",
+                     os.path.join(J.HOLD_DATA, "cboe", f"{name}.csv"), log, gap=1.5)
+        print(name, st)
+
+
+if __name__ == "__main__":
+    {"eval": main_eval, "pull": main_pull}[sys.argv[1]]()

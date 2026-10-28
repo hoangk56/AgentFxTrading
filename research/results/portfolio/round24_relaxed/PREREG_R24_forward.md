@@ -79,3 +79,25 @@ reference 2026-07-01..09-24. Code unchanged (`cmp` against prereg_code/). Slice 
 
 - New days: 2026-10-15 and 10-16 were not USD-TOP days (no F3 trade); E1 (b) 10-15 +8.0, 10-16 -3.0.
 - Reading: unchanged, too few trades. F3 has had no trade since 7 October.
+
+### Slice 3: FWD 2026-09-25..2026-10-26 (run 2026-10-27 18:28 UTC)
+Dukascopy fetched 18:13-18:25 UTC (EURUSD, USDJPY, USDCHF, 2026-08-03..2026-10-26 weekdays). The first pass lost 10 of
+22 FWD days of EURUSD to failed connections (14 with the ask missing); EURUSD was fetched again into a fresh directory
+with all 61 weekdays present on both sides, USDJPY and USDCHF were complete (22 / 22 FWD days). Panel T0 2024-01-01,
+cut 2026-09-25, end 2026-10-27 (exclusive), IC spread reference 2026-07-01..09-24. Code unchanged (`cmp` against
+prereg_code/). Slices 1 and 2 reproduce trade by trade. Output:
+[prereg_code/fwd_output_2026-10-26.txt](prereg_code/fwd_output_2026-10-26.txt),
+[prereg_code/calib_output_2026-10-26.txt](prereg_code/calib_output_2026-10-26.txt) (median |mid difference| 0.04 /
+0.06 / 0.03 bp for EURUSD / USDCHF / USDJPY, as before).
+
+| rule | era | n | mid (t) | net (a) Duka spread (t) | net (b) IC spread (t) | x1.5 (b) | +1 min (b) |
+|---|---|---|---|---|---|---|---|
+| F3 | FWD | 3 | -2.80 (-0.20) | -3.67 (-0.27) | -3.47 (-0.25) | -3.50 | -5.90 |
+| F3 | HOLD + FWD | 120 | +2.50 (2.63) | +1.86 (1.95) | +1.86 (1.96) | +1.84 | +1.21 |
+| E1 | FWD | 22 | -0.64 (-0.23) | -1.48 (-0.54) | -1.31 (-0.48) | -1.34 | -2.18 |
+| E1 | HOLD + FWD | 466 | +1.19 (1.88) | +0.54 (0.86) | +0.55 (0.87) | +0.53 | -0.11 |
+
+- New days: F3 traded 2026-10-23 (+8.0 bp (b)); E1 (b) 10-19 -20.3, 10-20 +2.9, 10-21 -9.4, 10-22 +19.3, 10-23 +8.0,
+  10-26 +7.1.
+- Reading: still too few trades for either rule. F3's HOLD + FWD net is +1.86 (t 1.96); its promotion rule needs 2.5
+  with demo trades pooled. E1 stays near zero after cost.

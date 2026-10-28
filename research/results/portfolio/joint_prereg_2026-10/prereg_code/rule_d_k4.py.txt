@@ -1,0 +1,275 @@
+"""JOINT rule D-K4: BTCUSD fade of the 07:00-08:00 UTC move into the Friday 08:00 Deribit expiry, 08:01-09:00 UTC,
+only on Fridays whose near-the-money expiring volume (EXV) is above the median of the trailing 26 Fridays.
+Round 34 stream D, cell "K hi>med allFri fade 1h" (HYPOTHESES_D.md, family K, declared 2026-10-27 20:33-20:50 UTC).
+
+Engine: round 34 D's deng.py (= round 31 C's r31c.py), copied below unchanged except that the IC cut (CUT) is the
+--end date and the rollover calendar runs to 2027.
+
+  eval:  PYTHONPATH=. research/.venv/bin/python rule_d_k4.py eval --end 2025-01-01      (IS + VAL only)
+  pull:  HOLD_RUN=1 ... rule_d_k4.py pull --end 2026-09-25    (Deribit BTC option trades 2024-12-01 .. end-1)
+  HOLD:  HOLD_RUN=1 ... rule_d_k4.py eval --end 2026-09-25
+
+Inputs: data/d_exv_btc_to2024.csv (EXV of every BTC expiry before 2025-01-01, built by round 34 D build.py from the
+16.5 M trades of history.deribit.com); for expiries from 2025-01-01, hold_data/deribit/BTC/YYYYMM.npz from `pull`.
+"""
+import datetime as dt
+import glob
+import json
+import os
+import sys
+import zoneinfo
+
+import numpy as np
+
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import jcommon as J  # noqa: E402
+from research.m1 import load  # noqa: E402
+
+END = J.parse_end(sys.argv)
+J.guard(END)
+CUT = J.ms(END)
+UTC = dt.timezone.utc
+NY = zoneinfo.ZoneInfo("America/New_York")
+DAY = 86_400_000; HOUR = 3_600_000; MIN = 60_000; HR = HOUR
+IS0 = int(dt.datetime(2017, 9, 1, tzinfo=UTC).timestamp() * 1000)
+VAL0 = int(dt.datetime(2022, 1, 1, tzinfo=UTC).timestamp() * 1000)
+SWAP_LONG_BP, SWAP_SHORT_BP = -5.0, 0.0
+SYM = "BTCUSD"
+_ic = {}
+
+
+# ----------------------------------------------------------------------------- engine (deng.py, CUT = --end)
+def ic(sym):
+    if sym not in _ic:
+        m = load(sym); k = m["ts"] < CUT
+        ts = m["ts"][k]; b = m["c"][k]; a = m["ca"][k]
+        good = (a > b) & (b > 0)
+        ts, b, a = ts[good], b[good], a[good]
+        _ic[sym] = dict(ts=ts, mid=(a + b) / 2, spr=(a - b))
+    return _ic[sym]
+
+
+def _roll_ms():
+    out = []; d = dt.date(2016, 1, 1)
+    while d <= dt.date(2027, 1, 10):
+        if d.weekday() < 5:
+            t = int(dt.datetime(d.year, d.month, d.day, 17, 0, tzinfo=NY).timestamp() * 1000)
+            out.append((t, 3 if d.weekday() == 4 else 1))
+        d += dt.timedelta(days=1)
+    a = np.array(out, dtype=np.int64)
+    return a[:, 0], np.cumsum(a[:, 1])
+
+
+ROLL_T, ROLL_CUM = _roll_ms()
+
+
+def n_roll(t_in, t_out):
+    i = np.searchsorted(ROLL_T, t_in, side="right"); j = np.searchsorted(ROLL_T, t_out, side="left")
+    c = np.r_[0, ROLL_CUM]
+    return c[j] - c[i]
+
+
+def nonoverlap(t, hold):
+    keep = np.zeros(len(t), bool); nxt = -1
+    for i in np.argsort(t, kind="stable"):
+        if t[i] >= nxt:
+            keep[i] = True; nxt = t[i] + hold
+    return keep
+
+
+def trades(sym, t_sig, side, hold, lat=0, spread_mult=1.0, short_swap=SWAP_SHORT_BP, stale=10 * MIN):
+    d = ic(sym); ts, mid, spr = d["ts"], d["mid"], d["spr"]
+    t_sig = np.asarray(t_sig, np.int64); side = np.asarray(side, float)
+    te = t_sig + lat
+    ka = np.searchsorted(ts, te, side="right") - 1
+    okA = (ka >= 0) & (te - ts[np.maximum(ka, 0)] <= stale)
+    tx = np.minimum(te + hold, te + 5 * DAY) + lat * 0
+    kb = np.searchsorted(ts, tx - MIN, side="right") - 1
+    ok = okA & (kb > ka)
+    ka_, kb_ = np.maximum(ka, 0), np.maximum(kb, 0)
+    g = side * np.log(mid[kb_] / mid[ka_]) * 1e4
+    hs = 0.5 * (spr[ka_] / mid[ka_] + spr[kb_] / mid[kb_]) * 1e4 * spread_mult
+    t_in = ts[ka_] + MIN; t_out = ts[kb_] + MIN
+    nr = n_roll(t_in, t_out)
+    sw = np.where(side > 0, SWAP_LONG_BP, short_swap) * nr
+    net = g - hs + sw
+    nan = lambda x: np.where(ok, x, np.nan)  # noqa: E731
+    return dict(gross=nan(g), hs=nan(hs), swap=nan(sw), net=nan(net), ok=ok, t_in=t_in, t_out=t_out, side=side)
+
+
+def cl_t(x, g):
+    x = np.asarray(x, float); g = np.asarray(g); k = ~np.isnan(x); x, g = x[k], g[k]
+    n = x.size
+    if n < 3:
+        return (x.mean() if n else np.nan), np.nan, n
+    m = x.mean(); u, inv = np.unique(g, return_inverse=True); G = u.size
+    s = np.bincount(inv, weights=x - m)
+    se = np.sqrt((s ** 2).sum() * G / max(G - 1, 1)) / n
+    return m, (m / se if se > 0 else np.nan), n
+
+
+def year(t):
+    return np.array([dt.datetime.fromtimestamp(int(x) / 1000, UTC).year for x in np.atleast_1d(t)])
+
+
+def evaluate(sym, t_sig, side, hold, era_bounds, ctrl=None, seeds=200, rng_seed=7):
+    t_sig = np.asarray(t_sig, np.int64); side = np.asarray(side, float)
+    keep = nonoverlap(t_sig, hold); t_sig, side = t_sig[keep], side[keep]
+    base = trades(sym, t_sig, side, hold)
+    lat = trades(sym, t_sig, side, hold, lat=MIN)
+    s15 = trades(sym, t_sig, side, hold, spread_mult=1.5)
+    ok = base["ok"] & lat["ok"]
+    day = t_sig // DAY; yr = year(t_sig) if len(t_sig) else np.array([])
+    out, tr = {}, {}
+    for era, a, b in era_bounds:
+        sel = ok & (t_sig >= a) & (t_sig < b)
+        n = int(sel.sum())
+        tr[era] = [(int(t_sig[i]), int(side[i]), float(base["gross"][i]), float(base["net"][i])) for i in np.flatnonzero(sel)]
+        if n < 3:
+            out[era] = dict(n=n); continue
+        mg, tg, _ = cl_t(base["gross"][sel], day[sel])
+        mn, tn, _ = cl_t(base["net"][sel], day[sel])
+        m1, t1, _ = cl_t(lat["net"][sel], day[sel])
+        m15, _, _ = cl_t(s15["net"][sel], day[sel])
+        sd = np.nanstd(base["net"][sel])
+        nyr = n / max((b - a) / (365.25 * DAY), 1e-9)
+        ys = {int(y): float(np.nanmean(base["net"][sel & (yr == y)])) for y in np.unique(yr[sel])}
+        o = dict(n=n, nyr=nyr, mid=mg, tmid=tg, net=mn, t=tn, net1=m1, t1=t1, net15=m15, sd=sd,
+                 sh=mn / sd if sd > 0 else np.nan, years=ys)
+        if ctrl is not None:
+            cand, side_fn = ctrl
+            c = cand[(cand >= a) & (cand < b)]
+            if c.size:
+                rng = np.random.default_rng(rng_seed)
+                means = []
+                for s in range(seeds):
+                    tt = np.sort(rng.choice(c, size=n, replace=c.size < n))
+                    sd_ = side_fn(tt)
+                    r = trades(sym, tt, sd_, hold)
+                    v = r["net"][r["ok"] & (sd_ != 0)]
+                    means.append(np.nanmean(v) if v.size else np.nan)
+                means = np.array(means)
+                o["rand"] = float(np.mean(means[~np.isnan(means)] < mn))
+        out[era] = o
+    return out, tr
+
+
+# ----------------------------------------------------------------------------- EXV (expiring near-money volume)
+def exv_series():
+    """{expiry_ms: EXV}: pre-2025 expiries from the frozen file; expiries >= 2025-01-01 from the HOLD pull."""
+    ex = {}
+    for line in open(os.path.join(J.DATA, "d_exv_btc_to2024.csv")):
+        if line.startswith("expiry"):
+            continue
+        a, b = line.strip().split(",")
+        ex[int(a)] = float(b)
+    if END > J.HOLD0:
+        files = sorted(glob.glob(os.path.join(J.HOLD_DATA, "deribit", "BTC", "*.npz")))
+        if not files:
+            sys.exit("HOLD: no pulled Deribit files; run `pull` first")
+        acc = {}
+        for fn in files:
+            z = np.load(fn)
+            ts = z["ts"]; k = ts < CUT
+            ts, e, K, S, amt = ts[k], z["exp"][k], z["k"][k], z["idx"][k], z["amt"][k]
+            # identical to round 34 D build.py: |K/S - 1| <= 5 %, trades in [expiry - 7 d - 1 h, expiry - 1 h)
+            near = (np.abs(K / S - 1) <= 0.05) & (ts >= e - 7 * DAY - HR) & (ts < e - HR)
+            for ee, aa in zip(e[near], amt[near]):
+                acc[int(ee)] = acc.get(int(ee), 0.0) + float(aa)
+        for ee, v in acc.items():
+            if ee >= J.HOLD0_MS and ee - HR < CUT:
+                ex[ee] = v
+    return ex
+
+
+def main_eval():
+    ex = exv_series()
+    et = np.array(sorted(ex), dtype=np.int64); ev = np.array([ex[e] for e in et])
+    d = ic(SYM); ts, mid = d["ts"], d["mid"]
+
+    def px(t):
+        j = np.searchsorted(ts, t - MIN, side="right") - 1
+        ok = (j >= 0) & (t - MIN - ts[np.maximum(j, 0)] <= 10 * MIN)
+        return np.where(ok, mid[np.maximum(j, 0)], np.nan)
+
+    fri = np.array([e for e in et if dt.datetime.fromtimestamp(e / 1000, UTC).weekday() == 4
+                    and dt.datetime.fromtimestamp(e / 1000, UTC).hour == 8 and e + HR <= CUT], dtype=np.int64)
+    fv = np.array([ev[np.searchsorted(et, e)] for e in fri])
+    m = np.log(px(fri) / px(fri - HR))
+    side_all = -np.sign(m); side_all[~np.isfinite(side_all)] = 0
+    med = np.full(fri.size, np.nan)
+    for i in range(fri.size):
+        h = fv[max(0, i - 26):i]
+        if h.size >= 13:
+            med[i] = np.median(h)
+    sfn = lambda tt: -np.sign(np.log(px(tt) / px(tt - HR)))  # noqa: E731
+    cand = fri[np.isfinite(med) & (fri >= IS0)]
+    cond = (fv > med) & np.isfinite(med)
+    s = np.where(cond, side_all, 0.0)
+    k = s != 0
+    bounds = [("IS", IS0, VAL0), ("VAL", VAL0, min(CUT, J.HOLD0_MS))]
+    if CUT > J.HOLD0_MS:
+        bounds.append(("HOLD", J.HOLD0_MS, CUT))
+    res, tr = evaluate(SYM, fri[k], s[k], HR, bounds, ctrl=(cand, sfn))
+    print(f"D-K4 BTCUSD Friday expiry fade, EXV > trailing-26 median; end {END}; "
+          f"{fri.size} Friday 08:00 expiries, {int(np.isfinite(med).sum())} with trailing EXV")
+    for era, o in res.items():
+        print(J.fmt_era(era, o))
+    tag = "HOLD" if CUT > J.HOLD0_MS else "repro"
+    json.dump({e: v for e, v in tr.items()}, open(os.path.join(J.JOINT, "out", f"trades_D_{tag}.json"), "w"))
+
+
+# ----------------------------------------------------------------------------- HOLD pull (not run before HOLD)
+MON = {m: i + 1 for i, m in enumerate("JAN FEB MAR APR MAY JUN JUL AUG SEP OCT NOV DEC".split())}
+
+
+def exp_ms(s):
+    d = int(s[:-5]); mo = MON[s[-5:-2]]; y = 2000 + int(s[-2:])
+    return int(dt.datetime(y, mo, d, 8, 0, tzinfo=UTC).timestamp() * 1000)
+
+
+def main_pull():
+    """Same endpoint and paging as round 34 D pull_trades.py; months 2024-12 .. END; keeps ts, exp, k, idx, amt."""
+    out_dir = os.path.join(J.HOLD_DATA, "deribit", "BTC"); os.makedirs(out_dir, exist_ok=True)
+    log = os.path.join(J.HOLD_DATA, "requests.log"); page = os.path.join(J.HOLD_DATA, "deribit", "page.json")
+    y, mo = 2024, 12
+    while dt.date(y, mo, 1) < END:
+        a = J.ms(dt.date(y, mo, 1)); y2, m2 = (y + 1, 1) if mo == 12 else (y, mo + 1)
+        b = min(J.ms(dt.date(y2, m2, 1)), CUT)
+        out = os.path.join(out_dir, f"{y}{mo:02d}.npz")
+        if not os.path.exists(out):
+            rows, seen, s = [], set(), a
+            while True:
+                url = ("https://history.deribit.com/api/v2/public/get_last_trades_by_currency_and_time?currency=BTC"
+                       f"&kind=option&start_timestamp={s}&end_timestamp={b - 1}&count=10000&sorting=asc")
+                if J.fetch(url, page, log, gap=1.1) != 200:
+                    sys.exit(f"pull failed {y}-{mo}")
+                r = json.load(open(page))["result"]; trs = r["trades"]
+                for t in trs:
+                    if t["trade_id"] in seen:
+                        continue
+                    seen.add(t["trade_id"])
+                    p = t["instrument_name"].split("-")
+                    if len(p) != 4:
+                        continue
+                    try:
+                        e = exp_ms(p[1]); kk = float(p[2].replace("d", "."))
+                    except Exception:  # noqa
+                        continue
+                    rows.append((t["timestamp"], e, kk, t["index_price"], t["amount"]))
+                if not r["has_more"] or not trs:
+                    break
+                ns = trs[-1]["timestamp"]
+                if ns <= s and len(trs) >= 10000:
+                    sys.exit("stuck")
+                s = ns
+                seen = {t["trade_id"] for t in trs if t["timestamp"] == ns}
+            A = np.array(rows, dtype=float) if rows else np.zeros((0, 5))
+            np.savez_compressed(out, ts=A[:, 0].astype(np.int64), exp=A[:, 1].astype(np.int64), k=A[:, 2],
+                                idx=A[:, 3], amt=A[:, 4])
+            print("pulled", y, mo, len(A), "trades (values not printed)", flush=True)
+        y, mo = y2, m2
+
+
+if __name__ == "__main__":
+    {"eval": main_eval, "pull": main_pull}[sys.argv[1]]()

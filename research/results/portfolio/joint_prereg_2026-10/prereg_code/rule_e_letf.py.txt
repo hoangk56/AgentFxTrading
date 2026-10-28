@@ -1,0 +1,233 @@
+"""JOINT rule E-USTEC: follow the day's USTEC move from 15:30 to 16:00 New York on days when the leveraged / inverse
+Nasdaq ETF rebalancing dose is in its rolling top decile. Round 34 stream E, cell H1roll_USTEC_w30 (HYPOTHESES_E.md,
+declared 2026-10-27 20:36-20:40 UTC). Code = round 34 E build.py + analyze.py restricted to this cell, unchanged.
+
+Rule (trading day d, NYSE days from the `holidays` package, early-close days dropped; New York clock, DST-aware):
+  Gamma(d) = sum over TQQQ 3, SQQQ -3, QLD 2, QID -2, PSQ -1 of AUM(latest ProShares row dated < d) x L(L-1)
+  r(d)     = ln(IC mid at the close of the bar ending 15:29 ET on d / IC mid at 16:00 ET on the previous trading day)
+  DOI(d)   = CFTC legacy futures-only NQ open interest (209742 x 20 + 209741 x 100, latest report with as-of + 3 < d)
+             x IC mid at 16:00 ET on d-1
+  S(d) = Gamma(d) r(d) / DOI(d); trade when |S(d)| > 90th pct of |S| over the previous 250 trading days (>= 120 valid)
+  side sign(S) = sign(r); enter at the IC mid of the bar ending 15:30 ET, exit at the bar ending 16:00 ET;
+  net = mid - half spread at entry - half at exit; no swap (intraday). One trade a day.
+
+  eval:  PYTHONPATH=. research/.venv/bin/python rule_e_letf.py eval --end 2025-01-01
+  pull:  HOLD_RUN=1 ... rule_e_letf.py pull --end 2026-09-25   (ProShares NAV files, CFTC deacot2025/2026.zip)
+  HOLD:  HOLD_RUN=1 ... rule_e_letf.py eval --end 2026-09-25
+"""
+import csv
+import datetime as dt
+import io
+import os
+import sys
+import zipfile
+from zoneinfo import ZoneInfo
+
+import numpy as np
+import holidays
+
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import jcommon as J  # noqa: E402
+from research import m1  # noqa: E402
+
+END = J.parse_end(sys.argv)
+J.guard(END)
+CUT = J.ms(END)
+NY = ZoneInfo("America/New_York")
+FUNDS = [("TQQQ", 3), ("SQQQ", -3), ("QLD", 2), ("QID", -2), ("PSQ", -1)]
+NQ = [("209742", 20.0), ("209741", 100.0)]
+W = 30
+rng = np.random.default_rng(3401)
+
+
+def trading_days(y0=2008, y1=2026):
+    hol = holidays.NYSE(years=range(y0, y1 + 1))
+    days, early = [], set()
+    d = dt.date(y0, 1, 1)
+    while d <= dt.date(y1, 12, 31):
+        if d.weekday() < 5 and d not in hol:
+            days.append(d)
+        d += dt.timedelta(days=1)
+    for y in range(y0, y1 + 1):
+        th = [x for x, n in hol.items() if x.year == y and "Thanksgiving" in n]
+        if th:
+            early.add(th[0] + dt.timedelta(days=1))
+        early.add(dt.date(y, 12, 24))
+        j3 = dt.date(y, 7, 3)
+        if j3.weekday() <= 3:
+            early.add(j3)
+    early = {x for x in early if x in set(days)}
+    return [d for d in days if d not in early and d < END]
+
+
+def et_ms(d, hh, mm):
+    return int(dt.datetime(d.year, d.month, d.day, hh, mm, tzinfo=NY).timestamp() * 1000)
+
+
+class Px:
+    def __init__(self, sym):
+        z = m1.load(sym); k = z["ts"] < CUT
+        self.ts = z["ts"][k]; self.mid = (z["c"][k] + z["ca"][k]) / 2; self.spr = z["ca"][k] - z["c"][k]
+
+    def at(self, T, ffill=10):
+        T = np.asarray(T, dtype=np.int64)
+        i = np.searchsorted(self.ts, T - 60000, side="right") - 1
+        ok = (i >= 0) & (T - 60000 - self.ts[np.clip(i, 0, None)] <= ffill * 60000)
+        i = np.clip(i, 0, None)
+        return np.where(ok, self.mid[i], np.nan), np.where(ok, self.spr[i], np.nan)
+
+
+def load_funds():
+    rows = {tk: {} for tk, _ in FUNDS}
+    for r in csv.DictReader(open(os.path.join(J.DATA, "e_proshares_nasdaq_to2024.csv"))):
+        rows[r["fund"]][int(r["date"])] = float(r["aum"])
+    if END > J.HOLD0:
+        for tk, _ in FUNDS:
+            fn = os.path.join(J.HOLD_DATA, "proshares", f"{tk}.csv")
+            with open(fn, newline="", encoding="utf-8", errors="replace") as f:
+                rd = csv.reader(f); next(rd)
+                for r in rd:                       # same parsing as round 34 E parse_ps.py
+                    if len(r) < 9:
+                        continue
+                    try:
+                        mo, dd, yy = r[0].split("/"); d = int(yy) * 10000 + int(mo) * 100 + int(dd)
+                        aum = float(r[8].replace(",", ""))
+                    except Exception:  # noqa
+                        continue
+                    if 20250101 <= d < END.year * 10000 + END.month * 100 + END.day:
+                        rows[tk][d] = aum
+    return {tk: (np.array(sorted(v), dtype=np.int64), np.array([v[k] for k in sorted(v)])) for tk, v in rows.items()}
+
+
+def load_cot():
+    rec = {}
+    for r in csv.DictReader(open(os.path.join(J.DATA, "e_cot_ndx_to2024.csv"))):
+        rec[int(r["asof"])] = float(r["units"])
+    if END > J.HOLD0:
+        want = dict(NQ); hold = {}
+        for y in range(2025, END.year + 1):
+            z = zipfile.ZipFile(os.path.join(J.HOLD_DATA, "cftc", f"deacot{y}.zip"))
+            rd = csv.reader(io.StringIO(z.read(z.namelist()[0]).decode("latin-1")))
+            hdr = next(rd)
+            ic_, idt, ioi = (hdr.index("CFTC Contract Market Code"), hdr.index("As of Date in Form YYYY-MM-DD"),
+                             hdr.index("Open Interest (All)"))
+            for r in rd:                           # same parsing as round 34 E parse_cot.py
+                c = r[ic_].strip()
+                if c not in want:
+                    continue
+                d = int(r[idt].replace("-", ""))
+                if 20250101 <= d:
+                    hold[d] = hold.get(d, 0.0) + float(r[ioi]) * want[c]
+        rec.update(hold)
+        print("HOLD precondition: NQ COT reports per year", {y: sum(1 for d in hold if d // 10000 == y)
+                                                             for y in range(2025, END.year + 1)})
+    ds = np.array(sorted(rec), dtype=np.int64)
+    return ds, np.array([rec[d] for d in ds])
+
+
+def build():
+    days = trading_days()
+    dint = np.array([d.year * 10000 + d.month * 100 + d.day for d in days])
+    F = load_funds()
+    g = np.zeros(len(dint))
+    for tk, L in FUNDS:
+        fd, aum = F[tk]
+        i = np.searchsorted(fd, dint, side="left") - 1
+        g += np.where(i >= 0, aum[np.clip(i, 0, None)], 0.0) * L * (L - 1)
+    cd, cu = load_cot()
+    rel = np.array([(dt.date(int(x // 10000), int(x // 100 % 100), int(x % 100)) + dt.timedelta(days=3)).toordinal()
+                    for x in cd])
+    units = np.full(len(days), np.nan)
+    for j, d in enumerate(days):
+        i = np.searchsorted(rel, d.toordinal(), side="left") - 1
+        if i >= 0:
+            units[j] = cu[i]
+    px = Px("USTEC")
+    Bms = np.array([et_ms(d, 16, 0) for d in days])
+    midB, _ = px.at(Bms)
+    sig, _ = px.at(Bms - (W + 1) * 60000)
+    tin = {lag: px.at(Bms - (W - lag) * 60000) for lag in (0, 1)}
+    tout = {lag: px.at(Bms + lag * 60000) for lag in (0, 1)}
+    return dict(days=days, dint=dint, gamma=g, units=units, midB=midB, sig=sig, tin=tin, tout=tout, Bms=Bms, px=px)
+
+
+def roll_q(x, q=0.9, win=250, minv=120):
+    out = np.full(len(x), np.nan)
+    for i in range(len(x)):
+        s = x[max(0, i - win):i]; s = s[np.isfinite(s)]
+        if len(s) >= minv:
+            out[i] = np.quantile(s, q)
+    return out
+
+
+def tstat(x):
+    x = x[np.isfinite(x)]
+    if len(x) < 3 or np.std(x, ddof=1) == 0:
+        return np.nan
+    return x.mean() / (np.std(x, ddof=1) / np.sqrt(len(x)))
+
+
+def main_eval():
+    T = build(); D = T["dint"]
+    pB = np.r_[np.nan, T["midB"][:-1]]
+    ret = np.log(T["sig"] / pB)
+    S = T["gamma"] * ret / (T["units"] * pB)
+    side = np.sign(S); aS = np.abs(S)
+    thr = roll_q(aS)
+
+    def leg(lag):
+        (i, si), (o, so) = T["tin"][lag], T["tout"][lag]
+        return side * np.log(o / i) * 1e4, (0.5 * si / i + 0.5 * so / o) * 1e4
+
+    mid, cost = leg(0); midl, costl = leg(1)
+    sel = np.isfinite(aS) & np.isfinite(thr) & (aS > thr) & np.isfinite(mid) & np.isfinite(cost) & (side != 0)
+    print(f"E-USTEC H1roll w30 (LETF dose top decile, follow 15:30-16:00 ET); end {END}")
+    trades = {}
+    for name, a, b in J.eras(END):
+        m = sel & (D >= a.year * 10000 + a.month * 100 + a.day) & (D < b.year * 10000 + b.month * 100 + b.day)
+        net = (mid - cost)[m]; n = int(m.sum())
+        trades[name] = [(int(D[j]), int(side[j]), float(mid[j]), float(mid[j] - cost[j])) for j in np.flatnonzero(m)]
+        if n < 3:
+            print(f"[{name}] n {n}"); continue
+        yr = D[m] // 10000
+        o = dict(n=n, mid=mid[m].mean(), net=net.mean(), t=tstat(net), net15=(mid - 1.5 * cost)[m].mean(),
+                 net1=np.nanmean((midl - costl)[m]), sd=np.std(net, ddof=1), sh=net.mean() / np.std(net, ddof=1),
+                 years={int(y): float(net[yr == y].mean()) for y in np.unique(yr)})
+        o["rand"] = rnd_control(T, m, net.mean(), a, b)
+        print(J.fmt_era(name, o))
+    import json
+    json.dump(trades, open(os.path.join(J.JOINT, "out", f"trades_E_{'HOLD' if END > J.HOLD0 else 'repro'}.json"), "w"))
+
+
+def rnd_control(T, m, act, a, b, seeds=300):
+    """round 34 E controls.py: random days of the era, random signal minute 10:30 ET .. B-w-1, side recomputed."""
+    D = T["dint"]; px = T["px"]
+    era = (D >= a.year * 10000 + a.month * 100 + a.day) & (D < b.year * 10000 + b.month * 100 + b.day)
+    pool = np.flatnonzero(era & np.isfinite(T["midB"]) & np.isfinite(np.r_[np.nan, T["midB"][:-1]]))
+    n = int(m.sum()); days = T["days"]; res = []
+    for _ in range(seeds):
+        j = rng.choice(pool, size=n, replace=True)
+        lo = np.array([et_ms(days[i], 10, 30) for i in j])
+        hi = T["Bms"][j] - (W + 1) * 60000
+        st = lo + (rng.integers(0, np.maximum((hi - lo) // 60000, 1) + 1)) * 60000
+        msig, _ = px.at(st)
+        sd = np.sign(np.log(msig / T["midB"][j - 1]))
+        mi, si = px.at(st + 60000); mo, so = px.at(st + 60000 + W * 60000)
+        res.append(np.nanmean(sd * np.log(mo / mi) * 1e4 - (0.5 * si / mi + 0.5 * so / mo) * 1e4))
+    return float(np.mean(act > np.array(res)))
+
+
+def main_pull():
+    log = os.path.join(J.HOLD_DATA, "requests.log")
+    for tk, _ in FUNDS:
+        st = J.fetch(f"https://accounts.profunds.com/etfdata/ByFund/{tk}-historical_nav.csv",
+                     os.path.join(J.HOLD_DATA, "proshares", f"{tk}.csv"), log, gap=1.5)
+        print(tk, st, flush=True)
+    for y in range(2025, END.year + 1):
+        st = J.fetch(f"https://www.cftc.gov/files/dea/history/deacot{y}.zip",
+                     os.path.join(J.HOLD_DATA, "cftc", f"deacot{y}.zip"), log, gap=1.5)
+        print("deacot", y, st, flush=True)
+
+
+if __name__ == "__main__":
+    {"eval": main_eval, "pull": main_pull}[sys.argv[1]]()

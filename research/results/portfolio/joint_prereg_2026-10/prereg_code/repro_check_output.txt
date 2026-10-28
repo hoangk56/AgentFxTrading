@@ -1,0 +1,39 @@
+Reproduction check of the frozen code, IS + VAL only (--end 2025-01-01). Run 2026-10-28T03:11:14Z from copies of prereg_code/*.py.txt
+renamed to .py in a fresh folder (code/, data/ = prereg_code/data/, out/, hold_data/ empty). HOLD_RUN unset.
+
+$ PYTHONPATH=. research/.venv/bin/python code/rule_d_k4.py eval --end 2025-01-01
+D-K4 BTCUSD Friday expiry fade, EXV > trailing-26 median; end 2025-01-01; 386 Friday 08:00 expiries, 373 with trailing EXV
+[IS] n 144 mid +17.42 net +6.07 (t +0.803) x1.5 +0.39 +1min +7.72 sd 90.3 sh +0.067 random 0.310 years 2017:+13.1 2018:-24.3 2019:+24.5 2020:+7.0 2021:+17.4
+[VAL] n 89 mid +20.03 net +16.68 (t +3.237) x1.5 +15.01 +1min +17.06 sd 48.3 sh +0.345 random 1.000 years 2022:+6.1 2023:+19.0 2024:+28.3
+
+$ PYTHONPATH=. research/.venv/bin/python code/rule_e_letf.py eval --end 2025-01-01
+E-USTEC H1roll w30 (LETF dose top decile, follow 15:30-16:00 ET); end 2025-01-01
+[IS] n 150 mid +11.99 net +10.26 (t +1.382) x1.5 +9.39 +1min +2.21 sd 90.9 sh +0.113 random 1.000 years 2016:-3.2 2017:+0.6 2018:+9.7 2019:-4.6 2020:+27.5 2021:-6.0
+[VAL] n 93 mid +12.20 net +11.49 (t +2.775) x1.5 +11.13 +1min +8.90 sd 39.9 sh +0.288 random 1.000 years 2022:+15.0 2023:-8.0 2024:+6.7
+
+$ PYTHONPATH=. research/.venv/bin/python code/rule_a5_hn.py eval --end 2025-01-01
+A5-HN long US500 h3 after HN 'recession' spike; THR (IS q95, frozen) = 1.8207467842895426; end 2025-01-01
+[IS] n 79 mid +42.41 net +32.87 (t +2.511) x1.5 +31.80 +1min +32.48 sd 122.3 sh +0.269 random 0.890 years 2016:+49.6 2017:+5.6 2018:+20.4 2019:+57.6 2020:+23.5 2021:+61.8 episodes 21
+[VAL] n 28 mid +110.57 net +100.41 (t +2.700) x1.5 +99.90 +1min +99.45 sd 154.6 sh +0.649 random 1.000 years 2022:+84.6 2023:+99.2 2024:+123.1 episodes 9
+
+$ PYTHONPATH=. research/.venv/bin/python code/rule_u3.py eval --end 2025-01-01
+U3 h3 BTCUSD household-cash surprise, long 3 marks; end 2025-01-01
+[IS] n 108 mid +134.07 net +96.44 (t +1.056) x1.5 +88.83 +1min +97.23 sd 949.1 sh +0.102 random 0.780 years 2017:+533.3 2018:-131.2 2019:+141.5 2020:+133.1 2021:+247.4
+[VAL] n 92 mid +185.49 net +159.37 (t +2.265) x1.5 +157.34 +1min +158.34 sd 674.8 sh +0.236 random 0.990 years 2022:-92.3 2023:+271.7 2024:+293.4
+
+$ PYTHONPATH=. research/.venv/bin/python code/rule_l3.py eval --end 2025-01-01
+L3-JPY |z5| > 1.5, 5 marks, side short USDJPY on liquidity added; end 2025-01-01
+[IS] n 33 mid +3.62 net +1.15 (t +0.053) x1.5 +1.10 +1min +1.47 sd 123.6 sh +0.009 random 0.745 years 2016:-63.2 2017:+40.9 2018:+72.8 2019:-5.5 2020:+34.6 2021:-43.8 longs 22
+[VAL] n 18 mid +89.90 net +85.03 (t +2.582) x1.5 +84.97 +1min +84.57 sd 139.7 sh +0.608 random 0.995 years 2022:+39.7 2023:+152.5 2024:+62.9 longs 8
+
+$ PYTHONPATH=. research/.venv/bin/python code/rule_v1.py eval --end 2025-01-01
+V1-VXN long USTEC 1 day when z(VXN^2 - RV21^2) > 0.5; end 2025-01-01
+[IS] n 255 mid +11.34 net +6.04 (t +0.523) x1.5 +4.80 +1min +6.14 sd 184.4 sh +0.033 random 0.710 years 2016:+135.9 2018:-2.6 2019:+0.8 2020:+6.0 2021:+35.6
+[VAL] n 186 mid +29.44 net +24.26 (t +2.182) x1.5 +23.61 +1min +24.15 sd 151.6 sh +0.160 random 0.995 years 2022:+41.3 2023:+25.6 2024:+5.1
+
+$ PYTHONPATH=. research/.venv/bin/python code/rule_u3.py eval --end 2025-01-01 --sym USTEC   (runner-up, information)
+U3 h3 USTEC household-cash surprise, long 3 marks; end 2025-01-01
+[IS] n 152 mid +44.77 net +33.33 (t +1.902) x1.5 +32.44 +1min +33.53 sd 216.0 sh +0.154 random 0.910 years 2016:+2.9 2017:+24.4 2018:+47.1 2019:+43.0 2020:+58.1 2021:-23.9
+[VAL] n 90 mid +69.03 net +55.21 (t +2.257) x1.5 +54.88 +1min +55.56 sd 232.1 sh +0.238 random 0.957 years 2022:+17.8 2023:+72.4 2024:+73.8
+
+Guard checks: every script refuses --end after 2025-01-01 and any 'pull' without HOLD_RUN=1 (tested, nothing fetched).

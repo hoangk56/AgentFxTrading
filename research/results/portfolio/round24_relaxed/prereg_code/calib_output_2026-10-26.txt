@@ -1,0 +1,12 @@
+EURUSD: matched minutes 54191, median |mid diff| 0.043 bp, mean diff +0.005
+   10:59 LON: n 39, spread duka 0.258 bp / IC 0.085 bp, median |mid diff| 0.043
+   12:59 LON: n 39, spread duka 0.259 bp / IC 0.086 bp, median |mid diff| 0.043
+   06:59 LON: n 39, spread duka 0.260 bp / IC 0.086 bp, median |mid diff| 0.043
+USDCHF: matched minutes 53997, median |mid diff| 0.062 bp, mean diff +0.033
+   10:59 LON: n 39, spread duka 0.979 bp / IC 0.247 bp, median |mid diff| 0.062
+   12:59 LON: n 39, spread duka 0.981 bp / IC 0.124 bp, median |mid diff| 0.063
+   06:59 LON: n 39, spread duka 1.109 bp / IC 0.125 bp, median |mid diff| 0.061
+USDJPY: matched minutes 54388, median |mid diff| 0.032 bp, mean diff +0.005
+   10:59 LON: n 39, spread duka 0.253 bp / IC 0.063 bp, median |mid diff| 0.032
+   12:59 LON: n 39, spread duka 0.252 bp / IC 0.063 bp, median |mid diff| 0.032
+   06:59 LON: n 39, spread duka 0.313 bp / IC 0.063 bp, median |mid diff| 0.032

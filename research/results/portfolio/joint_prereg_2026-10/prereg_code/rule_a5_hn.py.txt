@@ -1,0 +1,240 @@
+"""JOINT rule A5-HN: after a spike in Hacker News "recession" stories, buy US500 at the next 07:00 UTC, hold 3 weekdays.
+Round 32 stream A, cell "A5 HN-FEAR US500 q95 h3" (HYPOTHESES_A.md 18:57 UTC; PREREG_DRAFT_A_hn_fear_reversal.md).
+Code = round 32 A sig.py (HN part) + ev.py run_cell / summ / random_control + alib.py trade engine, unchanged except
+that the series end and the IC cut are the --end date (a VAL trade whose exit falls on/after 2025-01-01 is still
+dropped, as in the stream).
+
+Rule: c(D) = HN Algolia stories matching "recession" (tags=story, typoTolerance=false) created on UTC day D;
+c7(D) = sum D-6..D; a(D) = ln(1+c7(D)) - ln(1+median(c7(D-7), c7(D-14), c7(D-21), c7(D-28))), clipped to [-2, 2];
+Z(D) = a(D) / sd(a over D-365..D-1, >= 120 values). Weekday E triggers if Z(E-1) >= THR = IS q95 (frozen below).
+Long US500 at E 07:00 UTC (IC quote of the minute starting 07:00), exit 3 weekdays later 07:00 (weekend landing ->
+Friday 20:00 UTC). Every trigger day opens its own position (at most 3 open). Cost: actual IC bid/ask, swap from
+research.swing.rates.swap_frac_at x rollovers (Friday triple). t clustered in 2-week blocks.
+
+  eval:  PYTHONPATH=. research/.venv/bin/python rule_a5_hn.py eval --end 2025-01-01
+  pull:  HOLD_RUN=1 ... rule_a5_hn.py pull --end 2026-09-25     (Algolia, months 2025-01 .. end)
+  HOLD:  HOLD_RUN=1 ... rule_a5_hn.py eval --end 2026-09-25
+"""
+import datetime as dt
+import json
+import os
+import sys
+import urllib.parse
+
+import numpy as np
+
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import jcommon as J  # noqa: E402
+from research.specs import rollovers  # noqa: E402
+from research.swing.rates import swap_frac_at  # noqa: E402
+
+END = J.parse_end(sys.argv)
+J.guard(END)
+CUT = J.ms(END)
+HOLD0 = J.HOLD0_MS
+MIN, HOUR, DAY = 60_000, 3_600_000, 86_400_000
+R = "/Users/hoangbk/00.code_base/105.AgentFxTrading/research/data/"
+SYM, H = "US500", 3
+D0 = dt.date(2007, 2, 1); D1 = END - dt.timedelta(days=1); N = (D1 - D0).days + 1
+COMM = {"USDJPY", "EURJPY", "GBPJPY", "AUDJPY", "EURUSD", "GBPUSD", "AUDUSD", "XAUUSD", "XAGUSD"}
+TRI2 = COMM
+
+
+# ----------------------------------------------------------------------------- signal (sig.py)
+def idx(d):
+    return (d - D0).days
+
+
+def raw_hn():
+    ts = json.load(open(os.path.join(J.DATA, "a5_hn_recession_to2024.json")))
+    if END > J.HOLD0:
+        ts = [t for t in ts if t < HOLD0 // 1000] + [t for t in json.load(open(os.path.join(
+            J.HOLD_DATA, "hn", "story_recession_hold.json"))) if HOLD0 // 1000 <= t < CUT // 1000]
+    c = np.zeros(N)
+    for t in ts:
+        i = (dt.datetime.fromtimestamp(t, dt.timezone.utc).date() - D0).days
+        if 0 <= i < N:
+            c[i] += 1
+    c7 = np.convolve(c, np.ones(7))[:N]; c7[:6] = np.nan
+    return c7
+
+
+def abn(v):
+    a = np.full(N, np.nan); lv = np.log1p(v)
+    for i in range(28, N):
+        b = v[[i - 7, i - 14, i - 21, i - 28]]
+        if np.isfinite(v[i]) and np.isfinite(b).all():
+            a[i] = lv[i] - np.log1p(np.median(b))
+    return np.clip(a, -2, 2)
+
+
+def zscore(a):
+    z = np.full(N, np.nan)
+    for i in range(N):
+        w = a[max(0, i - 365):i]; w = w[np.isfinite(w)]
+        if len(w) >= 120 and np.isfinite(a[i]) and w.std() > 0:
+            z[i] = a[i] / w.std()
+    return z
+
+
+# ----------------------------------------------------------------------------- engine (alib.py)
+_ic = {}
+
+
+def ic(sym):
+    if sym not in _ic:
+        z = np.load(R + f"m1/{sym}.npz"); k = z["ts"] < CUT
+        _ic[sym] = (z["ts"][k], z["c"][k], z["ca"][k])
+    return _ic[sym]
+
+
+def ms_of(d, hh, mm=0):
+    return int(dt.datetime(d.year, d.month, d.day, hh, mm, tzinfo=dt.timezone.utc).timestamp() * 1000)
+
+
+def quote(sym, t):
+    ts, b, a = ic(sym)
+    i = np.searchsorted(ts, t, "right") - 1
+    if i < 0 or t - ts[i] > 15 * MIN:
+        return np.nan, np.nan
+    return b[i], a[i]
+
+
+def exit_ms(entry, h):
+    d = dt.datetime.fromtimestamp(entry / 1000, dt.timezone.utc); n = 0; e = d
+    while n < h:
+        e += dt.timedelta(days=1)
+        if e.weekday() < 5:
+            n += 1
+    x = min(int(e.timestamp() * 1000), entry + 5 * DAY)
+    xd = dt.datetime.fromtimestamp(x / 1000, dt.timezone.utc)
+    if xd.weekday() >= 5 or (xd.weekday() == 4 and xd.hour >= 20):
+        fri = (xd - dt.timedelta(days=(xd.weekday() - 4))).replace(hour=20, minute=0, second=0, microsecond=0)
+        x = int(fri.timestamp() * 1000)
+    return x
+
+
+def trade(sym, side, entry, h, lag=0, spread_mult=1.0):
+    x = exit_ms(entry, h)
+    if (entry < HOLD0 <= x) or x >= CUT:     # stream: a pre-2025 entry exiting in 2025 is dropped
+        return None
+    b0, a0 = quote(sym, entry + lag * MIN); b1, a1 = quote(sym, x + lag * MIN)
+    if not np.isfinite(b0 + a0 + b1 + a1):
+        return None
+    m0, m1 = (a0 + b0) / 2, (a1 + b1) / 2
+    mid = side * (m1 - m0) / m0 * 1e4
+    half = spread_mult * ((a0 - b0) + (a1 - b1)) / 2 / m0 * 1e4
+    comm = 0.6 if sym in COMM else 0.0
+    nroll = rollovers(entry, x, 2 if sym in TRI2 else 4)
+    swap = nroll * swap_frac_at(sym, side, entry) * 1e4 if nroll else 0.0
+    return dict(mid=mid, net=mid - half - comm + swap)
+
+
+def tstat(v, cl=None):
+    v = np.asarray(v, float)
+    if len(v) < 3:
+        return np.nan
+    if cl is None:
+        return v.mean() / (v.std(ddof=1) / np.sqrt(len(v)))
+    cl = np.asarray(cl); u, inv = np.unique(cl, return_inverse=True)
+    s = np.bincount(inv, weights=v - v.mean()); G = len(u)
+    return v.mean() / (np.sqrt((s ** 2).sum() * G / (G - 1)) / len(v))
+
+
+# ----------------------------------------------------------------------------- cells (ev.py)
+def weekdays(a, b):
+    d, out = a, []
+    while d < b:
+        if d.weekday() < 5:
+            out.append(d)
+        d += dt.timedelta(days=1)
+    return out
+
+
+def run(z, a, b, thr, **kw):
+    rows = []
+    for d in weekdays(a, b):
+        i = idx(d - dt.timedelta(days=1)); v = z[i] if 0 <= i < len(z) else np.nan
+        if not np.isfinite(v) or v < thr:
+            continue
+        lag_min = kw.get("lag_min", 0); sm = kw.get("smult", 1.0)
+        t = trade(SYM, 1, ms_of(d, 7), H, lag=lag_min, spread_mult=sm)
+        if t is not None:
+            rows.append((d, 1, t["mid"], t["net"]))
+    return rows
+
+
+def summ(rows):
+    d = [r[0] for r in rows]; mid = np.array([r[2] for r in rows]); net = np.array([r[3] for r in rows])
+    cl = [x.toordinal() // 14 for x in d]
+    return mid, net, tstat(net, cl), d
+
+
+def random_control(rows, a, b, seeds=300, rng=None):
+    rng = rng or np.random.default_rng(7)
+    days = weekdays(a, b); n = len(rows); obs = np.mean([r[3] for r in rows]); means = []
+    sides = np.array([r[1] for r in rows])
+    for _ in range(seeds):
+        pick = rng.choice(len(days), size=min(n, len(days)), replace=False); rng.permutation(sides); vals = []
+        for p in pick:
+            t = trade(SYM, 1, ms_of(days[p], 7), H)
+            if t is not None:
+                vals.append(t["net"])
+        means.append(np.mean(vals))
+    return float(np.mean(obs > np.array(means)))
+
+
+def main_eval():
+    z = zscore(abn(raw_hn()))
+    isv = np.array([z[idx(d - dt.timedelta(days=1))] for d in weekdays(dt.date(2016, 1, 1), dt.date(2022, 1, 1))])
+    thr = float(np.quantile(isv[np.isfinite(isv)], 0.95))
+    assert abs(thr - 1.821) < 5e-4, thr
+    print(f"A5-HN long US500 h3 after HN 'recession' spike; THR (IS q95, frozen) = {thr!r}; end {END}")
+    trades = {}
+    for name, a, b in J.eras(END):
+        rows = run(z, a, b, thr)
+        mid, net, t, d = summ(rows)
+        trades[name] = [(str(x), m, n) for x, m, n in zip(d, mid.tolist(), net.tolist())]
+        if len(rows) < 3:
+            print(f"[{name}] n {len(rows)}"); continue
+        _, n15, _, _ = summ(run(z, a, b, thr, smult=1.5)); _, n1, _, _ = summ(run(z, a, b, thr, lag_min=1))
+        yr = np.array([x.year for x in d])
+        o = dict(n=len(rows), mid=mid.mean(), net=net.mean(), t=t, net15=n15.mean(), net1=n1.mean(),
+                 sd=net.std(ddof=1), sh=net.mean() / net.std(ddof=1),
+                 years={int(y): float(net[yr == y].mean()) for y in np.unique(yr)},
+                 rand=random_control(rows, a, b))
+        ep = []; last = None
+        for x in d:
+            if last is None or (x - last).days > 10:
+                ep.append(0)
+            ep[-1] += 1; last = x
+        print(J.fmt_era(name, o) + f" episodes {len(ep)}")
+    json.dump(trades, open(os.path.join(J.JOINT, "out", f"trades_A5_{'HOLD' if END > J.HOLD0 else 'repro'}.json"), "w"))
+
+
+def main_pull():
+    """round 32 A fetch_hn.py: monthly windows, split while nbHits >= 1000; only created_at_i is retrieved."""
+    log = os.path.join(J.HOLD_DATA, "requests.log"); page = os.path.join(J.HOLD_DATA, "hn", "page.json"); out = []
+
+    def window(a, b):
+        url = ("https://hn.algolia.com/api/v1/search_by_date?" + urllib.parse.urlencode({
+            "query": "recession", "tags": "story", "numericFilters": f"created_at_i>={a},created_at_i<{b}",
+            "hitsPerPage": 1000, "attributesToRetrieve": "created_at_i", "attributesToHighlight": "",
+            "typoTolerance": "false"}))
+        if J.fetch(url, page, log, gap=1.1) != 200:
+            sys.exit("pull failed")
+        js = json.load(open(page))
+        if js["nbHits"] >= 1000 and b - a > 3600:
+            m = (a + b) // 2; window(a, m); window(m, b); return
+        out.extend(h["created_at_i"] for h in js["hits"])
+
+    s = dt.datetime(2025, 1, 1, tzinfo=dt.timezone.utc)
+    while s.date() < END:
+        nxt = (s.replace(day=28) + dt.timedelta(days=5)).replace(day=1)
+        window(int(s.timestamp()), min(int(nxt.timestamp()), CUT // 1000)); s = nxt
+    json.dump(sorted(set(out)), open(os.path.join(J.HOLD_DATA, "hn", "story_recession_hold.json"), "w"))
+    print("pulled", len(set(out)), "story timestamps (values not printed)")
+
+
+if __name__ == "__main__":
+    {"eval": main_eval, "pull": main_pull}[sys.argv[1]]()
