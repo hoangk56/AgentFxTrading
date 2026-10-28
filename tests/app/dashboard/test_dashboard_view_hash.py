@@ -28,7 +28,8 @@ def test_nav_links_carry_the_view_hash_and_the_page_restores_it():
     page = dashboard_page(client)
     for name in ("leaderboard", "backtest", "ledger", "logs"):
         assert f'href="#{name}" class="nav-item" data-target="view-{name}"' in page
-    assert "openView(item.getAttribute('data-target'))" in page and "openView('view-docker')" in page
+    assert 'href="#docker" class="nav-item" data-target="view-docker"' in page   # Bots lives in the sidebar
+    assert "openView(item.getAttribute('data-target'))" in page and "topbar-docker-btn" not in page
     assert "window.addEventListener('popstate', () => switchView(viewFromHash(location.hash)))" in page
     assert "const initialView = viewFromHash(location.hash);" in page
     assert "'/real/dashboard' + location.hash" in page and "'/demo/dashboard' + location.hash" in page
