@@ -152,10 +152,10 @@ const DASHBOARD_BOOTSTRAP = window.DASHBOARD_BOOTSTRAP || {};
                     ? 'since the service started' : `for ${b.last_poll_age_s} s`;
                 const notPollingTitle = `No command poll from bot_id "${b.bot_id}" ${lastPoll}. Close and Close & Stop can't reach this bot and Pause may not stop its entries. Usual causes: still logging in, an .algo built before the command poll, CommandPollMs=0, or the bot reports a BotId other than this container's --BotId.`;
                 const notPollingHtml = (isRunning && !b.polling)
-                    ? ` <span class="badge" style="background:rgba(229,57,53,0.12); color:var(--loss);" title="${escapeHtml(notPollingTitle)}">NOT POLLING</span>`
+                    ? ` <span class="badge" style="background:rgba(248,113,113,0.12); color:var(--loss);" title="${escapeHtml(notPollingTitle)}">NOT POLLING</span>`
                     : '';
                 const pauseBtn = b.paused
-                    ? `<button class="log-btn action-resume" data-name="${escapedName}" style="background:rgba(125,189,30,0.15); color:var(--profit); margin-right:4px;">Resume</button>`
+                    ? `<button class="log-btn action-resume" data-name="${escapedName}" style="background:rgba(52,211,153,0.15); color:var(--profit); margin-right:4px;">Resume</button>`
                     : `<button class="log-btn action-pause" data-name="${escapedName}" style="background:rgba(255,193,7,0.15); color:#f59e0b; margin-right:4px;">Pause</button>`;
                 const closeStopBtn = isRunning
                     ? `<button class="log-btn action-close-stop" data-name="${escapedName}" data-open="${b.open_positions || 0}" data-live="${b.account_type === 'live' ? '1' : '0'}" style="background:var(--loss); color:#fff; margin-right:4px;">Close &amp; Stop</button>`
@@ -170,8 +170,8 @@ const DASHBOARD_BOOTSTRAP = window.DASHBOARD_BOOTSTRAP || {};
                     <td class="td-dim" style="font-family:monospace; max-width:240px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis" title="${escapedCmd}">${escapedCmd}</td>
                     <td style="text-align:right; white-space:nowrap;">
                         ${pauseBtn}${closeStopBtn}${isRunning
-                            ? `<button class="log-btn action-restart" data-name="${escapedName}" style="background:rgba(255,193,7,0.15); color:#f59e0b; margin-right:4px;">Restart</button><button class="log-btn action-stop" data-name="${escapedName}" style="background:rgba(229,57,53,0.15); color:var(--loss);">Stop</button>`
-                            : `<button class="log-btn action-start" data-name="${escapedName}" style="background:rgba(125,189,30,0.15); color:var(--profit);">Start</button>`
+                            ? `<button class="log-btn action-restart" data-name="${escapedName}" style="background:rgba(255,193,7,0.15); color:#f59e0b; margin-right:4px;">Restart</button><button class="log-btn action-stop" data-name="${escapedName}" style="background:rgba(248,113,113,0.15); color:var(--loss);">Stop</button>`
+                            : `<button class="log-btn action-start" data-name="${escapedName}" style="background:rgba(52,211,153,0.15); color:var(--profit);">Start</button>`
                         }
                         <button class="log-btn action-edit" data-name="${escapedName}" data-desc="${escapedDesc}" data-cmd="${escapedCmd}" style="background:var(--bg-elevated); margin:0 4px;">Edit</button>
                         <button class="log-btn action-delete" data-name="${escapedName}">Delete</button>
@@ -638,8 +638,8 @@ const DASHBOARD_BOOTSTRAP = window.DASHBOARD_BOOTSTRAP || {};
                 datasets: [{
                     label: 'Daily P&L',
                     data: rawDailyHistory.map(d=>d.pnl),
-                    backgroundColor: rawDailyHistory.map(d=>d.pnl>=0?'rgba(125,189,30,0.6)':'rgba(229,57,53,0.6)'),
-                    borderColor: rawDailyHistory.map(d=>d.pnl>=0?'rgba(125,189,30,1)':'rgba(229,57,53,1)'),
+                    backgroundColor: rawDailyHistory.map(d=>d.pnl>=0?'rgba(52,211,153,0.6)':'rgba(248,113,113,0.6)'),
+                    borderColor: rawDailyHistory.map(d=>d.pnl>=0?'rgba(52,211,153,1)':'rgba(248,113,113,1)'),
                     borderWidth: 1,
                     borderRadius: 2
                 }]
@@ -649,11 +649,11 @@ const DASHBOARD_BOOTSTRAP = window.DASHBOARD_BOOTSTRAP || {};
                 maintainAspectRatio: false,
                 plugins: {
                     legend: { display: false },
-                    tooltip: { backgroundColor: '#1e293b', titleColor: '#f0f0f0', bodyColor: '#a0a0a0' }
+                    tooltip: { backgroundColor: '#1e293b', titleColor: '#f1f5f9', bodyColor: '#94a3b8' }
                 },
                 scales: {
-                    y: { beginAtZero: true, grid: { color: 'rgba(64,64,64,0.3)' }, ticks: { color: '#a0a0a0', callback: v => '$' + v } },
-                    x: { grid: { display: false }, ticks: { color: '#a0a0a0', maxRotation: 0 } }
+                    y: { beginAtZero: true, grid: { color: 'rgba(148,163,184,0.15)' }, ticks: { color: '#94a3b8', callback: v => '$' + v } },
+                    x: { grid: { display: false }, ticks: { color: '#94a3b8', maxRotation: 0 } }
                 }
             }
         });
@@ -683,11 +683,11 @@ const DASHBOARD_BOOTSTRAP = window.DASHBOARD_BOOTSTRAP || {};
                 maintainAspectRatio: false,
                 plugins: {
                     legend: { display: false },
-                    tooltip: { backgroundColor: '#1e293b', titleColor: '#f0f0f0', bodyColor: '#a0a0a0' }
+                    tooltip: { backgroundColor: '#1e293b', titleColor: '#f1f5f9', bodyColor: '#94a3b8' }
                 },
                 scales: {
-                    y: { beginAtZero: false, grid: { color: 'rgba(64,64,64,0.3)' }, ticks: { color: '#a0a0a0', callback: v => '$' + v } },
-                    x: { grid: { display: false }, ticks: { color: '#a0a0a0', maxRotation: 0 } }
+                    y: { beginAtZero: false, grid: { color: 'rgba(148,163,184,0.15)' }, ticks: { color: '#94a3b8', callback: v => '$' + v } },
+                    x: { grid: { display: false }, ticks: { color: '#94a3b8', maxRotation: 0 } }
                 }
             }
         });
@@ -699,8 +699,8 @@ const DASHBOARD_BOOTSTRAP = window.DASHBOARD_BOOTSTRAP || {};
             pnlChart.data.datasets = [{
                 label: 'Daily P&L',
                 data: h.map(d=>d.pnl),
-                backgroundColor: h.map(d=>d.pnl>=0?'rgba(125,189,30,0.6)':'rgba(229,57,53,0.6)'),
-                borderColor: h.map(d=>d.pnl>=0?'rgba(125,189,30,1)':'rgba(229,57,53,1)'),
+                backgroundColor: h.map(d=>d.pnl>=0?'rgba(52,211,153,0.6)':'rgba(248,113,113,0.6)'),
+                borderColor: h.map(d=>d.pnl>=0?'rgba(52,211,153,1)':'rgba(248,113,113,1)'),
                 borderWidth: 1,
                 borderRadius: 2
             }];
@@ -741,7 +741,7 @@ const DASHBOARD_BOOTSTRAP = window.DASHBOARD_BOOTSTRAP || {};
                 responsive: true,
                 maintainAspectRatio: false,
                 plugins: {
-                    legend: { position: 'bottom', labels: { boxWidth: 10, color: '#a0a0a0', font: { size: 10 } } }
+                    legend: { position: 'bottom', labels: { boxWidth: 10, color: '#94a3b8', font: { size: 10 } } }
                 },
                 cutout: '65%'
             }
@@ -987,7 +987,7 @@ const DASHBOARD_BOOTSTRAP = window.DASHBOARD_BOOTSTRAP || {};
             const closing = closingPositions.has(String(p.id));
             const noId = !p.ctrader_id;
             const title = noId ? ' title="No cTrader id recorded for this position - close it in cTrader"' : '';
-            return `<button class="log-btn action-close-pos" data-id="${p.id}" data-bot="${escapeHtml(p.bot_id||'')}" data-symbol="${escapeHtml(p.symbol||'')}" data-side="${escapeHtml(p.side||'')}" data-volume="${escapeHtml(p.volume)}" data-live="${p.account_type==='live'?'1':'0'}"${(noId||closing)?' disabled':''}${title} style="background:rgba(229,57,53,0.15); color:var(--loss);">${closing?'Closing…':'Close'}</button>`;
+            return `<button class="log-btn action-close-pos" data-id="${p.id}" data-bot="${escapeHtml(p.bot_id||'')}" data-symbol="${escapeHtml(p.symbol||'')}" data-side="${escapeHtml(p.side||'')}" data-volume="${escapeHtml(p.volume)}" data-live="${p.account_type==='live'?'1':'0'}"${(noId||closing)?' disabled':''}${title} style="background:rgba(248,113,113,0.15); color:var(--loss);">${closing?'Closing…':'Close'}</button>`;
         }
         async function waitForBotCommand(id, maxSeconds = 35) {
             for (let i = 0; i < maxSeconds; i++) {
