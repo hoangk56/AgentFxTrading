@@ -35,6 +35,7 @@ class PortfolioManager:
         # poll, which must never touch the DB. Written only by set_bot_paused (single worker).
         self._paused_lock = threading.Lock()
         self._paused_bots: Set[str] = set()
+        self._stopped_bots: Set[str] = set()   # bot_stopped table, same reason
         self._init_db()
     
     def _init_db(self):
@@ -172,6 +173,7 @@ class PortfolioManager:
                 conn.execute(f"DROP TABLE IF EXISTS {table}")
             conn.commit()
             self._paused_bots = bot_controls.load_paused(conn)
+            self._stopped_bots = bot_controls.load_stopped(conn)
             logger.info(f"Portfolio database initialized (target: {self.db_path or 'PostgreSQL'})")
         finally:
             conn.close()
@@ -346,6 +348,24 @@ class PortfolioManager:
                 self._paused_bots.add(bot_id)
             else:
                 self._paused_bots.discard(bot_id)
+
+    def set_bot_stopped(self, bot_id: str, stopped: bool) -> None:
+        """Record that the owner stopped (or started) a bot on purpose, so the alert strip stays quiet for it."""
+        conn = self._get_conn()
+        try:
+            bot_controls.save_stopped(conn, bot_id, stopped)
+            conn.commit()
+        finally:
+            conn.close()
+        with self._paused_lock:
+            if stopped:
+                self._stopped_bots.add(bot_id)
+            else:
+                self._stopped_bots.discard(bot_id)
+
+    def is_bot_stopped_on_purpose(self, bot_id: str) -> bool:
+        with self._paused_lock:
+            return bot_id in self._stopped_bots
 
     def is_bot_paused(self, bot_id: str) -> bool:
         """Answered from memory: the command poll calls this ~22 times a second."""

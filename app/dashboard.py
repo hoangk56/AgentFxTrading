@@ -642,12 +642,22 @@ async def api_dashboard_sessions():
     return get_market_sessions_info()
 
 @router.get("/api/dashboard/alerts")
-async def api_dashboard_alerts(account_id: str = "all"):
-    """Overview alert strip: stuck / unpriced bots and recent watchdog restarts, critical first."""
+def api_dashboard_alerts(account_id: str = "all"):
+    """Overview alert strip: dead / unpriced bots and recent watchdog restarts, critical first.
+
+    Plain `def` (threadpool): it reads the DB. The container state is the watchdog's last cycle, never a docker call.
+    """
     from app.cbot_watchdog import cbot_watchdog
+    pm = get_portfolio_manager()
+    down_bots = []
+    for cfg in pm.get_cbot_configs():
+        health = cbot_watchdog.last_health(cfg["name"])
+        bot_id = bot_id_for_config(cfg)
+        if health is not None and health.get("status") != "running" and not pm.is_bot_stopped_on_purpose(bot_id):
+            down_bots.append({"bot_id": bot_id, "status": health.get("status") or "not running"})
     now_gmt7 = (datetime.now(timezone.utc) + timedelta(hours=7)).replace(tzinfo=None)
     alerts = build_alerts(get_active_positions(account_id), cbot_watchdog.get_status(),
-                          get_market_sessions_info()["is_forex_weekend"], now_gmt7)
+                          get_market_sessions_info()["is_forex_weekend"], now_gmt7, down_bots)
     return {"alerts": alerts}
 
 
@@ -957,6 +967,14 @@ class BotUpdateConfigRequest(BaseModel):
 # Docker calls block (stop/restart wait up to 10 s; inspect+logs took seconds under load), and
 # inside `async def` that pinned the event loop, stalling /api/tick and /portfolio/report for every cBot.
 
+def _set_bot_stopped(name: str, stopped: bool) -> None:
+    """Remember whether the owner stopped this container on purpose (see bot_controls.bot_stopped)."""
+    pm = get_portfolio_manager()
+    cfg = pm.get_cbot_config(name)
+    if cfg:
+        pm.set_bot_stopped(bot_id_for_config(cfg), stopped)
+
+
 @router.get("/api/bots")
 def api_get_bots():
     from app.cbot_watchdog import cbot_watchdog
@@ -999,6 +1017,7 @@ async def api_add_bot(req: BotConfigRequest):
     pm = get_portfolio_manager()
     success = pm.add_cbot_config(req.name, req.description, req.run_command)
     if success:
+        _set_bot_stopped(req.name, True)   # saved, not started: not an outage until the owner presses Start
         return {"success": True, "message": "Bot config added"}
     return {"success": False, "message": "Bot name already exists"}
 
@@ -1014,6 +1033,8 @@ def api_update_bot(name: str, req: BotUpdateConfigRequest):
         docker_manager.stop_container(name)
         docker_manager.remove_container(name)
         start_result = docker_manager.start_container(name, req.run_command)
+        if start_result.get("success"):
+            _set_bot_stopped(name, False)
         return {
             "success": True, 
             "message": f"Bot {name} updated and restarted with new parameters.",
@@ -1036,6 +1057,7 @@ def api_delete_bot(name: str):
     removed = docker_manager.remove_container(name)  # force=True; NotFound counts as removed
     if not removed.get("success"):
         return {"success": False, "message": f"Container not removed: {removed.get('message', 'docker error')}"}
+    _set_bot_stopped(name, False)   # before the row goes, or the bot_id can no longer be derived
     pm.delete_cbot_config(name)
     return {"success": True, "message": "Bot config and container deleted"}
 
@@ -1046,21 +1068,29 @@ def api_start_bot(name: str):
     if not config:
         return {"success": False, "message": "Bot config not found"}
     result = docker_manager.start_container(name, config["run_command"])
+    if result.get("success"):
+        _set_bot_stopped(name, False)
     return result
 
 @router.post("/api/bots/{name}/stop")
 def api_stop_bot(name: str):
     result = docker_manager.stop_container(name)
+    if result.get("success"):
+        _set_bot_stopped(name, True)
     return result
 
 @router.post("/api/bots/{name}/remove")
 def api_remove_bot(name: str):
     result = docker_manager.remove_container(name)
+    if result.get("success"):
+        _set_bot_stopped(name, True)
     return result
 
 @router.post("/api/bots/{name}/restart")
 def api_restart_bot(name: str):
     result = docker_manager.restart_container(name)
+    if result.get("success"):
+        _set_bot_stopped(name, False)
     return result
 
 
@@ -1205,6 +1235,7 @@ async def api_close_and_stop_bot(name: str):
         logger.warning(f"[MANUAL] {message}")
         return {"success": False, "stage": "stop", "paused": True, "closed": final.closed, "message": message}
 
+    _set_bot_stopped(name, True)
     message = (f"Closed {final.closed} position(s) and stopped {name}. "
                f"It stays paused: after Start, click Resume to trade again.")
     logger.warning(f"[MANUAL] {message}")
@@ -1306,10 +1337,12 @@ def api_setup_instances(req: SetupInstancesRequest):
             entry.update(status="exists", message="Bot config already exists")
             continue
         if not req.start:
+            _set_bot_stopped(name, True)
             entry.update(status="saved", message="Config saved")
             continue
         result = docker_manager.start_container(name, cmd)
         if result.get("success"):
+            _set_bot_stopped(name, False)
             entry.update(status="started", message=result.get("message", "Container started"))
         else:
             entry["message"] = result.get("message", "Docker error")   # config row kept so the user can retry
