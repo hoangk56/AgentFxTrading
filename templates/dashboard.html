@@ -10,6 +10,7 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="/static/js/backtest.js?v=20260927_2bots" defer></script>
     <script src="/static/js/ledger.js?v=20260927_ledger0" defer></script>
+    <script src="/static/js/forward_status.js?v=20261028_fwd1" defer></script>
     <script src="/static/js/gotobi_calendar.js?v=20261017_ecbplan" defer></script>
     <link rel="icon" type="image/png" href="/static/favicon.png">
 </head>
@@ -100,6 +101,10 @@
             <a href="#calendar" class="nav-item" data-target="view-calendar" title="Calendar: gotobi days, the Gotobi trades and the ECB window trades of each day">
                 <span class="nav-icon"><i data-lucide="calendar-days"></i></span>
                 <span class="nav-label">Calendar</span>
+            </a>
+            <a href="#forward" class="nav-item" data-target="view-forward" title="Forward: the registered stop and promotion rules of the research candidates">
+                <span class="nav-icon"><i data-lucide="flask-conical"></i></span>
+                <span class="nav-label">Forward</span>
             </a>
             <a href="#ledger" class="nav-item" data-target="view-ledger" title="Ledger: deposits, withdrawals and discrepancy">
                 <span class="nav-icon"><i data-lucide="book-open"></i></span>
@@ -713,6 +718,20 @@
                     </div>
                 </section>
                 <div id="lg-body"><p class="td-dim">Loading...</p></div>
+            </div>
+
+            <!-- Forward View: research candidates against their registered rules (static/js/forward_status.js) -->
+            <div id="view-forward" class="view-section">
+                <section class="panel">
+                    <div class="panel-header">
+                        <span class="panel-title"><i data-lucide="flask-conical" class="panel-icon text-blue"></i> Forward</span>
+                        <button id="fs-refresh-btn" class="log-btn" style="margin-left:auto;"><i data-lucide="refresh-cw" class="btn-icon"></i> Refresh</button>
+                    </div>
+                    <div class="panel-body">
+                        <p class="td-dim lg-hint">Each research candidate against the stop and promotion rules it registered before its forward data existed (docs/forward-candidates.md). Net is the real fills' move minus 0.6 bp commission, pooled with the holdout run. PROMOTE_CHECK is never a promotion: the conditions listed under "Not checked here" still need a person.</p>
+                        <div id="fs-body"><p class="td-dim">Loading...</p></div>
+                    </div>
+                </section>
             </div>
 
             <!-- Calendar View: Gotobi and ECB window trades by day (static/js/gotobi_calendar.js) -->

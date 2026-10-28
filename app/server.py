@@ -128,6 +128,8 @@ from app.ledger_api import router as ledger_router
 app.include_router(ledger_router)
 from app.gotobi_calendar_api import router as gotobi_calendar_router
 app.include_router(gotobi_calendar_router)
+from app.forward_status_api import router as forward_status_router
+app.include_router(forward_status_router)
 
 
 if __name__ == "__main__":

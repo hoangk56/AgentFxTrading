@@ -46,6 +46,8 @@ const DASHBOARD_BOOTSTRAP = window.DASHBOARD_BOOTSTRAP || {};
                     ledgerOnShow();
                 } else if (targetId === 'view-calendar') {
                     gotobiOnShow();
+                } else if (targetId === 'view-forward') {
+                    fsOnShow();
                 }
             }
         }
