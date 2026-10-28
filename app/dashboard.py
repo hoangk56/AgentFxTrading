@@ -16,6 +16,7 @@ from datetime import datetime, date, timedelta, timezone
 from typing import Dict, List, Optional, Any
 from app.accounts import get_account_registry
 from app.auth import login_enabled
+from app.dashboard_alerts import build_alerts
 from app.leaderboard import InvalidDateRange, compute_bot_leaderboard, compute_profit_factor
 import logging
 
@@ -283,7 +284,10 @@ def get_portfolio_summary(account_id: str = "all") -> Dict:
             "total_trades": total_trades,
             "account_id": account_id,
             "account_balance": account_balance,
-            "account_equity": account_equity
+            "account_equity": account_equity,
+            # Broker truth: it includes swap and commission that the per-position estimates leave out.
+            "floating_pnl": round(account_equity - account_balance, 2)
+            if account_equity is not None and account_balance is not None else None
         }
     finally:
         conn.close()
@@ -636,6 +640,16 @@ async def api_dashboard_leaderboard(account_id: str = "all", account_type: Optio
 async def api_dashboard_sessions():
     """API endpoint for trading sessions and market status."""
     return get_market_sessions_info()
+
+@router.get("/api/dashboard/alerts")
+async def api_dashboard_alerts(account_id: str = "all"):
+    """Overview alert strip: stuck / unpriced bots and recent watchdog restarts, critical first."""
+    from app.cbot_watchdog import cbot_watchdog
+    now_gmt7 = (datetime.now(timezone.utc) + timedelta(hours=7)).replace(tzinfo=None)
+    alerts = build_alerts(get_active_positions(account_id), cbot_watchdog.get_status(),
+                          get_market_sessions_info()["is_forex_weekend"], now_gmt7)
+    return {"alerts": alerts}
+
 
 @router.get("/api/dashboard/exposure")
 async def api_dashboard_exposure(account_id: str = "all"):

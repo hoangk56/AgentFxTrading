@@ -78,8 +78,18 @@ body.app-shell{font-family:var(--font-ui);background:var(--bg-app);color:var(--t
 .kpi-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-bottom:16px}
 @media(min-width:600px){.kpi-grid{grid-template-columns:repeat(4,1fr)}}
 @media(min-width:1024px){.kpi-grid{grid-template-columns:repeat(9,minmax(0,1fr))}}
+.health-alerts{display:flex;flex-direction:column;gap:6px;margin-bottom:12px}
+.health-alerts[hidden]{display:none}
+.health-alert{display:flex;flex-wrap:wrap;align-items:center;gap:4px 10px;padding:8px 12px;border-radius:var(--radius);border:1px solid var(--border-subtle);border-left-width:3px;background:var(--bg-surface);font-size:0.8rem}
+.health-alert--crit{border-left-color:var(--loss);background:var(--loss-soft)}
+.health-alert--warn{border-left-color:#ffa726;background:rgba(255,167,38,.08)}
+.health-alert-tag{font-size:0.65rem;font-weight:700;letter-spacing:0.08em;text-transform:uppercase}
+.health-alert--crit .health-alert-tag{color:var(--loss)}
+.health-alert--warn .health-alert-tag{color:#ffa726}
+.health-alert-bot{font-family:var(--font-mono);color:var(--text-primary)}
+.health-alert-msg{color:var(--text-muted)}
 .kpi-section-label{font-size:0.65rem;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--text-dim);margin:0 2px 6px}
-@media(min-width:1024px){.kpi-grid--now{grid-template-columns:repeat(5,minmax(0,1fr))}.kpi-grid--record{grid-template-columns:repeat(4,minmax(0,1fr))}}
+@media(min-width:1024px){.kpi-grid--now{grid-template-columns:repeat(6,minmax(0,1fr))}.kpi-grid--record{grid-template-columns:repeat(4,minmax(0,1fr))}}
 .kpi-grid--4{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-bottom:16px}
 @media(min-width:600px){.kpi-grid--4{grid-template-columns:repeat(4,1fr)}}
 @media(min-width:1024px){.kpi-grid--4{grid-template-columns:repeat(4,minmax(0,1fr))}}

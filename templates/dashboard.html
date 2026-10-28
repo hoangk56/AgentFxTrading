@@ -4,12 +4,13 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AgentFxTrading Dashboard</title>
-    <link rel="stylesheet" href="/static/css/dashboard.css?v=20261028_ia1">
+    <link rel="stylesheet" href="/static/css/dashboard.css?v=20261028_ia2">
     <script src="/static/js/auth.js?v=20260927_login"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="/static/js/backtest.js?v=20260927_2bots" defer></script>
     <script src="/static/js/ledger.js?v=20260927_ledger0" defer></script>
+    <script src="/static/js/overview_alerts.js?v=20261028_alerts1" defer></script>
     <script src="/static/js/forward_status.js?v=20261028_fwd1" defer></script>
     <script src="/static/js/gotobi_calendar.js?v=20261017_ecbplan" defer></script>
     <link rel="icon" type="image/png" href="/static/favicon.png">
@@ -144,6 +145,7 @@
                 </div>
 
                 <!-- KPI: what is happening now, then the track record -->
+                <div id="health-alerts" class="health-alerts" role="status" aria-live="polite" hidden></div>
                 <div class="kpi-section-label">Now</div>
                 <div class="kpi-grid kpi-grid--now">
                     <div id="account-equity-card" class="kpi-card">
@@ -153,6 +155,11 @@
                     <div id="account-balance-card" class="kpi-card">
                         <div class="kpi-label">Balance</div>
                         <div id="account-balance" class="kpi-value kpi-value--mono">${{ "%.2f"|format(summary.account_balance or 0) }}</div>
+                    </div>
+                    <div class="kpi-card" title="Equity minus balance: the open positions' unrealised result at the broker">
+                        <div class="kpi-label">Floating P&amp;L</div>
+                        {% set floating = summary.floating_pnl %}
+                        <div id="floating-pnl" class="kpi-value kpi-value--mono {% if floating is none %}{% elif floating >= 0 %}kpi-value--profit{% else %}kpi-value--loss{% endif %}">{% if floating is none %}--{% else %}{% if floating > 0 %}+{% endif %}${{ "%.2f"|format(floating) }}{% endif %}</div>
                     </div>
                     <div class="kpi-card">
                         <div class="kpi-label">Daily P&amp;L</div>
