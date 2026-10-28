@@ -36,6 +36,9 @@ reason, never left out.
 Dukascopy bid M1 files (`app/dukascopy.py`), aggregated to hours and cached per finished day under `PAPER_DESK_DATA`
 (default `data/paper_desk`). Features use only bars closed before 07:00 UTC; entry and exit prices are the open of the
 07:00 UTC bar. A day with no price at 07:00 (within two hours) is not scored.
+The runner may start before the entry (cron 03:00, 03:20 and 03:40 UTC = 10:00-10:40 Vietnam): features then use the
+bars closed before the run hour (`asof_utc`, `hours_until_entry` are in the features and in the stored record), never
+later than 07:00. A bar older than 3 hours before that point withholds the call.
 
 ## Costs (registered assumptions)
 Round-trip bp per symbol, `COST_BP` in `app/paper_desk_runner.py`: EURUSD 1.0, USDJPY 1.0, GBPJPY 1.8, XAUUSD 1.5,
@@ -47,4 +50,4 @@ must clear and change the result: replace them with measured values in a new dat
     python -m app.paper_desk_runner score
 
 `DEEPSEEK_API_KEY` is read from the environment (the VPS `.env`) and never written or logged. Nothing is scheduled
-yet: a cron entry that runs `run` at about 06:30 UTC on weekdays, and a view on the dashboard, are not built.
+by the code: the VPS cron (`/etc/cron.d/agentfx-paper-desk`) runs `run` on weekdays; a dashboard view is not built.
