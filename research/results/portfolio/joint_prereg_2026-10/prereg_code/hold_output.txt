@@ -1,0 +1,29 @@
+Wed Oct 28 08:40:34 UTC 2026
+$ HOLD_RUN=1 rule_d_k4.py eval --end 2026-09-25
+D-K4 BTCUSD Friday expiry fade, EXV > trailing-26 median; end 2026-09-25; 476 Friday 08:00 expiries, 463 with trailing EXV
+[IS] n 144 mid +17.42 net +6.07 (t +0.803) x1.5 +0.39 +1min +7.72 sd 90.3 sh +0.067 random 0.310 years 2017:+13.1 2018:-24.3 2019:+24.5 2020:+7.0 2021:+17.4
+[VAL] n 89 mid +20.03 net +16.68 (t +3.237) x1.5 +15.01 +1min +17.06 sd 48.3 sh +0.345 random 1.000 years 2022:+6.1 2023:+19.0 2024:+28.3
+[HOLD] n 45 mid -10.06 net -11.51 (t -1.123) x1.5 -12.23 +1min -10.15 sd 68.0 sh -0.169 random 0.325 years 2025:-3.8 2026:-28.6
+exit 0
+$ HOLD_RUN=1 rule_e_letf.py eval --end 2026-09-25
+HOLD precondition: NQ COT reports per year {2025: 52, 2026: 42}
+E-USTEC H1roll w30 (LETF dose top decile, follow 15:30-16:00 ET); end 2026-09-25
+[IS] n 150 mid +11.99 net +10.26 (t +1.382) x1.5 +9.39 +1min +2.21 sd 90.9 sh +0.113 random 1.000 years 2016:-3.2 2017:+0.6 2018:+9.7 2019:-4.6 2020:+27.5 2021:-6.0
+[VAL] n 93 mid +12.20 net +11.49 (t +2.775) x1.5 +11.13 +1min +8.90 sd 39.9 sh +0.288 random 1.000 years 2022:+15.0 2023:-8.0 2024:+6.7
+[HOLD] n 42 mid -1.65 net -2.22 (t -0.352) x1.5 -2.50 +1min -1.62 sd 40.9 sh -0.054 random 0.353 years 2025:-5.9 2026:+0.5
+exit 0
+$ HOLD_RUN=1 rule_a5_hn.py eval --end 2026-09-25
+A5-HN long US500 h3 after HN 'recession' spike; THR (IS q95, frozen) = 1.8207467842895426; end 2026-09-25
+[IS] n 79 mid +42.41 net +32.87 (t +2.511) x1.5 +31.80 +1min +32.48 sd 122.3 sh +0.269 random 0.890 years 2016:+49.6 2017:+5.6 2018:+20.4 2019:+57.6 2020:+23.5 2021:+61.8 episodes 21
+[VAL] n 28 mid +110.57 net +100.41 (t +2.700) x1.5 +99.90 +1min +99.45 sd 154.6 sh +0.649 random 1.000 years 2022:+84.6 2023:+99.2 2024:+123.1 episodes 9
+[HOLD] n 15 mid -12.09 net -24.44 (t -0.245) x1.5 -24.85 +1min -26.55 sd 322.4 sh -0.076 random 0.197 years 2025:+20.3 2026:-91.6 episodes 5
+exit 0
+$ HOLD_RUN=1 rule_u3.py eval --end 2026-09-25
+/Users/hoangbk/00.code_base/105.AgentFxTrading/research/.venv/lib/python3.14/site-packages/numpy/lib/_nanfunctions_impl.py:1396: RuntimeWarning: All-NaN slice encountered
+  return _nanquantile_unchecked(
+HOLD precondition: matched DTS rows per group and year (counts only) {('refund_ind', '2025'): 250, ('refund_ind', '2026'): 185, ('ss', '2025'): 250, ('ss', '2026'): 185, ('ssi', '2025'): 250, ('ssi', '2026'): 185, ('ui', '2025'): 250, ('ui', '2026'): 185, ('va', '2025'): 250, ('va', '2026'): 185}
+U3 h3 BTCUSD household-cash surprise, long 3 marks; end 2026-09-25
+[IS] n 108 mid +134.07 net +96.44 (t +1.056) x1.5 +88.83 +1min +97.23 sd 949.1 sh +0.102 random 0.780 years 2017:+533.3 2018:-131.2 2019:+141.5 2020:+133.1 2021:+247.4
+[VAL] n 92 mid +185.49 net +159.37 (t +2.265) x1.5 +157.34 +1min +158.34 sd 674.8 sh +0.236 random 0.990 years 2022:-92.3 2023:+271.7 2024:+293.4
+[HOLD] n 58 mid -19.90 net -43.31 (t -0.693) x1.5 -44.16 +1min -43.88 sd 475.9 sh -0.091 random 0.363 years 2025:-51.2 2026:-35.9
+exit 0

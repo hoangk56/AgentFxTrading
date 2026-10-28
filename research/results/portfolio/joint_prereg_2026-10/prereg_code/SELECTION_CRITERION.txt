@@ -1,0 +1,12 @@
+Selection criterion for the joint HOLD registration (written before any scan of rounds 31-36 outputs)
+Written at (date -u): 2026-10-28T02:56:29Z
+
+A cell is ELIGIBLE iff all hold:
+ (1) its side and parameters were declared in a HYPOTHESES_*.md before its returns were computed;
+ (2) IS (2016-2021, or the stream's declared IS window) net mean > 0;
+ (3) VAL (2022-2024, or the stream's declared VAL window) net t >= 2.0;
+ (4) it beats >= 90 % of its random / shift control in VAL (control percentile >= 0.90);
+ (5) it is graded on the stream's registered cost model (not a cost-free or relaxed-cost variant).
+Eligible cells are grouped by mechanism; ONE cell per mechanism is kept: the highest VAL net t.
+Ties / missing control: a cell with no VAL random/shift control reported is NOT eligible (criterion 4 cannot be checked).
+No statistic on any date >= 2025-01-01 is computed or fetched.

@@ -1,0 +1,99 @@
+"""Joint pre-registration (rounds 32-36 VAL-strong rules): shared guard, eras, polite fetcher.
+
+Every rule script takes --end YYYY-MM-DD (exclusive). Eras: IS / VAL as in each stream, HOLD = 2025-01-01 .. end.
+Nothing dated >= 2025-01-01 is read, fetched or computed unless the environment has HOLD_RUN=1 (set only by the lead,
+once, after the user confirmed PREREG_JOINT.md). Run from the repo root with PYTHONPATH=. research/.venv/bin/python.
+"""
+import datetime as dt
+import os
+import sys
+import time
+import urllib.error
+import urllib.parse
+import urllib.request
+
+HOLD0 = dt.date(2025, 1, 1)
+HOLD0_MS = 1735689600000
+HOLD_END_MAX = dt.date(2026, 9, 25)          # IC M1 cache ends 2026-09-24 (research/m1.py END)
+HERE = os.path.dirname(os.path.abspath(__file__))
+JOINT = os.path.dirname(HERE)                  # .../scratchpad/joint
+DATA = os.path.join(JOINT, "data")             # frozen pre-2025 inputs (copied into prereg_code/data/)
+HOLD_DATA = os.path.join(JOINT, "hold_data")   # written only by the HOLD pulls
+UA = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0 Safari/537.36"
+
+
+def parse_end(argv):
+    end = dt.date(2025, 1, 1)
+    for i, a in enumerate(argv):
+        if a == "--end":
+            end = dt.date.fromisoformat(argv[i + 1])
+    return end
+
+
+def guard(end):
+    """Refuse any window reaching past 2024-12-31, and any pull, unless HOLD_RUN=1."""
+    if "pull" in sys.argv[1:2] and (os.environ.get("HOLD_RUN") != "1" or end <= HOLD0):
+        sys.exit("refused: `pull` fetches HOLD data; only with HOLD_RUN=1 and --end after 2025-01-01")
+    if end > HOLD0 and os.environ.get("HOLD_RUN") != "1":
+        sys.exit(f"refused: --end {end} opens HOLD; set HOLD_RUN=1 only for the registered HOLD run")
+    if end > HOLD_END_MAX:
+        sys.exit(f"refused: --end {end} is past the IC M1 cache ({HOLD_END_MAX})")
+
+
+def ms(d, hh=0, mm=0):
+    return int(dt.datetime(d.year, d.month, d.day, hh, mm, tzinfo=dt.timezone.utc).timestamp() * 1000)
+
+
+def eras(end, is0=dt.date(2016, 1, 1)):
+    """(name, start date incl, end date excl)."""
+    out = [("IS", is0, dt.date(2022, 1, 1)), ("VAL", dt.date(2022, 1, 1), min(end, HOLD0))]
+    if end > HOLD0:
+        out.append(("HOLD", HOLD0, end))
+    return out
+
+
+_last = {}
+
+
+def fetch(url, out, log, gap=1.5, tries=5, headers=None):
+    """Polite GET: browser UA, no e-mail or account, >= gap s between requests to one host, logged."""
+    host = urllib.parse.urlparse(url).netloc
+    st, n = None, 0
+    for k in range(tries):
+        w = _last.get(host, 0) + gap - time.time()
+        if w > 0:
+            time.sleep(w)
+        st, n = None, 0
+        try:
+            h = {"User-Agent": UA, "Accept": "*/*"}
+            h.update(headers or {})
+            with urllib.request.urlopen(urllib.request.Request(url, headers=h), timeout=120) as r:
+                data = r.read(); st = r.status
+            n = len(data)
+            os.makedirs(os.path.dirname(out), exist_ok=True)
+            with open(out, "wb") as fh:
+                fh.write(data)
+        except urllib.error.HTTPError as e:
+            st = e.code
+        except Exception as e:  # noqa
+            st = "ERR " + type(e).__name__
+        _last[host] = time.time()
+        os.makedirs(os.path.dirname(log), exist_ok=True)
+        with open(log, "a") as fh:
+            fh.write(f"{dt.datetime.now(dt.timezone.utc).replace(tzinfo=None).isoformat(timespec='seconds')}Z\t{url}\t{st}\t{n}\n")
+        if st == 200:
+            return st
+        time.sleep(30 * (k + 1) if st == 429 else 10 * (k + 1))
+    return st
+
+
+def fmt_era(name, o):
+    if o.get("n", 0) < 3:
+        return f"[{name}] n {o.get('n', 0)}"
+    s = (f"[{name}] n {o['n']} mid {o['mid']:+.2f} net {o['net']:+.2f} (t {o['t']:+.3f}) "
+         f"x1.5 {o['net15']:+.2f} +1min {o['net1']:+.2f} sd {o['sd']:.1f} sh {o['sh']:+.3f}")
+    if "rand" in o:
+        s += f" random {o['rand']:.3f}"
+    if "years" in o:
+        s += " years " + " ".join(f"{y}:{v:+.1f}" for y, v in sorted(o["years"].items()))
+    return s
