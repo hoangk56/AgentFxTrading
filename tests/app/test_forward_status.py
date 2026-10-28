@@ -120,3 +120,22 @@ def test_forward_status_covers_all_candidates(db):
 def test_bot_suffix_matches_the_container_names_the_presets_build(key, strategy, symbol):
     from app.cbot_presets import container_name
     assert container_name("demo", strategy, symbol).endswith(CANDIDATES[key].bot_suffix)
+
+
+def _status(key, verdict, **kw):
+    return {"key": key, "label": key.upper(), "verdict": verdict, "n": 60, "mean": -3.0, "pooled_t": -1.2,
+            "reasons": ["why"], "manual": ["spread x1.5 net > 0"], **kw}
+
+
+def test_alerts_fire_once_per_change_into_stop_or_promote_check():
+    from app.forward_status import ForwardAlerts
+    sent = []
+    alerts = ForwardAlerts(lambda text, key=None: sent.append((text, key)))
+    assert alerts.check([_status("a", "CONTINUE"), _status("b", "NO_DATA")]) == []
+    assert len(alerts.check([_status("a", "STOP")])) == 1
+    assert alerts.check([_status("a", "STOP")]) == []            # unchanged: silent
+    assert alerts.check([_status("a", "CONTINUE")]) == []        # leaving a state is not alerted
+    assert len(alerts.check([_status("a", "STOP")])) == 1        # back into it: alerted again
+    promo = alerts.check([_status("b", "PROMOTE_CHECK", mean=4.0, pooled_t=2.6)])
+    assert len(promo) == 1 and "Not checked here: spread x1.5" in promo[0] and promo[0].startswith("🟢")
+    assert sent[0][1] == ("forward", "a", "STOP")

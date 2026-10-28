@@ -66,8 +66,12 @@ async def lifespan(app: FastAPI):
     # job is not running in *its* DB, and a test run points at a throwaway SQLite file.
     from app.backtest_worker import backtest_worker
     backtest_task = None
+    forward_task = None
     if not is_running_under_test():
         backtest_task = asyncio.create_task(backtest_worker.run_loop())
+        # Telegram alert when a research candidate turns STOP or PROMOTE_CHECK (app/forward_status.py).
+        from app.forward_status import ForwardAlerts
+        forward_task = asyncio.create_task(ForwardAlerts(alerts.notify).run_loop())
 
     yield
 
@@ -79,6 +83,12 @@ async def lifespan(app: FastAPI):
         await watchdog_task
     except asyncio.CancelledError:
         pass
+    if forward_task:
+        forward_task.cancel()
+        try:
+            await forward_task
+        except asyncio.CancelledError:
+            pass
     if backtest_task:
         backtest_worker.stop()
         backtest_task.cancel()
