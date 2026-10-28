@@ -78,6 +78,8 @@ body.app-shell{font-family:var(--font-ui);background:var(--bg-app);color:var(--t
 .kpi-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-bottom:16px}
 @media(min-width:600px){.kpi-grid{grid-template-columns:repeat(4,1fr)}}
 @media(min-width:1024px){.kpi-grid{grid-template-columns:repeat(9,minmax(0,1fr))}}
+.kpi-section-label{font-size:0.65rem;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--text-dim);margin:0 2px 6px}
+@media(min-width:1024px){.kpi-grid--now{grid-template-columns:repeat(5,minmax(0,1fr))}.kpi-grid--record{grid-template-columns:repeat(4,minmax(0,1fr))}}
 .kpi-grid--4{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-bottom:16px}
 @media(min-width:600px){.kpi-grid--4{grid-template-columns:repeat(4,1fr)}}
 @media(min-width:1024px){.kpi-grid--4{grid-template-columns:repeat(4,minmax(0,1fr))}}
@@ -231,6 +233,10 @@ body.app-shell{font-family:var(--font-ui);background:var(--bg-app);color:var(--t
 .nav-item.active {
     color: var(--accent-bright);
 }
+/* Group headings only exist in the desktop sidebar; the mobile bottom bar has no room for them. */
+.nav-group-label {
+    display: none;
+}
 .nav-icon {
     font-size: 1.15rem;
     display: inline-flex;
@@ -335,6 +341,30 @@ body.app-shell{font-family:var(--font-ui);background:var(--bg-app);color:var(--t
     }
     .nav-label {
         font-size: 0.825rem;
+    }
+    /* Sidebar groups: Monitor / Performance / Research / System */
+    .nav-group-label {
+        display: block;
+        padding: 14px 14px 4px;
+        font-size: 0.65rem;
+        font-weight: 700;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: var(--text-dim);
+        white-space: nowrap;
+    }
+    .nav-group-label:first-child {
+        padding-top: 0;
+    }
+    .sidebar.collapsed .nav-group-label {
+        font-size: 0;
+        height: 1px;
+        margin: 10px 8px 6px;
+        padding: 0;
+        background: var(--border-subtle);
+    }
+    .sidebar.collapsed .nav-group-label:first-child {
+        display: none;
     }
     
     /* Logs view fills height cleanly on desktop */
