@@ -5,12 +5,26 @@ testable without a running bot. The watchdog restarts stuck bots on its own; thi
 that visible, and flags the one case it cannot heal: an open position nobody is pricing.
 """
 import datetime
+import re
 from typing import Any, Dict, List
 
 # A bot ticks every few seconds, so ten minutes without a price on an open position means nobody watches its stop.
 STALE_PRICE_SECONDS = 600
 # Watchdog restarts older than this are history, not an alert.
 RECENT_RESTART_SECONDS = 3600
+
+
+_LIVE_TOKEN = re.compile(r"(^|[-_])live([-_]|$)", re.IGNORECASE)
+
+
+def bot_mode(bot_id: str) -> str:
+    """'live' or 'demo' from a bot id (cbot-live-live-eurusd-..., cbot-demo-demo-...), as the Bots tab does by name."""
+    return "live" if _LIVE_TOKEN.search(bot_id or "") else "demo"
+
+
+def filter_by_mode(alerts: List[Dict[str, str]], mode: str) -> List[Dict[str, str]]:
+    """Keep the alerts of one trading mode; ones about no bot (docker) always stay."""
+    return [a for a in alerts if a.get("kind") == "docker_down" or bot_mode(a.get("bot", "")) == mode]
 
 
 def _minutes(seconds: float) -> int:
@@ -26,7 +40,8 @@ def _event_age_seconds(event: Dict[str, Any], now_gmt7: datetime.datetime):
 
 
 def build_alerts(positions: List[Dict[str, Any]], watchdog: Dict[str, Any], forex_weekend: bool,
-                 now_gmt7: datetime.datetime, down_bots: List[Dict[str, str]] = ()) -> List[Dict[str, str]]:
+                 now_gmt7: datetime.datetime, down_bots: List[Dict[str, str]] = (),
+                 docker_missing: bool = False) -> List[Dict[str, str]]:
     """Alerts for the strip, critical first. ``now_gmt7`` is naive GMT+7 (the watchdog's clock).
 
     ``down_bots``: configured bots whose container is not running and that the owner did not stop on purpose.
@@ -34,10 +49,16 @@ def build_alerts(positions: List[Dict[str, Any]], watchdog: Dict[str, Any], fore
     alerts: List[Dict[str, str]] = []
 
     # A dead container is real on the weekend too: nobody manages its stops, and it will not be there on Sunday night.
+    if docker_missing:
+        alerts.append({"level": "crit", "kind": "docker_down", "bot": "docker",
+                       "message": "Docker is unavailable: bots cannot be checked, started or restarted"})
     for bot in down_bots:
-        alerts.append({"level": "crit", "kind": "bot_stopped", "bot": bot["bot_id"],
-                       "message": f"container is {bot.get('status', 'not running')} and nobody stopped it: "
-                                  "Start it in the Bots tab, or press Stop there if it should stay off"})
+        if bot.get("status") == "error":
+            message = "cannot read this container's state (Docker error): check the daemon, the bot may be down"
+        else:
+            message = (f"container is {bot.get('status', 'not running')} and nobody stopped it: "
+                       "Start it in the Bots tab, or press Stop there if it should stay off")
+        alerts.append({"level": "crit", "kind": "bot_stopped", "bot": bot["bot_id"], "message": message})
 
     # A restart the watchdog could not complete is real even with the market closed.
     seen_bots = set()

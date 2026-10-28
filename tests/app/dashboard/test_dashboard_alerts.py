@@ -94,3 +94,25 @@ def test_a_bot_nobody_stopped_is_critical_even_on_the_weekend():
                               [{"bot_id": "cbot-live-gold", "status": "exited"}])
         assert [(a["level"], a["kind"], a["bot"]) for a in alerts] == [("crit", "bot_stopped", "cbot-live-gold")]
         assert "exited" in alerts[0]["message"]
+
+
+def test_bot_mode_reads_the_live_token_not_a_substring():
+    from app.dashboard_alerts import bot_mode
+    assert bot_mode("cbot-live-live-eurusd-ecb-f3") == "live"
+    assert bot_mode("cbot-demo-demo-eurusd-ecb-e1") == "demo"
+    assert bot_mode("cbot-demo-alive-eurusd") == "demo"   # "alive" is not the live account
+
+
+def test_filter_by_mode_keeps_docker_alerts_for_both_pages():
+    from app.dashboard_alerts import filter_by_mode
+    alerts = [{"kind": "bot_stopped", "bot": "cbot-live-live-x"}, {"kind": "bot_stopped", "bot": "cbot-demo-demo-y"},
+              {"kind": "docker_down", "bot": "docker"}]
+    assert [a["bot"] for a in filter_by_mode(alerts, "live")] == ["cbot-live-live-x", "docker"]
+    assert [a["bot"] for a in filter_by_mode(alerts, "demo")] == ["cbot-demo-demo-y", "docker"]
+
+
+def test_docker_missing_and_docker_error_are_critical():
+    alerts = build_alerts([], {"recent_events": [], "bar_telemetry": {}}, False, NOW,
+                          [{"bot_id": "cbot-live-live-x", "status": "error"}], docker_missing=True)
+    assert [(a["kind"], a["bot"]) for a in alerts] == [("docker_down", "docker"), ("bot_stopped", "cbot-live-live-x")]
+    assert "Docker error" in alerts[1]["message"]

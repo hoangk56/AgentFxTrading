@@ -16,7 +16,7 @@ from datetime import datetime, date, timedelta, timezone
 from typing import Dict, List, Optional, Any
 from app.accounts import get_account_registry
 from app.auth import login_enabled
-from app.dashboard_alerts import build_alerts
+from app.dashboard_alerts import build_alerts, filter_by_mode
 from app.leaderboard import InvalidDateRange, compute_bot_leaderboard, compute_profit_factor
 import logging
 
@@ -642,7 +642,7 @@ async def api_dashboard_sessions():
     return get_market_sessions_info()
 
 @router.get("/api/dashboard/alerts")
-def api_dashboard_alerts(account_id: str = "all"):
+def api_dashboard_alerts(account_id: str = "all", mode: Optional[str] = None):
     """Overview alert strip: dead / unpriced bots and recent watchdog restarts, critical first.
 
     Plain `def` (threadpool): it reads the DB. The container state is the watchdog's last cycle, never a docker call.
@@ -657,7 +657,10 @@ def api_dashboard_alerts(account_id: str = "all"):
             down_bots.append({"bot_id": bot_id, "status": health.get("status") or "not running"})
     now_gmt7 = (datetime.now(timezone.utc) + timedelta(hours=7)).replace(tzinfo=None)
     alerts = build_alerts(get_active_positions(account_id), cbot_watchdog.get_status(),
-                          get_market_sessions_info()["is_forex_weekend"], now_gmt7, down_bots)
+                          get_market_sessions_info()["is_forex_weekend"], now_gmt7, down_bots,
+                          docker_missing=not docker_manager.is_available and bool(pm.get_cbot_configs()))
+    if mode in ("live", "demo"):   # the Demo / Real page shows its own bots only
+        alerts = filter_by_mode(alerts, mode)
     return {"alerts": alerts}
 
 
