@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AgentFxTrading Dashboard</title>
-    <link rel="stylesheet" href="/static/css/dashboard.css?v=20261017_ecbplan">
+    <link rel="stylesheet" href="/static/css/dashboard.css?v=20261028_ia1">
     <script src="/static/js/auth.js?v=20260927_login"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -55,10 +55,6 @@
                     {% endfor %}
                 </select>
             </div>
-            <button id="topbar-docker-btn" class="topbar-action-btn" title="Docker Bot Management" data-target="view-docker">
-                <i data-lucide="bot"></i>
-                <span class="topbar-action-label">Bots</span>
-            </button>
             <div id="connection-status" class="status-pill status-pill--offline">
                 <span class="status-dot"></span><span>Disconnected</span>
             </div>
@@ -86,33 +82,41 @@
     </div>
     <div class="app-body">
         <nav class="sidebar" id="app-sidebar">
-            <a href="#" class="nav-item active" data-target="view-dashboard" title="Overview">
+            <div class="nav-group-label">Monitor</div>
+            <a href="#" class="nav-item active" data-target="view-dashboard" title="Overview: balance, open positions and today">
                 <span class="nav-icon"><i data-lucide="bar-chart-2"></i></span>
                 <span class="nav-label">Overview</span>
             </a>
-            <a href="#leaderboard" class="nav-item" data-target="view-leaderboard" title="Leaderboard">
-                <span class="nav-icon"><i data-lucide="trophy"></i></span>
-                <span class="nav-label">Leaderboard</span>
-            </a>
-            <a href="#backtest" class="nav-item" data-target="view-backtest" title="Backtest">
-                <span class="nav-icon"><i data-lucide="flask-conical"></i></span>
-                <span class="nav-label">Backtest</span>
+            <a href="#docker" class="nav-item" data-target="view-docker" title="Bots: running containers, start, stop and risk settings">
+                <span class="nav-icon"><i data-lucide="bot"></i></span>
+                <span class="nav-label">Bots</span>
             </a>
             <a href="#calendar" class="nav-item" data-target="view-calendar" title="Calendar: gotobi days, the Gotobi trades and the ECB window trades of each day">
                 <span class="nav-icon"><i data-lucide="calendar-days"></i></span>
                 <span class="nav-label">Calendar</span>
             </a>
-            <a href="#forward" class="nav-item" data-target="view-forward" title="Forward: the registered stop and promotion rules of the research candidates">
-                <span class="nav-icon"><i data-lucide="flask-conical"></i></span>
-                <span class="nav-label">Forward</span>
+            <div class="nav-group-label">Performance</div>
+            <a href="#leaderboard" class="nav-item" data-target="view-leaderboard" title="Leaderboard">
+                <span class="nav-icon"><i data-lucide="trophy"></i></span>
+                <span class="nav-label">Leaderboard</span>
             </a>
             <a href="#ledger" class="nav-item" data-target="view-ledger" title="Ledger: deposits, withdrawals and discrepancy">
                 <span class="nav-icon"><i data-lucide="book-open"></i></span>
                 <span class="nav-label">Ledger</span>
             </a>
+            <div class="nav-group-label">Research</div>
+            <a href="#backtest" class="nav-item" data-target="view-backtest" title="Backtest">
+                <span class="nav-icon"><i data-lucide="flask-conical"></i></span>
+                <span class="nav-label">Backtest</span>
+            </a>
+            <a href="#forward" class="nav-item" data-target="view-forward" title="Forward: the registered stop and promotion rules of the research candidates">
+                <span class="nav-icon"><i data-lucide="radar"></i></span>
+                <span class="nav-label">Forward</span>
+            </a>
+            <div class="nav-group-label">System</div>
             <a href="#logs" class="nav-item" data-target="view-logs" title="Agent Logs">
                 <span class="nav-icon"><i data-lucide="terminal"></i></span>
-                <span class="nav-label">Agent Logs</span>
+                <span class="nav-label">Logs</span>
             </a>
         </nav>
         <main class="main-content">
@@ -139,24 +143,32 @@
                     </div>
                 </div>
 
-                <!-- KPI Metrics Cards (Strict 1 Row) -->
-                <div class="kpi-grid">
+                <!-- KPI: what is happening now, then the track record -->
+                <div class="kpi-section-label">Now</div>
+                <div class="kpi-grid kpi-grid--now">
+                    <div id="account-equity-card" class="kpi-card">
+                        <div class="kpi-label">Equity</div>
+                        <div id="account-equity" class="kpi-value kpi-value--mono">${{ "%.2f"|format(summary.account_equity or 0) }}</div>
+                    </div>
                     <div id="account-balance-card" class="kpi-card">
                         <div class="kpi-label">Balance</div>
                         <div id="account-balance" class="kpi-value kpi-value--mono">${{ "%.2f"|format(summary.account_balance or 0) }}</div>
                     </div>
-                    <div id="account-equity-card" class="kpi-card">
-                        <div class="kpi-label">Equity</div>
-                        <div id="account-equity" class="kpi-value kpi-value--mono">${{ "%.2f"|format(summary.account_equity or 0) }}</div>
+                    <div class="kpi-card">
+                        <div class="kpi-label">Daily P&amp;L</div>
+                        <div id="daily-pnl" class="kpi-value {% if summary.daily_pnl >= 0 %}kpi-value--profit{% else %}kpi-value--loss{% endif %}">{% if summary.daily_pnl > 0 %}+{% endif %}${{ summary.daily_pnl }}</div>
                     </div>
                     <div class="kpi-card">
                         <div class="kpi-label">Open Pos</div>
                         <div id="open-positions" class="kpi-value">{{ summary.open_positions }}</div>
                     </div>
                     <div class="kpi-card">
-                        <div class="kpi-label">Daily P&amp;L</div>
-                        <div id="daily-pnl" class="kpi-value {% if summary.daily_pnl >= 0 %}kpi-value--profit{% else %}kpi-value--loss{% endif %}">{% if summary.daily_pnl > 0 %}+{% endif %}${{ summary.daily_pnl }}</div>
+                        <div class="kpi-label">Trades Today</div>
+                        <div id="trades-today" class="kpi-value">{{ summary.trades_today }}</div>
                     </div>
+                </div>
+                <div class="kpi-section-label">Track record</div>
+                <div class="kpi-grid kpi-grid--record">
                     <div class="kpi-card">
                         <div class="kpi-label">Total P&amp;L</div>
                         <div id="total-pnl" class="kpi-value {% if summary.total_pnl >= 0 %}kpi-value--profit{% else %}kpi-value--loss{% endif %}">{% if summary.total_pnl > 0 %}+{% endif %}${{ summary.total_pnl }}</div>
@@ -174,10 +186,6 @@
                                 --
                             {% endif %}
                         </div>
-                    </div>
-                    <div class="kpi-card">
-                        <div class="kpi-label">Trades Today</div>
-                        <div id="trades-today" class="kpi-value">{{ summary.trades_today }}</div>
                     </div>
                     <div class="kpi-card">
                         <div class="kpi-label">Loss Streak</div>
