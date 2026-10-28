@@ -26,9 +26,18 @@ def _event_age_seconds(event: Dict[str, Any], now_gmt7: datetime.datetime):
 
 
 def build_alerts(positions: List[Dict[str, Any]], watchdog: Dict[str, Any], forex_weekend: bool,
-                 now_gmt7: datetime.datetime) -> List[Dict[str, str]]:
-    """Alerts for the strip, critical first. ``now_gmt7`` is naive GMT+7 (the watchdog's clock)."""
+                 now_gmt7: datetime.datetime, down_bots: List[Dict[str, str]] = ()) -> List[Dict[str, str]]:
+    """Alerts for the strip, critical first. ``now_gmt7`` is naive GMT+7 (the watchdog's clock).
+
+    ``down_bots``: configured bots whose container is not running and that the owner did not stop on purpose.
+    """
     alerts: List[Dict[str, str]] = []
+
+    # A dead container is real on the weekend too: nobody manages its stops, and it will not be there on Sunday night.
+    for bot in down_bots:
+        alerts.append({"level": "crit", "kind": "bot_stopped", "bot": bot["bot_id"],
+                       "message": f"container is {bot.get('status', 'not running')} and nobody stopped it: "
+                                  "Start it in the Bots tab, or press Stop there if it should stay off"})
 
     # A restart the watchdog could not complete is real even with the market closed.
     seen_bots = set()

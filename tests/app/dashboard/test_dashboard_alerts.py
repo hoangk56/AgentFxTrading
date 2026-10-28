@@ -86,3 +86,11 @@ def test_overview_has_the_alert_strip_the_floating_tile_and_the_script():
     assert 'id="health-alerts"' in html and 'id="floating-pnl"' in html
     assert '/static/js/overview_alerts.js' in html
     assert "getElementById('floating-pnl')" in dashboard_page(client)
+
+
+def test_a_bot_nobody_stopped_is_critical_even_on_the_weekend():
+    for weekend in (False, True):
+        alerts = build_alerts([], {"recent_events": [], "bar_telemetry": {}}, weekend, NOW,
+                              [{"bot_id": "cbot-live-gold", "status": "exited"}])
+        assert [(a["level"], a["kind"], a["bot"]) for a in alerts] == [("crit", "bot_stopped", "cbot-live-gold")]
+        assert "exited" in alerts[0]["message"]

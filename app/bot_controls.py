@@ -35,6 +35,14 @@ def init_schema(conn) -> None:
             updated_at TEXT
         )
     """)
+    # A row = the owner stopped this bot on purpose (Stop, Close & Stop, Remove in the Bots tab). A configured
+    # bot that is not running and has no row here stopped by itself, which the Overview alert strip reports.
+    conn.execute("""
+        CREATE TABLE IF NOT EXISTS bot_stopped (
+            bot_id TEXT PRIMARY KEY,
+            stopped_at TEXT
+        )
+    """)
 
 
 def load_paused(conn) -> Set[str]:
@@ -49,3 +57,15 @@ def save_paused(conn, bot_id: str, paused: bool) -> None:
         ON CONFLICT(bot_id) DO UPDATE SET
             paused = excluded.paused, paused_at = excluded.paused_at, updated_at = excluded.updated_at
     """, (bot_id, 1 if paused else 0, now if paused else None, now))
+
+
+def load_stopped(conn) -> Set[str]:
+    return {row[0] for row in conn.execute("SELECT bot_id FROM bot_stopped").fetchall()}
+
+
+def save_stopped(conn, bot_id: str, stopped: bool) -> None:
+    """Mark or clear "stopped on purpose" for a bot. The caller commits."""
+    conn.execute("DELETE FROM bot_stopped WHERE bot_id = ?", (bot_id,))
+    if stopped:
+        conn.execute("INSERT INTO bot_stopped (bot_id, stopped_at) VALUES (?, ?)",
+                     (bot_id, datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S")))
