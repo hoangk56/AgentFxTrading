@@ -926,6 +926,12 @@ const DASHBOARD_BOOTSTRAP = window.DASHBOARD_BOOTSTRAP || {};
                     pfEl.className='kpi-value kpi-value--mono';
                 }
             }
+            const fEl=document.getElementById('floating-pnl');
+            if(fEl){
+                const hasFloating=summary.floating_pnl!==undefined && summary.floating_pnl!==null;
+                fEl.textContent=hasFloating?formatMoney(summary.floating_pnl):'--';
+                fEl.className=`kpi-value kpi-value--mono ${hasFloating?pnlClass(summary.floating_pnl):''}`;
+            }
             document.getElementById('trades-today').textContent=summary.trades_today;
             const lEl=document.getElementById('loss-streak');lEl.textContent=summary.loss_streak;lEl.className=`kpi-value ${summary.loss_streak>=3?'kpi-value--warn':''}`;
             document.getElementById('last-updated').textContent=new Date().toLocaleTimeString();
