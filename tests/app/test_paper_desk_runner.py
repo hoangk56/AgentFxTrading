@@ -35,6 +35,19 @@ def test_features_use_only_bars_before_entry():
     assert r.features(tampered, "2026-10-05", events=[]) == f
 
 
+def test_features_as_of_the_run_time_see_nothing_later():
+    hours = synthetic_hours(dt.date(2026, 9, 1), 60)
+    asof = dt.datetime(2026, 10, 5, 3, 20, tzinfo=UTC)                 # a 10:20 Vietnam run, entry still 07:00 UTC
+    f = r.features(hours, "2026-10-05", events=[], asof=asof)
+    assert f["asof_utc"] == "03:00" and f["hours_until_entry"] == 4.0
+    cut = int(dt.datetime(2026, 10, 5, 3, tzinfo=UTC).timestamp() * 1000)
+    tampered = [b if b[0] < cut else (b[0], 1e6, 1e6, 1e6, 1e6) for b in hours]
+    assert r.features(tampered, "2026-10-05", events=[], asof=asof) == f
+    # a run after the entry is anchored at the entry, never later
+    late = r.features(hours, "2026-10-05", events=[], asof=dt.datetime(2026, 10, 5, 9, tzinfo=UTC))
+    assert late["asof_utc"] == "07:00" and late["hours_until_entry"] == 0.0
+
+
 def test_features_none_when_the_newest_bar_is_stale():
     hours = synthetic_hours(dt.date(2026, 9, 1), 60)
     entry_ms = int(paper_desk.entry_time("2026-10-05").timestamp() * 1000)

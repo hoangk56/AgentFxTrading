@@ -85,17 +85,21 @@ def price_at(hours: List[Bar], ts: dt.datetime, max_gap_hours: int = 2) -> Optio
     return None
 
 
-def features(hours: List[Bar], call_date: str, events: Optional[List[str]] = None) -> Optional[dict]:
-    """Numbers the analysts see, from the closed hourly bars before 07:00 UTC of call_date; None without enough bars."""
+def features(hours: List[Bar], call_date: str, events: Optional[List[str]] = None,
+             asof: Optional[dt.datetime] = None) -> Optional[dict]:
+    """Numbers the analysts see, from the hourly bars closed before `asof` (the run time floored to the hour, never
+    later than the 07:00 UTC entry of call_date); None without enough bars or when the newest bar is stale."""
     entry = paper_desk.entry_time(call_date)
-    ms = int(entry.timestamp() * 1000)
+    asof = min(asof, entry) if asof is not None else entry
+    asof = asof.replace(minute=0, second=0, microsecond=0)
+    ms = int(asof.timestamp() * 1000)
     h = [b for b in hours if b[0] < ms]
     if len(h) < 24 * 15 or ms - h[-1][0] > MAX_STALE_HOURS * 3600_000:
         return None                             # too little history, or the newest bar is stale
     last = h[-1][4]
     snaps = []                                  # price at 07:00 UTC of the previous calendar days, newest first
     for k in range(1, HISTORY_DAYS + 1):
-        p = price_at(h, entry - dt.timedelta(days=k))
+        p = price_at(h, asof - dt.timedelta(days=k))
         if p is not None:
             snaps.append(p)
     if len(snaps) < 15:
@@ -115,6 +119,8 @@ def features(hours: List[Bar], call_date: str, events: Optional[List[str]] = Non
         "range_last_24h_bp": round(_bp(max(b[2] for b in last24), min(b[3] for b in last24)), 1),
         "typical_daily_range_bp": round(sum(typical) / len(typical), 1),
         "pos_in_20d_range": round((last - lo) / (hi - lo), 2) if hi > lo else 0.5,
+        "asof_utc": asof.strftime("%H:%M"),
+        "hours_until_entry": round((entry - asof).total_seconds() / 3600, 1),
         "weekday": entry.strftime("%A"),
         "usd_high_impact_next_24h": events if events is not None else usd_events(entry, entry + dt.timedelta(hours=24)),
     }
@@ -182,7 +188,7 @@ def run_day(call_date: str, duka: Dukascopy, llm: Llm, model: str, db_target=Non
         except RuntimeError as e:             # price feed down for this symbol: no features, so no call
             print(f"{call_date} {symbol}: price feed failed ({e}), no call", file=sys.stderr)
             continue
-        feats = features(hours, call_date)
+        feats = features(hours, call_date, asof=now or dt.datetime.now(dt.timezone.utc))
         if feats is None:
             print(f"{call_date} {symbol}: not enough data, no call", file=sys.stderr)
             continue
