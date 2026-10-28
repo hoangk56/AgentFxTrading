@@ -1166,3 +1166,10 @@ body.login-shell{display:flex;align-items:center;justify-content:center;padding:
 .login-error{margin:0 0 6px;font-size:0.78rem;color:var(--loss)}
 .login-submit{padding:8px 10px;font-size:0.82rem;margin-top:4px;background:var(--accent-soft);border-color:var(--accent)}
 .logout-form{display:inline-flex;margin:0}
+
+/* Forward view (static/js/forward_status.js) */
+.fs-verdict{display:inline-block;padding:2px 8px;border-radius:3px;font-size:0.65rem;font-weight:700;letter-spacing:0.04em}
+.fs-verdict--NO_DATA,.fs-verdict--CONTINUE{background:rgba(158,158,158,0.12);color:#bdbdbd;border:1px solid rgba(158,158,158,0.3)}
+.fs-verdict--STOP{background:rgba(244,67,54,0.14);color:var(--loss);border:1px solid rgba(244,67,54,0.4)}
+.fs-verdict--PROMOTE_CHECK{background:var(--profit-soft);color:var(--profit);border:1px solid rgba(125,189,30,0.4)}
+.fs-notes{margin:4px 0 0;padding-left:16px;font-size:0.72rem}
