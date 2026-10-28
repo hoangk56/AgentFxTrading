@@ -143,3 +143,46 @@ def load_nets(cand: Candidate, db_target=None) -> List[float]:
 
 def forward_status(db_target=None, keys: Optional[Iterable[str]] = None) -> List[dict]:
     return [evaluate(CANDIDATES[k], load_nets(CANDIDATES[k], db_target)) for k in (keys or CANDIDATES)]
+
+
+ALERT_VERDICTS = {"STOP": "🔴", "PROMOTE_CHECK": "🟢"}
+CHECK_INTERVAL_SECONDS = 3600
+
+
+class ForwardAlerts:
+    """Tells Telegram once when a candidate's verdict turns STOP or PROMOTE_CHECK (a change from what the last check
+    saw). The last verdicts live in memory only, so a server restart repeats an alert for a candidate that is still in
+    one of those states; alerts are off until TELEGRAM_BOT_TOKEN and TELEGRAM_CHAT_ID are set."""
+
+    def __init__(self, notify):
+        self._notify = notify
+        self._last: Dict[str, str] = {}
+
+    def check(self, statuses: Iterable[dict]) -> List[str]:
+        sent = []
+        for s in statuses:
+            verdict = s["verdict"]
+            if verdict in ALERT_VERDICTS and self._last.get(s["key"]) != verdict:
+                lines = [f"{ALERT_VERDICTS[verdict]} Forward {verdict}: {s['label']}",
+                         f"{s['n']} forward trades, mean net {s['mean']:+.2f} bp, pooled t {s['pooled_t']:+.2f}"]
+                lines += s["reasons"]
+                if verdict == "PROMOTE_CHECK":
+                    lines.append("Not checked here: " + "; ".join(s["manual"]))
+                sent.append("\n".join(lines))
+                self._notify(sent[-1], key=("forward", s["key"], verdict))
+            self._last[s["key"]] = verdict
+        return sent
+
+    async def run_loop(self, interval: float = CHECK_INTERVAL_SECONDS):
+        import asyncio
+        import logging
+        from app.portfolio import get_portfolio_manager
+        while True:
+            try:
+                statuses = await asyncio.to_thread(lambda: forward_status(get_portfolio_manager().db_path))
+                self.check(statuses)
+            except asyncio.CancelledError:
+                raise
+            except Exception as e:
+                logging.getLogger(__name__).warning(f"[FORWARD] status check failed: {e}")
+            await asyncio.sleep(interval)
