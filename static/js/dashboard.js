@@ -78,14 +78,6 @@ const DASHBOARD_BOOTSTRAP = window.DASHBOARD_BOOTSTRAP || {};
             });
         });
 
-        const topbarDockerBtn = document.getElementById('topbar-docker-btn');
-        if (topbarDockerBtn) {
-            topbarDockerBtn.addEventListener('click', (e) => {
-                e.preventDefault();
-                openView('view-docker');
-            });
-        }
-
         window.addEventListener('popstate', () => switchView(viewFromHash(location.hash)));
         // Wait for DOMContentLoaded: switchView's loaders live further down this file and in the deferred
         // backtest.js / ledger.js.

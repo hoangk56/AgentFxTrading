@@ -67,6 +67,14 @@ Started from the FastAPI lifespan in `app/server.py`:
   disconnects, and restarts a bot whose ticks keep flowing while the last bar it handled stops advancing: 40 min
   on an M15 chart, one bar plus 25 min on a slower one (85 min on H1). Restarts are
   rate-limited with backoff. Status: `GET /api/watchdog/status`.
+- **Overview alert strip** (`GET /api/dashboard/alerts`, `app/dashboard_alerts.py`, `static/js/overview_alerts.js`):
+  not a task, but built from the watchdog's last cycle, so it makes no Docker call per request. Hidden when quiet;
+  `mode=demo|live` keeps each page to its own bots. Critical: a configured bot whose container is not running and
+  was not stopped on purpose, an open position with no price for 10 min, a failed watchdog restart, Docker
+  unavailable. Warning: a stalled bar feed, a watchdog restart in the last hour. On the forex weekend only a failed
+  restart, a dead container and Docker alerts remain. "Stopped on purpose" is the `bot_stopped` table, set by Stop,
+  Close & Stop, Remove and by saving a config without starting, cleared by Start, Restart, Update and Delete; a
+  container stopped by hand with `docker stop` keeps alerting until Stop is pressed in the Bots tab.
 - **Backtest worker** (`app/backtest_worker.py`): runs queued Backtest-page jobs in `bt-<id>` containers, several
   at once (setting on the page, else `BACKTEST_MAX_PARALLEL`). Reports are kept in `webui_data/backtests/`.
   - Bots it backtests: GotobiBot, EcbWindowBot and GoldLevelBot.
