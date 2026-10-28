@@ -94,6 +94,16 @@ def load_calls(db_target=None) -> List[dict]:
         conn.close()
 
 
+def recorded_symbols(call_date: str, db_target=None) -> set:
+    """Symbols that already have at least one call for the day, so a rerun does not ask (and pay for) them again."""
+    conn = get_db_connection(db_target)
+    try:
+        return {r["symbol"] for r in conn.execute(
+            "SELECT DISTINCT symbol FROM paper_calls WHERE call_date = ?", (call_date,)).fetchall()}
+    finally:
+        conn.close()
+
+
 def clustered_t(values: Sequence[float], groups: Sequence[str]) -> float:
     """t of the mean with standard errors clustered by group (the calls of one day move together)."""
     n = len(values)
