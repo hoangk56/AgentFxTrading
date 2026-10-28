@@ -729,7 +729,7 @@ function btDrawDetailCharts(report) {
         data: {
             labels: eq.map(p => new Date(p.t).toISOString().slice(0, 16).replace('T', ' ')),
             datasets: [
-                {label: 'Balance', data: eq.map(p => p.balance), borderColor: '#7dbd1e', pointRadius: 0, borderWidth: 1.5},
+                {label: 'Balance', data: eq.map(p => p.balance), borderColor: '#34d399', pointRadius: 0, borderWidth: 1.5},
                 {label: 'Equity (low)', data: eq.map(p => p.equity), borderColor: '#4fc3f7', pointRadius: 0, borderWidth: 1},
             ],
         },
@@ -739,7 +739,7 @@ function btDrawDetailCharts(report) {
     const bars = (id, labels, buckets) => new Chart(document.getElementById(id), {
         type: 'bar',
         data: {labels, datasets: [{label: 'Net P&L', data: buckets.map(b => b.net),
-                                   backgroundColor: buckets.map(b => (b.net < 0 ? '#e53935' : '#7dbd1e'))}]},
+                                   backgroundColor: buckets.map(b => (b.net < 0 ? '#f87171' : '#34d399'))}]},
         options: {responsive: true, maintainAspectRatio: false, animation: false,
                   plugins: {tooltip: {callbacks: {afterLabel: c => `${buckets[c.dataIndex].count} deals`}}}},
     });
@@ -750,7 +750,7 @@ function btDrawDetailCharts(report) {
 function btDrawCompareChart(jobs) {
     if (typeof Chart === 'undefined') return;
     btDestroyChart('compare');
-    const colors = ['#7dbd1e', '#4fc3f7', '#ffa726', '#ba68c8'];
+    const colors = ['#34d399', '#4fc3f7', '#ffa726', '#ba68c8'];
     bt.charts.compare = new Chart(document.getElementById('bt-compare-chart'), {
         type: 'line',
         data: {datasets: jobs.map((j, i) => {
