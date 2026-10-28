@@ -27,13 +27,26 @@ def test_features_use_only_bars_before_entry():
     hours = synthetic_hours(dt.date(2026, 9, 1), 60)
     f = r.features(hours, "2026-10-05", events=[])
     entry_ms = int(paper_desk.entry_time("2026-10-05").timestamp() * 1000)
-    before = [b for b in hours if b[0] < entry_ms]
-    assert f["last_close"] == pytest.approx(round(before[-1][4], 5))
+    assert "last_close" not in f          # raw price levels are not shown: the scale differs per feed
     assert f["weekday"] == "Monday" and f["usd_high_impact_next_24h"] == []
     assert 0.0 <= f["pos_in_20d_range"] <= 1.0
     # bars at or after the entry change nothing
     tampered = [b if b[0] < entry_ms else (b[0], 1e6, 1e6, 1e6, 1e6) for b in hours]
     assert r.features(tampered, "2026-10-05", events=[]) == f
+
+
+def test_features_none_when_the_newest_bar_is_stale():
+    hours = synthetic_hours(dt.date(2026, 9, 1), 60)
+    entry_ms = int(paper_desk.entry_time("2026-10-05").timestamp() * 1000)
+    stale = [b for b in hours if b[0] < entry_ms - 6 * 3600_000]       # nothing in the last 6 hours before entry
+    assert r.features(stale, "2026-10-05", events=[]) is None
+    assert r.features(hours, "2026-10-05", events=[]) is not None
+
+
+def test_a_404_is_an_empty_day_not_a_retry_loop():
+    d = Dukascopy("/nonexistent")
+    d._request = lambda path: (404, b"x")                              # type: ignore[assignment]
+    assert d._download("EURUSD", dt.date(2026, 10, 28)) == b""
 
 
 def test_features_none_without_enough_history():
@@ -126,24 +139,40 @@ def test_dukascopy_parse_aggregates_minutes_to_hours():
     assert Dukascopy.parse(b"", dt.date(2026, 10, 5), scale) == []
 
 
-def test_cache_is_used_for_finished_days_only(tmp_path):
+def test_cache_keeps_finished_days_with_data_and_empty_saturdays_only(tmp_path):
     d = Dukascopy(tmp_path)
     calls = []
-    d._download = lambda instrument, day: calls.append(day) or b""      # type: ignore[assignment]
-    today = dt.date(2026, 10, 10)
-    d.day("EURUSD", dt.date(2026, 10, 5), today); d.day("EURUSD", dt.date(2026, 10, 5), today)
-    d.day("EURUSD", today, today); d.day("EURUSD", today, today)
-    assert calls == [dt.date(2026, 10, 5), today, today]                 # the past day once, today every time
+    today = dt.date(2026, 10, 12)
+
+    def fake(instrument, day):
+        calls.append(day)
+        return LZMA_DAY if day == dt.date(2026, 10, 6) else b""
+    d._download = fake                                                  # type: ignore[assignment]
+    tue, mon, sat = dt.date(2026, 10, 6), dt.date(2026, 10, 5), dt.date(2026, 10, 3)
+    for day in (tue, tue, mon, mon, sat, sat, today, today):
+        d.day("EURUSD", day, today)
+    # data day once; empty Monday (maybe a rate limit, not cached) twice; empty Saturday once; today every time
+    assert calls == [tue, mon, mon, sat, today, today]
 
 
-def test_run_day_skips_a_symbol_whose_price_feed_fails(tmp_path):
+LZMA_DAY = lzma.compress(struct.pack(">5if", 0, 100000, 100001, 99999, 100002, 1.0))
+
+
+def test_a_rerun_skips_symbols_already_recorded_and_fills_the_rest(tmp_path):
     class Flaky(FakeDuka):
+        down = True
         def range(self, symbol, first, last):
-            if symbol == "GBPJPY":
+            if symbol == "XAUUSD" and Flaky.down:
                 raise RuntimeError("Dukascopy request failed")
             return super().range(symbol, first, last)
     db = str(tmp_path / "pd.db")
     paper_desk.init_schema(db)
+    asked = []
+    llm = lambda s, u: asked.append(u) or '{"direction": 0}'
     now = dt.datetime(2026, 10, 5, 6, 0, tzinfo=UTC)
-    rows = r.run_day("2026-10-05", Flaky(), lambda s, u: '{"direction": 0}', "m", db_target=db, now=now)
-    assert len(rows) == 5 * 4 and "GBPJPY" not in {x["symbol"] for x in rows}
+    assert len(r.run_day("2026-10-05", Flaky(), llm, "m", db_target=db, now=now)) == 5 * 4
+    first_pass = len(asked)
+    Flaky.down = False
+    second = r.run_day("2026-10-05", Flaky(), llm, "m", db_target=db, now=now)
+    assert {x["symbol"] for x in second} == {"XAUUSD"} and len(asked) == first_pass + 4
+    assert len(paper_desk.load_calls(db)) == 6 * 4

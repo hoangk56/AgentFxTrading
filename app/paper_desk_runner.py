@@ -29,6 +29,7 @@ from app.dukascopy import Bar, Dukascopy, cache_dir_from_env
 COST_BP: Dict[str, float] = {"EURUSD": 1.0, "USDJPY": 1.0, "GBPJPY": 1.8, "XAUUSD": 1.5, "US500": 1.5, "BTCUSD": 8.0}
 CALENDAR = Path(__file__).resolve().parent.parent / "cBot" / "seeds" / "usd_high_calendar.csv"
 HISTORY_DAYS = 30
+MAX_STALE_HOURS = 3
 DEFAULT_MODEL = "deepseek-chat"
 DEFAULT_BASE_URL = "https://api.deepseek.com"
 
@@ -89,8 +90,8 @@ def features(hours: List[Bar], call_date: str, events: Optional[List[str]] = Non
     entry = paper_desk.entry_time(call_date)
     ms = int(entry.timestamp() * 1000)
     h = [b for b in hours if b[0] < ms]
-    if len(h) < 24 * 15:
-        return None
+    if len(h) < 24 * 15 or ms - h[-1][0] > MAX_STALE_HOURS * 3600_000:
+        return None                             # too little history, or the newest bar is stale
     last = h[-1][4]
     snaps = []                                  # price at 07:00 UTC of the previous calendar days, newest first
     for k in range(1, HISTORY_DAYS + 1):
@@ -108,7 +109,6 @@ def features(hours: List[Bar], call_date: str, events: Optional[List[str]] = Non
     last24 = h[-24:]
     typical = day_range[-14:]
     return {
-        "last_close": round(last, 5),
         "ret_1d_bp": round(_bp(last, snaps[0]), 1),
         "ret_5d_bp": round(_bp(last, snaps[min(4, len(snaps) - 1)]), 1),
         "ret_20d_bp": round(_bp(last, snaps[min(19, len(snaps) - 1)]), 1),
@@ -173,7 +173,10 @@ def run_day(call_date: str, duka: Dukascopy, llm: Llm, model: str, db_target=Non
     entry = paper_desk.entry_time(call_date)
     day = entry.date()
     done = []
+    already = paper_desk.recorded_symbols(call_date, db_target)
     for symbol in paper_desk.SYMBOLS:
+        if symbol in already:
+            continue                           # a rerun (cron retries while the price feed is down) skips what is done
         try:
             hours = duka.range(symbol, day - dt.timedelta(days=HISTORY_DAYS + 3), day)
         except RuntimeError as e:             # price feed down for this symbol: no features, so no call

@@ -4,8 +4,9 @@ datafeed.dukascopy.com/datafeed/<SYM>/<YYYY>/<MM0>/<DD>/BID_candles_min_1.bi5 (M
 files answer 404 for recent days), LZMA, records
 '>5if' = seconds into the day, open, close, low, high, volume; prices are integers scaled by SCALE. It needs a browser
 User-Agent (else 429), a new connection is slow (15-35 s) and a kept-alive one fast, and a missing file answers 503
-(not 404) on every connection, so a day is called missing after MISSING_AFTER 503s on fresh connections. A day's file
-never changes once the day is over, so finished days are cached on disk and fetched once.
+(not 404), but a rate-limited client gets 503 too, so a day is called missing only after MISSING_AFTER 503s on fresh
+connections, and an empty weekday is never cached (a Saturday is: there is no trading). A finished day's file never
+changes, so finished days with data are cached on disk and fetched once.
 """
 from __future__ import annotations
 
@@ -22,7 +23,7 @@ from typing import Dict, List, Optional, Tuple
 HOST = "datafeed.dukascopy.com"
 UA = ("Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) "
       "Chrome/124.0 Safari/537.36")
-MISSING_AFTER = 3
+MISSING_AFTER = 5
 
 # paper-desk symbol -> (Dukascopy instrument, price scale)
 INSTRUMENTS: Dict[str, Tuple[str, float]] = {
@@ -70,14 +71,22 @@ class Dukascopy:
         path = f"/datafeed/{instrument}/{day.year}/{day.month - 1:02d}/{day.day:02d}/BID_candles_min_1.bi5"
         misses = 0
         for attempt in range(10):
-            status, body = self._request(path)
+            try:
+                status, body = self._request(path)
+            except RuntimeError:          # timeout or reset: a new connection after a pause
+                self.close()
+                time.sleep(2 * (attempt + 1))
+                continue
             if status == 200:
                 return body
+            if status == 404:
+                return b""              # not published (yet) or no such day
             if status == 503:
                 misses += 1
                 if misses >= MISSING_AFTER:
                     return b""            # no trading that day
                 self.close()              # a 503 sticks to its connection
+                time.sleep(2.0 * misses)
             else:
                 self.close()
                 time.sleep(2 * (attempt + 1))
@@ -109,7 +118,7 @@ class Dukascopy:
         if day < today and fn.exists():
             return [tuple(b) for b in json.loads(fn.read_text())]
         out = self.parse(self._download(instrument, day), day, scale)
-        if day < today:
+        if day < today and (out or day.weekday() == 5):
             fn.parent.mkdir(parents=True, exist_ok=True)
             fn.write_text(json.dumps(out))
         return out
