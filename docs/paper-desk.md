@@ -36,9 +36,11 @@ reason, never left out.
 Dukascopy bid M1 files (`app/dukascopy.py`), aggregated to hours and cached per finished day under `PAPER_DESK_DATA`
 (default `data/paper_desk`). Features use only bars closed before 07:00 UTC; entry and exit prices are the open of the
 07:00 UTC bar. A day with no price at 07:00 (within two hours) is not scored.
-The runner may start before the entry (cron 03:00, 03:20 and 03:40 UTC = 10:00-10:40 Vietnam): features then use the
-bars closed before the run hour (`asof_utc`, `hours_until_entry` are in the features and in the stored record), never
-later than 07:00. A bar older than 3 hours before that point withholds the call.
+Dukascopy's free feed publishes a day's file only after the day is over (today's file answered 503 or empty at
+14:00 UTC on 2026-10-28), so features use complete UTC days only, up to 00:00 UTC of the call date; the entry is 7 hours
+later. `asof_utc` and `hours_until_entry` are in the features and in the stored record. The run time therefore does not
+matter as long as it is before 07:00 UTC: cron may run at 03:00, 03:20 and 03:40 UTC (10:00-10:40 Vietnam). A newest bar
+older than 3 hours before 00:00 UTC withholds the call (a weekend gap does: no call on such a day).
 
 ## Costs (registered assumptions)
 Round-trip bp per symbol, `COST_BP` in `app/paper_desk_runner.py`: EURUSD 1.0, USDJPY 1.0, GBPJPY 1.8, XAUUSD 1.5,

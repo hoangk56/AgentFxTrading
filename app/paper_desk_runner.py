@@ -85,13 +85,12 @@ def price_at(hours: List[Bar], ts: dt.datetime, max_gap_hours: int = 2) -> Optio
     return None
 
 
-def features(hours: List[Bar], call_date: str, events: Optional[List[str]] = None,
-             asof: Optional[dt.datetime] = None) -> Optional[dict]:
-    """Numbers the analysts see, from the hourly bars closed before `asof` (the run time floored to the hour, never
-    later than the 07:00 UTC entry of call_date); None without enough bars or when the newest bar is stale."""
+def features(hours: List[Bar], call_date: str, events: Optional[List[str]] = None) -> Optional[dict]:
+    """Numbers the analysts see, from the hourly bars of complete UTC days, i.e. closed before 00:00 UTC of call_date.
+    Dukascopy's free feed publishes a day's file only after the day is over, so nothing later exists at run time; the
+    entry is 07:00 UTC, 7 hours after the last bar. None without enough bars or when the newest bar is stale."""
     entry = paper_desk.entry_time(call_date)
-    asof = min(asof, entry) if asof is not None else entry
-    asof = asof.replace(minute=0, second=0, microsecond=0)
+    asof = entry.replace(hour=0)
     ms = int(asof.timestamp() * 1000)
     h = [b for b in hours if b[0] < ms]
     if len(h) < 24 * 15 or ms - h[-1][0] > MAX_STALE_HOURS * 3600_000:
@@ -184,11 +183,11 @@ def run_day(call_date: str, duka: Dukascopy, llm: Llm, model: str, db_target=Non
         if symbol in already:
             continue                           # a rerun (cron retries while the price feed is down) skips what is done
         try:
-            hours = duka.range(symbol, day - dt.timedelta(days=HISTORY_DAYS + 3), day)
+            hours = duka.range(symbol, day - dt.timedelta(days=HISTORY_DAYS + 3), day - dt.timedelta(days=1))
         except RuntimeError as e:             # price feed down for this symbol: no features, so no call
             print(f"{call_date} {symbol}: price feed failed ({e}), no call", file=sys.stderr)
             continue
-        feats = features(hours, call_date, asof=now or dt.datetime.now(dt.timezone.utc))
+        feats = features(hours, call_date)
         if feats is None:
             print(f"{call_date} {symbol}: not enough data, no call", file=sys.stderr)
             continue

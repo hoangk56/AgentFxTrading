@@ -23,35 +23,21 @@ def synthetic_hours(first: dt.date, days: int, start=100.0):
     return out
 
 
-def test_features_use_only_bars_before_entry():
+def test_features_use_only_complete_days_before_the_call_date():
     hours = synthetic_hours(dt.date(2026, 9, 1), 60)
     f = r.features(hours, "2026-10-05", events=[])
-    entry_ms = int(paper_desk.entry_time("2026-10-05").timestamp() * 1000)
-    assert "last_close" not in f          # raw price levels are not shown: the scale differs per feed
     assert f["weekday"] == "Monday" and f["usd_high_impact_next_24h"] == []
+    assert f["asof_utc"] == "00:00" and f["hours_until_entry"] == 7.0 and "last_close" not in f
     assert 0.0 <= f["pos_in_20d_range"] <= 1.0
-    # bars at or after the entry change nothing
-    tampered = [b if b[0] < entry_ms else (b[0], 1e6, 1e6, 1e6, 1e6) for b in hours]
-    assert r.features(tampered, "2026-10-05", events=[]) == f
-
-
-def test_features_as_of_the_run_time_see_nothing_later():
-    hours = synthetic_hours(dt.date(2026, 9, 1), 60)
-    asof = dt.datetime(2026, 10, 5, 3, 20, tzinfo=UTC)                 # a 10:20 Vietnam run, entry still 07:00 UTC
-    f = r.features(hours, "2026-10-05", events=[], asof=asof)
-    assert f["asof_utc"] == "03:00" and f["hours_until_entry"] == 4.0
-    cut = int(dt.datetime(2026, 10, 5, 3, tzinfo=UTC).timestamp() * 1000)
+    cut = int(dt.datetime(2026, 10, 5, tzinfo=UTC).timestamp() * 1000)    # 00:00 UTC of the call date
     tampered = [b if b[0] < cut else (b[0], 1e6, 1e6, 1e6, 1e6) for b in hours]
-    assert r.features(tampered, "2026-10-05", events=[], asof=asof) == f
-    # a run after the entry is anchored at the entry, never later
-    late = r.features(hours, "2026-10-05", events=[], asof=dt.datetime(2026, 10, 5, 9, tzinfo=UTC))
-    assert late["asof_utc"] == "07:00" and late["hours_until_entry"] == 0.0
+    assert r.features(tampered, "2026-10-05", events=[]) == f
 
 
 def test_features_none_when_the_newest_bar_is_stale():
     hours = synthetic_hours(dt.date(2026, 9, 1), 60)
-    entry_ms = int(paper_desk.entry_time("2026-10-05").timestamp() * 1000)
-    stale = [b for b in hours if b[0] < entry_ms - 6 * 3600_000]       # nothing in the last 6 hours before entry
+    cut = int(dt.datetime(2026, 10, 5, tzinfo=UTC).timestamp() * 1000)
+    stale = [b for b in hours if b[0] < cut - 5 * 3600_000]              # last bar 6 hours before 00:00
     assert r.features(stale, "2026-10-05", events=[]) is None
     assert r.features(hours, "2026-10-05", events=[]) is not None
 
@@ -83,7 +69,10 @@ def test_ask_turns_failures_into_recorded_zero():
 
 
 class FakeDuka:
+    requested = []
+
     def range(self, symbol, first, last):
+        FakeDuka.requested.append(last)
         return synthetic_hours(first, (last - first).days + 1)
 
 
@@ -99,6 +88,7 @@ def test_run_day_records_every_analyst_and_symbol(tmp_path):
     now = dt.datetime(2026, 10, 5, 6, 0, tzinfo=UTC)
     rows = r.run_day("2026-10-05", FakeDuka(), llm, "deepseek-chat", db_target=db, now=now)
     assert len(rows) == 6 * 4                                     # 3 analysts + chief, 6 symbols
+    assert set(FakeDuka.requested) == {dt.date(2026, 10, 4)}      # the call date's own file is never requested
     stored = paper_desk.load_calls(db)
     assert len(stored) == 24 and {c["analyst"] for c in stored} == {
         f"{x}@deepseek-chat" for x in ("trend", "meanrev", "risk", "chief")}
