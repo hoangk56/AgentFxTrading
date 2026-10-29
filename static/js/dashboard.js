@@ -103,11 +103,11 @@ const DASHBOARD_BOOTSTRAP = window.DASHBOARD_BOOTSTRAP || {};
         function renderBots(bots, dockerOk) {
             const tbody = document.getElementById("bots-tbody");
             if(!dockerOk) {
-                tbody.innerHTML = `<tr><td colspan="7" class="td-dim" style="color:var(--color-loss)">Docker is not available on the server. Please ensure Docker daemon is running.</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="7" class="td-dim" style="color:var(--color-loss)">Server không có Docker. Hãy kiểm tra Docker daemon đang chạy.</td></tr>`;
                 return;
             }
             if(!bots || bots.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="7" class="td-dim">No bots configured.</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="7" class="td-dim">Chưa có bot nào.</td></tr>`;
                 return;
             }
             
@@ -115,7 +115,7 @@ const DASHBOARD_BOOTSTRAP = window.DASHBOARD_BOOTSTRAP || {};
             const filteredBots = bots.filter(b => (b.account_type || 'demo') === targetType);
                 
             if(!filteredBots.length) {
-                tbody.innerHTML = `<tr><td colspan="7" class="td-dim">No ${targetType.toUpperCase()} bots configured. Use "+ Add Bot" to create one.</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="7" class="td-dim">Chưa có bot ${targetType === 'live' ? 'tiền thật' : 'demo'} nào. Bấm "Thêm bot" để tạo.</td></tr>`;
                 return;
             }
             let html = "";
@@ -123,36 +123,36 @@ const DASHBOARD_BOOTSTRAP = window.DASHBOARD_BOOTSTRAP || {};
                 const isRunning = b.status === "running";
                 let statusHtml = `<span style="color:var(--color-dim)">${escapeHtml(b.status)}</span>`;
                 if (b.stuck) {
-                    statusHtml = `<span style="color:var(--color-loss); font-weight:bold;" title="${escapeHtml(b.health_reason || 'Bot is stuck')}">⚠️ STUCK</span>`;
+                    statusHtml = `<span style="color:var(--color-loss); font-weight:bold;" title="${escapeHtml(b.health_reason || 'Bot bị treo')}">⚠️ BỊ TREO</span>`;
                 } else if (isRunning) {
-                    statusHtml = `<span style="color:var(--color-profit)">● running</span>`;
+                    statusHtml = `<span style="color:var(--color-profit)">● đang chạy</span>`;
                 } else if (b.status === "error") {
-                    statusHtml = `<span style="color:var(--color-loss)">● error</span>`;
+                    statusHtml = `<span style="color:var(--color-loss)">● lỗi</span>`;
                 }
                 // Escaped once for text and attributes alike; dataset hands the Edit form the decoded values.
                 const escapedName = escapeHtml(b.name);
                 const escapedCmd = escapeHtml(b.run_command || '');
                 const escapedDesc = escapeHtml(b.description || '');
                 const modeBadge = (b.account_type === 'live')
-                    ? '<span class="badge badge--live"><span class="badge-dot"></span>LIVE</span>'
+                    ? '<span class="badge badge--live"><span class="badge-dot"></span>THẬT</span>'
                     : '<span class="badge badge--demo"><span class="badge-dot"></span>DEMO</span>';
                 // Pause blocks new entries only; the container keeps managing its open positions.
                 const pausedHtml = b.paused
-                    ? ' <span class="badge" style="background:rgba(245,158,11,0.15); color:#f59e0b;" title="New entries blocked from the dashboard; open positions are still managed">PAUSED</span>'
+                    ? ' <span class="badge" style="background:rgba(245,158,11,0.15); color:#f59e0b;" title="Đã chặn vào lệnh mới từ dashboard; lệnh đang mở vẫn được bot quản lý">TẠM DỪNG</span>'
                     : '';
                 // A running bot asks /api/cbot/commands every 2 s. One that doesn't can't be reached
                 // by Close / Close & Stop (they expire), and its own pause guard never hears of a Pause.
                 const lastPoll = (b.last_poll_age_s === null || b.last_poll_age_s === undefined)
-                    ? 'since the service started' : `for ${b.last_poll_age_s} s`;
-                const notPollingTitle = `No command poll from bot_id "${b.bot_id}" ${lastPoll}. Close and Close & Stop can't reach this bot and Pause may not stop its entries. Usual causes: still logging in, an .algo built before the command poll, CommandPollMs=0, or the bot reports a BotId other than this container's --BotId.`;
+                    ? 'từ lúc server khởi động' : `trong ${b.last_poll_age_s} giây`;
+                const notPollingTitle = `Bot "${b.bot_id}" không hỏi lệnh ${lastPoll}. Nút Đóng và Đóng & dừng không tới được bot này, Tạm dừng có thể không chặn được lệnh mới. Nguyên nhân thường gặp: bot còn đang đăng nhập, file .algo build trước khi có tính năng hỏi lệnh, CommandPollMs=0, hoặc bot báo BotId khác với --BotId của container.`;
                 const notPollingHtml = (isRunning && !b.polling)
-                    ? ` <span class="badge" style="background:rgba(248,113,113,0.12); color:var(--loss);" title="${escapeHtml(notPollingTitle)}">NOT POLLING</span>`
+                    ? ` <span class="badge" style="background:rgba(248,113,113,0.12); color:var(--loss);" title="${escapeHtml(notPollingTitle)}">KHÔNG NHẬN LỆNH</span>`
                     : '';
                 const pauseBtn = b.paused
-                    ? `<button class="log-btn action-resume" data-name="${escapedName}" style="background:rgba(52,211,153,0.15); color:var(--profit); margin-right:4px;">Resume</button>`
-                    : `<button class="log-btn action-pause" data-name="${escapedName}" style="background:rgba(255,193,7,0.15); color:#f59e0b; margin-right:4px;">Pause</button>`;
+                    ? `<button class="log-btn action-resume" data-name="${escapedName}" style="background:rgba(52,211,153,0.15); color:var(--profit); margin-right:4px;">Tiếp tục</button>`
+                    : `<button class="log-btn action-pause" data-name="${escapedName}" style="background:rgba(255,193,7,0.15); color:#f59e0b; margin-right:4px;">Tạm dừng</button>`;
                 const closeStopBtn = isRunning
-                    ? `<button class="log-btn action-close-stop" data-name="${escapedName}" data-open="${b.open_positions || 0}" data-live="${b.account_type === 'live' ? '1' : '0'}" style="background:var(--loss); color:#fff; margin-right:4px;">Close &amp; Stop</button>`
+                    ? `<button class="log-btn action-close-stop" data-name="${escapedName}" data-open="${b.open_positions || 0}" data-live="${b.account_type === 'live' ? '1' : '0'}" style="background:var(--loss); color:#fff; margin-right:4px;">Đóng &amp; dừng</button>`
                     : '';
                 
                 html += `<tr>
@@ -164,11 +164,11 @@ const DASHBOARD_BOOTSTRAP = window.DASHBOARD_BOOTSTRAP || {};
                     <td class="td-dim" style="font-family:monospace; max-width:240px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis" title="${escapedCmd}">${escapedCmd}</td>
                     <td style="text-align:right; white-space:nowrap;">
                         ${pauseBtn}${closeStopBtn}${isRunning
-                            ? `<button class="log-btn action-restart" data-name="${escapedName}" style="background:rgba(255,193,7,0.15); color:#f59e0b; margin-right:4px;">Restart</button><button class="log-btn action-stop" data-name="${escapedName}" style="background:rgba(248,113,113,0.15); color:var(--loss);">Stop</button>`
-                            : `<button class="log-btn action-start" data-name="${escapedName}" style="background:rgba(52,211,153,0.15); color:var(--profit);">Start</button>`
+                            ? `<button class="log-btn action-restart" data-name="${escapedName}" style="background:rgba(255,193,7,0.15); color:#f59e0b; margin-right:4px;">Khởi động lại</button><button class="log-btn action-stop" data-name="${escapedName}" style="background:rgba(248,113,113,0.15); color:var(--loss);">Dừng</button>`
+                            : `<button class="log-btn action-start" data-name="${escapedName}" style="background:rgba(52,211,153,0.15); color:var(--profit);">Chạy</button>`
                         }
-                        <button class="log-btn action-edit" data-name="${escapedName}" data-desc="${escapedDesc}" data-cmd="${escapedCmd}" style="background:var(--bg-elevated); margin:0 4px;">Edit</button>
-                        <button class="log-btn action-delete" data-name="${escapedName}">Delete</button>
+                        <button class="log-btn action-edit" data-name="${escapedName}" data-desc="${escapedDesc}" data-cmd="${escapedCmd}" style="background:var(--bg-elevated); margin:0 4px;">Sửa</button>
+                        <button class="log-btn action-delete" data-name="${escapedName}">Xoá</button>
                     </td>
                 </tr>`;
             });
@@ -187,7 +187,7 @@ const DASHBOARD_BOOTSTRAP = window.DASHBOARD_BOOTSTRAP || {};
                 const bCmd = btn.dataset.cmd;
                 
                 document.getElementById("bot-form-mode").value = "edit";
-                document.getElementById("bot-form-title").textContent = `Edit Bot Configuration: ${bName}`;
+                document.getElementById("bot-form-title").textContent = `Sửa cấu hình bot: ${bName}`;
                 const nameInput = document.getElementById("bot-name");
                 nameInput.value = bName;
                 nameInput.disabled = true; // Bot name is key, don't change in-place
@@ -199,13 +199,13 @@ const DASHBOARD_BOOTSTRAP = window.DASHBOARD_BOOTSTRAP || {};
                 document.getElementById("bot-cmd").focus();
             }));
         }
-        const BOT_ACTION_PENDING = { start: "Starting…", stop: "Stopping…", restart: "Restarting…", delete: "Deleting…",
-                                     pause: "Pausing…", resume: "Resuming…", "close-and-stop": "Closing & stopping…" };
+        const BOT_ACTION_PENDING = { start: "Đang chạy…", stop: "Đang dừng…", restart: "Đang khởi động lại…", delete: "Đang xoá…",
+                                     pause: "Đang tạm dừng…", resume: "Đang tiếp tục…", "close-and-stop": "Đang đóng và dừng…" };
         // Docker stop/restart wait up to 10 s for the cBot to exit; lock the row and say so meanwhile.
         function lockBotRow(btn, action) {
             const buttons = btn ? Array.from(btn.closest("tr").querySelectorAll("button")) : [];
             buttons.forEach(b => { b.disabled = true; });
-            if (btn) btn.textContent = BOT_ACTION_PENDING[action] || "Working…";
+            if (btn) btn.textContent = BOT_ACTION_PENDING[action] || "Đang xử lý…";
             botActionInFlight = true;
             return () => { botActionInFlight = false; buttons.forEach(b => { b.disabled = false; }); fetchBots(); };
         }
@@ -223,23 +223,23 @@ const DASHBOARD_BOOTSTRAP = window.DASHBOARD_BOOTSTRAP || {};
         async function closeAndStopBot(btn) {
             const name = btn.dataset.name;
             const n = btn.dataset.open || '0';
-            const prefix = btn.dataset.live === '1' ? '[LIVE] ' : '';
-            if (!confirm(`${prefix}Close ${n} open position(s) of ${name} at market, then stop the container?\n\nThe bot is paused first. If a position cannot be closed, the container keeps running (paused) so it still manages its stops.`)) return;
+            const prefix = btn.dataset.live === '1' ? '[TIỀN THẬT] ' : '';
+            if (!confirm(`${prefix}Đóng ${n} lệnh đang mở của ${name} theo giá thị trường, rồi dừng container?\n\nBot được tạm dừng trước. Nếu có lệnh không đóng được, container vẫn chạy (đang tạm dừng) để còn quản lý stop.`)) return;
             const unlock = lockBotRow(btn, "close-and-stop");
             try {
                 const res = await fetch(`/api/bots/${name}/close-and-stop`, { method: "POST" });
                 const data = await res.json();
-                alert(data.message || (data.success ? "Done" : "Error"));
+                alert(data.message || (data.success ? "Xong" : "Lỗi"));
             } catch(e) { alert("Error: " + e); }
             finally { unlock(); }
         }
         async function deleteBot(name, btn) {
-            if(!confirm(`Delete bot ${name}? This stops and removes its container.`)) return;
+            if(!confirm(`Xoá bot ${name}? Container của bot sẽ bị dừng và xoá.`)) return;
             const unlock = lockBotRow(btn, "delete");
             try {
                 const res = await fetch(`/api/bots/${name}`, { method: "DELETE" });
                 const data = await res.json();
-                if(!data.success) alert(data.message || "Error deleting bot");
+                if(!data.success) alert(data.message || "Lỗi khi xoá bot");
             } catch(e) { alert("Error: " + e); }
             finally { unlock(); }
         }
@@ -250,7 +250,7 @@ const DASHBOARD_BOOTSTRAP = window.DASHBOARD_BOOTSTRAP || {};
             const desc = document.getElementById("bot-desc").value.trim();
             const cmd = document.getElementById("bot-cmd").value.trim();
             
-            if (!name || !cmd) return alert("Bot Name and Command are required.");
+            if (!name || !cmd) return alert("Cần nhập tên bot và lệnh chạy.");
             
             try {
                 let res, data;
@@ -269,12 +269,12 @@ const DASHBOARD_BOOTSTRAP = window.DASHBOARD_BOOTSTRAP || {};
                 }
                 data = await res.json();
                 if (!data.success) {
-                    return alert(data.message || "Error saving bot");
+                    return alert(data.message || "Lỗi khi lưu bot");
                 }
                 document.getElementById("bot-form-container").style.display = "none";
                 fetchBots();
             } catch(e) {
-                alert("Error saving bot: " + e);
+                alert("Lỗi khi lưu bot: " + e);
             }
         }
 
@@ -299,11 +299,11 @@ const DASHBOARD_BOOTSTRAP = window.DASHBOARD_BOOTSTRAP || {};
                 setupAccounts = (await res.json()).accounts || [];
             } catch (e) { console.error("Error fetching cTrader accounts", e); setupAccounts = []; }
             const sel = setupEl("setup-account");
-            let html = `<option value="">— select account —</option>`;
+            let html = `<option value="">— chọn tài khoản —</option>`;
             setupAccounts.forEach(a => {
-                html += `<option value="${a.id}">${a.account_type.toUpperCase()} · ${setupEscape(a.label)} (${setupEscape(a.account_number)})</option>`;
+                html += `<option value="${a.id}">${a.account_type === 'live' ? 'THẬT' : 'DEMO'} · ${setupEscape(a.label)} (${setupEscape(a.account_number)})</option>`;
             });
-            html += `<option value="${SETUP_NEW_ACCOUNT}">＋ New account…</option>`;
+            html += `<option value="${SETUP_NEW_ACCOUNT}">＋ Tài khoản mới…</option>`;
             sel.innerHTML = html;
             sel.value = selectId !== null ? String(selectId) : (setupAccounts.length ? "" : SETUP_NEW_ACCOUNT);
             onSetupAccountChange();
@@ -320,8 +320,8 @@ const DASHBOARD_BOOTSTRAP = window.DASHBOARD_BOOTSTRAP || {};
             const strategies = Object.keys(p.strategies);
             const cellMap = {};
             p.cells.forEach(c => { cellMap[`${c.symbol}|${c.strategy}`] = c; });
-            setupEl("setup-grid-head").innerHTML = `<th>Symbol</th>` + strategies.map(s =>
-                `<th style="text-align:center"><label style="cursor:pointer; white-space:nowrap;"><input type="checkbox" class="setup-col-all" data-strategy="${s}" title="Select all ${setupEscape(p.strategies[s].label)}"> ${setupEscape(p.strategies[s].label)}</label></th>`
+            setupEl("setup-grid-head").innerHTML = `<th>Cặp</th>` + strategies.map(s =>
+                `<th style="text-align:center"><label style="cursor:pointer; white-space:nowrap;"><input type="checkbox" class="setup-col-all" data-strategy="${s}" title="Chọn tất cả ${setupEscape(p.strategies[s].label)}"> ${setupEscape(p.strategies[s].label)}</label></th>`
             ).join("");
             setupEl("setup-grid-body").innerHTML = p.symbols.map(sym => {
                 const tds = strategies.map(s => {
@@ -352,8 +352,8 @@ const DASHBOARD_BOOTSTRAP = window.DASHBOARD_BOOTSTRAP || {};
                 const rows = byCell[`${note.dataset.symbol}|${note.dataset.strategy}`] || [];
                 if (!rows.length) { note.textContent = ""; note.title = ""; return; }
                 note.textContent = "👤 " + rows.map(r => r.account_label).join(", ");
-                note.title = "Already created for:\n" + rows.map(r =>
-                    `${r.name} · ${r.account_type.toUpperCase()} · ${r.account_label}`).join("\n");
+                note.title = "Đã tạo cho:\n" + rows.map(r =>
+                    `${r.name} · ${r.account_type === 'live' ? 'THẬT' : 'DEMO'} · ${r.account_label}`).join("\n");
             });
         }
 
@@ -374,7 +374,7 @@ const DASHBOARD_BOOTSTRAP = window.DASHBOARD_BOOTSTRAP || {};
             try {
                 renderSetupGrid(await fetchSetupPresets());
             } catch (e) {
-                setupEl("setup-grid-body").innerHTML = `<tr><td class="td-dim" style="color:var(--loss)">Failed to load presets: ${setupEscape(e)}</td></tr>`;
+                setupEl("setup-grid-body").innerHTML = `<tr><td class="td-dim" style="color:var(--loss)">Không tải được mẫu bot: ${setupEscape(e)}</td></tr>`;
             }
             await fetchCtraderAccounts();
             await refreshSetupInstalled();
@@ -389,24 +389,24 @@ const DASHBOARD_BOOTSTRAP = window.DASHBOARD_BOOTSTRAP || {};
                 account_number: setupEl("setup-acc-number").value.trim(),
                 account_type: document.querySelector('input[name="setup-acc-type"]:checked').value,
             };
-            msg.textContent = "Saving…";
+            msg.textContent = "Đang lưu…";
             try {
                 const res = await fetch("/api/ctrader-accounts", {
                     method: "POST", headers: {"Content-Type": "application/json"}, body: JSON.stringify(body)
                 });
                 const data = await res.json();
-                if (!res.ok || !data.success) { msg.textContent = data.message || `Error ${res.status}`; return; }
+                if (!res.ok || !data.success) { msg.textContent = data.message || `Lỗi ${res.status}`; return; }
                 msg.textContent = "";
                 setupEl("setup-acc-password").value = "";
                 await fetchCtraderAccounts(data.account.id);
-            } catch (e) { msg.textContent = "Error: " + e; }
+            } catch (e) { msg.textContent = "Lỗi: " + e; }
         }
 
         async function deleteCtraderAccount() {
             const id = setupEl("setup-account").value;
             const acc = setupAccounts.find(a => String(a.id) === id);
             if (!acc) return;
-            if (!confirm(`Delete account "${acc.label}" (${acc.account_number})?\nExisting bot configs keep working; the stored password file is removed.`)) return;
+            if (!confirm(`Xoá tài khoản "${acc.label}" (${acc.account_number})?\nCác bot đã cài vẫn chạy; file mật khẩu đã lưu sẽ bị xoá.`)) return;
             try {
                 const res = await fetch(`/api/ctrader-accounts/${id}`, { method: "DELETE" });
                 const data = await res.json();
@@ -424,7 +424,7 @@ const DASHBOARD_BOOTSTRAP = window.DASHBOARD_BOOTSTRAP || {};
                 start: !setupEl("setup-save-only").checked,
             };
             btn.disabled = true;
-            list.innerHTML = `<li class="td-dim">Creating ${payload.selections.length} instance(s)…</li>`;
+            list.innerHTML = `<li class="td-dim">Đang tạo ${payload.selections.length} bot…</li>`;
             try {
                 const res = await fetch("/api/setup/instances", {
                     method: "POST", headers: {"Content-Type": "application/json"}, body: JSON.stringify(payload)
@@ -439,7 +439,7 @@ const DASHBOARD_BOOTSTRAP = window.DASHBOARD_BOOTSTRAP || {};
                 fetchBots();
                 await refreshSetupInstalled();
             } catch (e) {
-                list.innerHTML = `<li style="color:var(--loss)">Error: ${setupEscape(e)}</li>`;
+                list.innerHTML = `<li style="color:var(--loss)">Lỗi: ${setupEscape(e)}</li>`;
             } finally {
                 updateSetupCreateState();
             }
@@ -453,7 +453,7 @@ const DASHBOARD_BOOTSTRAP = window.DASHBOARD_BOOTSTRAP || {};
             document.getElementById("add-bot-btn").addEventListener("click", () => {
                 setupEl("setup-panel").style.display = "none";
                 document.getElementById("bot-form-mode").value = "add";
-                document.getElementById("bot-form-title").textContent = "Add New Bot Configuration";
+                document.getElementById("bot-form-title").textContent = "Thêm cấu hình bot";
                 const nameInput = document.getElementById("bot-name");
                 nameInput.value = "";
                 nameInput.disabled = false;
@@ -481,7 +481,7 @@ const DASHBOARD_BOOTSTRAP = window.DASHBOARD_BOOTSTRAP || {};
             return `${sign}${Math.abs(n).toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
         }
         function pnlClass(v){return Number(v)>=0?'kpi-value--profit':'kpi-value--loss'}
-        function accountBadge(t){return t==='live'?'<span class="badge badge--live"><span class="badge-dot"></span>LIVE</span>':'<span class="badge badge--demo"><span class="badge-dot"></span>DEMO</span>'}   // also used by ledger.js
+        function accountBadge(t){return t==='live'?'<span class="badge badge--live"><span class="badge-dot"></span>THẬT</span>':'<span class="badge badge--demo"><span class="badge-dot"></span>DEMO</span>'}   // also used by ledger.js
         // Mirrors the side_chip macro: Mua / Bán, anything else shown as sent.
         function sideChip(s){const c=s==='BUY'?'side-chip--buy':'side-chip--sell';const t=s==='BUY'?'Mua':(s==='SELL'?'Bán':escapeHtml(s));return `<span class="side-chip ${c}">${t}</span>`}
         // "+$12.30" / "-$4.00" / "$0.00".
@@ -490,7 +490,7 @@ const DASHBOARD_BOOTSTRAP = window.DASHBOARD_BOOTSTRAP || {};
         // Only the broker's own figure is shown; a missing one reads as "—" rather than a guess.
         function pnlCellHtml(pnl, pips){
             if(pnl===null||pnl===undefined){
-                return '<span class="td-dim" title="broker-reported P&L arrives with the bot\'s next snapshot">—</span>';
+                return '<span class="td-dim" title="Lời/lỗ từ sàn sẽ có khi bot gửi báo cáo tiếp theo">—</span>';
             }
             const v=Number(pnl)||0, p=Number(pips)||0;
             const cls=v>=0?'pnl-chip--profit':'pnl-chip--loss';
@@ -509,12 +509,12 @@ const DASHBOARD_BOOTSTRAP = window.DASHBOARD_BOOTSTRAP || {};
                     body+=` <span class="${v>=0?'pnl-positive':'pnl-negative'}">${v>0?'+':(v<0?'-':'')}$${Math.abs(v).toFixed(2)}</span>`;
                     if(tag==='SL'&&v>0){
                         body+=noTp
-                            ? '<span class="sltp-chip" title="Trailing stop: the bot moves it up behind price. The position closes when price comes back to it, keeping this profit.">trailing</span>'
-                            : '<span class="sltp-chip" title="Stop is past break-even: if price comes back to it the position still closes at this profit.">locked</span>';
+                            ? '<span class="sltp-chip" title="Stop dời theo giá: bot kéo stop theo sau giá. Lệnh đóng khi giá quay lại chạm stop, vẫn giữ được khoản lời này.">dời theo giá</span>'
+                            : '<span class="sltp-chip" title="Stop đã qua điểm hoà vốn: nếu giá quay lại chạm stop, lệnh vẫn đóng với khoản lời này.">đã khoá lời</span>';
                     }
                 }
             } else if(noTp){
-                body='<span class="sltp-none" title="No take-profit at the broker: the bot exits on its own rule (fix time, channel, max hold) or at the SL.">none · exits at SL</span>';
+                body='<span class="sltp-none" title="Không đặt chốt lời ở sàn: bot tự thoát theo quy tắc của nó (giờ fix, thời gian giữ tối đa…) hoặc ở SL.">không có · thoát ở SL</span>';
             } else if(pips){
                 body=`<span class="td-dim">${escapeHtml(pips)}p</span>`;
             } else {
@@ -532,7 +532,7 @@ const DASHBOARD_BOOTSTRAP = window.DASHBOARD_BOOTSTRAP || {};
             const line=(tag, body)=>`<div class="sltp-line"><span class="sltp-tag">${tag}</span>${body}</div>`;
             return line('IN', `<span class="td-dim">${escapeHtml(t.entry_time||'—')}</span>`)
                  + line('OUT', `<span class="td-dim">${escapeHtml(t.exit_time||'—')}</span>`
-                     + (t.duration ? `<span class="duration-chip" title="Time in trade">${escapeHtml(t.duration)}</span>` : ''));
+                     + (t.duration ? `<span class="duration-chip" title="Thời gian giữ lệnh">${escapeHtml(t.duration)}</span>` : ''));
         }
         // Mirrors the close_reason_chip macro.
         function closeReasonHtml(reason){
@@ -577,7 +577,7 @@ const DASHBOARD_BOOTSTRAP = window.DASHBOARD_BOOTSTRAP || {};
         // One open position on the Overview. Mirrors the pos-card block of templates/dashboard.html.
         function positionCardHtml(p){
             const curPrice = (p.current_price !== undefined && p.current_price !== null) ? p.current_price : p.entry_price;
-            const priceAge = (typeof p.price_age_seconds === 'number') ? `<span class="td-dim" title="price from the bot's last snapshot"> ·${Math.floor(p.price_age_seconds/60)}m</span>` : '';
+            const priceAge = (typeof p.price_age_seconds === 'number') ? `<span class="td-dim" title="giá từ báo cáo gần nhất của bot"> ·${Math.floor(p.price_age_seconds/60)}m</span>` : '';
             const acct = p.account_type==='live' ? '<span class="badge badge--live">Thật</span>' : '<span class="badge badge--demo">Demo</span>';
             return `<article class="pos-card" data-bot="${escapeHtml(p.bot_id||'')}" data-symbol="${escapeHtml(p.symbol||'')}" data-side="${escapeHtml(p.side||'')}">
                 <div class="pos-head">
@@ -717,7 +717,7 @@ const DASHBOARD_BOOTSTRAP = window.DASHBOARD_BOOTSTRAP || {};
         }
         updatePnlChart(rawDailyHistory);
         let ws=null,pingInterval=null;
-        function setConn(on){const el=document.getElementById('connection-status');if(on){el.className='status-pill status-pill--online';el.innerHTML='<span class="status-dot"></span><span>Connected</span>'}else{el.className='status-pill status-pill--offline';el.innerHTML='<span class="status-dot"></span><span>Disconnected</span>'}}
+        function setConn(on){const el=document.getElementById('connection-status');if(on){el.className='status-pill status-pill--online';el.innerHTML='<span class="status-dot"></span><span>Đã kết nối</span>'}else{el.className='status-pill status-pill--offline';el.innerHTML='<span class="status-dot"></span><span>Mất kết nối</span>'}}
         function connectWebSocket(){
             const p=window.location.protocol==='https:'?'wss:':'ws:';
             ws=new WebSocket(`${p}//${window.location.host}/ws/dashboard`);
@@ -869,7 +869,7 @@ const DASHBOARD_BOOTSTRAP = window.DASHBOARD_BOOTSTRAP || {};
                 fEl.textContent=hasFloating?`(${signedMoney(summary.floating_pnl)})`:'--';
                 fEl.className=hasFloating?pnlClass(summary.floating_pnl):'';
             }
-            document.getElementById('last-updated').textContent=new Date().toLocaleTimeString();
+            document.getElementById('last-updated').textContent=new Date().toLocaleTimeString('vi-VN');
 
             const posCountEl = document.getElementById('active-pos-count');
             if (posCountEl) posCountEl.textContent = `${positions.length} lệnh`;
@@ -881,16 +881,16 @@ const DASHBOARD_BOOTSTRAP = window.DASHBOARD_BOOTSTRAP || {};
         // market and reports back. The existing broadcast then removes the row.
         const closingPositions = new Set();   // row ids with a close in flight (survives re-renders)
         const COMMAND_FAILURE_TEXT = {
-            expired: 'The bot did not pick up the command within 15 s - it may be stuck or running an old build. Close the position in cTrader.',
-            unconfirmed: 'The bot received the command but never reported back. Check the position in cTrader.',
+            expired: 'Bot không nhận lệnh trong 15 giây - có thể bị treo hoặc đang chạy bản cũ. Hãy đóng lệnh trong cTrader.',
+            unconfirmed: 'Bot đã nhận lệnh nhưng không báo lại kết quả. Hãy kiểm tra lệnh trong cTrader.',
         };
         function commandFailureText(cmd) {
-            return COMMAND_FAILURE_TEXT[cmd.status] || `Close failed: ${cmd.message || cmd.status}`;
+            return COMMAND_FAILURE_TEXT[cmd.status] || `Đóng lệnh thất bại: ${cmd.message || cmd.status}`;
         }
         function closeButtonHtml(p) {
             const closing = closingPositions.has(String(p.id));
             const noId = !p.ctrader_id;
-            const title = noId ? ' title="No cTrader id recorded for this position - close it in cTrader"' : '';
+            const title = noId ? ' title="Lệnh này chưa có mã cTrader - hãy đóng trong cTrader"' : '';
             return `<button class="log-btn action-close-pos" data-id="${p.id}" data-bot="${escapeHtml(p.bot_id||'')}" data-symbol="${escapeHtml(p.symbol||'')}" data-side="${escapeHtml(p.side||'')}" data-volume="${escapeHtml(p.volume)}" data-live="${p.account_type==='live'?'1':'0'}"${(noId||closing)?' disabled':''}${title}>${closing?'Đang đóng…':'Đóng lệnh'}</button>`;
         }
         async function waitForBotCommand(id, maxSeconds = 35) {
@@ -908,15 +908,15 @@ const DASHBOARD_BOOTSTRAP = window.DASHBOARD_BOOTSTRAP || {};
             const card = btn.closest('.pos-card');
             const pnlCell = card ? card.querySelector('.td-pnl-live') : null;
             const pnlText = pnlCell ? pnlCell.textContent.trim() : '';
-            const prefix = d.live === '1' ? '[LIVE] ' : '';
-            if (!confirm(`${prefix}Close ${d.side} ${d.symbol} ${d.volume}L of ${d.bot} at market?\nCurrent P&L: ${pnlText || 'n/a'}`)) return;
+            const prefix = d.live === '1' ? '[TIỀN THẬT] ' : '';
+            if (!confirm(`${prefix}Đóng lệnh ${d.side === 'BUY' ? 'mua' : 'bán'} ${d.symbol} ${d.volume} lot của ${d.bot} theo giá thị trường?\nLời/lỗ hiện tại: ${pnlText || 'chưa có'}`)) return;
             closingPositions.add(String(d.id));
             btn.disabled = true;
             btn.textContent = 'Đang đóng…';
             try {
                 const res = await fetch(`/api/positions/${d.id}/close`, { method: 'POST' });
                 const data = await res.json();
-                if (!data.success) throw new Error(data.message || 'Close refused');
+                if (!data.success) throw new Error(data.message || 'Server từ chối đóng lệnh');
                 const cmd = await waitForBotCommand(data.command_id);
                 if (cmd.status !== 'done') throw new Error(commandFailureText(cmd));
                 refreshDashboardData();   // the broadcast normally removes the row first
@@ -1018,8 +1018,8 @@ const DASHBOARD_BOOTSTRAP = window.DASHBOARD_BOOTSTRAP || {};
 
             if (!filtered.length) {
                 const msg = (currentMode === 'real' || currentMode === 'live')
-                    ? 'No LIVE log entries found for this date. (Bots may be outside trading hours or check Demo mode).'
-                    : 'No DEMO log entries found for this date. (Bots are currently running on LIVE. Check Real mode or select a past date).';
+                    ? 'Không có nhật ký tiền thật cho ngày này (bot có thể đang ngoài giờ giao dịch; thử xem bên Demo).'
+                    : 'Không có nhật ký demo cho ngày này (thử xem bên Thật hoặc chọn ngày khác).';
                 logBox.innerHTML = `<div class="log-line td-dim">${msg}</div>`;
                 return;
             }
@@ -1070,14 +1070,14 @@ const DASHBOARD_BOOTSTRAP = window.DASHBOARD_BOOTSTRAP || {};
         // table shows. The period, picked in a popover, is a rolling window, a calendar preset or a
         // custom range; presets and custom ranges both go out as Vietnam-time days (period=custom).
         const LB_TABS = ['usd', 'lot'];
-        const LB_ROLLING = {'1d': 'Last 24 hours', '1w': 'Last 7 days', '1m': 'Last 30 days',
-                            '6m': 'Last 6 months', '1y': 'Last 12 months', 'all': 'All time'};
-        const LB_CALENDAR = {today: 'Today', yesterday: 'Yesterday', thisweek: 'This week',
-                             lastweek: 'Last week', thismonth: 'This month', lastmonth: 'Last month'};
+        const LB_ROLLING = {'1d': '24 giờ qua', '1w': '7 ngày qua', '1m': '30 ngày qua',
+                            '6m': '6 tháng qua', '1y': '12 tháng qua', 'all': 'Toàn bộ'};
+        const LB_CALENDAR = {today: 'Hôm nay', yesterday: 'Hôm qua', thisweek: 'Tuần này',
+                             lastweek: 'Tuần trước', thismonth: 'Tháng này', lastmonth: 'Tháng trước'};
         const LB_DAY_RE = /^\d{4}-\d{2}-\d{2}$/;
         const LB_WEIGHT_HINTS = {
-            usd: 'Weight: 30% WinRate + 30% ProfitFactor + 20% NetPnL + 20% Consistency',
-            lot: 'Weight: 30% WinRate + 30% ProfitFactor + 20% Return/DD + 20% Consistency · each closed trade over its risk at entry',
+            usd: 'Điểm: 30% tỷ lệ thắng + 30% hệ số lời + 20% lời/lỗ ròng + 20% độ đều',
+            lot: 'Điểm: 30% tỷ lệ thắng + 30% hệ số lời + 20% lời/sụt giảm + 20% độ đều · mỗi lệnh tính trên rủi ro lúc vào',
         };
         let lbTab = 'usd';
         let lbPeriod = '1w';  // default: a deleted bot's old trades drop out after a week
@@ -1151,15 +1151,15 @@ const DASHBOARD_BOOTSTRAP = window.DASHBOARD_BOOTSTRAP || {};
             const withYear = [range.from, range.to].some(day => day && day.slice(0, 4) !== year);
             const from = range.from && lbShortDay(range.from, withYear);
             const to = range.to && lbShortDay(range.to, withYear);
-            if (!from) return `until ${to}`;
-            if (!to) return `from ${from}`;
+            if (!from) return `đến ${to}`;
+            if (!to) return `từ ${from}`;
             return from === to ? from : `${from} – ${to}`;
         }
 
         // What the period button reads: the preset's name, and the days it covers when it has any
         function lbPeriodLabel() {
             if (lbHas(LB_ROLLING, lbPeriod)) return {label: LB_ROLLING[lbPeriod], dates: ''};
-            return {label: LB_CALENDAR[lbPeriod] || 'Custom', dates: lbRangeText(lbRangeFor(lbPeriod))};
+            return {label: LB_CALENDAR[lbPeriod] || 'Tự chọn', dates: lbRangeText(lbRangeFor(lbPeriod))};
         }
         let lbData = null;       // the response on screen
         let lbShownQuery = null; // the selection it was fetched for
@@ -1222,7 +1222,7 @@ const DASHBOARD_BOOTSTRAP = window.DASHBOARD_BOOTSTRAP || {};
             lbShownQuery = null;
             const note = document.getElementById('lb-range-note');
             if (note) note.hidden = true;
-            const row = colspan => `<tr><td colspan="${colspan}" class="empty-state">Could not load the leaderboard, retrying…</td></tr>`;
+            const row = colspan => `<tr><td colspan="${colspan}" class="empty-state">Chưa tải được bảng xếp hạng, đang thử lại…</td></tr>`;
             const tbody = document.getElementById('leaderboard-table-body');
             const lotBody = document.getElementById('leaderboard-lot-table-body');
             if (tbody) tbody.innerHTML = row(11);
@@ -1286,16 +1286,16 @@ const DASHBOARD_BOOTSTRAP = window.DASHBOARD_BOOTSTRAP || {};
         function lbWinRateCell(bot) {
             if (bot.total_trades === 0) return '<span class="td-dim">--</span>';
             if (bot.total_wins === 0) {
-                return `<span class="font-mono font-bold pnl-negative">0.0%</span><div class="td-dim" style="font-size:0.65rem;">0W / ${bot.total_losses}L</div>`;
+                return `<span class="font-mono font-bold pnl-negative">0.0%</span><div class="td-dim" style="font-size:0.65rem;">0 thắng / ${bot.total_losses} thua</div>`;
             }
             const color = bot.win_rate >= 60 ? 'var(--profit)' : (bot.win_rate >= 40 ? '#fbbf24' : 'var(--loss)');
-            return `<span class="font-mono font-bold" style="color: ${color};">${bot.win_rate.toFixed(1)}%</span><div class="td-dim" style="font-size:0.65rem;">${bot.total_wins}W / ${bot.total_losses}L</div>`;
+            return `<span class="font-mono font-bold" style="color: ${color};">${bot.win_rate.toFixed(1)}%</span><div class="td-dim" style="font-size:0.65rem;">${bot.total_wins} thắng / ${bot.total_losses} thua</div>`;
         }
 
         function lbProfitFactorCell(bot) {
             if (bot.total_trades === 0) return '<span class="td-dim">--</span>';
-            if (bot.profit_factor === null) return '<span class="font-mono pnl-positive" title="No losing trades yet">∞</span>';
-            if (bot.profit_factor === 0) return '<span class="font-mono pnl-negative" title="No winning trades">0.00</span>';
+            if (bot.profit_factor === null) return '<span class="font-mono pnl-positive" title="Chưa có lệnh thua">∞</span>';
+            if (bot.profit_factor === 0) return '<span class="font-mono pnl-negative" title="Chưa có lệnh thắng">0.00</span>';
             return `<span class="font-mono">${bot.profit_factor.toFixed(2)}</span>`;
         }
 
@@ -1303,7 +1303,7 @@ const DASHBOARD_BOOTSTRAP = window.DASHBOARD_BOOTSTRAP || {};
             const full = (lbData && lbData.full_sample_trades) || 10;
             const small = bot.total_trades > 0 && bot.total_trades < full;
             return `<td class="font-mono">${bot.total_trades}${small
-                ? `<div class="td-dim" style="font-size:0.65rem;" title="Fewer than ${full} closed trades: the score is pulled toward 50 until the sample is big enough">small n</div>`
+                ? `<div class="td-dim" style="font-size:0.65rem;" title="Ít hơn ${full} lệnh đã đóng: điểm bị kéo về 50 cho tới khi đủ mẫu">ít mẫu</div>`
                 : ''}</td>`;
         }
 
@@ -1321,25 +1321,25 @@ const DASHBOARD_BOOTSTRAP = window.DASHBOARD_BOOTSTRAP || {};
 
         function lbReturnDdCell(bot) {
             if (bot.total_trades === 0) return '<span class="td-dim">--</span>';
-            const unit = bot.basis === 'risk' ? 'P&amp;L per lot per stop pip' : 'P&amp;L per lot';
-            const title = `Net ${bot.net_units.toFixed(2)} · Max DD ${bot.max_dd_units.toFixed(2)} (${unit})`;
+            const unit = bot.basis === 'risk' ? 'lời/lỗ mỗi lot mỗi pip stop' : 'lời/lỗ mỗi lot';
+            const title = `Ròng ${bot.net_units.toFixed(2)} · sụt giảm tối đa ${bot.max_dd_units.toFixed(2)} (${unit})`;
             let cell;
             if (bot.return_dd === null) {
                 cell = bot.net_units > 0
-                    ? `<span class="font-mono pnl-positive" title="No drawdown yet · ${title}">∞</span>`
+                    ? `<span class="font-mono pnl-positive" title="Chưa có sụt giảm · ${title}">∞</span>`
                     : `<span class="font-mono td-dim" title="${title}">0.00</span>`;
             } else {
                 const cls = bot.return_dd > 0 ? 'pnl-positive' : (bot.return_dd < 0 ? 'pnl-negative' : 'td-dim');
                 cell = `<span class="font-mono ${cls}" title="${title}">${bot.return_dd.toFixed(2)}</span>`;
             }
             if (bot.basis === 'lot') {
-                cell += '<div class="td-dim" style="font-size:0.65rem;" title="Some trades have no stop distance on record, so every trade is taken per lot instead">per lot</div>';
+                cell += '<div class="td-dim" style="font-size:0.65rem;" title="Một số lệnh không lưu khoảng stop, nên mọi lệnh được tính theo lot">theo lot</div>';
             }
             return cell;
         }
 
         function lbEmptyRow(colspan) {
-            const msg = lbPeriod === 'all' ? 'No bot trading history recorded yet' : 'No bot activity in this period';
+            const msg = lbPeriod === 'all' ? 'Chưa có lịch sử giao dịch của bot' : 'Không có bot nào giao dịch trong khoảng này';
             return `<tr><td colspan="${colspan}" class="empty-state">${msg}</td></tr>`;
         }
 
@@ -1353,7 +1353,7 @@ const DASHBOARD_BOOTSTRAP = window.DASHBOARD_BOOTSTRAP || {};
             const top = lbTab === 'lot' ? lot.top_performer : data.top_performer;
             const topPerfEl = document.getElementById('lb-top-performer');
             if (topPerfEl) {
-                topPerfEl.textContent = top ? `${top.bot_name} (${top.composite_score}/100)` : 'N/A';
+                topPerfEl.textContent = top ? `${top.bot_name} (${top.composite_score}/100)` : '—';
             }
             const fleetWinrateEl = document.getElementById('lb-fleet-winrate');
             if (fleetWinrateEl) {
@@ -1403,7 +1403,7 @@ const DASHBOARD_BOOTSTRAP = window.DASHBOARD_BOOTSTRAP || {};
                 } else {
                     lotBody.innerHTML = lot.rankings.map(bot => {
                         const payoff = bot.total_trades === 0 ? '<span class="td-dim">--</span>'
-                            : bot.payoff_ratio === null ? '<span class="font-mono pnl-positive" title="No losing trades yet">∞</span>'
+                            : bot.payoff_ratio === null ? '<span class="font-mono pnl-positive" title="Chưa có lệnh thua">∞</span>'
                             : `<span class="font-mono">${bot.payoff_ratio.toFixed(2)}</span>`;
                         return `<tr>
                             ${lbBotCells(bot)}
@@ -1469,7 +1469,7 @@ const DASHBOARD_BOOTSTRAP = window.DASHBOARD_BOOTSTRAP || {};
             const reversed = !!(from && to && from > to);
             lbFromInput.classList.toggle('lb-range-bad', reversed);
             lbToInput.classList.toggle('lb-range-bad', reversed);
-            lbDateError.textContent = reversed ? 'The first day is after the last day' : '';
+            lbDateError.textContent = reversed ? 'Ngày đầu đang sau ngày cuối' : '';
             lbDateError.hidden = !reversed;
             lbApplyBtn.disabled = !lbRangeOk(from, to);
         }
@@ -1481,7 +1481,7 @@ const DASHBOARD_BOOTSTRAP = window.DASHBOARD_BOOTSTRAP || {};
                 const hint = btn.querySelector('.lb-period-hint');
                 if (!range || !hint) return;
                 hint.textContent = lbRangeText(range);
-                btn.title = `${lbShortDay(range.from, true)} – ${lbShortDay(range.to, true)}, Vietnam time`;
+                btn.title = `${lbShortDay(range.from, true)} – ${lbShortDay(range.to, true)}, giờ Việt Nam`;
             });
             // The custom fields start from the days on screen, else the last custom range, else
             // the last 7 days

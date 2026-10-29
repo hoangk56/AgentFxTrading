@@ -29,7 +29,7 @@ def test_quiet_desk_has_no_alerts():
 def test_open_position_without_a_price_is_critical():
     alerts = _alerts(positions=[{"bot_id": "b", "symbol": "EURUSD", "price_age_seconds": 900.0}])
     assert [(a["level"], a["kind"], a["bot"]) for a in alerts] == [("crit", "stale_price", "b")]
-    assert "15 min" in alerts[0]["message"]
+    assert "15 phút" in alerts[0]["message"]
 
 
 def test_position_with_no_price_info_is_not_flagged():
@@ -115,7 +115,7 @@ def test_docker_missing_and_docker_error_are_critical():
     alerts = build_alerts([], {"recent_events": [], "bar_telemetry": {}}, False, NOW,
                           [{"bot_id": "cbot-live-live-x", "status": "error"}], docker_missing=True)
     assert [(a["kind"], a["bot"]) for a in alerts] == [("docker_down", "docker"), ("bot_stopped", "cbot-live-live-x")]
-    assert "Docker error" in alerts[1]["message"]
+    assert "lỗi Docker" in alerts[1]["message"]
 
 
 def test_summary_month_pnl_counts_this_month_only(tmp_path, monkeypatch):

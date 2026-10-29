@@ -41,7 +41,7 @@ def test_f3_stops_only_after_60_trades_when_pooled_t_at_or_below_minus_one():
     bad = [-40.0, -35.0, -45.0] * 20          # 60 trades, far below HOLD's +2
     assert evaluate(c, bad[:59])["verdict"] == "CONTINUE"
     r = evaluate(c, bad)
-    assert r["verdict"] == "STOP" and "pooled t" in r["reasons"][0]
+    assert r["verdict"] == "STOP" and "t gộp" in r["reasons"][0]
 
 
 def test_e1_pooled_t_stop_waits_for_100_trades():
@@ -56,7 +56,7 @@ def test_gold_stops():
     # 60 trades, cumulative net < 0
     assert evaluate(c, [-1.0] * 59)["verdict"] == "CONTINUE"
     r60 = evaluate(c, [-1.0] * 60)
-    assert r60["verdict"] == "STOP" and "cumulative net" in r60["reasons"][0]
+    assert r60["verdict"] == "STOP" and "tổng ròng" in r60["reasons"][0]
     # 120 trades, cumulative > 0 but below expected sum minus 1.5 sd
     n = 120
     floor = n * 3.62 - 1.5 * 22.9 * math.sqrt(n)
@@ -78,7 +78,7 @@ def test_promote_check_needs_t_and_100_trades_and_lists_manual_conditions():
 def test_continue_says_what_is_missing():
     r = evaluate(CANDIDATES["gold_levels"], [3.0, -2.0, 5.0])
     assert r["verdict"] == "CONTINUE"
-    assert any("more trades" in x for x in r["reasons"])
+    assert any("cần thêm" in x for x in r["reasons"])
 
 
 @pytest.fixture

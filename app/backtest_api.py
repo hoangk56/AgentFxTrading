@@ -56,18 +56,18 @@ class BacktestCreate(BaseModel):
 
 def validate_run_config(req: BacktestCreate, today: date) -> None:
     if req.start > req.end:
-        raise HTTPException(422, "start must be on or before end")
+        raise HTTPException(422, "Ngày bắt đầu phải trước hoặc bằng ngày kết thúc")
     if req.end > today:
-        raise HTTPException(422, "end must not be after today (UTC)")
+        raise HTTPException(422, "Ngày kết thúc không được sau hôm nay (UTC)")
     if (req.end - req.start).days + 1 > MAX_SPAN_DAYS:
-        raise HTTPException(422, f"the range must be at most {MAX_SPAN_DAYS} days")
+        raise HTTPException(422, f"Khoảng ngày tối đa {MAX_SPAN_DAYS} ngày")
     if req.data_mode == "m1":
         if req.spread_pips is None or not math.isfinite(req.spread_pips) or req.spread_pips <= 0:
-            raise HTTPException(422, "m1 data needs a finite spread in pips (> 0): m1 bars carry no spread")
+            raise HTTPException(422, "Dữ liệu m1 cần spread (pip, > 0): nến m1 không có spread")
     elif req.spread_pips is not None:
         raise HTTPException(422, "spread_pips is only used with m1 data")
     if not math.isfinite(req.balance) or not 100 <= req.balance <= 10_000_000:
-        raise HTTPException(422, "balance must be a finite number between 100 and 10,000,000")
+        raise HTTPException(422, "Số dư phải là số từ 100 đến 10.000.000")
     if req.note is not None and (len(req.note) > 200 or re.search(r"[\x00-\x1f]", req.note)):
         raise HTTPException(422, "note must be at most 200 characters on one line")
 
@@ -84,7 +84,7 @@ def _load_source(bot_name: str) -> BotSource:
 
 def _metadata(source: BotSource) -> Dict:
     if not docker_available():
-        raise HTTPException(503, "Docker is not available on this server")
+        raise HTTPException(503, "Server này không có Docker")
     try:
         return metadata_cache.get(algo_host_path(source.algo, PROJECT_ROOT))
     except DockerUnavailable as e:
@@ -191,7 +191,7 @@ def api_backtest_report_file(job_id: int):
         _job_or_404(conn, job_id)
     path = store.report_path(job_id)
     if not path.is_file():
-        raise HTTPException(404, "no report for this backtest")
+        raise HTTPException(404, "Backtest này không có báo cáo")
     return FileResponse(path, media_type="application/json", filename=f"backtest-{job_id}.json")
 
 
@@ -200,11 +200,11 @@ def api_cancel_backtest(job_id: int):
     with store.connect() as conn:
         job = _job_or_404(conn, job_id)
         if job["status"] not in store.ACTIVE:
-            raise HTTPException(409, f"backtest {job_id} is already {job['status']}")
+            raise HTTPException(409, f"Backtest {job_id} đã ở trạng thái {job['status']}")
         # A running job's container is stopped by the worker on its next tick.
         if not store.update_job(conn, job_id, expect_status=job["status"], status="cancelled",
                                 finished_at=store.now_text()):
-            raise HTTPException(409, f"backtest {job_id} changed state; try again")
+            raise HTTPException(409, f"Backtest {job_id} vừa đổi trạng thái, hãy thử lại")
     return {"id": job_id, "status": "cancelled"}
 
 
@@ -213,7 +213,7 @@ def api_delete_backtest(job_id: int):
     with store.connect() as conn:
         job = _job_or_404(conn, job_id)
         if job["status"] in store.ACTIVE:
-            raise HTTPException(409, "cancel the backtest before deleting it")
+            raise HTTPException(409, "Hãy huỷ backtest trước khi xoá")
         store.delete_job(conn, job_id)
     store.delete_report(job_id)
     return {"id": job_id, "deleted": True}

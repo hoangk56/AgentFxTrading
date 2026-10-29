@@ -50,7 +50,7 @@ def test_a_page_redirects_to_the_login_and_the_api_answers_401(login_on):
 def test_the_right_password_opens_a_session(login_on):
     client = _client(base_url="https://testserver")
     res = _login(client, username='adm"in<', password="wrong")
-    assert res.status_code == 401 and "Wrong username or password" in res.text
+    assert res.status_code == 401 and "Sai tên đăng nhập hoặc mật khẩu" in res.text
     assert 'value="adm&#34;in&lt;"' in res.text                  # kept for the next try, escaped
     res = _login(client)
     assert res.status_code == 303 and res.headers["location"] == "/demo/dashboard"

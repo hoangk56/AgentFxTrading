@@ -72,7 +72,7 @@ def test_calculate_quant_score_tiers():
     )
     assert score_s >= 80.0
     assert tier_s == "TIER_S"
-    assert "Tier S" in label_s
+    assert "Hạng S" in label_s
 
     # Tier A performer (Solid win rate and PF)
     score_a, tier_a, label_a, _ = calculate_quant_score(
@@ -233,9 +233,9 @@ def test_dashboard_page_renders_leaderboard():
     assert resp.status_code == 200
     html = resp.text
     assert "view-leaderboard" in html
-    assert "cBot Performance &amp; Quant Ranking" in html
+    assert "Xếp hạng bot" in html
     assert "leaderboard-table-body" in html
-    assert "Fleet Win Rate" in html
+    assert "Tỷ lệ thắng chung" in html
 
 
 def _utc_ago(**delta) -> str:
@@ -606,7 +606,7 @@ def test_period_picker_calendar_presets(tmp_path):
     assert fri["lastweek"] == ["2026-09-14", "2026-09-20", "14/09 – 20/09"]
     assert fri["thismonth"] == ["2026-09-01", "2026-09-25", "01/09 – 25/09"]
     assert fri["lastmonth"] == ["2026-08-01", "2026-08-31", "01/08 – 31/08"]
-    assert fri["custom"] == ["2026-09-10", "", "from 10/09"]
+    assert fri["custom"] == ["2026-09-10", "", "từ 10/09"]
     assert fri["1w"] is None  # a rolling window has no days
 
     oct1 = out["vn_oct"]
@@ -618,7 +618,7 @@ def test_period_picker_calendar_presets(tmp_path):
     ny = out["new_year"]
     assert ny["thisweek"][:2] == ["2026-12-28", "2027-01-03"]  # Sunday closes the week
     assert ny["lastmonth"] == ["2026-12-01", "2026-12-31", "01/12/2026 – 31/12/2026"]
-    assert ny["custom"][2] == "from 10/09/2026"  # another year's day shows its year
+    assert ny["custom"][2] == "từ 10/09/2026"  # another year's day shows its year
 
 
 def test_small_sample_is_pulled_toward_neutral(temp_db):

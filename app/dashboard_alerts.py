@@ -51,13 +51,13 @@ def build_alerts(positions: List[Dict[str, Any]], watchdog: Dict[str, Any], fore
     # A dead container is real on the weekend too: nobody manages its stops, and it will not be there on Sunday night.
     if docker_missing:
         alerts.append({"level": "crit", "kind": "docker_down", "bot": "docker",
-                       "message": "Docker is unavailable: bots cannot be checked, started or restarted"})
+                       "message": "Không có Docker: không kiểm tra, chạy hay khởi động lại bot được"})
     for bot in down_bots:
         if bot.get("status") == "error":
-            message = "cannot read this container's state (Docker error): check the daemon, the bot may be down"
+            message = "không đọc được trạng thái container (lỗi Docker): kiểm tra Docker daemon, bot có thể đã dừng"
         else:
-            message = (f"container is {bot.get('status', 'not running')} and nobody stopped it: "
-                       "Start it in the Bots tab, or press Stop there if it should stay off")
+            message = (f"container đang ở trạng thái {bot.get('status', 'not running')} mà không ai dừng: "
+                       "bấm Chạy ở màn Bot, hoặc bấm Dừng ở đó nếu muốn để tắt")
         alerts.append({"level": "crit", "kind": "bot_stopped", "bot": bot["bot_id"], "message": message})
 
     # A restart the watchdog could not complete is real even with the market closed.
@@ -71,21 +71,21 @@ def build_alerts(positions: List[Dict[str, Any]], watchdog: Dict[str, Any], fore
         if event.get("success"):
             if not forex_weekend:
                 alerts.append({"level": "warn", "kind": "restarted", "bot": bot,
-                               "message": f"restarted by the watchdog {_minutes(age)} min ago ({event.get('reason', 'stuck')})"})
+                               "message": f"watchdog đã khởi động lại {_minutes(age)} phút trước ({event.get('reason', 'stuck')})"})
         else:
             alerts.append({"level": "crit", "kind": "restart_failed", "bot": bot,
-                           "message": f"watchdog restart FAILED {_minutes(age)} min ago: {event.get('message', '')}".rstrip(": ")})
+                           "message": f"watchdog khởi động lại THẤT BẠI {_minutes(age)} phút trước: {event.get('message', '')}".rstrip(": ")})
 
     if not forex_weekend:
         for position in positions:
             age = position.get("price_age_seconds")
             if isinstance(age, (int, float)) and age > STALE_PRICE_SECONDS:
                 alerts.append({"level": "crit", "kind": "stale_price", "bot": position.get("bot_id") or "",
-                               "message": f"open {position.get('symbol', '')} position has had no price for {_minutes(age)} min"})
+                               "message": f"lệnh {position.get('symbol', '')} đang mở mà không có giá {_minutes(age)} phút"})
         for bot, telemetry in watchdog.get("bar_telemetry", {}).items():
             if telemetry.get("bar_age", 0) > telemetry.get("allowance", float("inf")):
                 alerts.append({"level": "warn", "kind": "feed_stalled", "bot": bot,
-                               "message": f"no new bar for {_minutes(telemetry['bar_age'])} min (watchdog restarts it)"})
+                               "message": f"không có nến mới {_minutes(telemetry['bar_age'])} phút (watchdog sẽ khởi động lại)"})
 
     alerts.sort(key=lambda a: a["level"] != "crit")
     return alerts

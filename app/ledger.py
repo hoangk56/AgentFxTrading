@@ -170,14 +170,14 @@ def add_movement(conn, account_id: str, amount, occurred_at=None, note: Optional
     the first balance what the earlier closes leave), and the change leaves the unexplained list."""
     note = (note or "").strip()
     if len(note) > MAX_NOTE or any(ch in note for ch in "\r\n\x00"):
-        raise LedgerError(f"Note: at most {MAX_NOTE} characters on one line")
+        raise LedgerError(f"Ghi chú: tối đa {MAX_NOTE} ký tự trên một dòng")
     if balance_log_id is not None:
         log = _rows(conn, "SELECT id, account_id, recorded_at, balance_before, balance FROM account_balance_log "
                           "WHERE id = ?", (balance_log_id,))
         if not log or log[0]["account_id"] != account_id:
-            raise LedgerError("That balance change does not belong to this account")
+            raise LedgerError("Biến động số dư này không thuộc tài khoản này")
         if _rows(conn, "SELECT id FROM account_cash_movements WHERE balance_log_id = ?", (balance_log_id,)):
-            raise LedgerError("That balance change is already recorded")
+            raise LedgerError("Biến động số dư này đã được ghi")
         changes, closes = _changes_and_closes(conn, account_id)
         confirmed = {r["balance_log_id"] for r in _rows(
             conn, "SELECT balance_log_id FROM account_cash_movements WHERE account_id = ? "
@@ -185,22 +185,22 @@ def add_movement(conn, account_id: str, amount, occurred_at=None, note: Optional
         entry = next((u for u in match_balance_changes(changes, closes, confirmed) if u["log_id"] == balance_log_id),
                      None)
         if entry is None:
-            raise LedgerError("The closed trades explain that balance change: it is not a deposit or a withdrawal")
+            raise LedgerError("Các lệnh đã đóng giải thích được biến động này: đây không phải nạp hay rút")
         amount = entry["delta"]
         when = parse_utc(log[0]["recorded_at"])
     else:
         try:
             amount = float(amount)
         except (TypeError, ValueError):
-            raise LedgerError("Amount: expected a number")
+            raise LedgerError("Số tiền: cần là một số")
         if not math.isfinite(amount) or amount == 0 or abs(amount) >= MAX_AMOUNT:
-            raise LedgerError("Amount: a non-zero number (positive = deposit, negative = withdrawal)")
+            raise LedgerError("Số tiền: một số khác 0 (dương = nạp, âm = rút)")
         amount = round(amount, 2)
         when = parse_utc(occurred_at) if occurred_at else datetime.now(timezone.utc)
         if when is None:
-            raise LedgerError("Time: expected an ISO date and time")
+            raise LedgerError("Thời gian: cần ngày giờ dạng ISO")
         if when > datetime.now(timezone.utc) + timedelta(minutes=5):
-            raise LedgerError("Time: a movement cannot be in the future")
+            raise LedgerError("Thời gian: khoản nạp/rút không thể ở tương lai")
     row = conn.execute("INSERT INTO account_cash_movements (account_id, occurred_at, amount, note, balance_log_id) "
                        "VALUES (?, ?, ?, ?, ?) RETURNING id",
                        (account_id, _db_time(when), amount, note or None, balance_log_id)).fetchone()

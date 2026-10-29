@@ -195,14 +195,14 @@ async def login_submit(request: Request):
     ip, now = _client_ip(request), time.time()
     if _locked(ip, now):
         logger.warning(f"Dashboard login refused: {ip} is locked out after {MAX_FAILURES} failures")
-        return _page(request, target, "Too many failed attempts. Try again in 15 minutes.", 429, username)
+        return _page(request, target, "Sai quá nhiều lần. Thử lại sau 15 phút.", 429, username)
     # compare both, always: the time taken says nothing about which one was wrong
     user_ok = hmac.compare_digest(username.encode(), creds[0].encode())
     password_ok = hmac.compare_digest(password.encode(), creds[1].encode())
     if not (user_ok and password_ok):
         _failures.setdefault(ip, []).append(now)
         logger.warning(f"Dashboard login failed from {ip}")
-        return _page(request, target, "Wrong username or password.", 401, username)
+        return _page(request, target, "Sai tên đăng nhập hoặc mật khẩu.", 401, username)
     _failures.pop(ip, None)
     logger.info(f"Dashboard login from {ip}")
     response = RedirectResponse(target, status_code=303)

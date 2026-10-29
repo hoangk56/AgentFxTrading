@@ -26,7 +26,7 @@ def test_paper_desk_renderer_escapes_external_strings():
     dash = DASHBOARD_JS.read_text(encoding="utf-8")
     src = JS.read_text(encoding="utf-8")
     helpers = _function(dash, "escapeHtml")
-    renderers = "\n".join(_function(src, n) for n in ("pdNum", "pdPct", "pdCoverageHtml", "pdScoreHtml", "pdHtml"))
+    renderers = "\n".join(_function(src, n) for n in ("pdNum", "pdPct", "pdCoverageHtml", "pdVerdictLabel", "pdScoreHtml", "pdHtml"))
     cov = {"analysts": [{"analyst": HOSTILE, "calls": 10, "traded": 4, "long": 3, "short": 1, "errors": 2,
                          "directional_rate": 0.4}],
            "recent_days": [{"date": HOSTILE, "symbols": 6, "calls": 24, "traded": 5, "errors": 0}],
@@ -40,5 +40,5 @@ def test_paper_desk_renderer_escapes_external_strings():
     assert run.returncode == 0, run.stderr
     out = json.loads(run.stdout)
     assert "<img" not in out["t"].lower() and "evil&lt;img" in out["t"]
-    assert "-1.50" in out["t"] and "TOO_FEW" in out["t"] and "Weekdays without any call" in out["t"]
-    assert "No calls recorded yet" in out["e"] and "No score yet" in out["e"]
+    assert "-1.50" in out["t"] and ">Chưa đủ</span>" in out["t"] and "Ngày trong tuần không có lượt dự đoán" in out["t"]
+    assert "Chưa có lượt dự đoán nào" in out["e"] and "Chưa có điểm" in out["e"]

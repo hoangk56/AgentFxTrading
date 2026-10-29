@@ -37,7 +37,7 @@ STRATEGY_BY_ALGO = {
     "GoldLevelBot.algo": "gold_levels",
 }
 SUPPORTED_STRATEGIES = set(STRATEGY_BY_ALGO.values())
-UNSUPPORTED_REASON = "Only GotobiBot, EcbWindowBot and GoldLevelBot can be backtested"
+UNSUPPORTED_REASON = "Chỉ GotobiBot, EcbWindowBot và GoldLevelBot chạy được backtest"
 DATA_MODES = ("ticks", "m1")
 # GoldLevelBot's rule runs on tick bid / ask (the 24-hour envelope, the spread median, the stop trigger); m1 bars
 # replayed at a fixed spread would test another rule.

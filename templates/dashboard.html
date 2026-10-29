@@ -1,26 +1,26 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="vi">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AgentFxTrading Dashboard</title>
+    <title>AgentFxTrading</title>
     <link rel="stylesheet" href="/static/css/dashboard.css?v=20261029_dim1">
     <script src="/static/js/auth.js?v=20260927_login"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="/static/js/backtest.js?v=20261029_trust1" defer></script>
-    <script src="/static/js/ledger.js?v=20260927_ledger0" defer></script>
+    <script src="/static/js/backtest.js?v=20261029_vi1" defer></script>
+    <script src="/static/js/ledger.js?v=20261029_vi1" defer></script>
     <script src="/static/js/overview_alerts.js?v=20261029_ov1" defer></script>
     <script src="/static/js/overview_upcoming.js?v=20261029_ov1" defer></script>
-    <script src="/static/js/forward_status.js?v=20261028_fwd1" defer></script>
-    <script src="/static/js/paper_desk.js?v=20261029_pd1" defer></script>
-    <script src="/static/js/gotobi_calendar.js?v=20261017_ecbplan" defer></script>
+    <script src="/static/js/forward_status.js?v=20261029_vi1" defer></script>
+    <script src="/static/js/paper_desk.js?v=20261029_vi1" defer></script>
+    <script src="/static/js/gotobi_calendar.js?v=20261029_vi1" defer></script>
     <link rel="icon" type="image/png" href="/static/favicon.png">
 </head>
 <body class="app-shell">
     <header class="topbar">
         <div class="topbar-brand">
-            <button id="sidebar-toggle-btn" class="sidebar-toggle-btn" title="Toggle Sidebar" aria-label="Toggle Sidebar">
+            <button id="sidebar-toggle-btn" class="sidebar-toggle-btn" title="Ẩn / hiện menu" aria-label="Ẩn / hiện menu">
                 <svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round">
                     <line x1="3" y1="12" x2="21" y2="12"></line>
                     <line x1="3" y1="6" x2="21" y2="6"></line>
@@ -29,27 +29,27 @@
             </button>
             <div class="brand-text">
                 <div class="brand-title">AgentFxTrading</div>
-                <div class="brand-subtitle">Multi-account cBot trading monitor</div>
+                <div class="brand-subtitle">Theo dõi bot giao dịch</div>
             </div>
         </div>
         <div class="topbar-controls">
-            <div class="trade-mode-switch" role="group" aria-label="Trade Mode Switch">
+            <div class="trade-mode-switch" role="group" aria-label="Chọn tiền thật hoặc demo">
                 <a href="/demo/dashboard" class="trade-mode-btn trade-mode-btn--demo {% if current_mode == 'demo' %}active{% endif %}" data-mode="demo" id="btn-mode-demo">
                     <i data-lucide="shield-check"></i>
                     <span>Demo</span>
                 </a>
                 <a href="/real/dashboard" class="trade-mode-btn trade-mode-btn--live {% if current_mode in ('real', 'live') %}active{% endif %}" data-mode="real" id="btn-mode-real">
                     <i data-lucide="flame"></i>
-                    <span>Real</span>
+                    <span>Thật</span>
                 </a>
             </div>
             <div class="account-select-wrap">
-                <label for="account-selector">Account</label>
+                <label for="account-selector">Tài khoản</label>
                 <select id="account-selector" class="account-select">
                     {% if current_mode in ('real', 'live') %}
-                    <option value="live" data-type="live">All Real Accounts</option>
+                    <option value="live" data-type="live">Mọi tài khoản thật</option>
                     {% else %}
-                    <option value="demo" data-type="demo">All Demo Accounts</option>
+                    <option value="demo" data-type="demo">Mọi tài khoản demo</option>
                     {% endif %}
                     {% for account in accounts %}
                     <option value="{{ account.account_id }}" data-type="{{ account.account_type }}">
@@ -59,14 +59,14 @@
                 </select>
             </div>
             <div id="connection-status" class="status-pill status-pill--offline">
-                <span class="status-dot"></span><span>Disconnected</span>
+                <span class="status-dot"></span><span>Mất kết nối</span>
             </div>
             <span id="last-updated" class="last-updated"></span>
             {% if login_enabled() %}
             <form class="logout-form" method="post" action="/logout">
-                <button type="submit" class="topbar-action-btn" title="Sign out">
+                <button type="submit" class="topbar-action-btn" title="Đăng xuất">
                     <i data-lucide="log-out"></i>
-                    <span class="topbar-action-label">Logout</span>
+                    <span class="topbar-action-label">Đăng xuất</span>
                 </button>
             </form>
             {% endif %}
@@ -77,53 +77,53 @@
         <span class="mode-context-dot"></span>
         <span id="mode-context-text" class="mode-context-text">
             {% if current_mode in ('real', 'live') %}
-            <strong>🔴 REAL MODE</strong> · Real Money Trading — Đang kết nối tài khoản thật, hãy kiểm tra kỹ tham số rủi ro!
+            <strong>🔴 TIỀN THẬT</strong> · Đang xem tài khoản thật, mọi thao tác ở đây dùng tiền thật.
             {% else %}
-            <strong>🟡 DEMO MODE</strong> · Paper Trading Environment — Giám sát tài khoản ảo an toàn, không rủi ro
+            <strong>🟡 DEMO</strong> · Đang xem tài khoản ảo, không mất tiền thật.
             {% endif %}
         </span>
     </div>
     <div class="app-body">
         <nav class="sidebar" id="app-sidebar">
-            <div class="nav-group-label">Monitor</div>
-            <a href="#" class="nav-item active" data-target="view-dashboard" title="Overview: balance, open positions and today">
+            <div class="nav-group-label">Theo dõi</div>
+            <a href="#" class="nav-item active" data-target="view-dashboard" title="Tổng quan: hôm nay, lệnh đang giữ, sắp tới">
                 <span class="nav-icon"><i data-lucide="bar-chart-2"></i></span>
-                <span class="nav-label">Overview</span>
+                <span class="nav-label">Tổng quan</span>
             </a>
-            <a href="#docker" class="nav-item" data-target="view-docker" title="Bots: running containers, start, stop and risk settings">
+            <a href="#docker" class="nav-item" data-target="view-docker" title="Bot: bot đang chạy, chạy / dừng, mức rủi ro">
                 <span class="nav-icon"><i data-lucide="bot"></i></span>
-                <span class="nav-label">Bots</span>
+                <span class="nav-label">Bot</span>
             </a>
-            <a href="#calendar" class="nav-item" data-target="view-calendar" title="Calendar: gotobi days, the Gotobi trades and the ECB window trades of each day">
+            <a href="#calendar" class="nav-item" data-target="view-calendar" title="Lịch: ngày gotobi và các lệnh Gotobi, ECB của từng ngày">
                 <span class="nav-icon"><i data-lucide="calendar-days"></i></span>
-                <span class="nav-label">Calendar</span>
+                <span class="nav-label">Lịch</span>
             </a>
-            <div class="nav-group-label">Performance</div>
-            <a href="#leaderboard" class="nav-item" data-target="view-leaderboard" title="Leaderboard">
+            <div class="nav-group-label">Kết quả</div>
+            <a href="#leaderboard" class="nav-item" data-target="view-leaderboard" title="Xếp hạng bot theo kết quả">
                 <span class="nav-icon"><i data-lucide="trophy"></i></span>
-                <span class="nav-label">Leaderboard</span>
+                <span class="nav-label">Xếp hạng</span>
             </a>
-            <a href="#ledger" class="nav-item" data-target="view-ledger" title="Ledger: deposits, withdrawals and discrepancy">
+            <a href="#ledger" class="nav-item" data-target="view-ledger" title="Sổ tiền: nạp, rút và chênh lệch số dư">
                 <span class="nav-icon"><i data-lucide="book-open"></i></span>
-                <span class="nav-label">Ledger</span>
+                <span class="nav-label">Sổ tiền</span>
             </a>
-            <div class="nav-group-label">Research</div>
-            <a href="#backtest" class="nav-item" data-target="view-backtest" title="Backtest">
+            <div class="nav-group-label">Nghiên cứu</div>
+            <a href="#backtest" class="nav-item" data-target="view-backtest" title="Backtest: chạy thử bot trên dữ liệu cũ">
                 <span class="nav-icon"><i data-lucide="flask-conical"></i></span>
                 <span class="nav-label">Backtest</span>
             </a>
-            <a href="#forward" class="nav-item" data-target="view-forward" title="Forward: the registered stop and promotion rules of the research candidates">
+            <a href="#forward" class="nav-item" data-target="view-forward" title="Kiểm chứng: các chiến lược ứng viên so với quy tắc dừng / nâng hạng đã đăng ký">
                 <span class="nav-icon"><i data-lucide="radar"></i></span>
-                <span class="nav-label">Forward</span>
+                <span class="nav-label">Kiểm chứng</span>
             </a>
-            <a href="#paper-desk" class="nav-item" data-target="view-paper-desk" title="Paper desk: LLM analysts' daily calls, scored without money">
+            <a href="#paper-desk" class="nav-item" data-target="view-paper-desk" title="Dự đoán AI: các mô hình AI đoán hướng mỗi ngày, chấm điểm không dùng tiền">
                 <span class="nav-icon"><i data-lucide="bot"></i></span>
-                <span class="nav-label">Paper desk</span>
+                <span class="nav-label">Dự đoán AI</span>
             </a>
-            <div class="nav-group-label">System</div>
-            <a href="#logs" class="nav-item" data-target="view-logs" title="Agent Logs">
+            <div class="nav-group-label">Hệ thống</div>
+            <a href="#logs" class="nav-item" data-target="view-logs" title="Nhật ký server và bot">
                 <span class="nav-icon"><i data-lucide="terminal"></i></span>
-                <span class="nav-label">Logs</span>
+                <span class="nav-label">Nhật ký</span>
             </a>
         </nav>
         <main class="main-content">
@@ -137,8 +137,8 @@
                    bot has taken the TP off (a trailed runner), so the trade exits only at its stop. #}
                 {% macro sltp_line(tag, price, pnl, pips, no_tp=false) %}
                 <div class="sltp-line"><span class="sltp-tag">{{ tag }}</span>
-                    {% if price %}<span class="td-mono">{{ price }}</span>{% if pnl is not none %} <span class="{% if pnl >= 0 %}pnl-positive{% else %}pnl-negative{% endif %}">{% if pnl > 0 %}+{% elif pnl < 0 %}-{% endif %}${{ '%.2f' | format(pnl | abs) }}</span>{% if tag == 'SL' and pnl > 0 %}{% if no_tp %}<span class="sltp-chip" title="Trailing stop: the bot moves it up behind price. The position closes when price comes back to it, keeping this profit.">trailing</span>{% else %}<span class="sltp-chip" title="Stop is past break-even: if price comes back to it the position still closes at this profit.">locked</span>{% endif %}{% endif %}{% endif %}
-                    {% elif no_tp %}<span class="sltp-none" title="No take-profit at the broker: the bot exits on its own rule (fix time, channel, max hold) or at the SL.">none · exits at SL</span>
+                    {% if price %}<span class="td-mono">{{ price }}</span>{% if pnl is not none %} <span class="{% if pnl >= 0 %}pnl-positive{% else %}pnl-negative{% endif %}">{% if pnl > 0 %}+{% elif pnl < 0 %}-{% endif %}${{ '%.2f' | format(pnl | abs) }}</span>{% if tag == 'SL' and pnl > 0 %}{% if no_tp %}<span class="sltp-chip" title="Stop dời theo giá: bot kéo stop theo sau giá. Lệnh đóng khi giá quay lại chạm stop, vẫn giữ được khoản lời này.">dời theo giá</span>{% else %}<span class="sltp-chip" title="Stop đã qua điểm hoà vốn: nếu giá quay lại chạm stop, lệnh vẫn đóng với khoản lời này.">đã khoá lời</span>{% endif %}{% endif %}{% endif %}
+                    {% elif no_tp %}<span class="sltp-none" title="Không đặt chốt lời ở sàn: bot tự thoát theo quy tắc của nó (giờ fix, thời gian giữ tối đa…) hoặc ở SL.">không có · thoát ở SL</span>
                     {% elif pips %}<span class="td-dim">{{ pips }}p</span>
                     {% else %}<span class="td-dim">—</span>{% endif %}
                 </div>
@@ -214,7 +214,7 @@
                                 </div>
                                 <div class="pos-pnl td-pnl-live">
                                     {% if pos.unrealized_pnl is none %}
-                                    <span class="td-dim" title="broker-reported P&L arrives with the bot's next snapshot">—</span>
+                                    <span class="td-dim" title="Lời/lỗ từ sàn sẽ có khi bot gửi báo cáo tiếp theo">—</span>
                                     {% else %}
                                     {% set u_pnl = pos.unrealized_pnl %}
                                     {% set u_pips = pos.unrealized_pnl_pips | default(0) %}
@@ -229,13 +229,13 @@
                                         <dt>Tài khoản</dt><dd>{{ pos.account_label }}</dd>
                                         <dt>Khối lượng</dt><dd>{{ pos.volume }} lot</dd>
                                         <dt>Giá vào</dt><dd class="td-mono">{{ pos.entry_price }}</dd>
-                                        <dt>Giá hiện tại</dt><dd class="td-mono td-current-price">{{ pos.current_price or pos.entry_price }}{% if pos.price_age_seconds is not none %}<span class="td-dim" title="price from the bot's last snapshot"> ·{{ (pos.price_age_seconds // 60) | int }}m</span>{% endif %}</dd>
+                                        <dt>Giá hiện tại</dt><dd class="td-mono td-current-price">{{ pos.current_price or pos.entry_price }}{% if pos.price_age_seconds is not none %}<span class="td-dim" title="giá từ báo cáo gần nhất của bot"> ·{{ (pos.price_age_seconds // 60) | int }}m</span>{% endif %}</dd>
                                         <dt>SL / TP</dt><dd class="td-sltp">{{ sltp_line('SL', pos.sl_price, pos.sl_pnl, pos.sl_pips, pos.no_tp) }}{{ sltp_line('TP', pos.tp_price, pos.tp_pnl, pos.tp_pips, pos.no_tp) }}</dd>
                                         <dt>Mở lúc</dt><dd>{{ pos.entry_time }}</dd>
                                     </dl>
                                 </details>
                                 <div class="pos-actions">
-                                    <button class="log-btn action-close-pos" data-id="{{ pos.id }}" data-bot="{{ pos.bot_id }}" data-symbol="{{ pos.symbol }}" data-side="{{ pos.side }}" data-volume="{{ pos.volume }}" data-live="{{ '1' if pos.account_type == 'live' else '0' }}"{% if not pos.ctrader_id %} disabled title="No cTrader id recorded for this position - close it in cTrader"{% endif %}>Đóng lệnh</button>
+                                    <button class="log-btn action-close-pos" data-id="{{ pos.id }}" data-bot="{{ pos.bot_id }}" data-symbol="{{ pos.symbol }}" data-side="{{ pos.side }}" data-volume="{{ pos.volume }}" data-live="{{ '1' if pos.account_type == 'live' else '0' }}"{% if not pos.ctrader_id %} disabled title="Lệnh này chưa có mã cTrader - hãy đóng trong cTrader"{% endif %}>Đóng lệnh</button>
                                 </div>
                             </article>
                             {% else %}
@@ -283,29 +283,29 @@
                 <!-- Leaderboard KPI Summary Grid -->
                 <div class="kpi-grid--4">
                     <div class="kpi-card">
-                        <div class="kpi-label"><i data-lucide="crown" class="kpi-icon text-amber"></i> Top Performer</div>
+                        <div class="kpi-label"><i data-lucide="crown" class="kpi-icon text-amber"></i> Dẫn đầu</div>
                         <div id="lb-top-performer" class="kpi-value font-bold" style="color: #fbbf24; font-size: 0.95rem;">
                             {% if leaderboard and leaderboard.top_performer %}
                                 {{ leaderboard.top_performer.bot_name }} ({{ leaderboard.top_performer.composite_score }}/100)
                             {% else %}
-                                N/A
+                                —
                             {% endif %}
                         </div>
                     </div>
                     <div class="kpi-card">
-                        <div class="kpi-label"><i data-lucide="target" class="kpi-icon text-cyan"></i> Fleet Win Rate</div>
+                        <div class="kpi-label"><i data-lucide="target" class="kpi-icon text-cyan"></i> Tỷ lệ thắng chung</div>
                         <div id="lb-fleet-winrate" class="kpi-value font-bold kpi-value--mono" style="color: #38bdf8;">
                             {{ "%.1f"|format(leaderboard.fleet_win_rate if leaderboard else 0) }}%
                         </div>
                     </div>
                     <div class="kpi-card">
-                        <div class="kpi-label"><i data-lucide="dollar-sign" class="kpi-icon text-green"></i> Fleet Net PnL</div>
+                        <div class="kpi-label"><i data-lucide="dollar-sign" class="kpi-icon text-green"></i> Lời/lỗ ròng chung</div>
                         <div id="lb-fleet-pnl" class="kpi-value font-bold kpi-value--mono {% if leaderboard and leaderboard.fleet_total_pnl_usd >= 0 %}kpi-value--profit{% else %}kpi-value--loss{% endif %}">
                             ${{ "%.2f"|format(leaderboard.fleet_total_pnl_usd if leaderboard else 0) }}
                         </div>
                     </div>
                     <div class="kpi-card">
-                        <div class="kpi-label"><i data-lucide="cpu" class="kpi-icon text-blue"></i> Total Tracked Bots</div>
+                        <div class="kpi-label"><i data-lucide="cpu" class="kpi-icon text-blue"></i> Số bot theo dõi</div>
                         <div id="lb-total-bots" class="kpi-value font-bold kpi-value--mono">
                             {{ leaderboard.total_bots if leaderboard else 0 }}
                         </div>
@@ -316,57 +316,57 @@
                 <section class="panel">
                     <div class="panel-header lb-panel-header">
                         <div>
-                            <span class="panel-title"><i data-lucide="trophy" class="panel-icon text-amber"></i> cBot Performance &amp; Quant Ranking</span>
-                            <span id="lb-weight-hint" class="td-dim" style="font-size: 0.72rem; margin-left: 10px;">Weight: 30% WinRate + 30% ProfitFactor + 20% NetPnL + 20% Consistency</span>
+                            <span class="panel-title"><i data-lucide="trophy" class="panel-icon text-amber"></i> Xếp hạng bot</span>
+                            <span id="lb-weight-hint" class="td-dim" style="font-size: 0.72rem; margin-left: 10px;">Điểm: 30% tỷ lệ thắng + 30% hệ số lời + 20% lời/lỗ ròng + 20% độ đều</span>
                         </div>
                         <div class="lb-toolbar">
-                            <div class="seg-group" id="lb-tab-group" role="group" aria-label="Ranking basis">
-                                <button type="button" class="seg-btn active" data-lb-tab="usd" aria-pressed="true" title="Scores Net P&amp;L in account currency: bigger lots score higher for the same edge">USD P&amp;L</button>
-                                <button type="button" class="seg-btn" data-lb-tab="lot" aria-pressed="false" title="Scores every closed trade over the risk it took (lots × stop distance): position size drops out">Lot-Neutral</button>
+                            <div class="seg-group" id="lb-tab-group" role="group" aria-label="Cách xếp hạng">
+                                <button type="button" class="seg-btn active" data-lb-tab="usd" aria-pressed="true" title="Chấm theo lời/lỗ bằng USD: cùng một lợi thế, lot lớn hơn được điểm cao hơn">Theo USD</button>
+                                <button type="button" class="seg-btn" data-lb-tab="lot" aria-pressed="false" title="Chấm mỗi lệnh đã đóng so với rủi ro nó chịu (lot × khoảng stop): bỏ qua ảnh hưởng của khối lượng">Theo rủi ro</button>
                             </div>
                             <div class="lb-period">
                                 <button type="button" id="lb-period-btn" class="lb-period-btn" aria-haspopup="dialog" aria-expanded="false" aria-controls="lb-period-pop">
                                     <i data-lucide="calendar" class="btn-icon"></i>
-                                    <span id="lb-period-label" class="lb-period-label">Last 7 days</span>
+                                    <span id="lb-period-label" class="lb-period-label">7 ngày qua</span>
                                     <span id="lb-period-dates" class="lb-period-dates" hidden></span>
                                     <i data-lucide="chevron-down" class="btn-icon lb-period-caret"></i>
                                 </button>
-                                <span id="lb-range-note" class="lb-range-note" hidden title="The period ended before today: open positions stay out, their floating P&amp;L is today's">Closed trades only</span>
+                                <span id="lb-range-note" class="lb-range-note" hidden title="Khoảng này kết thúc trước hôm nay: không tính lệnh đang mở, vì lời/lỗ của chúng là của hôm nay">Chỉ lệnh đã đóng</span>
                             </div>
                             <!-- Period picker; moved under <body> on load so the panel's overflow never clips it -->
-                            <div id="lb-period-pop" class="lb-period-pop" role="dialog" aria-label="Ranking period" hidden>
+                            <div id="lb-period-pop" class="lb-period-pop" role="dialog" aria-label="Khoảng thời gian xếp hạng" hidden>
                                 <div class="lb-period-cols">
-                                    <div class="lb-period-col" role="group" aria-label="Rolling window">
-                                        <div class="lb-period-heading">Rolling</div>
-                                        <button type="button" class="lb-period-opt" data-lb-period="1d" title="Trades closed, and positions opened, in the last 24 hours">Last 24 hours<span class="lb-period-hint">24H</span></button>
-                                        <button type="button" class="lb-period-opt" data-lb-period="1w" title="Trades closed, and positions opened, in the last 7 days">Last 7 days<span class="lb-period-hint">7D</span></button>
-                                        <button type="button" class="lb-period-opt" data-lb-period="1m" title="Trades closed, and positions opened, in the last 30 days">Last 30 days<span class="lb-period-hint">30D</span></button>
-                                        <button type="button" class="lb-period-opt" data-lb-period="6m" title="Trades closed, and positions opened, in the last 6 months">Last 6 months<span class="lb-period-hint">6M</span></button>
-                                        <button type="button" class="lb-period-opt" data-lb-period="1y" title="Trades closed, and positions opened, in the last 12 months">Last 12 months<span class="lb-period-hint">1Y</span></button>
-                                        <button type="button" class="lb-period-opt" data-lb-period="all" title="Every trade and open position">All time</button>
+                                    <div class="lb-period-col" role="group" aria-label="Khoảng trượt">
+                                        <div class="lb-period-heading">Gần đây</div>
+                                        <button type="button" class="lb-period-opt" data-lb-period="1d" title="Lệnh đóng và lệnh mở trong 24 giờ qua">24 giờ qua<span class="lb-period-hint">24H</span></button>
+                                        <button type="button" class="lb-period-opt" data-lb-period="1w" title="Lệnh đóng và lệnh mở trong 7 ngày qua">7 ngày qua<span class="lb-period-hint">7D</span></button>
+                                        <button type="button" class="lb-period-opt" data-lb-period="1m" title="Lệnh đóng và lệnh mở trong 30 ngày qua">30 ngày qua<span class="lb-period-hint">30D</span></button>
+                                        <button type="button" class="lb-period-opt" data-lb-period="6m" title="Lệnh đóng và lệnh mở trong 6 tháng qua">6 tháng qua<span class="lb-period-hint">6M</span></button>
+                                        <button type="button" class="lb-period-opt" data-lb-period="1y" title="Lệnh đóng và lệnh mở trong 12 tháng qua">12 tháng qua<span class="lb-period-hint">1Y</span></button>
+                                        <button type="button" class="lb-period-opt" data-lb-period="all" title="Mọi lệnh">Toàn bộ</button>
                                     </div>
-                                    <div class="lb-period-col" role="group" aria-label="Calendar days, Vietnam time">
-                                        <div class="lb-period-heading">Calendar <span class="lb-period-sub">GMT+7</span></div>
-                                        <button type="button" class="lb-period-opt" data-lb-period="today">Today<span class="lb-period-hint"></span></button>
-                                        <button type="button" class="lb-period-opt" data-lb-period="yesterday">Yesterday<span class="lb-period-hint"></span></button>
-                                        <button type="button" class="lb-period-opt" data-lb-period="thisweek">This week<span class="lb-period-hint"></span></button>
-                                        <button type="button" class="lb-period-opt" data-lb-period="lastweek">Last week<span class="lb-period-hint"></span></button>
-                                        <button type="button" class="lb-period-opt" data-lb-period="thismonth">This month<span class="lb-period-hint"></span></button>
-                                        <button type="button" class="lb-period-opt" data-lb-period="lastmonth">Last month<span class="lb-period-hint"></span></button>
+                                    <div class="lb-period-col" role="group" aria-label="Theo ngày, giờ Việt Nam">
+                                        <div class="lb-period-heading">Theo lịch <span class="lb-period-sub">GMT+7</span></div>
+                                        <button type="button" class="lb-period-opt" data-lb-period="today">Hôm nay<span class="lb-period-hint"></span></button>
+                                        <button type="button" class="lb-period-opt" data-lb-period="yesterday">Hôm qua<span class="lb-period-hint"></span></button>
+                                        <button type="button" class="lb-period-opt" data-lb-period="thisweek">Tuần này<span class="lb-period-hint"></span></button>
+                                        <button type="button" class="lb-period-opt" data-lb-period="lastweek">Tuần trước<span class="lb-period-hint"></span></button>
+                                        <button type="button" class="lb-period-opt" data-lb-period="thismonth">Tháng này<span class="lb-period-hint"></span></button>
+                                        <button type="button" class="lb-period-opt" data-lb-period="lastmonth">Tháng trước<span class="lb-period-hint"></span></button>
                                     </div>
                                 </div>
                                 <form class="lb-period-custom" id="lb-period-custom" novalidate>
-                                    <div class="lb-period-heading">Custom range <span class="lb-period-sub">GMT+7 · both days included</span></div>
+                                    <div class="lb-period-heading">Tự chọn <span class="lb-period-sub">GMT+7 · tính cả hai ngày</span></div>
                                     <div class="lb-period-custom-row">
-                                        <input id="lb-date-from" type="date" class="log-input" aria-label="First day (Vietnam time)">
+                                        <input id="lb-date-from" type="date" class="log-input" aria-label="Ngày đầu (giờ Việt Nam)">
                                         <span class="td-dim">→</span>
-                                        <input id="lb-date-to" type="date" class="log-input" aria-label="Last day, included (Vietnam time)">
-                                        <button type="submit" id="lb-date-apply" class="lb-period-apply">Apply</button>
+                                        <input id="lb-date-to" type="date" class="log-input" aria-label="Ngày cuối, có tính (giờ Việt Nam)">
+                                        <button type="submit" id="lb-date-apply" class="lb-period-apply">Áp dụng</button>
                                     </div>
                                     <div id="lb-date-error" class="lb-period-error" role="alert" hidden></div>
                                 </form>
                             </div>
-                            <button id="lb-refresh-btn" class="log-btn"><i data-lucide="refresh-cw" class="btn-icon"></i> Refresh</button>
+                            <button id="lb-refresh-btn" class="log-btn"><i data-lucide="refresh-cw" class="btn-icon"></i> Làm mới</button>
                         </div>
                     </div>
                     <div class="panel-body">
@@ -374,21 +374,21 @@
                             <table class="data-table">
                                 <thead>
                                     <tr>
-                                        <th class="rank-cell">Rank</th>
-                                        <th>Bot Strategy</th>
-                                        <th>Symbols</th>
-                                        <th>Tier Badge</th>
-                                        <th>Win Rate</th>
-                                        <th>Profit Factor</th>
-                                        <th>Trades</th>
-                                        <th>Net P&amp;L</th>
-                                        <th>Closed PnL</th>
-                                        <th>Floating PnL</th>
-                                        <th>Quant Score</th>
+                                        <th class="rank-cell">Hạng</th>
+                                        <th>Bot</th>
+                                        <th>Cặp</th>
+                                        <th>Đánh giá</th>
+                                        <th>Tỷ lệ thắng</th>
+                                        <th title="Tổng lời / tổng lỗ của các lệnh đã đóng">Hệ số lời</th>
+                                        <th>Số lệnh</th>
+                                        <th>Lời/lỗ ròng</th>
+                                        <th>Đã chốt</th>
+                                        <th>Đang mở</th>
+                                        <th>Điểm</th>
                                     </tr>
                                 </thead>
                                 <tbody id="leaderboard-table-body">
-                                    <tr><td colspan="11" class="empty-state">Loading…</td></tr>
+                                    <tr><td colspan="11" class="empty-state">Đang tải…</td></tr>
                                 </tbody>
                             </table>
                         </div>
@@ -397,20 +397,20 @@
                             <table class="data-table">
                                 <thead>
                                     <tr>
-                                        <th class="rank-cell">Rank</th>
-                                        <th>Bot Strategy</th>
-                                        <th>Symbols</th>
-                                        <th>Tier Badge</th>
-                                        <th>Win Rate</th>
-                                        <th title="Gross profit / gross loss, each closed trade taken over its risk at entry (lots × stop pips)">Profit Factor</th>
-                                        <th title="Average win / average loss, over the risk at entry">Payoff</th>
-                                        <th title="Net result / max drawdown of the equity curve, both over the risk at entry">Return / DD</th>
-                                        <th>Trades</th>
-                                        <th>Quant Score</th>
+                                        <th class="rank-cell">Hạng</th>
+                                        <th>Bot</th>
+                                        <th>Cặp</th>
+                                        <th>Đánh giá</th>
+                                        <th>Tỷ lệ thắng</th>
+                                        <th title="Tổng lời / tổng lỗ, mỗi lệnh đã đóng tính trên rủi ro lúc vào (lot × pip stop)">Hệ số lời</th>
+                                        <th title="Lời trung bình / lỗ trung bình, tính trên rủi ro lúc vào">Lời TB / lỗ TB</th>
+                                        <th title="Kết quả ròng / mức sụt giảm lớn nhất, cả hai tính trên rủi ro lúc vào">Lời / sụt giảm</th>
+                                        <th>Số lệnh</th>
+                                        <th>Điểm</th>
                                     </tr>
                                 </thead>
                                 <tbody id="leaderboard-lot-table-body">
-                                    <tr><td colspan="10" class="empty-state">Loading…</td></tr>
+                                    <tr><td colspan="10" class="empty-state">Đang tải…</td></tr>
                                 </tbody>
                             </table>
                         </div>
@@ -424,46 +424,46 @@
                     <div class="panel-header">
                         <button type="button" id="bt-form-toggle" class="bt-form-toggle" aria-expanded="true" aria-controls="bt-form-body">
                             <span class="bt-chevron" aria-hidden="true">▾</span>
-                            <span class="panel-title"><i data-lucide="flask-conical" class="panel-icon text-blue"></i> New Backtest</span>
+                            <span class="panel-title"><i data-lucide="flask-conical" class="panel-icon text-blue"></i> Backtest mới</span>
                             <span id="bt-form-summary" class="bt-form-summary"></span>
                         </button>
                     </div>
                     <div class="panel-body" id="bt-form-body">
                         <div class="bt-form-grid">
                             <label class="bt-field bt-field--wide">Bot <select id="bt-bot" class="log-select"></select></label>
-                            <label class="bt-field">From (UTC) <input id="bt-start" type="date" class="log-input"></label>
-                            <label class="bt-field">To (UTC) <input id="bt-end" type="date" class="log-input"></label>
-                            <label class="bt-field">Data
+                            <label class="bt-field">Từ ngày (UTC) <input id="bt-start" type="date" class="log-input"></label>
+                            <label class="bt-field">Đến ngày (UTC) <input id="bt-end" type="date" class="log-input"></label>
+                            <label class="bt-field">Dữ liệu
                                 <select id="bt-data-mode" class="log-select">
-                                    <option value="ticks" selected>ticks (real spread)</option>
-                                    <option value="m1">m1 bars (fixed spread)</option>
+                                    <option value="ticks" selected>tick (spread thật)</option>
+                                    <option value="m1">nến m1 (spread cố định)</option>
                                 </select>
                             </label>
-                            <label class="bt-field" id="bt-spread-wrap" style="display:none;">Spread (pips) <input id="bt-spread" type="number" step="0.1" min="0.1" class="log-input"></label>
-                            <label class="bt-field">Balance <input id="bt-balance" type="number" min="100" step="100" value="10000" class="log-input"></label>
-                            <label class="bt-field bt-field--wide">Note <input id="bt-note" type="text" maxlength="200" class="log-input" placeholder="What does this run try?"></label>
+                            <label class="bt-field" id="bt-spread-wrap" style="display:none;">Spread (pip) <input id="bt-spread" type="number" step="0.1" min="0.1" class="log-input"></label>
+                            <label class="bt-field">Số dư <input id="bt-balance" type="number" min="100" step="100" value="10000" class="log-input"></label>
+                            <label class="bt-field bt-field--wide">Ghi chú <input id="bt-note" type="text" maxlength="200" class="log-input" placeholder="Lần chạy này thử điều gì?"></label>
                         </div>
                         <div id="bt-params" class="bt-params"></div>
                         <div id="bt-locked" class="bt-locked"></div>
                         <div class="bt-form-actions">
                             <span id="bt-form-msg" class="bt-form-msg"></span>
-                            <button id="bt-run-btn" class="log-btn bt-run-btn"><i data-lucide="play" class="btn-icon"></i> Run backtest</button>
+                            <button id="bt-run-btn" class="log-btn bt-run-btn"><i data-lucide="play" class="btn-icon"></i> Chạy backtest</button>
                         </div>
                     </div>
                 </section>
                 <section class="panel">
                     <div class="panel-header">
-                        <span class="panel-title"><i data-lucide="list" class="panel-icon text-blue"></i> Runs <span id="bt-runs-info" class="td-dim bt-small"></span></span>
+                        <span class="panel-title"><i data-lucide="list" class="panel-icon text-blue"></i> Các lần chạy <span id="bt-runs-info" class="td-dim bt-small"></span></span>
                         <div class="bt-runs-tools">
-                            <label class="bt-parallel" title="How many backtests run at once. A run waits while another run of its symbol over overlapping dates is still loading data.">Parallel
+                            <label class="bt-parallel" title="Số backtest chạy cùng lúc. Một lần chạy sẽ chờ nếu lần khác cùng cặp, trùng ngày đang tải dữ liệu.">Song song
                                 <select id="bt-parallel" class="log-select"></select>
                             </label>
-                            <button id="bt-compare-btn" class="log-btn" disabled>Compare (0)</button>
+                            <button id="bt-compare-btn" class="log-btn" disabled>So sánh (0)</button>
                         </div>
                     </div>
                     <div class="table-wrap">
                         <table class="data-table">
-                            <thead><tr><th></th><th>#</th><th>Symbol</th><th>Range</th><th>Changes</th><th>Status</th><th>Net</th><th>PF</th><th>Win % (pos)</th><th>Max DD %</th><th>Positions</th><th>Note</th><th></th></tr></thead>
+                            <thead><tr><th></th><th>#</th><th>Cặp</th><th>Khoảng ngày</th><th>Thay đổi</th><th>Trạng thái</th><th>Ròng</th><th title="Hệ số lời">HSL</th><th>% thắng (lệnh)</th><th>Sụt giảm tối đa %</th><th>Số lệnh</th><th>Ghi chú</th><th></th></tr></thead>
                             <tbody id="bt-jobs-tbody"></tbody>
                         </table>
                     </div>
@@ -475,9 +475,9 @@
                         <div class="bt-modal-header">
                             <div id="bt-modal-title" class="bt-modal-title"></div>
                             <div class="bt-modal-nav">
-                                <button type="button" id="bt-modal-prev" class="log-btn" title="Newer run (←)" aria-label="Newer run">‹</button>
-                                <button type="button" id="bt-modal-next" class="log-btn" title="Older run (→)" aria-label="Older run">›</button>
-                                <button type="button" id="bt-modal-close" class="bt-modal-close" title="Close (Esc)" aria-label="Close">&times;</button>
+                                <button type="button" id="bt-modal-prev" class="log-btn" title="Lần chạy mới hơn (←)" aria-label="Lần chạy mới hơn">‹</button>
+                                <button type="button" id="bt-modal-next" class="log-btn" title="Lần chạy cũ hơn (→)" aria-label="Lần chạy cũ hơn">›</button>
+                                <button type="button" id="bt-modal-close" class="bt-modal-close" title="Đóng (Esc)" aria-label="Đóng">&times;</button>
                             </div>
                         </div>
                         <div id="bt-modal-body" class="bt-modal-body"></div>
@@ -489,81 +489,81 @@
             <div id="view-docker" class="view-section">
                 <section class="panel" id="bot-management-section">
                     <div class="panel-header">
-                        <span class="panel-title"><i data-lucide="bot" class="panel-icon text-blue"></i> Docker Bot Management</span>
-                        <button id="setup-instances-btn" class="log-btn" style="margin-left:auto;"><i data-lucide="layout-grid" class="btn-icon"></i> Setup Instances</button>
-                        <button id="add-bot-btn" class="log-btn"><i data-lucide="plus" class="btn-icon"></i> Add Bot</button>
+                        <span class="panel-title"><i data-lucide="bot" class="panel-icon text-blue"></i> Quản lý bot</span>
+                        <button id="setup-instances-btn" class="log-btn" style="margin-left:auto;"><i data-lucide="layout-grid" class="btn-icon"></i> Cài bot từ mẫu</button>
+                        <button id="add-bot-btn" class="log-btn"><i data-lucide="plus" class="btn-icon"></i> Thêm bot</button>
                     </div>
                     <div class="panel-body">
                     <div id="bot-form-container" style="display:none; margin-bottom: 16px; padding: 16px; background: var(--bg-surface); border: 1px solid var(--border); border-radius: 6px;">
-                        <h4 id="bot-form-title" style="margin-top:0; margin-bottom:12px; color:var(--accent-bright);">Add New Bot Configuration</h4>
+                        <h4 id="bot-form-title" style="margin-top:0; margin-bottom:12px; color:var(--accent-bright);">Thêm cấu hình bot</h4>
                         <input type="hidden" id="bot-form-mode" value="add">
                         <div class="bot-form-grid">
                             <div>
-                                <label style="font-size:0.72rem; color:var(--text-muted); display:block; margin-bottom:4px;">Bot Name (Container Name)</label>
+                                <label style="font-size:0.72rem; color:var(--text-muted); display:block; margin-bottom:4px;">Tên bot (tên container)</label>
                                 <input type="text" id="bot-name" class="log-input" style="width:100%" placeholder="cbot-eurusd">
                             </div>
                             <div>
-                                <label style="font-size:0.72rem; color:var(--text-muted); display:block; margin-bottom:4px;">Description</label>
-                                <input type="text" id="bot-desc" class="log-input" style="width:100%" placeholder="EURUSD M15 London Session">
+                                <label style="font-size:0.72rem; color:var(--text-muted); display:block; margin-bottom:4px;">Mô tả</label>
+                                <input type="text" id="bot-desc" class="log-input" style="width:100%" placeholder="EURUSD M15 phiên London">
                             </div>
                         </div>
                         <div style="margin-top: 12px;">
-                            <label style="font-size:0.72rem; color:var(--text-muted); display:block; margin-bottom:4px;">Docker Run Command (Full command with parameters)</label>
+                            <label style="font-size:0.72rem; color:var(--text-muted); display:block; margin-bottom:4px;">Lệnh docker run (đầy đủ tham số)</label>
                             <textarea id="bot-cmd" class="log-input" style="width:100%; height:110px; font-family:var(--font-mono); font-size:0.75rem; line-height:1.4;" placeholder="docker run -d --name cbot-eurusd ..."></textarea>
                         </div>
                         <div style="margin-top: 14px; display:flex; gap: 8px; flex-wrap:wrap;">
-                            <button id="save-bot-btn" class="log-btn" style="background:var(--profit-soft); color:var(--profit); border-color:var(--profit);"><i data-lucide="save" class="btn-icon"></i> Save Only</button>
-                            <button id="save-restart-bot-btn" class="log-btn" style="background:var(--accent-soft); color:var(--accent-bright); border-color:var(--accent);"><i data-lucide="zap" class="btn-icon"></i> Save &amp; Restart Bot</button>
-                            <button id="cancel-bot-btn" class="log-btn">Cancel</button>
+                            <button id="save-bot-btn" class="log-btn" style="background:var(--profit-soft); color:var(--profit); border-color:var(--profit);"><i data-lucide="save" class="btn-icon"></i> Chỉ lưu</button>
+                            <button id="save-restart-bot-btn" class="log-btn" style="background:var(--accent-soft); color:var(--accent-bright); border-color:var(--accent);"><i data-lucide="zap" class="btn-icon"></i> Lưu và khởi động lại</button>
+                            <button id="cancel-bot-btn" class="log-btn">Huỷ</button>
                         </div>
                     </div>
                     <div id="setup-panel" style="display:none; margin-bottom: 16px; padding: 16px; background: var(--bg-surface); border: 1px solid var(--border); border-radius: 6px;">
-                        <h4 style="margin-top:0; margin-bottom:12px; color:var(--accent-bright);">Setup Instances from Presets</h4>
+                        <h4 style="margin-top:0; margin-bottom:12px; color:var(--accent-bright);">Cài bot từ mẫu có sẵn</h4>
                         <div class="bot-form-grid">
                             <div>
-                                <label style="font-size:0.72rem; color:var(--text-muted); display:block; margin-bottom:4px;">cTrader Account</label>
+                                <label style="font-size:0.72rem; color:var(--text-muted); display:block; margin-bottom:4px;">Tài khoản cTrader</label>
                                 <div style="display:flex; gap:6px; align-items:center;">
                                     <select id="setup-account" class="log-select" style="flex:1;"></select>
-                                    <button id="setup-account-delete" class="log-btn" title="Delete selected account" style="display:none;">🗑</button>
+                                    <button id="setup-account-delete" class="log-btn" title="Xoá tài khoản đang chọn" style="display:none;">🗑</button>
                                 </div>
                             </div>
                         </div>
                         <div id="setup-new-account" style="display:none; margin-top:12px;">
                             <div class="bot-form-grid">
                                 <div>
-                                    <label style="font-size:0.72rem; color:var(--text-muted); display:block; margin-bottom:4px;">Label (1–40 chars)</label>
-                                    <input type="text" id="setup-acc-label" class="log-input" style="width:100%" placeholder="Main" maxlength="40">
+                                    <label style="font-size:0.72rem; color:var(--text-muted); display:block; margin-bottom:4px;">Tên gọi (1–40 ký tự)</label>
+                                    <input type="text" id="setup-acc-label" class="log-input" style="width:100%" placeholder="Chính" maxlength="40">
                                 </div>
                                 <div>
-                                    <label style="font-size:0.72rem; color:var(--text-muted); display:block; margin-bottom:4px;">cTID email</label>
+                                    <label style="font-size:0.72rem; color:var(--text-muted); display:block; margin-bottom:4px;">Email cTID</label>
                                     <input type="text" id="setup-acc-email" class="log-input" style="width:100%" placeholder="you@example.com" autocomplete="off">
                                 </div>
                                 <div>
-                                    <label style="font-size:0.72rem; color:var(--text-muted); display:block; margin-bottom:4px;">cTID password (written to a 0600 file, never stored)</label>
+                                    <label style="font-size:0.72rem; color:var(--text-muted); display:block; margin-bottom:4px;">Mật khẩu cTID (ghi vào file quyền 0600, không lưu vào DB)</label>
                                     <input id="setup-acc-password" type="password" class="log-input" style="width:100%" autocomplete="new-password">
                                 </div>
                                 <div>
-                                    <label style="font-size:0.72rem; color:var(--text-muted); display:block; margin-bottom:4px;">Account number</label>
+                                    <label style="font-size:0.72rem; color:var(--text-muted); display:block; margin-bottom:4px;">Số tài khoản</label>
                                     <input type="text" id="setup-acc-number" class="log-input" style="width:100%" placeholder="10101649" inputmode="numeric">
                                 </div>
                             </div>
                             <div style="margin-top:10px; display:flex; gap:14px; align-items:center; flex-wrap:wrap;">
                                 <label style="font-size:0.75rem;"><input type="radio" name="setup-acc-type" value="demo" checked> Demo</label>
-                                <label style="font-size:0.75rem;"><input type="radio" name="setup-acc-type" value="live"> Live</label>
-                                <button id="setup-account-save" class="log-btn" style="background:var(--profit-soft); color:var(--profit); border-color:var(--profit);"><i data-lucide="save" class="btn-icon"></i> Save account</button>
+                                <label style="font-size:0.75rem;"><input type="radio" name="setup-acc-type" value="live"> Thật</label>
+                                <button id="setup-account-save" class="log-btn" style="background:var(--profit-soft); color:var(--profit); border-color:var(--profit);"><i data-lucide="save" class="btn-icon"></i> Lưu tài khoản</button>
                                 <span id="setup-account-msg" class="td-dim"></span>
                             </div>
                         </div>
                         <div class="table-wrap" style="margin-top:14px;">
                             <table class="data-table" id="setup-grid">
-                                <thead><tr id="setup-grid-head"><th>Symbol</th></tr></thead>
-                                <tbody id="setup-grid-body"><tr><td class="td-dim">Loading presets...</td></tr></tbody>
+                                <thead><tr id="setup-grid-head"><th>Cặp</th></tr></thead>
+                                <tbody id="setup-grid-body"><tr><td class="td-dim">Đang tải mẫu…</td></tr></tbody>
                             </table>
                         </div>
                         <div style="margin-top: 14px; display:flex; gap: 12px; align-items:center; flex-wrap:wrap;">
-                            <label style="font-size:0.75rem;"><input type="checkbox" id="setup-save-only"> Save only, don't start</label>
-                            <button id="setup-create-btn" class="log-btn" disabled style="background:var(--accent-soft); color:var(--accent-bright); border-color:var(--accent);"><i data-lucide="rocket" class="btn-icon"></i> Create instances</button>
-                            <button id="setup-cancel-btn" class="log-btn">Close</button>
+                            <label style="font-size:0.75rem;"><input type="checkbox" id="setup-save-only"> Chỉ lưu, chưa chạy</label>
+                            <button id="setup-create-btn" class="log-btn" disabled style="background:var(--accent-soft); color:var(--accent-bright); border-color:var(--accent);"><i data-lucide="rocket" class="btn-icon"></i> Tạo bot</button>
+                            <button id="setup-cancel-btn" class="log-btn">Đóng</button>
                         </div>
                         <ul id="setup-results" style="list-style:none; padding:0; margin:12px 0 0; font-size:0.78rem; line-height:1.7;"></ul>
                     </div>
@@ -571,17 +571,17 @@
                             <table class="data-table" id="bots-table">
                                 <thead>
                                     <tr>
-                                        <th>Bot Name</th>
-                                        <th style="width:70px;">Mode</th>
-                                        <th>Status</th>
+                                        <th>Tên bot</th>
+                                        <th style="width:70px;">Loại</th>
+                                        <th>Trạng thái</th>
                                         <th>Container ID</th>
-                                        <th>Description</th>
-                                        <th>Command</th>
-                                        <th style="text-align:right">Actions</th>
+                                        <th>Mô tả</th>
+                                        <th>Lệnh chạy</th>
+                                        <th style="text-align:right">Thao tác</th>
                                     </tr>
                                 </thead>
                                 <tbody id="bots-tbody">
-                                    <tr><td colspan="7" class="td-dim">Loading bots...</td></tr>
+                                    <tr><td colspan="7" class="td-dim">Đang tải bot…</td></tr>
                                 </tbody>
                             </table>
                         </div>
@@ -593,26 +593,26 @@
             <div id="view-ledger" class="view-section">
                 <section class="panel">
                     <div class="panel-header">
-                        <span class="panel-title"><i data-lucide="book-open" class="panel-icon text-blue"></i> Ledger</span>
-                        <button id="lg-refresh-btn" class="log-btn" style="margin-left:auto;"><i data-lucide="refresh-cw" class="btn-icon"></i> Refresh</button>
+                        <span class="panel-title"><i data-lucide="book-open" class="panel-icon text-blue"></i> Sổ tiền</span>
+                        <button id="lg-refresh-btn" class="log-btn" style="margin-left:auto;"><i data-lucide="refresh-cw" class="btn-icon"></i> Làm mới</button>
                     </div>
                     <div class="panel-body">
-                        <p class="td-dim lg-hint">The ledger starts from 0: expected balance = deposits − withdrawals + P&amp;L of the bots' closed trades. A discrepancy is money the ledger cannot explain: record deposits and withdrawals here, from the list of unexplained balance changes or by hand.</p>
+                        <p class="td-dim lg-hint">Sổ bắt đầu từ 0: số dư dự kiến = nạp − rút + lời/lỗ các lệnh bot đã đóng. Chênh lệch là khoản tiền sổ chưa giải thích được: ghi nạp và rút ở đây, từ danh sách biến động số dư chưa rõ hoặc nhập tay.</p>
                     </div>
                 </section>
-                <div id="lg-body"><p class="td-dim">Loading...</p></div>
+                <div id="lg-body"><p class="td-dim">Đang tải…</p></div>
             </div>
 
             <!-- Forward View: research candidates against their registered rules (static/js/forward_status.js) -->
             <div id="view-forward" class="view-section">
                 <section class="panel">
                     <div class="panel-header">
-                        <span class="panel-title"><i data-lucide="flask-conical" class="panel-icon text-blue"></i> Forward</span>
-                        <button id="fs-refresh-btn" class="log-btn" style="margin-left:auto;"><i data-lucide="refresh-cw" class="btn-icon"></i> Refresh</button>
+                        <span class="panel-title"><i data-lucide="flask-conical" class="panel-icon text-blue"></i> Kiểm chứng</span>
+                        <button id="fs-refresh-btn" class="log-btn" style="margin-left:auto;"><i data-lucide="refresh-cw" class="btn-icon"></i> Làm mới</button>
                     </div>
                     <div class="panel-body">
-                        <p class="td-dim lg-hint">Each research candidate against the stop and promotion rules it registered before its forward data existed (docs/forward-candidates.md). Net is the real fills' move minus 0.6 bp commission, pooled with the holdout run. PROMOTE_CHECK is never a promotion: the conditions listed under "Not checked here" still need a person.</p>
-                        <div id="fs-body"><p class="td-dim">Loading...</p></div>
+                        <p class="td-dim lg-hint">Mỗi chiến lược ứng viên so với quy tắc dừng và nâng hạng nó đã đăng ký trước khi có dữ liệu thật (docs/forward-candidates.md). Ròng là biến động giá khớp thật trừ phí 0,6 bp, gộp với đợt kiểm tra giữ lại. "Đủ điều kiện xét" chưa phải là nâng hạng: các điều kiện ở mục "Chưa kiểm ở đây" vẫn cần người xem.</p>
+                        <div id="fs-body"><p class="td-dim">Đang tải…</p></div>
                     </div>
                 </section>
             </div>
@@ -621,12 +621,12 @@
             <div id="view-paper-desk" class="view-section">
                 <section class="panel">
                     <div class="panel-header">
-                        <span class="panel-title"><i data-lucide="bot" class="panel-icon text-blue"></i> Paper desk</span>
-                        <button id="pd-refresh-btn" class="log-btn" style="margin-left:auto;"><i data-lucide="refresh-cw" class="btn-icon"></i> Refresh</button>
+                        <span class="panel-title"><i data-lucide="bot" class="panel-icon text-blue"></i> Dự đoán AI</span>
+                        <button id="pd-refresh-btn" class="log-btn" style="margin-left:auto;"><i data-lucide="refresh-cw" class="btn-icon"></i> Làm mới</button>
                     </div>
                     <div class="panel-body">
-                        <p class="td-dim lg-hint">An experiment without money (docs/paper-desk.md): DeepSeek analysts call a direction for 6 symbols each weekday before the 07:00 UTC entry. "Took a side" means long or short; a call of 0 is no trade. Net bp uses the measured costs of research/results/portfolio/paper_desk_costs_2026-10-29.md. Even a PASS would only license a demo test of a frozen rule.</p>
-                        <div id="pd-body"><p class="td-dim">Loading...</p></div>
+                        <p class="td-dim lg-hint">Thí nghiệm không dùng tiền (docs/paper-desk.md): các mô hình DeepSeek đoán hướng cho 6 cặp mỗi ngày làm việc, trước giờ vào lệnh 07:00 UTC. "Có chọn hướng" là mua hoặc bán; đoán 0 là không vào lệnh. Bp ròng dùng chi phí đo được ở research/results/portfolio/paper_desk_costs_2026-10-29.md. Kể cả khi "Đạt" cũng chỉ cho phép thử trên demo một quy tắc đã cố định.</p>
+                        <div id="pd-body"><p class="td-dim">Đang tải…</p></div>
                     </div>
                 </section>
             </div>
@@ -635,17 +635,17 @@
             <div id="view-calendar" class="view-section">
                 <section class="panel">
                     <div class="panel-header">
-                        <span class="panel-title"><i data-lucide="calendar-days" class="panel-icon text-blue"></i> Calendar</span>
+                        <span class="panel-title"><i data-lucide="calendar-days" class="panel-icon text-blue"></i> Lịch</span>
                         <div class="gc-nav">
-                            <button id="gc-prev-btn" class="log-btn" title="Previous month">◀</button>
+                            <button id="gc-prev-btn" class="log-btn" title="Tháng trước">◀</button>
                             <span id="gc-month-label" class="gc-month-label"></span>
-                            <button id="gc-next-btn" class="log-btn" title="Next month">▶</button>
-                            <button id="gc-today-btn" class="log-btn" title="This month">Today</button>
+                            <button id="gc-next-btn" class="log-btn" title="Tháng sau">▶</button>
+                            <button id="gc-today-btn" class="log-btn" title="Tháng này">Hôm nay</button>
                         </div>
                     </div>
                     <div class="panel-body gc-panel-body">
-                        <p class="td-dim lg-hint">Gotobi days (5th, 10th, 15th, 20th, 25th, month end; a weekend one moves to the Friday before) and the GotobiBot positions opened for each: the long the evening before, the short at the 07:55 GMT+7 Tokyo fix. Decoys (camouflage legs on plain weekdays) are counted apart. SKIP = a Japanese holiday in the presets' SkipDates. ECB = the ECB window bot's EURUSD shorts (sold 18:00 GMT+7 in winter, 17:00 in summer, closed two hours later), F3 on USD-TOP days and E1 every weekday, on the day they were opened. Where an ECB bot is installed, E1's coming weekdays read "scheduled" (a past one without its trade "no trade") and F3's coming Tuesday-Friday "if USD-TOP": it learns at 07:00 London whether the day qualifies.</p>
-                        <div id="gc-body"><p class="td-dim">Loading...</p></div>
+                        <p class="td-dim lg-hint">Ngày gotobi (mùng 5, 10, 15, 20, 25 và cuối tháng; rơi vào cuối tuần thì lùi về thứ Sáu trước đó) và các lệnh GotobiBot mở cho từng ngày: lệnh mua từ tối hôm trước, lệnh bán lúc fix Tokyo 07:55 giờ Việt Nam. Lệnh nguỵ trang (đặt vào ngày thường để che chiến lược) được tính riêng. BỎ QUA = ngày lễ Nhật có trong SkipDates của mẫu bot. ECB = các lệnh bán EURUSD của bot ECB (bán lúc 18:00 giờ Việt Nam mùa đông, 17:00 mùa hè, đóng sau hai giờ): F3 vào ngày USD-TOP, E1 mọi ngày làm việc, tính theo ngày mở lệnh. Khi đã cài bot ECB, các ngày tới của E1 ghi "theo lịch" (ngày đã qua mà không có lệnh ghi "không có lệnh"), còn thứ Ba đến thứ Sáu sắp tới của F3 ghi "nếu USD-TOP": 07:00 giờ London bot mới biết ngày đó có đủ điều kiện không.</p>
+                        <div id="gc-body"><p class="td-dim">Đang tải…</p></div>
                         <div id="gc-day"></div>
                     </div>
                 </section>
@@ -655,26 +655,26 @@
             <div id="view-logs" class="view-section">
                 <section class="panel log-section">
                     <div class="panel-header">
-                        <span class="panel-title"><i data-lucide="scroll-text" class="panel-icon text-blue"></i> Agent Reasoning &amp; Live Logs</span>
-                        <span id="log-status" class="td-dim">Auto-refreshing</span>
+                        <span class="panel-title"><i data-lucide="scroll-text" class="panel-icon text-blue"></i> Nhật ký trực tiếp</span>
+                        <span id="log-status" class="td-dim">Tự làm mới</span>
                     </div>
                     <div class="panel-body log-panel-wrap">
                         <div class="log-toolbar">
                             <div class="log-toolbar-group">
-                                <label for="log-date-select" class="td-dim">Date:</label>
+                                <label for="log-date-select" class="td-dim">Ngày:</label>
                                 <select id="log-date-select" class="log-select"></select>
-                                <input type="text" id="log-filter-input" class="log-input" placeholder="Filter logs (e.g. OPEN, CLOSE, WATCHDOG)..." style="min-width: 240px;">
+                                <input type="text" id="log-filter-input" class="log-input" placeholder="Lọc nhật ký (vd OPEN, CLOSE, WATCHDOG)…" style="min-width: 240px;">
                             </div>
                             <div class="log-toolbar-group">
                                 <label style="display:flex;align-items:center;gap:4px;cursor:pointer;font-size:0.75rem;">
-                                    <input type="checkbox" id="log-autoscroll" checked> Auto-scroll
+                                    <input type="checkbox" id="log-autoscroll" checked> Tự cuộn
                                 </label>
-                                <button id="log-refresh-btn" class="log-btn"><i data-lucide="refresh-cw" class="btn-icon"></i> Refresh</button>
-                                <button id="log-clear-btn" class="log-btn"><i data-lucide="trash-2" class="btn-icon"></i> Clear</button>
+                                <button id="log-refresh-btn" class="log-btn"><i data-lucide="refresh-cw" class="btn-icon"></i> Làm mới</button>
+                                <button id="log-clear-btn" class="log-btn"><i data-lucide="trash-2" class="btn-icon"></i> Xoá màn hình</button>
                             </div>
                         </div>
                         <div id="agent-log-box" class="log-terminal">
-                            <div class="log-line td-dim">Loading agent logs...</div>
+                            <div class="log-line td-dim">Đang tải nhật ký…</div>
                         </div>
                     </div>
                 </section>
@@ -691,5 +691,5 @@
             leaderboard: {{ leaderboard | tojson }},
         };
     </script>
-    <script src="/static/js/dashboard.js?v=20261029_ov2"></script>
+    <script src="/static/js/dashboard.js?v=20261029_vi1"></script>
 </body></html>

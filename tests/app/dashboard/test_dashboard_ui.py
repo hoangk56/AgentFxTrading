@@ -173,7 +173,7 @@ def test_setup_grid_marks_cells_already_installed_for_an_account():
 def test_bot_action_buttons_show_pending_state_and_polls_do_not_overlap():
     html = dashboard_page(client)
     # A docker stop/restart takes 7-10 s: the clicked row must say so instead of looking dead.
-    for label in ("Starting…", "Stopping…", "Restarting…", "Deleting…"):
+    for label in ("Đang chạy…", "Đang dừng…", "Đang khởi động lại…", "Đang xoá…"):
         assert label in html, label
     # A 10 s poll must never re-render over a pending row, nor stack up while a slow poll runs.
     assert "if (botsFetchInFlight || botActionInFlight) return;" in html
@@ -187,7 +187,7 @@ def test_active_positions_rows_have_a_close_button():
     assert '<p class="ov-empty">Không giữ lệnh nào.</p>' in html
     # delegated once on the cards' container, so cards re-rendered by updateDashboard() keep working
     assert "document.getElementById('positions-table').addEventListener('click'" in html
-    assert "did not pick up the command within 15 s" in html
+    assert "không nhận lệnh trong 15 giây" in html
 
 
 def test_a_failed_close_re_enables_the_button_on_screen():
@@ -202,13 +202,13 @@ def test_a_failed_close_re_enables_the_button_on_screen():
 
 def test_bots_tab_has_pause_resume_and_close_and_stop():
     html = dashboard_page(client)
-    for snippet in ("action-pause", "action-resume", "action-close-stop", "Close &amp; Stop",
-                    "Pausing…", "Resuming…", "Closing & stopping…", "/close-and-stop", ">PAUSED</span>"):
+    for snippet in ("action-pause", "action-resume", "action-close-stop", "Đóng &amp; dừng",
+                    "Đang tạm dừng…", "Đang tiếp tục…", "Đang đóng và dừng…", "/close-and-stop", ">TẠM DỪNG</span>"):
         assert snippet in html, snippet
 
 
 def test_bots_tab_flags_running_containers_that_do_not_poll():
     html = dashboard_page(client)
     assert "(isRunning && !b.polling)" in html
-    assert ">NOT POLLING</span>" in html
+    assert ">KHÔNG NHẬN LỆNH</span>" in html
     assert "${statusHtml}${pausedHtml}${notPollingHtml}" in html

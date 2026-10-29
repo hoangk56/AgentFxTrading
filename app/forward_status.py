@@ -54,24 +54,24 @@ def _sd(mean: float, n: int, t: float) -> float:
 # HOLD figures are the registered holdout results (n, net mean, t); the sd follows from them.
 CANDIDATES: Dict[str, Candidate] = {c.key: c for c in (
     Candidate(
-        key="ecb_f3", label="ECB Window F3 (E1 on USD-TOP days)", bot_suffix="-ecb-f3", tier="RELAXED",
+        key="ecb_f3", label="ECB F3 (E1 vào ngày USD-TOP)", bot_suffix="-ecb-f3", tier="RELAXED",
         hold_n=117, hold_mean=2.00, hold_sd=_sd(2.00, 117, 2.16),
         min_trades_stop_t=60, stop_t=-1.0,
-        manual=("spread x1.5 net > 0", "realised mean round-trip cost <= 1.5 bp"),
+        manual=("ròng > 0 khi spread x1.5", "chi phí khứ hồi TB thực tế <= 1.5 bp"),
         prereg="round24_relaxed/PREREG_R24_relaxed_hold.md; PREREG_DRAFT_C_ecb_window_variants.md"),
     Candidate(
-        key="ecb_e1", label="ECB Window E1 (short EURUSD 11:00-13:00 London)", bot_suffix="-ecb-e1", tier="DEMO",
+        key="ecb_e1", label="ECB E1 (bán EURUSD 11:00-13:00 London)", bot_suffix="-ecb-e1", tier="DEMO",
         hold_n=444, hold_mean=0.64, hold_sd=_sd(0.64, 444, 0.99),
         min_trades_stop_t=100, stop_t=-1.0,
-        manual=("spread x1.5 net > 0", "realised mean round-trip cost <= 1.5 bp"),
+        manual=("ròng > 0 khi spread x1.5", "chi phí khứ hồi TB thực tế <= 1.5 bp"),
         prereg="round13_structural/PREREG_M_eurusd_midday.md"),
     Candidate(
-        key="gold_levels", label="Gold $50 levels (G1-XAU50)", bot_suffix="-levels-gold50", tier="DEMO",
+        key="gold_levels", label="Vàng mốc $50 (G1-XAU50)", bot_suffix="-levels-gold50", tier="DEMO",
         hold_n=228, hold_mean=2.87, hold_sd=_sd(2.87, 228, 1.43),
         min_trades_stop_t=10 ** 9, stop_t=-1.0,   # gold has no pooled-t stop; its three stops are below
         stop_cum_after=60, floor_after=120, val_mean=3.62, val_sd=22.9,
-        manual=("spread x1.5 net > 0", "median entry slippage <= 1 x s60 after 30 trades "
-                "(research.tools.gold_demo_check on <BotId>_trades.csv)"),
+        manual=("ròng > 0 khi spread x1.5", "trượt giá vào lệnh trung vị <= 1 x s60 sau 30 lệnh "
+                "(research.tools.gold_demo_check trên <BotId>_trades.csv)"),
         prereg="round27_levels_opens/PREREG_G_gold_round50_cascade.md"),
 )}
 
@@ -107,15 +107,15 @@ def evaluate(cand: Candidate, nets: Sequence[float]) -> dict:
     out.update(mean=cum / n, cum=cum, pooled_t=pt, hold_n=cand.hold_n)
 
     if cand.stop_cum_after is not None and n >= cand.stop_cum_after and cum < 0:
-        out["reasons"].append(f"after {cand.stop_cum_after} trades the cumulative net is {cum:+.1f} bp < 0")
+        out["reasons"].append(f"sau {cand.stop_cum_after} lệnh, tổng ròng {cum:+.1f} bp < 0")
     if cand.floor_after is not None and n >= cand.floor_after:
         floor = n * cand.val_mean - 1.5 * cand.val_sd * math.sqrt(n)
         out["floor"] = floor
         if cum < floor:
-            out["reasons"].append(f"after {cand.floor_after} trades the cumulative net {cum:+.1f} bp is below "
-                                  f"the expected sum minus 1.5 sd ({floor:+.1f})")
+            out["reasons"].append(f"sau {cand.floor_after} lệnh, tổng ròng {cum:+.1f} bp thấp hơn "
+                                  f"tổng kỳ vọng trừ 1.5 sd ({floor:+.1f})")
     if n >= cand.min_trades_stop_t and pt <= cand.stop_t:
-        out["reasons"].append(f"after {cand.min_trades_stop_t} trades the pooled t {pt:+.2f} <= {cand.stop_t}")
+        out["reasons"].append(f"sau {cand.min_trades_stop_t} lệnh, t gộp {pt:+.2f} <= {cand.stop_t}")
     if out["reasons"]:
         return {**out, "verdict": "STOP"}
 
@@ -123,9 +123,9 @@ def evaluate(cand: Candidate, nets: Sequence[float]) -> dict:
         return {**out, "verdict": "PROMOTE_CHECK"}
     need = []
     if n < cand.min_trades_promote:
-        need.append(f"{cand.min_trades_promote - n} more trades")
+        need.append(f"cần thêm {cand.min_trades_promote - n} lệnh")
     if not pt >= cand.promote_t:
-        need.append(f"pooled t {pt:+.2f} < {cand.promote_t}")
+        need.append(f"t gộp {pt:+.2f} < {cand.promote_t}")
     out["reasons"] = need
     return {**out, "verdict": "CONTINUE"}
 

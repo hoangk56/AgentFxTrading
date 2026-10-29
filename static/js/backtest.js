@@ -5,28 +5,32 @@
  * hostile strings; everything that touches the DOM, fetch or Chart.js lives below them. */
 
 const BT_POLL_MS = 3000;
-const BT_WEEKDAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+const BT_WEEKDAYS = ['T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'CN'];
+// Labels for the status / phase values the API sends (app/backtest_worker.py); unknown ones show as sent.
+const BT_STATUS_LABELS = {queued: 'Đang chờ', running: 'Đang chạy', done: 'Xong', failed: 'Thất bại', cancelled: 'Đã huỷ'};
+const BT_PHASE_LABELS = {starting: 'Đang khởi động', loading: 'Đang tải dữ liệu', backtesting: 'Đang backtest', done: 'Xong'};
+const BT_SIDE_LABELS = {Buy: 'Mua', Sell: 'Bán'};
 // [summary key, label, which value is best: 'max' | 'min' | 'zero' (closest to 0) | null, format]
 // cTrader's own statistics count closing deals, so a partial close makes one position two "trades";
 // the position rows regroup them (app/backtest_report.py).
 const BT_COMPARE_ROWS = [
-    ['net_profit', 'Net P&amp;L', 'max', 'money'],
+    ['net_profit', 'Lời/lỗ ròng', 'max', 'money'],
     ['roi_pct', 'ROI %', 'max', 'num'],
-    ['profit_factor', 'Profit factor', 'max', 'num'],
-    ['position_win_rate', 'Win rate % (positions)', 'max', 'num'],
-    ['positions', 'Positions', null, 'int'],
-    ['avg_position_win', 'Avg win (position)', 'max', 'money'],
-    ['avg_position_loss', 'Avg loss (position)', 'zero', 'money'],
-    ['full_loss_pct', 'Full-size losses %', 'min', 'num'],
-    ['win_rate', 'Win rate % (deals)', 'max', 'num'],
-    ['total_trades', 'Deals', null, 'int'],
-    ['avg_trade', 'Avg deal', 'max', 'money'],
-    ['avg_win', 'Avg win (deal)', 'max', 'money'],
-    ['avg_loss', 'Avg loss (deal)', 'zero', 'money'],
-    ['largest_loss', 'Largest loss (deal)', 'zero', 'money'],
-    ['max_equity_dd_pct', 'Max equity DD %', 'min', 'pct'],
-    ['commissions', 'Commissions', 'zero', 'money'],
-    ['swaps', 'Swaps', 'zero', 'money'],
+    ['profit_factor', 'Hệ số lời (Profit factor)', 'max', 'num'],
+    ['position_win_rate', 'Tỷ lệ thắng % (lệnh)', 'max', 'num'],
+    ['positions', 'Số lệnh', null, 'int'],
+    ['avg_position_win', 'Lời TB (lệnh)', 'max', 'money'],
+    ['avg_position_loss', 'Lỗ TB (lệnh)', 'zero', 'money'],
+    ['full_loss_pct', 'Lỗ nguyên lệnh %', 'min', 'num'],
+    ['win_rate', 'Tỷ lệ thắng % (lần chốt)', 'max', 'num'],
+    ['total_trades', 'Số lần chốt', null, 'int'],
+    ['avg_trade', 'TB mỗi lần chốt', 'max', 'money'],
+    ['avg_win', 'Lời TB (lần chốt)', 'max', 'money'],
+    ['avg_loss', 'Lỗ TB (lần chốt)', 'zero', 'money'],
+    ['largest_loss', 'Lỗ lớn nhất (lần chốt)', 'zero', 'money'],
+    ['max_equity_dd_pct', 'Sụt giảm tối đa %', 'min', 'pct'],
+    ['commissions', 'Phí', 'zero', 'money'],
+    ['swaps', 'Phí qua đêm', 'zero', 'money'],
 ];
 const BT_IGNORED_PARAMS = new Set(['BotId', 'AccountLabel']);
 const BT_PAGE_SIZES = [10, 20, 50];
@@ -71,7 +75,7 @@ function btDateText(iso) {
 // ---------- pure renderers ----------
 
 function btSourceOptionsHtml(sources) {
-    if (!sources.length) return '<option value="">No installed bots</option>';
+    if (!sources.length) return '<option value="">Chưa cài bot nào</option>';
     return sources.map(s => {
         const label = s.supported ? s.name : `${s.name} — ${s.reason}`;
         return `<option value="${escapeHtml(s.name)}"${s.supported ? '' : ' disabled'} title="${escapeHtml(s.reason || '')}">${escapeHtml(label)}</option>`;
@@ -101,26 +105,26 @@ function btParamGroupsHtml(view, overrides, openGroups) {
         const rows = g.params.map(p => {
             const isChanged = has(p.key);
             const hint = isChanged
-                ? `<span class="bt-param-hint">bot: ${escapeHtml(p.bot_value ?? '—')}</span><button type="button" class="bt-reset" data-key="${escapeHtml(p.key)}" title="Back to the bot's value">↺</button>`
+                ? `<span class="bt-param-hint">bot: ${escapeHtml(p.bot_value ?? '—')}</span><button type="button" class="bt-reset" data-key="${escapeHtml(p.key)}" title="Về giá trị của bot">↺</button>`
                 : '';
             return `<div class="bt-param-row${isChanged ? ' bt-param-row--changed' : ''}">`
                 + `<span class="bt-param-label"><span class="bt-param-name" title="${escapeHtml(p.key)}">${escapeHtml(p.label)}</span></span>`
                 + `${btParamInputHtml(p, isChanged ? overrides[p.key] : p.bot_value, view.timeframes)}${hint}</div>`;
         }).join('');
         const open = changed || (openGroups && openGroups.has(g.name)) ? ' open' : '';
-        const count = changed ? ` <span class="bt-changed-count">(${changed} changed)</span>` : '';
+        const count = changed ? ` <span class="bt-changed-count">(${changed} đã đổi)</span>` : '';
         return `<details class="bt-group" data-group="${escapeHtml(g.name)}"${open}><summary>${escapeHtml(g.name)}${count}</summary><div class="bt-param-grid">${rows}</div></details>`;
     }).join('');
 }
 
 function btLockedHtml(locked) {
     const items = Object.entries(locked || {}).map(([k, v]) => `${escapeHtml(k)}=${escapeHtml(v)}`).join(' · ');
-    return `🔒 Locked for backtests: ${items}`;
+    return `🔒 Cố định khi backtest: ${items}`;
 }
 
 function btChipsHtml(overrides) {
     const entries = Object.entries(overrides || {});
-    if (!entries.length) return '<span class="td-dim">(bot)</span>';
+    if (!entries.length) return '<span class="td-dim">(theo bot)</span>';
     return entries.map(([k, c]) =>
         `<span class="bt-chip">${escapeHtml(k)} ${escapeHtml((c && c.from) ?? '—')}→${escapeHtml(c && c.to)}</span>`).join(' ');
 }
@@ -128,19 +132,19 @@ function btChipsHtml(overrides) {
 function btStatusHtml(job) {
     if (job.status === 'running') {
         const pct = Math.max(0, Math.min(100, Number(job.progress) || 0));
-        return `<span class="bt-status bt-status--running">${escapeHtml(job.phase || 'running')} ${pct.toFixed(0)}%</span>`
+        return `<span class="bt-status bt-status--running">${escapeHtml(BT_PHASE_LABELS[job.phase] || job.phase || BT_STATUS_LABELS.running)} ${pct.toFixed(0)}%</span>`
             + `<div class="bt-progress"><div style="width:${pct}%"></div></div>`;
     }
     const title = job.status === 'failed' && job.error ? ` title="${escapeHtml(job.error)}"` : '';
-    return `<span class="bt-status bt-status--${escapeHtml(job.status)}"${title}>${escapeHtml(job.status)}</span>`;
+    return `<span class="bt-status bt-status--${escapeHtml(job.status)}"${title}>${escapeHtml(BT_STATUS_LABELS[job.status] || job.status)}</span>`;
 }
 
 // counts: the list response's running / queued totals, over every page.
 function btRunsInfoText(counts, maxParallel) {
     const count = status => Number(counts && counts[status]) || 0;
     const max = Number(maxParallel);
-    const slots = Number.isFinite(max) && max > 0 ? `${count('running')}/${max} running` : `${count('running')} running`;
-    return `${slots} · ${count('queued')} queued`;
+    const slots = Number.isFinite(max) && max > 0 ? `${count('running')}/${max} đang chạy` : `${count('running')} đang chạy`;
+    return `${slots} · ${count('queued')} đang chờ`;
 }
 
 function btParallelOptionsHtml(current, cap) {
@@ -156,9 +160,9 @@ async function btSaveParallel(e) {
     try {
         const res = await btFetchJson('/api/backtests/settings',
             {method: 'PUT', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({max_parallel: Number(select.value)})});
-        btMessage(`Up to ${res.max_parallel} backtest(s) now run at once.`);
+        btMessage(`Giờ chạy tối đa ${res.max_parallel} backtest cùng lúc.`);
     } catch (err) {
-        btMessage(`Could not change the parallel limit: ${err.message}`, true);
+        btMessage(`Không đổi được số backtest chạy cùng lúc: ${err.message}`, true);
     } finally {
         select.disabled = false;
         select.blur();
@@ -167,7 +171,7 @@ async function btSaveParallel(e) {
 }
 
 function btJobRowsHtml(jobs, selected) {
-    if (!jobs.length) return '<tr><td colspan="13" class="td-dim" style="text-align:center;">No backtests yet</td></tr>';
+    if (!jobs.length) return '<tr><td colspan="13" class="td-dim" style="text-align:center;">Chưa có backtest nào</td></tr>';
     return jobs.map(j => {
         const id = Number(j.id);
         const s = j.summary || {};
@@ -176,10 +180,10 @@ function btJobRowsHtml(jobs, selected) {
         const cell = (v, kind) => (done ? btFormat(v, kind) : '—');
         // Summaries saved before the position stats existed show only the deal figure.
         const withDeals = (pos, deals, kind) =>
-            (done ? `${btFormat(pos, kind)}<div class="td-dim bt-small">${btFormat(deals, kind)} deals</div>` : '—');
+            (done ? `${btFormat(pos, kind)}<div class="td-dim bt-small">${btFormat(deals, kind)} lần chốt</div>` : '—');
         const lastButton = active
-            ? `<button class="log-btn bt-act" data-act="cancel" data-id="${id}">Cancel</button>`
-            : `<button class="log-btn bt-act" data-act="delete" data-id="${id}">Delete</button>`;
+            ? `<button class="log-btn bt-act" data-act="cancel" data-id="${id}">Huỷ</button>`
+            : `<button class="log-btn bt-act" data-act="delete" data-id="${id}">Xoá</button>`;
         return `<tr>
             <td><input type="checkbox" class="bt-select" data-id="${id}"${done ? '' : ' disabled'}${selected.has(id) ? ' checked' : ''}></td>
             <td>#${id}</td>
@@ -194,8 +198,8 @@ function btJobRowsHtml(jobs, selected) {
             <td>${withDeals(s.positions, s.total_trades, 'int')}</td>
             <td class="bt-note">${escapeHtml(j.note || '')}</td>
             <td><div class="bt-actions">
-                <button class="log-btn bt-act" data-act="view" data-id="${id}"${done || j.status === 'failed' ? '' : ' disabled'}>View</button>
-                <button class="log-btn bt-act" data-act="clone" data-id="${id}">Clone</button>
+                <button class="log-btn bt-act" data-act="view" data-id="${id}"${done || j.status === 'failed' ? '' : ' disabled'}>Xem</button>
+                <button class="log-btn bt-act" data-act="clone" data-id="${id}">Nhân bản</button>
                 ${lastButton}
             </div></td>
         </tr>`;
@@ -207,23 +211,23 @@ function btKpiCardsHtml(s) {
         `<div class="kpi-card"><div class="kpi-label">${label}</div><div class="kpi-value kpi-value--mono ${cls}">${value}</div>`
         + `${sub ? `<div class="td-dim bt-small">${sub}</div>` : ''}</div>`;
     return `<div class="kpi-grid">${[
-        card('Net P&amp;L', btMoney(s.net_profit), btSignClass(s.net_profit)),
+        card('Lời/lỗ ròng', btMoney(s.net_profit), btSignClass(s.net_profit)),
         card('ROI', `${btNum(s.roi_pct)}%`, btSignClass(s.roi_pct)),
-        card('Profit factor', btNum(s.profit_factor)),
-        card('Win rate · positions', btPct(s.position_win_rate), '', `${btPct(s.win_rate)} of deals`),
-        card('Positions', btFormat(s.positions, 'int'), '', `${btFormat(s.total_trades, 'int')} deals`),
-        card('Max equity DD', `${btNum(s.max_equity_dd_pct)}%`),
-        card('Avg win / loss · position', `${btMoney(s.avg_position_win)} / ${btMoney(s.avg_position_loss)}`, 'bt-kpi-wrap',
-             `per deal ${btMoney(s.avg_win)} / ${btMoney(s.avg_loss)}`),
-        card('Full-size losses', btPct(s.full_loss_pct), '', 'of positions, no partial close'),
-        card('Commission + swap', btMoney(Number(s.commissions) + Number(s.swaps))),
+        card('Hệ số lời (Profit factor)', btNum(s.profit_factor)),
+        card('Tỷ lệ thắng · lệnh', btPct(s.position_win_rate), '', `${btPct(s.win_rate)} theo lần chốt`),
+        card('Số lệnh', btFormat(s.positions, 'int'), '', `${btFormat(s.total_trades, 'int')} lần chốt`),
+        card('Sụt giảm tối đa', `${btNum(s.max_equity_dd_pct)}%`),
+        card('Lời / lỗ TB · lệnh', `${btMoney(s.avg_position_win)} / ${btMoney(s.avg_position_loss)}`, 'bt-kpi-wrap',
+             `mỗi lần chốt ${btMoney(s.avg_win)} / ${btMoney(s.avg_loss)}`),
+        card('Lỗ nguyên lệnh', btPct(s.full_loss_pct), '', 'trên số lệnh, không chốt một phần'),
+        card('Phí + phí qua đêm', btMoney(Number(s.commissions) + Number(s.swaps))),
     ].join('')}</div>`;
 }
 
 function btTradeRowsHtml(trades) {
-    if (!trades.length) return '<tr><td colspan="9" class="td-dim" style="text-align:center;">No trades</td></tr>';
+    if (!trades.length) return '<tr><td colspan="9" class="td-dim" style="text-align:center;">Không có lệnh</td></tr>';
     return trades.map(t => `<tr>
-        <td>${escapeHtml(t.entry_time)}</td><td>${escapeHtml(t.close_time)}</td><td>${escapeHtml(t.direction)}</td>
+        <td>${escapeHtml(t.entry_time)}</td><td>${escapeHtml(t.close_time)}</td><td>${escapeHtml(BT_SIDE_LABELS[t.direction] || t.direction)}</td>
         <td>${btNum(t.lots)}</td><td>${escapeHtml(t.entry_price)}</td><td>${escapeHtml(t.close_price)}</td>
         <td>${btNum(t.pips, 1)}</td><td class="${btSignClass(t.net)}">${btMoney(t.net)}</td>
         <td>${btMoney(Number(t.commissions) + Number(t.swaps))}</td></tr>`).join('');
@@ -237,17 +241,17 @@ function btDetailTitleHtml(job) {
 
 function btDetailHtml(job) {
     const id = Number(job.id);
-    if (job.status === 'failed') return `<pre class="bt-error">${escapeHtml(job.error || 'failed')}</pre>`;
-    if (!job.report) return '<div class="td-dim">No report for this run.</div>';
+    if (job.status === 'failed') return `<pre class="bt-error">${escapeHtml(job.error || BT_STATUS_LABELS.failed)}</pre>`;
+    if (!job.report) return '<div class="td-dim">Lần chạy này không có báo cáo.</div>';
     return `${btKpiCardsHtml(job.summary || {})}
         <div class="bt-charts">
             <div class="bt-chart bt-chart--wide"><canvas id="bt-equity-chart"></canvas></div>
             <div class="bt-chart"><canvas id="bt-hour-chart"></canvas></div>
             <div class="bt-chart"><canvas id="bt-weekday-chart"></canvas></div>
         </div>
-        <div class="bt-detail-meta">Changed: ${btChipsHtml(job.overrides)} · <a href="/api/backtests/${id}/report.json" target="_blank" rel="noopener">report.json</a></div>
+        <div class="bt-detail-meta">Đã đổi: ${btChipsHtml(job.overrides)} · <a href="/api/backtests/${id}/report.json" target="_blank" rel="noopener">report.json</a></div>
         <div class="table-wrap bt-trades"><table class="data-table">
-            <thead><tr><th>Entry (UTC)</th><th>Exit (UTC)</th><th>Side</th><th>Lots</th><th>Entry</th><th>Exit</th><th>Pips</th><th>Net</th><th>Comm + swap</th></tr></thead>
+            <thead><tr><th>Giờ vào (UTC)</th><th>Giờ ra (UTC)</th><th>Chiều</th><th>Lot</th><th>Giá vào</th><th>Giá ra</th><th>Pip</th><th>Lời/lỗ ròng</th><th>Phí + qua đêm</th></tr></thead>
             <tbody>${btTradeRowsHtml(job.report.trades || [])}</tbody>
         </table></div>`;
 }
@@ -268,10 +272,10 @@ function btParamDiff(jobs) {
 function btCompareWarnings(jobs) {
     const differs = f => new Set(jobs.map(f)).size > 1;
     const warnings = [];
-    if (differs(j => `${j.start_date}|${j.end_date}`)) warnings.push('date ranges differ');
-    if (differs(j => j.data_mode)) warnings.push('data modes differ');
-    if (differs(j => j.algo_build_time)) warnings.push('the .algo builds differ');
-    if (differs(j => j.symbol)) warnings.push('symbols differ');
+    if (differs(j => `${j.start_date}|${j.end_date}`)) warnings.push('khoảng ngày khác nhau');
+    if (differs(j => j.data_mode)) warnings.push('loại dữ liệu khác nhau');
+    if (differs(j => j.algo_build_time)) warnings.push('bản build .algo khác nhau');
+    if (differs(j => j.symbol)) warnings.push('cặp/mã khác nhau');
     return warnings;
 }
 
@@ -299,13 +303,13 @@ function btCompareHtml(jobs) {
     const diff = btParamDiff(jobs);
     const diffRows = diff.length
         ? diff.map(k => `<tr><td>${escapeHtml(k)}</td>${jobs.map(j => `<td>${escapeHtml(btReportParams(j)[k] ?? '—')}</td>`).join('')}</tr>`).join('')
-        : `<tr><td colspan="${jobs.length + 1}" class="td-dim">No parameter differs</td></tr>`;
+        : `<tr><td colspan="${jobs.length + 1}" class="td-dim">Không có tham số nào khác</td></tr>`;
     const warnings = btCompareWarnings(jobs);
-    return `${warnings.length ? `<div class="bt-warning">⚠ Not directly comparable: ${warnings.join(', ')}</div>` : ''}
+    return `${warnings.length ? `<div class="bt-warning">⚠ Không so sánh trực tiếp được: ${warnings.join(', ')}</div>` : ''}
         <div class="bt-chart bt-chart--wide"><canvas id="bt-compare-chart"></canvas></div>
-        <div class="table-wrap"><table class="data-table"><thead><tr><th>Metric</th>${head}</tr></thead><tbody>${rows}</tbody></table></div>
-        <h4 class="bt-subtitle">Parameters that differ</h4>
-        <div class="table-wrap"><table class="data-table"><thead><tr><th>Parameter</th>${head}</tr></thead><tbody>${diffRows}</tbody></table></div>`;
+        <div class="table-wrap"><table class="data-table"><thead><tr><th>Chỉ số</th>${head}</tr></thead><tbody>${rows}</tbody></table></div>
+        <h4 class="bt-subtitle">Tham số khác nhau</h4>
+        <div class="table-wrap"><table class="data-table"><thead><tr><th>Tham số</th>${head}</tr></thead><tbody>${diffRows}</tbody></table></div>`;
 }
 
 // Page numbers around the current one, with the first and the last always reachable.
@@ -329,12 +333,12 @@ function btPagerHtml(page, perPage, total) {
         ? '<span class="bt-page-gap">…</span>'
         : btn(n, n, n === page ? ' aria-current="page" disabled' : ''))).join('');
     const nav = pages > 1
-        ? `<div class="bt-pager-btns">${btn(page - 1, '‹', page <= 1 ? ' disabled aria-label="Previous page"' : ' aria-label="Previous page"')}`
-          + `${numbers}${btn(page + 1, '›', page >= pages ? ' disabled aria-label="Next page"' : ' aria-label="Next page"')}</div>`
+        ? `<div class="bt-pager-btns">${btn(page - 1, '‹', page <= 1 ? ' disabled aria-label="Trang trước"' : ' aria-label="Trang trước"')}`
+          + `${numbers}${btn(page + 1, '›', page >= pages ? ' disabled aria-label="Trang sau"' : ' aria-label="Trang sau"')}</div>`
         : '';
     const sizes = BT_PAGE_SIZES.map(n => `<option value="${n}"${n === perPage ? ' selected' : ''}>${n}</option>`).join('');
-    return `<span class="td-dim">${from}–${to} of ${total}</span>${nav}`
-        + `<label class="bt-per-page td-dim">Rows <select class="log-select" data-act="per-page">${sizes}</select></label>`;
+    return `<span class="td-dim">${from}–${to} / ${total}</span>${nav}`
+        + `<label class="bt-per-page td-dim">Số dòng <select class="log-select" data-act="per-page">${sizes}</select></label>`;
 }
 
 // ---------- DOM, fetch and charts ----------
@@ -441,7 +445,7 @@ function btUpdateFormSummary() {
     const changed = Object.keys(bt.overrides).length;
     el.textContent = bot
         ? `${bot} · ${btDateText(document.getElementById('bt-start').value)} – ${btDateText(document.getElementById('bt-end').value)}`
-          + (changed ? ` · ${changed} changed` : '')
+          + (changed ? ` · ${changed} đã đổi` : '')
         : '';
 }
 
@@ -469,10 +473,10 @@ async function btLoadSources() {
         select.innerHTML = btSourceOptionsHtml(bt.sources);
         const first = bt.sources.find(s => s.supported);
         if (first) select.value = first.name;
-        if (!data.docker_available) btMessage('Docker is not available on this server: backtests cannot run.', true);
+        if (!data.docker_available) btMessage('Máy chủ này không có Docker: không chạy được backtest.', true);
         await btLoadParams();
     } catch (e) {
-        btMessage(`Could not load bots: ${e.message}`, true);
+        btMessage(`Không tải được danh sách bot: ${e.message}`, true);
     }
 }
 
@@ -483,7 +487,7 @@ async function btLoadParams() {
     bt.view = null;
     document.getElementById('bt-locked').textContent = '';
     if (!bot) { container.innerHTML = ''; return; }
-    container.innerHTML = '<div class="td-dim">Loading parameters… (the first time for a build takes ~15 s)</div>';
+    container.innerHTML = '<div class="td-dim">Đang tải tham số… (lần đầu với mỗi bản build mất ~15 giây)</div>';
     try {
         const view = await btFetchJson(`/api/backtests/sources/${encodeURIComponent(bot)}/params`);
         if (document.getElementById('bt-bot').value !== bot) return;       // switched meanwhile
@@ -536,10 +540,10 @@ async function btSubmit() {
     };
     if (mode === 'm1') body.spread_pips = Number(document.getElementById('bt-spread').value);
     btn.disabled = true;
-    btMessage('Queuing…');
+    btMessage('Đang xếp hàng…');
     try {
         const res = await btFetchJson('/api/backtests', {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(body)});
-        btMessage(`Backtest #${res.id} queued (position ${res.queue_position}; ${res.running}/${res.max_parallel} running).`);
+        btMessage(`Đã xếp hàng backtest #${res.id} (vị trí ${res.queue_position}; ${res.running}/${res.max_parallel} đang chạy).`);
         await btRefreshJobs();
     } catch (e) {
         btMessage(e.message, true);
@@ -568,7 +572,7 @@ async function btRefreshJobs() {
         btUpdateCompareButton();
         btUpdateModalNav();
     } catch (e) {
-        btMessage(`Could not load backtests: ${e.message}`, true);
+        btMessage(`Không tải được danh sách backtest: ${e.message}`, true);
     }
     // Poll only while something is queued or running (on any page) and the page is on screen.
     const visible = document.getElementById('view-backtest').classList.contains('active');
@@ -583,7 +587,7 @@ async function btGoToPage(page) {
 
 function btUpdateCompareButton() {
     const btn = document.getElementById('bt-compare-btn');
-    btn.textContent = `Compare (${bt.selected.size})`;
+    btn.textContent = `So sánh (${bt.selected.size})`;
     btn.disabled = bt.selected.size < 2 || bt.selected.size > 4;
 }
 
@@ -663,7 +667,7 @@ async function btOnJobAction(e) {
             await btFetchJson(`/api/backtests/${id}/cancel`, {method: 'POST'});
             await btRefreshJobs();
         } else if (btn.dataset.act === 'delete') {
-            if (!confirm(`Delete backtest #${id} and its report?`)) return;
+            if (!confirm(`Xoá backtest #${id} và báo cáo của nó?`)) return;
             btn.disabled = true;
             await btFetchJson(`/api/backtests/${id}`, {method: 'DELETE'});
             bt.selected.delete(id);
@@ -685,7 +689,7 @@ async function btClone(id) {
     const job = bt.jobs.find(j => Number(j.id) === id) || await btFetchJson(`/api/backtests/${id}`);
     const select = document.getElementById('bt-bot');
     if (![...select.options].some(o => o.value === job.bot_name && !o.disabled)) {
-        btMessage(`${job.bot_name} is no longer installed or supported; cannot clone #${id}.`, true);
+        btMessage(`${job.bot_name} không còn được cài hoặc không còn được hỗ trợ: không nhân bản được #${id}.`, true);
         return;
     }
     select.value = job.bot_name;
@@ -694,11 +698,11 @@ async function btClone(id) {
     document.getElementById('bt-data-mode').value = job.data_mode;
     document.getElementById('bt-spread').value = job.spread_pips ?? '';
     document.getElementById('bt-balance').value = job.balance;
-    document.getElementById('bt-note').value = `${job.note ? job.note + ' ' : ''}(clone of #${id})`.slice(0, 200);
+    document.getElementById('bt-note').value = `${job.note ? job.note + ' ' : ''}(bản sao của #${id})`.slice(0, 200);
     btToggleSpread();
     bt.pendingOverrides = Object.fromEntries(Object.entries(job.overrides || {}).map(([k, c]) => [k, c.to]));
     await btLoadParams();
-    btMessage(`Form filled from #${id}: change a parameter and run.`);
+    btMessage(`Đã điền sẵn theo #${id}: đổi một tham số rồi chạy.`);
     btSetFormOpen(true);
     document.getElementById('bt-form-panel').scrollIntoView({behavior: 'smooth', block: 'start'});
 }
@@ -708,11 +712,11 @@ async function btCompare() {
     if (ids.length < 2) return;
     try {
         const jobs = await Promise.all(ids.map(id => btFetchJson(`/api/backtests/${id}`)));
-        const title = `<strong>Compare</strong><span class="td-dim">${jobs.map(j => `#${Number(j.id)} ${escapeHtml(j.symbol)}`).join(' · ')}</span>`;
+        const title = `<strong>So sánh</strong><span class="td-dim">${jobs.map(j => `#${Number(j.id)} ${escapeHtml(j.symbol)}`).join(' · ')}</span>`;
         btOpenModal(title, btCompareHtml(jobs));
         btDrawCompareChart(jobs);
     } catch (e) {
-        btMessage(`Compare failed: ${e.message}`, true);
+        btMessage(`So sánh thất bại: ${e.message}`, true);
     }
 }
 
@@ -727,10 +731,10 @@ function btDrawDetailCharts(report) {
     bt.charts.equity = new Chart(document.getElementById('bt-equity-chart'), {
         type: 'line',
         data: {
-            labels: eq.map(p => new Date(p.t).toISOString().slice(0, 16).replace('T', ' ')),
+            labels: eq.map(p => { const iso = new Date(p.t).toISOString(); return `${btDateText(iso.slice(0, 10))} ${iso.slice(11, 16)}`; }),
             datasets: [
-                {label: 'Balance', data: eq.map(p => p.balance), borderColor: '#34d399', pointRadius: 0, borderWidth: 1.5},
-                {label: 'Equity (low)', data: eq.map(p => p.equity), borderColor: '#4fc3f7', pointRadius: 0, borderWidth: 1},
+                {label: 'Số dư', data: eq.map(p => p.balance), borderColor: '#34d399', pointRadius: 0, borderWidth: 1.5},
+                {label: 'Tiền tính cả lệnh mở (thấp nhất)', data: eq.map(p => p.equity), borderColor: '#4fc3f7', pointRadius: 0, borderWidth: 1},
             ],
         },
         options: {responsive: true, maintainAspectRatio: false, animation: false,
@@ -738,10 +742,10 @@ function btDrawDetailCharts(report) {
     });
     const bars = (id, labels, buckets) => new Chart(document.getElementById(id), {
         type: 'bar',
-        data: {labels, datasets: [{label: 'Net P&L', data: buckets.map(b => b.net),
+        data: {labels, datasets: [{label: 'Lời/lỗ ròng', data: buckets.map(b => b.net),
                                    backgroundColor: buckets.map(b => (b.net < 0 ? '#f87171' : '#34d399'))}]},
         options: {responsive: true, maintainAspectRatio: false, animation: false,
-                  plugins: {tooltip: {callbacks: {afterLabel: c => `${buckets[c.dataIndex].count} deals`}}}},
+                  plugins: {tooltip: {callbacks: {afterLabel: c => `${buckets[c.dataIndex].count} lần chốt`}}}},
     });
     bt.charts.hour = bars('bt-hour-chart', [...Array(24).keys()].map(h => `${h}h`), report.pnl_by_hour || []);
     bt.charts.weekday = bars('bt-weekday-chart', BT_WEEKDAYS, report.pnl_by_weekday || []);
@@ -760,7 +764,7 @@ function btDrawCompareChart(jobs) {
                     borderColor: colors[i % colors.length], pointRadius: 0, borderWidth: 1.5};
         })},
         options: {responsive: true, maintainAspectRatio: false, animation: false, parsing: false,
-                  scales: {x: {type: 'linear', ticks: {callback: v => new Date(v).toISOString().slice(0, 10)}},
+                  scales: {x: {type: 'linear', ticks: {callback: v => btDateText(new Date(v).toISOString().slice(0, 10))}},
                            y: {ticks: {callback: v => `${v}%`}}}},
     });
 }
