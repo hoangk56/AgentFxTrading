@@ -45,8 +45,9 @@ def test_bot_badge_escapes_the_bot_id():
 
 
 RENDERERS = [
-    "escapeHtml", "formatMoney", "pnlClass", "accountBadge", "sideChip", "pnlCellHtml",
+    "escapeHtml", "formatMoney", "pnlClass", "accountBadge", "sideChip", "signedMoney", "pnlCellHtml",
     "sltpLineHtml", "sltpCellHtml", "tradeTimesHtml", "closeReasonHtml", "botBadge", "closeButtonHtml",
+    "strategyName", "riskLineHtml", "positionCardHtml", "closedRowHtml",
     "updateDashboard", "updateTradeHistory",
     "lbHas", "lbVnToday", "lbAddDays", "lbIsoDay", "lbRangeFor", "lbShortDay", "lbRangeText", "lbPeriodLabel",
     "applyLbControls", "lbRankCell", "lbBotCells", "lbWinRateCell", "lbProfitFactorCell", "lbTradesCell",

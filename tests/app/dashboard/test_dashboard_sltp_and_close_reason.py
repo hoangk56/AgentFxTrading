@@ -143,9 +143,9 @@ def test_active_position_prefers_live_levels_over_entry_levels():
 
 # --- page ------------------------------------------------------------------------------------
 
-def test_dashboard_renders_the_new_columns():
+def test_dashboard_renders_the_levels_and_the_close_reason():
     html = dashboard_page(client)
-    assert "Close Reason" in html
+    assert "t.close_reason" in html          # the Overview's closed trades name why each closed
     assert "function sltpCellHtml" in html
     assert "function closeReasonHtml" in html
     # the live tick handler refreshes SL/TP too, matched per bot

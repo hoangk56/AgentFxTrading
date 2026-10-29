@@ -219,6 +219,16 @@ def get_portfolio_summary(account_id: str = "all") -> Dict:
         daily_pnl = row[0] if row and row[0] is not None else 0
         trades_today = row[1] if row and row[1] is not None else 0
         loss_streak = 0
+        # This month's closed P&L, from the 1st (same server-local calendar as "today" above)
+        cursor = conn.execute(
+            f"""
+            SELECT COALESCE(SUM(pnl), 0)
+            FROM positions
+            WHERE status = 'closed' AND DATE(COALESCE(exit_time, entry_time)) >= ?{account_filter}
+            """,
+            (date.today().replace(day=1).isoformat(), *params)
+        )
+        month_pnl = cursor.fetchone()[0] or 0
         # Total P&L (all time)
         cursor = conn.execute(
             f"SELECT SUM(pnl) FROM positions WHERE status = 'closed'{account_filter}", tuple(params)
@@ -276,6 +286,7 @@ def get_portfolio_summary(account_id: str = "all") -> Dict:
         return {
             "open_positions": open_positions,
             "daily_pnl": round(daily_pnl, 2),
+            "month_pnl": round(month_pnl, 2),
             "trades_today": trades_today,
             "loss_streak": loss_streak,
             "total_pnl": round(total_pnl, 2),
@@ -567,7 +578,7 @@ async def dashboard_page(request: Request):
         
     summary = get_portfolio_summary(filter_acc)
     positions = get_active_positions(filter_acc)
-    history = get_trade_history(filter_acc)
+    history = get_trade_history(filter_acc, page_size=5)   # the Overview's last closed trades (HISTORY_PAGE_SIZE)
     pnl_history = get_daily_pnl_history(30, filter_acc)
     leaderboard = compute_bot_leaderboard(filter_acc, period="1w")  # the leaderboard's default period
     
@@ -586,8 +597,6 @@ async def dashboard_page(request: Request):
             "accounts": accounts,
             "current_mode": mode,
             "leaderboard": leaderboard,
-            "market_sessions": get_market_sessions_info(),
-            "exposure": get_asset_exposure(filter_acc),
         }
     )
     response.headers["Cache-Control"] = "no-cache, no-store, must-revalidate"

@@ -41,16 +41,17 @@ def test_ui_endpoints():
     resp_demo = client.get("/demo/dashboard")
     assert resp_demo.status_code == 200
     html_demo = resp_demo.text
-    assert "market-session-bar" in html_demo
-    assert "pnl-chart" in html_demo
-    assert "equity-chart" in html_demo
-    assert "exposure-chart" in html_demo
-    assert 'id="profit-factor"' in html_demo
+    # The compact Overview (2026-10-29): today, this month, the balance, open positions, coming up, 30 days, closed
+    for widget in ('id="daily-pnl"', 'id="month-pnl"', 'id="account-balance"', 'id="positions-table"',
+                   'id="ov-upcoming"', 'id="equity-chart"', 'id="history-table"', 'id="ov-status"'):
+        assert widget in html_demo, widget
     resp_real = client.get("/real/dashboard")
     assert resp_real.status_code == 200
     html_real = resp_real.text
-    assert "market-session-bar" in html_real
-    assert 'id="profit-factor"' in html_real
+    assert 'id="month-pnl"' in html_real
+    # The track-record tiles, session bar and the bar / doughnut charts left the Overview
+    for gone in ("market-session-bar", "pnl-chart", "exposure-chart", 'id="profit-factor"', 'id="win-rate"'):
+        assert gone not in html_demo, gone
     # The AI views went with the TMS / Judas / FlowRSI bots
     for gone in ("view-decisions", "view-news", "view-risk", "kz-banner", "news-assessment-modal"):
         assert gone not in html_demo, gone
@@ -183,9 +184,8 @@ def test_active_positions_rows_have_a_close_button():
     assert "action-close-pos" in html
     assert "fetch(`/api/positions/${d.id}/close`" in html
     assert "fetch(`/api/bot-commands/${id}`)" in html
-    assert 'colspan="11" class="empty-state">No active positions' in html
-    assert 'colspan="10" class="empty-state">No active positions' not in html
-    # delegated once on the tbody, so rows re-rendered by updateDashboard() keep working
+    assert '<p class="ov-empty">Không giữ lệnh nào.</p>' in html
+    # delegated once on the cards' container, so cards re-rendered by updateDashboard() keep working
     assert "document.getElementById('positions-table').addEventListener('click'" in html
     assert "did not pick up the command within 15 s" in html
 
