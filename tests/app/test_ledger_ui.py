@@ -66,6 +66,6 @@ console.log(JSON.stringify({{full: lgPageHtml({{accounts: [full], tolerance: 0.0
         assert "<img" not in out[name].lower(), name
         assert "evil&lt;img" in out[name], name
     assert "Record as deposit" in out["full"] and "+$5.00" in out["full"] and "kpi-value--warn" in out["full"]
-    assert "First balance seen: $1040.00" in out["full"] and "2 earlier closes: +$40.00" in out["full"]
+    assert "First balance seen: $1,040.00" in out["full"] and "2 earlier closes: +$40.00" in out["full"]
     assert 'data-opening="1"' in out["full"] and "Opening balance" not in out["full"]
     assert "No balance received" in out["empty"] and "Setup Instances" in out["none"]

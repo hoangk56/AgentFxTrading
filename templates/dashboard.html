@@ -4,13 +4,14 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AgentFxTrading Dashboard</title>
-    <link rel="stylesheet" href="/static/css/dashboard.css?v=20261029_trust1">
+    <link rel="stylesheet" href="/static/css/dashboard.css?v=20261029_dim1">
     <script src="/static/js/auth.js?v=20260927_login"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="/static/js/backtest.js?v=20261029_trust1" defer></script>
     <script src="/static/js/ledger.js?v=20260927_ledger0" defer></script>
-    <script src="/static/js/overview_alerts.js?v=20261029_alerts2" defer></script>
+    <script src="/static/js/overview_alerts.js?v=20261029_ov1" defer></script>
+    <script src="/static/js/overview_upcoming.js?v=20261029_ov1" defer></script>
     <script src="/static/js/forward_status.js?v=20261028_fwd1" defer></script>
     <script src="/static/js/paper_desk.js?v=20261029_pd1" defer></script>
     <script src="/static/js/gotobi_calendar.js?v=20261017_ecbplan" defer></script>
@@ -127,85 +128,11 @@
         </nav>
         <main class="main-content">
             <div id="view-dashboard" class="view-section active">
-                <!-- Market Sessions Bar -->
-                <div class="market-session-bar" id="market-session-bar">
-                    <div class="session-group">
-                        <span class="td-dim font-bold" style="font-size:0.75rem;"><i data-lucide="clock" class="kpi-icon text-cyan"></i> Sessions:</span>
-                        <span class="session-pill {% if market_sessions.sessions.sydney.active %}session-pill--active{% endif %}" id="sess-sydney" title="Sydney: 21:00-06:00 UTC">
-                            <span class="session-pill-dot"></span>Sydney
-                        </span>
-                        <span class="session-pill {% if market_sessions.sessions.tokyo.active %}session-pill--active{% endif %}" id="sess-tokyo" title="Tokyo: 00:00-09:00 UTC">
-                            <span class="session-pill-dot"></span>Tokyo
-                        </span>
-                        <span class="session-pill {% if market_sessions.sessions.london.active %}session-pill--active{% endif %}" id="sess-london" title="London: 07:00-16:00 UTC">
-                            <span class="session-pill-dot"></span>London
-                        </span>
-                        <span class="session-pill {% if market_sessions.sessions.new_york.active %}session-pill--active{% endif %}" id="sess-ny" title="New York: 12:00-21:00 UTC">
-                            <span class="session-pill-dot"></span>New York
-                        </span>
-                        <span class="badge {% if market_sessions.is_forex_weekend %}badge--warn{% else %}badge--live{% endif %}" id="market-forex-badge" style="font-size:0.7rem;">
-                            Forex: {{ market_sessions.forex_status }}
-                        </span>
-                    </div>
-                </div>
+                {# Overview, one compact view (redesign 2026-10-29): today's result and whether the bots are fine,
+                   what is open and what it can lose, what comes next, the last 30 days and the last closed trades.
+                   Every Jinja block here has a JS twin in static/js/dashboard.js that redraws it live. #}
 
-                <!-- KPI: what is happening now, then the track record -->
-                <div id="health-alerts" class="health-alerts" role="status" aria-live="polite" hidden></div>
-                <div class="kpi-section-label">Now</div>
-                <div class="kpi-grid kpi-grid--now">
-                    <div id="account-equity-card" class="kpi-card">
-                        <div class="kpi-label">Equity</div>
-                        <div id="account-equity" class="kpi-value kpi-value--mono">${{ "%.2f"|format(summary.account_equity or 0) }}</div>
-                    </div>
-                    <div id="account-balance-card" class="kpi-card">
-                        <div class="kpi-label">Balance</div>
-                        <div id="account-balance" class="kpi-value kpi-value--mono">${{ "%.2f"|format(summary.account_balance or 0) }}</div>
-                    </div>
-                    <div class="kpi-card" title="Equity minus balance: the open positions' unrealised result at the broker">
-                        <div class="kpi-label">Floating P&amp;L</div>
-                        {% set floating = summary.floating_pnl %}
-                        <div id="floating-pnl" class="kpi-value kpi-value--mono {% if floating is none %}{% elif floating >= 0 %}kpi-value--profit{% else %}kpi-value--loss{% endif %}">{% if floating is none %}--{% else %}{% if floating > 0 %}+{% endif %}${{ "%.2f"|format(floating) }}{% endif %}</div>
-                    </div>
-                    <div class="kpi-card">
-                        <div class="kpi-label">Daily P&amp;L</div>
-                        <div id="daily-pnl" class="kpi-value {% if summary.daily_pnl >= 0 %}kpi-value--profit{% else %}kpi-value--loss{% endif %}">{% if summary.daily_pnl > 0 %}+{% endif %}${{ summary.daily_pnl }}</div>
-                    </div>
-                    <div class="kpi-card">
-                        <div class="kpi-label">Open Pos</div>
-                        <div id="open-positions" class="kpi-value">{{ summary.open_positions }}</div>
-                    </div>
-                    <div class="kpi-card">
-                        <div class="kpi-label">Trades Today</div>
-                        <div id="trades-today" class="kpi-value">{{ summary.trades_today }}</div>
-                    </div>
-                </div>
-                <div class="kpi-section-label">Track record</div>
-                <div class="kpi-grid kpi-grid--record">
-                    <div class="kpi-card">
-                        <div class="kpi-label">Total P&amp;L</div>
-                        <div id="total-pnl" class="kpi-value {% if summary.total_pnl >= 0 %}kpi-value--profit{% else %}kpi-value--loss{% endif %}">{% if summary.total_pnl > 0 %}+{% endif %}${{ summary.total_pnl }}</div>
-                    </div>
-                    <div class="kpi-card">
-                        <div class="kpi-label">Win Rate</div>
-                        <div id="win-rate" class="kpi-value">{{ summary.win_rate }}%</div>
-                    </div>
-                    <div class="kpi-card">
-                        <div class="kpi-label">Profit Factor</div>
-                        <div id="profit-factor" class="kpi-value kpi-value--mono {% if summary.profit_factor and summary.profit_factor >= 1.5 %}kpi-value--profit{% elif summary.profit_factor and summary.profit_factor < 1.0 %}kpi-value--loss{% endif %}">
-                            {% if summary.profit_factor is not none and summary.total_trades > 0 %}
-                                {{ "%.2f"|format(summary.profit_factor) }}
-                            {% else %}
-                                --
-                            {% endif %}
-                        </div>
-                    </div>
-                    <div class="kpi-card">
-                        <div class="kpi-label">Loss Streak</div>
-                        <div id="loss-streak" class="kpi-value {% if summary.loss_streak >= 3 %}kpi-value--warn{% endif %}">{{ summary.loss_streak }}</div>
-                    </div>
-                </div>
-
-                {# SL/TP cell: price plus the bot's P&L estimate at that level; falls back to the
+                {# SL/TP line: price plus the bot's P&L estimate at that level; falls back to the
                    entry-time pip distance for rows written before prices were recorded. no_tp: the
                    bot has taken the TP off (a trailed runner), so the trade exits only at its stop. #}
                 {% macro sltp_line(tag, price, pnl, pips, no_tp=false) %}
@@ -232,188 +159,124 @@
                     <span class="bot-id-text" title="{{ bot_id }}">{{ bot_id }}</span>
                 </div>
                 {% endmacro %}
+                {# Mirrors strategyName() in static/js/dashboard.js. #}
+                {% macro strategy_name(bot_id) %}{% set b_lower = (bot_id or '') | lower %}{% if 'gotobi' in b_lower %}Gotobi{% elif '-ecb-' in b_lower %}ECB{% elif '-gold50' in b_lower %}Gold{% else %}cBot{% endif %}{% endmacro %}
+                {# Mirrors sideChip() in static/js/dashboard.js. #}
+                {% macro side_chip(side) %}<span class="side-chip {% if side == 'BUY' %}side-chip--buy{% else %}side-chip--sell{% endif %}">{% if side == 'BUY' %}Mua{% elif side == 'SELL' %}Bán{% else %}{{ side }}{% endif %}</span>{% endmacro %}
+                {# What the position loses if price reaches its stop. Mirrors riskLineHtml() in static/js/dashboard.js. #}
+                {% macro risk_line(sl_price, sl_pnl) %}
+                {% if not sl_price %}<span class="td-dim">Chưa có stop</span>
+                {% elif sl_pnl is none %}Stop ở <span class="td-mono">{{ sl_price }}</span>
+                {% elif sl_pnl < 0 %}Nếu chạm stop <b class="pnl-negative">-${{ '{:,.2f}'.format(sl_pnl | abs) }}</b>
+                {% else %}Stop đã khoá lời <b class="pnl-positive">+${{ '{:,.2f}'.format(sl_pnl) }}</b>{% endif %}
+                {% endmacro %}
                 {% macro close_reason_chip(reason) %}
                 {% set r = (reason or '') | lower %}
                 {% if not reason %}<span class="td-dim">—</span>
                 {% else %}<span class="reason-chip {% if 'stop out' in r or 'stopout' in r %}reason-chip--loss{% elif 'trailing' in r or 'break-even' in r or 'breakeven' in r %}reason-chip--lock{% elif 'takeprofit' in r or 'take profit' in r %}reason-chip--profit{% elif 'stoploss' in r or 'stop loss' in r %}reason-chip--loss{% endif %}" title="{{ reason }}">{{ reason }}</span>{% endif %}
                 {% endmacro %}
 
-                <!-- Active Positions Panel (Full-Width, Complete Info) -->
-                <section class="panel active-positions-panel">
-                    <div class="panel-header">
-                        <div class="panel-header-left">
-                            <span class="panel-title">Active Positions</span>
-                            <span class="panel-badge" id="active-pos-count">{% if positions %}{{ positions|length }} Open{% else %}0 Open{% endif %}</span>
-                        </div>
+                <section class="ov-hero">
+                    <div class="ov-today">
+                        <div class="ov-label">Lời/lỗ đã chốt hôm nay</div>
+                        <div id="daily-pnl" class="ov-today-num {% if summary.daily_pnl >= 0 %}kpi-value--profit{% else %}kpi-value--loss{% endif %}">{% if summary.daily_pnl > 0 %}+{% endif %}{% if summary.daily_pnl < 0 %}-{% endif %}${{ "{:,.2f}".format(summary.daily_pnl | abs) }}</div>
+                        <div id="ov-status" class="ov-status ov-status--checking">Đang kiểm tra bot…</div>
                     </div>
-                    <div class="panel-body">
-                        <div class="table-wrap">
-                            <table class="data-table">
-                                <thead>
-                                    <tr>
-                                        <th class="col-account">Account</th>
-                                        <th>Bot</th>
-                                        <th>Symbol</th>
-                                        <th>Side</th>
-                                        <th>Vol</th>
-                                        <th>Entry Price</th>
-                                        <th>Current Price</th>
-                                        <th>SL / TP</th>
-                                        <th>Unrealized P&amp;L</th>
-                                        <th>Open Time</th>
-                                        <th></th>
-                                    </tr>
-                                </thead>
-                                <tbody id="positions-table">
-                                    {% for pos in positions %}
-                                    <tr data-bot="{{ pos.bot_id }}">
-                                        <td class="col-account account-cell">
-                                            {% if pos.account_type == 'live' %}
-                                            <span class="badge badge--live"><span class="badge-dot"></span>LIVE</span>
-                                            {% else %}
-                                            <span class="badge badge--demo"><span class="badge-dot"></span>DEMO</span>
-                                            {% endif %}
-                                            <span class="account-name">{{ pos.account_label }}</span>
-                                        </td>
-                                        <td>{{ bot_badge(pos.bot_id) }}</td>
-                                        <td class="td-mono font-bold">{{ pos.symbol }}</td>
-                                        <td>
-                                            {% if pos.side == 'BUY' %}
-                                            <span class="side-chip side-chip--buy">BUY</span>
-                                            {% else %}
-                                            <span class="side-chip side-chip--sell">SELL</span>
-                                            {% endif %}
-                                        </td>
-                                        <td>{{ pos.volume }}L</td>
-                                        <td class="td-mono">{{ pos.entry_price }}</td>
-                                        <td class="td-mono td-current-price">{{ pos.current_price or pos.entry_price }}{% if pos.price_age_seconds is not none %}<span class="td-dim" title="price from the bot's last snapshot"> ·{{ (pos.price_age_seconds // 60) | int }}m</span>{% endif %}</td>
-                                        <td class="td-sltp">{{ sltp_line('SL', pos.sl_price, pos.sl_pnl, pos.sl_pips, pos.no_tp) }}{{ sltp_line('TP', pos.tp_price, pos.tp_pnl, pos.tp_pips, pos.no_tp) }}</td>
-                                        <td class="td-pnl-live">
-                                            {% if pos.unrealized_pnl is none %}
-                                            <span class="td-dim" title="broker-reported P&L arrives with the bot's next snapshot">—</span>
-                                            {% else %}
-                                            {% set u_pnl = pos.unrealized_pnl %}
-                                            {% set u_pips = pos.unrealized_pnl_pips | default(0) %}
-                                            <span class="pnl-chip {% if u_pnl >= 0 %}pnl-chip--profit{% else %}pnl-chip--loss{% endif %}">
-                                                {% if u_pnl > 0 %}+{% endif %}${{ u_pnl }} ({% if u_pips > 0 %}+{% endif %}{{ u_pips }}p)
-                                            </span>
-                                            {% endif %}
-                                        </td>
-                                        <td class="td-dim">{{ pos.entry_time }}</td>
-                                        <td class="td-actions">
-                                            <button class="log-btn action-close-pos" data-id="{{ pos.id }}" data-bot="{{ pos.bot_id }}" data-symbol="{{ pos.symbol }}" data-side="{{ pos.side }}" data-volume="{{ pos.volume }}" data-live="{{ '1' if pos.account_type == 'live' else '0' }}"{% if not pos.ctrader_id %} disabled title="No cTrader id recorded for this position - close it in cTrader"{% endif %} style="background:rgba(229,57,53,0.15); color:var(--loss);">Close</button>
-                                        </td>
-                                    </tr>
-                                    {% else %}
-                                    <tr><td colspan="11" class="empty-state">No active positions</td></tr>
-                                    {% endfor %}
-                                </tbody>
-                            </table>
+                    <div class="ov-stats">
+                        <div class="ov-stat">
+                            <div class="ov-label">Tháng này</div>
+                            {% set month = summary.month_pnl or 0 %}
+                            <div id="month-pnl" class="ov-stat-num {% if month >= 0 %}kpi-value--profit{% else %}kpi-value--loss{% endif %}">{% if month > 0 %}+{% endif %}{% if month < 0 %}-{% endif %}${{ "{:,.2f}".format(month | abs) }}</div>
+                        </div>
+                        <div class="ov-stat" title="Số dư: tiền đã chốt. Tính cả lệnh đang mở: tiền bạn có nếu đóng hết lệnh ngay bây giờ.">
+                            <div class="ov-label">Tiền trong tài khoản</div>
+                            <div id="account-balance" class="ov-stat-num">${{ "{:,.2f}".format(summary.account_balance or 0) }}</div>
+                            {% set floating = summary.floating_pnl %}
+                            <div class="ov-stat-sub">Tính cả lệnh đang mở <span id="account-equity">${{ "{:,.2f}".format(summary.account_equity or 0) }}</span>
+                                <span id="floating-pnl" class="{% if floating is none %}{% elif floating >= 0 %}kpi-value--profit{% else %}kpi-value--loss{% endif %}">{% if floating is none %}--{% else %}({% if floating > 0 %}+{% endif %}{% if floating < 0 %}-{% endif %}${{ "{:,.2f}".format(floating | abs) }}){% endif %}</span></div>
                         </div>
                     </div>
                 </section>
 
-                <!-- Recent Trades Panel (Full Width) -->
-                <section class="panel recent-trades-panel">
-                    <div class="panel-header">
-                        <span class="panel-title">Recent Trades</span>
-                        <div class="pager">
-                            <button id="history-prev" class="log-btn" type="button" {% if history.page <= 1 %}disabled{% endif %}>&lsaquo; Prev</button>
-                            <span id="history-page-label" class="pager-label">Page {{ history.page }} / {{ history.total_pages }}</span>
-                            <button id="history-next" class="log-btn" type="button" {% if history.page >= history.total_pages %}disabled{% endif %}>Next &rsaquo;</button>
-                        </div>
-                    </div>
-                    <div class="panel-body">
-                        <div class="table-wrap">
-                            <table class="data-table">
-                                <thead>
-                                    <tr>
-                                        <th class="col-account">Account</th>
-                                        <th>Bot</th>
-                                        <th>Symbol</th>
-                                        <th>Side</th>
-                                        <th>Vol</th>
-                                        <th>Entry</th>
-                                        <th>Exit</th>
-                                        <th>SL / TP</th>
-                                        <th>Net P&amp;L</th>
-                                        <th>Close Reason</th>
-                                        <th>Open / Close</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="history-table">
-                                    {% for trade in history['items'] %}
-                                    <tr>
-                                        <td class="col-account account-cell">
-                                            {% if trade.account_type == 'live' %}
-                                            <span class="badge badge--live"><span class="badge-dot"></span>LIVE</span>
-                                            {% else %}
-                                            <span class="badge badge--demo"><span class="badge-dot"></span>DEMO</span>
-                                            {% endif %}
-                                            <span class="account-name">{{ trade.account_label }}</span>
-                                        </td>
-                                        <td>{{ bot_badge(trade.bot_id) }}</td>
-                                        <td class="td-mono font-bold">{{ trade.symbol }}</td>
-                                        <td>
-                                            {% if trade.side == 'BUY' %}
-                                            <span class="side-chip side-chip--buy">BUY</span>
-                                            {% else %}
-                                            <span class="side-chip side-chip--sell">SELL</span>
-                                            {% endif %}
-                                        </td>
-                                        <td>{{ trade.volume }}L</td>
-                                        <td class="td-mono">{{ trade.entry_price }}</td>
-                                        <td class="td-mono">{{ trade.exit_price }}</td>
-                                        <td class="td-sltp">{{ sltp_line('SL', trade.sl_price, none, trade.sl_pips) }}{{ sltp_line('TP', trade.tp_price, none, trade.tp_pips) }}</td>
-                                        <td class="{% if trade.pnl >= 0 %}pnl-positive{% else %}pnl-negative{% endif %} font-bold">
-                                            {% if trade.pnl > 0 %}+{% endif %}${{ trade.pnl }}
-                                        </td>
-                                        <td class="td-reason">{{ close_reason_chip(trade.close_reason) }}</td>
-                                        <td class="td-times">
-                                            <div class="sltp-line"><span class="sltp-tag">IN</span><span class="td-dim">{{ trade.entry_time or '—' }}</span></div>
-                                            <div class="sltp-line"><span class="sltp-tag">OUT</span><span class="td-dim">{{ trade.exit_time or '—' }}</span>{% if trade.duration %}<span class="duration-chip" title="Time in trade">{{ trade.duration }}</span>{% endif %}</div>
-                                        </td>
-                                    </tr>
-                                    {% else %}
-                                    <tr><td colspan="11" class="empty-state">No trade history</td></tr>
-                                    {% endfor %}
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                </section>
+                <div id="health-alerts" class="health-alerts" role="status" aria-live="polite" hidden></div>
 
-                <!-- Analytics Section: Daily P&L, Equity Curve, and Asset Exposure -->
-                <div class="analytics-grid">
-                    <section class="panel chart-panel">
-                        <div class="panel-header">
-                            <span class="panel-title"><i data-lucide="bar-chart-3" class="panel-icon text-green"></i> Daily P&amp;L (30 Days)</span>
-                        </div>
-                        <div class="panel-body panel-body--chart">
-                            <canvas id="pnl-chart"></canvas>
+                <div class="ov-grid">
+                    <section class="ov-card ov-hold" aria-labelledby="ov-hold-title">
+                        <h2 id="ov-hold-title" class="ov-card-title">Đang giữ <span id="active-pos-count" class="ov-card-count">{{ positions|length }} lệnh</span></h2>
+                        <div id="positions-table" class="ov-positions">
+                            {% for pos in positions %}
+                            <article class="pos-card" data-bot="{{ pos.bot_id }}" data-symbol="{{ pos.symbol }}" data-side="{{ pos.side }}">
+                                <div class="pos-head">
+                                    <span class="pos-sym td-mono">{{ pos.symbol }}</span>
+                                    {{ side_chip(pos.side) }}
+                                    <span class="pos-strategy">{{ strategy_name(pos.bot_id) }}</span>
+                                    {% if pos.account_type == 'live' %}<span class="badge badge--live">Thật</span>{% else %}<span class="badge badge--demo">Demo</span>{% endif %}
+                                </div>
+                                <div class="pos-pnl td-pnl-live">
+                                    {% if pos.unrealized_pnl is none %}
+                                    <span class="td-dim" title="broker-reported P&L arrives with the bot's next snapshot">—</span>
+                                    {% else %}
+                                    {% set u_pnl = pos.unrealized_pnl %}
+                                    {% set u_pips = pos.unrealized_pnl_pips | default(0) %}
+                                    <span class="pnl-chip {% if u_pnl >= 0 %}pnl-chip--profit{% else %}pnl-chip--loss{% endif %}">{% if u_pnl > 0 %}+{% endif %}${{ u_pnl }} ({% if u_pips > 0 %}+{% endif %}{{ u_pips }}p)</span>
+                                    {% endif %}
+                                </div>
+                                <div class="pos-risk">{{ risk_line(pos.sl_price, pos.sl_pnl) }}</div>
+                                <details class="pos-more">
+                                    <summary>Chi tiết</summary>
+                                    <dl class="pos-facts">
+                                        <dt>Bot</dt><dd>{{ bot_badge(pos.bot_id) }}</dd>
+                                        <dt>Tài khoản</dt><dd>{{ pos.account_label }}</dd>
+                                        <dt>Khối lượng</dt><dd>{{ pos.volume }} lot</dd>
+                                        <dt>Giá vào</dt><dd class="td-mono">{{ pos.entry_price }}</dd>
+                                        <dt>Giá hiện tại</dt><dd class="td-mono td-current-price">{{ pos.current_price or pos.entry_price }}{% if pos.price_age_seconds is not none %}<span class="td-dim" title="price from the bot's last snapshot"> ·{{ (pos.price_age_seconds // 60) | int }}m</span>{% endif %}</dd>
+                                        <dt>SL / TP</dt><dd class="td-sltp">{{ sltp_line('SL', pos.sl_price, pos.sl_pnl, pos.sl_pips, pos.no_tp) }}{{ sltp_line('TP', pos.tp_price, pos.tp_pnl, pos.tp_pips, pos.no_tp) }}</dd>
+                                        <dt>Mở lúc</dt><dd>{{ pos.entry_time }}</dd>
+                                    </dl>
+                                </details>
+                                <div class="pos-actions">
+                                    <button class="log-btn action-close-pos" data-id="{{ pos.id }}" data-bot="{{ pos.bot_id }}" data-symbol="{{ pos.symbol }}" data-side="{{ pos.side }}" data-volume="{{ pos.volume }}" data-live="{{ '1' if pos.account_type == 'live' else '0' }}"{% if not pos.ctrader_id %} disabled title="No cTrader id recorded for this position - close it in cTrader"{% endif %}>Đóng lệnh</button>
+                                </div>
+                            </article>
+                            {% else %}
+                            <p class="ov-empty">Không giữ lệnh nào.</p>
+                            {% endfor %}
                         </div>
                     </section>
-                    <section class="panel chart-panel">
-                        <div class="panel-header">
-                            <span class="panel-title"><i data-lucide="trending-up" class="panel-icon text-cyan"></i> Cumulative Equity Curve</span>
-                        </div>
-                        <div class="panel-body panel-body--chart">
-                            <canvas id="equity-chart"></canvas>
-                        </div>
+
+                    <section class="ov-card ov-next" aria-labelledby="ov-next-title">
+                        <h2 id="ov-next-title" class="ov-card-title">Sắp tới <span class="ov-card-count">giờ Việt Nam</span></h2>
+                        <ul id="ov-upcoming" class="ov-list"><li class="ov-empty">Đang tải…</li></ul>
                     </section>
-                    <section class="panel exposure-panel">
-                        <div class="panel-header">
-                            <span class="panel-title"><i data-lucide="pie-chart" class="panel-icon text-amber"></i> Active Asset Exposure</span>
-                        </div>
-                        <div class="panel-body">
-                            <div class="exposure-wrap">
-                                <canvas id="exposure-chart" style="max-height: 180px;"></canvas>
-                                <div id="exposure-empty-msg" class="td-dim" style="display:none; font-size:0.8rem; margin:auto;">No active position volume</div>
+
+                    <section class="ov-card ov-curve" aria-labelledby="ov-curve-title">
+                        <h2 id="ov-curve-title" class="ov-card-title">Tiền 30 ngày qua <span id="curve-total" class="ov-card-count"></span></h2>
+                        <div class="ov-chart"><canvas id="equity-chart" aria-label="Lời lỗ cộng dồn 30 ngày"></canvas></div>
+                    </section>
+
+                    <section class="ov-card ov-closed" aria-labelledby="ov-closed-title">
+                        <h2 id="ov-closed-title" class="ov-card-title">Đã đóng gần đây</h2>
+                        <div id="history-table" class="ov-list">
+                            {% for trade in history['items'] %}
+                            <div class="closed-row" title="{{ trade.bot_id }} · {{ trade.volume }} lot · {{ trade.entry_price }} → {{ trade.exit_price }}">
+                                <span class="closed-day">{{ (trade.exit_time or '')[9:14] or '—' }}</span>
+                                <span class="closed-main">{{ strategy_name(trade.bot_id) }} · {{ side_chip(trade.side) }} <span class="td-mono">{{ trade.symbol }}</span>
+                                    <span class="closed-sub">{% if trade.close_reason %}{{ trade.close_reason }}{% endif %}{% if trade.close_reason and trade.duration %} · {% endif %}{% if trade.duration %}giữ {{ trade.duration }}{% endif %}</span></span>
+                                <span class="closed-pnl {% if trade.pnl >= 0 %}pnl-positive{% else %}pnl-negative{% endif %}">{% if trade.pnl > 0 %}+{% endif %}{% if trade.pnl < 0 %}-{% endif %}${{ "{:,.2f}".format(trade.pnl | abs) }}</span>
                             </div>
+                            {% else %}
+                            <p class="ov-empty">Chưa có lệnh nào đóng.</p>
+                            {% endfor %}
+                        </div>
+                        <div class="pager">
+                            <button id="history-prev" class="log-btn" type="button" {% if history.page <= 1 %}disabled{% endif %}>&lsaquo; Mới hơn</button>
+                            <span id="history-page-label" class="pager-label">Trang {{ history.page }} / {{ history.total_pages }}</span>
+                            <button id="history-next" class="log-btn" type="button" {% if history.page >= history.total_pages %}disabled{% endif %}>Cũ hơn &rsaquo;</button>
                         </div>
                     </section>
                 </div>
             </div>
+
 
             <!-- Leaderboard View -->
             <div id="view-leaderboard" class="view-section">
@@ -824,10 +687,9 @@
         window.DASHBOARD_BOOTSTRAP = {
             currentMode: '{{ current_mode }}',
             pnlHistory: {{ pnl_history | tojson }},
-            exposure: {{ exposure | tojson }},
             positions: {{ positions | tojson }},
             leaderboard: {{ leaderboard | tojson }},
         };
     </script>
-    <script src="/static/js/dashboard.js?v=20261029_trust1"></script>
+    <script src="/static/js/dashboard.js?v=20261029_ov2"></script>
 </body></html>

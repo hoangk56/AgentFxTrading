@@ -478,11 +478,14 @@ const DASHBOARD_BOOTSTRAP = window.DASHBOARD_BOOTSTRAP || {};
             if (v === null || v === undefined) return "$0.00";
             const n = Number(v) || 0;
             const sign = n < 0 ? "-$" : "$";
-            return `${sign}${Math.abs(n).toFixed(2)}`;
+            return `${sign}${Math.abs(n).toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
         }
         function pnlClass(v){return Number(v)>=0?'kpi-value--profit':'kpi-value--loss'}
-        function accountBadge(t){return t==='live'?'<span class="badge badge--live"><span class="badge-dot"></span>LIVE</span>':'<span class="badge badge--demo"><span class="badge-dot"></span>DEMO</span>'}
-        function sideChip(s){const c=s==='BUY'?'side-chip--buy':'side-chip--sell';return `<span class="side-chip ${c}">${escapeHtml(s)}</span>`}
+        function accountBadge(t){return t==='live'?'<span class="badge badge--live"><span class="badge-dot"></span>LIVE</span>':'<span class="badge badge--demo"><span class="badge-dot"></span>DEMO</span>'}   // also used by ledger.js
+        // Mirrors the side_chip macro: Mua / Bán, anything else shown as sent.
+        function sideChip(s){const c=s==='BUY'?'side-chip--buy':'side-chip--sell';const t=s==='BUY'?'Mua':(s==='SELL'?'Bán':escapeHtml(s));return `<span class="side-chip ${c}">${t}</span>`}
+        // "+$12.30" / "-$4.00" / "$0.00".
+        function signedMoney(v){const n=Number(v)||0;return `${n>0?'+':''}${formatMoney(n)}`}
         // Single renderer for the P&L cell, shared by the row builder and the live tick handler.
         // Only the broker's own figure is shown; a missing one reads as "—" rather than a guess.
         function pnlCellHtml(pnl, pips){
@@ -558,12 +561,66 @@ const DASHBOARD_BOOTSTRAP = window.DASHBOARD_BOOTSTRAP || {};
                 <span class="bot-id-text" title="${safe}">${safe}</span>
             </div>`;
         }
+        // Mirrors the strategy_name macro.
+        function strategyName(b){
+            const bl=String(b||'').toLowerCase();
+            return bl.includes('gotobi')?'Gotobi':(bl.includes('-ecb-')?'ECB':(bl.includes('-gold50')?'Gold':'cBot'));
+        }
+        // What the position loses if price reaches its stop. Mirrors the risk_line macro; takes a position or tick levels.
+        function riskLineHtml(o){
+            if(!o.sl_price) return '<span class="td-dim">Chưa có stop</span>';
+            if(o.sl_pnl===null||o.sl_pnl===undefined) return `Stop ở <span class="td-mono">${escapeHtml(o.sl_price)}</span>`;
+            const v=Number(o.sl_pnl)||0;
+            return v<0 ? `Nếu chạm stop <b class="pnl-negative">${formatMoney(v)}</b>`
+                       : `Stop đã khoá lời <b class="pnl-positive">+${formatMoney(v)}</b>`;
+        }
+        // One open position on the Overview. Mirrors the pos-card block of templates/dashboard.html.
+        function positionCardHtml(p){
+            const curPrice = (p.current_price !== undefined && p.current_price !== null) ? p.current_price : p.entry_price;
+            const priceAge = (typeof p.price_age_seconds === 'number') ? `<span class="td-dim" title="price from the bot's last snapshot"> ·${Math.floor(p.price_age_seconds/60)}m</span>` : '';
+            const acct = p.account_type==='live' ? '<span class="badge badge--live">Thật</span>' : '<span class="badge badge--demo">Demo</span>';
+            return `<article class="pos-card" data-bot="${escapeHtml(p.bot_id||'')}" data-symbol="${escapeHtml(p.symbol||'')}" data-side="${escapeHtml(p.side||'')}">
+                <div class="pos-head">
+                    <span class="pos-sym td-mono">${escapeHtml(p.symbol)}</span>
+                    ${sideChip(p.side)}
+                    <span class="pos-strategy">${strategyName(p.bot_id)}</span>
+                    ${acct}
+                </div>
+                <div class="pos-pnl td-pnl-live">${pnlCellHtml(p.unrealized_pnl, p.unrealized_pnl_pips)}</div>
+                <div class="pos-risk">${riskLineHtml(p)}</div>
+                <details class="pos-more">
+                    <summary>Chi tiết</summary>
+                    <dl class="pos-facts">
+                        <dt>Bot</dt><dd>${botBadge(p.bot_id)}</dd>
+                        <dt>Tài khoản</dt><dd>${escapeHtml(p.account_label||'')}</dd>
+                        <dt>Khối lượng</dt><dd>${escapeHtml(p.volume)} lot</dd>
+                        <dt>Giá vào</dt><dd class="td-mono">${escapeHtml(p.entry_price)}</dd>
+                        <dt>Giá hiện tại</dt><dd class="td-mono td-current-price">${escapeHtml(curPrice)}${priceAge}</dd>
+                        <dt>SL / TP</dt><dd class="td-sltp">${sltpCellHtml(p, true)}</dd>
+                        <dt>Mở lúc</dt><dd>${escapeHtml(p.entry_time||'—')}</dd>
+                    </dl>
+                </details>
+                <div class="pos-actions">${closeButtonHtml(p)}</div>
+            </article>`;
+        }
+        // One closed trade on the Overview. Mirrors the closed-row block of templates/dashboard.html.
+        function closedRowHtml(t){
+            const day = String(t.exit_time||'').slice(9, 14) || '—';   // "HH:MM:SS DD/MM/YYYY" -> "DD/MM"
+            const sub = [t.close_reason ? escapeHtml(t.close_reason) : '', t.duration ? `giữ ${escapeHtml(t.duration)}` : ''].filter(Boolean).join(' · ');
+            const title = `${t.bot_id||''} · ${t.volume} lot · ${t.entry_price} → ${t.exit_price}`;
+            return `<div class="closed-row" title="${escapeHtml(title)}">
+                <span class="closed-day">${escapeHtml(day)}</span>
+                <span class="closed-main">${strategyName(t.bot_id)} · ${sideChip(t.side)} <span class="td-mono">${escapeHtml(t.symbol)}</span>
+                    <span class="closed-sub">${sub}</span></span>
+                <span class="closed-pnl ${Number(t.pnl)>=0?'pnl-positive':'pnl-negative'}">${signedMoney(t.pnl)}</span>
+            </div>`;
+        }
 
         let currentMode = DASHBOARD_BOOTSTRAP.currentMode || 'demo';
         let selectedAccountId = (currentMode === 'real' || currentMode === 'live') ? 'live' : 'demo';
         const accountSelector = document.getElementById('account-selector');
 
-        const HISTORY_PAGE_SIZE = 10;
+        const HISTORY_PAGE_SIZE = 5;   // the Overview shows the last few; matches dashboard_page()
         let historyPage = 1;
         function historyUrl() {
             return `/api/dashboard/history?account_id=${selectedAccountId}&page=${historyPage}&page_size=${HISTORY_PAGE_SIZE}`;
@@ -621,153 +678,44 @@ const DASHBOARD_BOOTSTRAP = window.DASHBOARD_BOOTSTRAP || {};
         });
 
         let rawDailyHistory = DASHBOARD_BOOTSTRAP.pnlHistory;
-        let initialExposure = DASHBOARD_BOOTSTRAP.exposure;
 
-        // 1. Daily P&L Bar Chart
-        const pnlCtx = document.getElementById('pnl-chart').getContext('2d');
-        const pnlChart = new Chart(pnlCtx, {
-            type: 'bar',
-            data: {
-                labels: rawDailyHistory.map(d=>d.date),
-                datasets: [{
-                    label: 'Daily P&L',
-                    data: rawDailyHistory.map(d=>d.pnl),
-                    backgroundColor: rawDailyHistory.map(d=>d.pnl>=0?'rgba(52,211,153,0.6)':'rgba(248,113,113,0.6)'),
-                    borderColor: rawDailyHistory.map(d=>d.pnl>=0?'rgba(52,211,153,1)':'rgba(248,113,113,1)'),
-                    borderWidth: 1,
-                    borderRadius: 2
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: { display: false },
-                    tooltip: { backgroundColor: '#1e293b', titleColor: '#f1f5f9', bodyColor: '#94a3b8' }
-                },
-                scales: {
-                    y: { beginAtZero: true, grid: { color: 'rgba(148,163,184,0.15)' }, ticks: { color: '#94a3b8', callback: v => '$' + v } },
-                    x: { grid: { display: false }, ticks: { color: '#94a3b8', maxRotation: 0 } }
-                }
-            }
-        });
-
-        // 2. Cumulative Equity Curve Line Chart
-        const equityCtx = document.getElementById('equity-chart').getContext('2d');
-        let cumInit = 0;
-        const cumInitData = rawDailyHistory.map(d => { cumInit += (d.pnl || 0); return parseFloat(cumInit.toFixed(2)); });
-        const equityChart = new Chart(equityCtx, {
+        // Overview "Tiền 30 ngày qua": closed P&L added up day by day, drawn in the colour of where it ends.
+        const cssVar = name => getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+        function cumulativePnl(h){let c=0;return h.map(d=>{c+=(d.pnl||0);return parseFloat(c.toFixed(2));});}
+        const equityChart = new Chart(document.getElementById('equity-chart').getContext('2d'), {
             type: 'line',
-            data: {
-                labels: rawDailyHistory.map(d=>d.date),
-                datasets: [{
-                    label: 'Cumulative Equity',
-                    data: cumInitData,
-                    borderColor: '#38bdf8',
-                    backgroundColor: 'rgba(56, 189, 248, 0.12)',
-                    fill: true,
-                    tension: 0.25,
-                    borderWidth: 2,
-                    pointRadius: 3,
-                    pointBackgroundColor: '#38bdf8'
-                }]
-            },
+            data: { labels: [], datasets: [{ data: [], fill: true, tension: 0.3, borderWidth: 2, pointRadius: 0, pointHoverRadius: 4 }] },
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
+                interaction: { mode: 'index', intersect: false },
                 plugins: {
                     legend: { display: false },
-                    tooltip: { backgroundColor: '#1e293b', titleColor: '#f1f5f9', bodyColor: '#94a3b8' }
+                    tooltip: { backgroundColor: cssVar('--bg-elevated'), titleColor: cssVar('--text-primary'), bodyColor: cssVar('--text-muted'),
+                               displayColors: false, callbacks: { label: c => signedMoney(c.parsed.y) } }
                 },
                 scales: {
-                    y: { beginAtZero: false, grid: { color: 'rgba(148,163,184,0.15)' }, ticks: { color: '#94a3b8', callback: v => '$' + v } },
-                    x: { grid: { display: false }, ticks: { color: '#94a3b8', maxRotation: 0 } }
+                    y: { grid: { color: cssVar('--border-subtle') }, border: { display: false },
+                         ticks: { color: cssVar('--text-dim'), maxTicksLimit: 5, callback: v => '$' + v } },
+                    x: { grid: { display: false }, ticks: { color: cssVar('--text-dim'), maxRotation: 0, autoSkip: true, maxTicksLimit: 4 } }
                 }
             }
         });
 
         function updatePnlChart(h) {
             rawDailyHistory = h;
-            // Update Daily Bar Chart
-            pnlChart.data.labels = h.map(d=>d.date);
-            pnlChart.data.datasets = [{
-                label: 'Daily P&L',
-                data: h.map(d=>d.pnl),
-                backgroundColor: h.map(d=>d.pnl>=0?'rgba(52,211,153,0.6)':'rgba(248,113,113,0.6)'),
-                borderColor: h.map(d=>d.pnl>=0?'rgba(52,211,153,1)':'rgba(248,113,113,1)'),
-                borderWidth: 1,
-                borderRadius: 2
-            }];
-            pnlChart.update();
-
-            // Update Cumulative Equity Chart
-            let cum = 0;
-            const cumData = h.map(d => { cum += (d.pnl || 0); return parseFloat(cum.toFixed(2)); });
-            equityChart.data.labels = h.map(d=>d.date);
-            equityChart.data.datasets = [{
-                label: 'Cumulative Equity',
-                data: cumData,
-                borderColor: '#38bdf8',
-                backgroundColor: 'rgba(56, 189, 248, 0.12)',
-                fill: true,
-                tension: 0.25,
-                borderWidth: 2,
-                pointRadius: 3,
-                pointBackgroundColor: '#38bdf8'
-            }];
+            const data = cumulativePnl(h);
+            const last = data.length ? data[data.length - 1] : 0;
+            const ds = equityChart.data.datasets[0];
+            equityChart.data.labels = h.map(d => String(d.date || '').slice(8, 10) + '/' + String(d.date || '').slice(5, 7));
+            ds.data = data;
+            ds.borderColor = cssVar(last >= 0 ? '--profit' : '--loss');
+            ds.backgroundColor = cssVar(last >= 0 ? '--profit-soft' : '--loss-soft');
             equityChart.update();
+            const total = document.getElementById('curve-total');
+            if (total) { total.textContent = signedMoney(last); total.className = `ov-card-count ${pnlClass(last)}`; }
         }
-
-        // Asset Exposure Doughnut Chart
-        const expCtx = document.getElementById('exposure-chart').getContext('2d');
-        let exposureChart = new Chart(expCtx, {
-            type: 'doughnut',
-            data: {
-                labels: Object.keys(initialExposure.by_asset_class || {}),
-                datasets: [{
-                    data: Object.values(initialExposure.by_asset_class || {}),
-                    backgroundColor: ['#f59e0b', '#3b82f6', '#10b981', '#8b5cf6'],
-                    borderWidth: 1,
-                    borderColor: '#1e293b'
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: { position: 'bottom', labels: { boxWidth: 10, color: '#94a3b8', font: { size: 10 } } }
-                },
-                cutout: '65%'
-            }
-        });
-
-        function updateExposureChart(positions) {
-            const byClass = { "Forex": 0.0, "Gold/Metals": 0.0, "Crypto": 0.0, "Indices": 0.0 };
-            let totalVol = 0;
-            positions.forEach(p => {
-                const sym = (p.symbol || '').toUpperCase();
-                const vol = parseFloat(p.volume) || 0;
-                totalVol += vol;
-                if (sym.includes('BTC') || sym.includes('ETH') || sym.includes('SOL')) byClass['Crypto'] += vol;
-                else if (sym.includes('XAU') || sym.includes('GOLD')) byClass['Gold/Metals'] += vol;
-                else if (sym.includes('US30') || sym.includes('USTEC') || sym.includes('DE40') || sym.includes('UK100')) byClass['Indices'] += vol;
-                else byClass['Forex'] += vol;
-            });
-            const filtered = Object.entries(byClass).filter(([_, v]) => v > 0);
-            const emptyMsg = document.getElementById('exposure-empty-msg');
-            const expCanvas = document.getElementById('exposure-chart');
-            if (!filtered.length) {
-                if (emptyMsg) emptyMsg.style.display = 'block';
-                if (expCanvas) expCanvas.style.display = 'none';
-            } else {
-                if (emptyMsg) emptyMsg.style.display = 'none';
-                if (expCanvas) expCanvas.style.display = 'block';
-                exposureChart.data.labels = filtered.map(([k]) => k);
-                exposureChart.data.datasets[0].data = filtered.map(([_, v]) => parseFloat(v.toFixed(2)));
-                exposureChart.update();
-            }
-        }
-        updateExposureChart(DASHBOARD_BOOTSTRAP.positions);
+        updatePnlChart(rawDailyHistory);
         let ws=null,pingInterval=null;
         function setConn(on){const el=document.getElementById('connection-status');if(on){el.className='status-pill status-pill--online';el.innerHTML='<span class="status-dot"></span><span>Connected</span>'}else{el.className='status-pill status-pill--offline';el.innerHTML='<span class="status-dot"></span><span>Disconnected</span>'}}
         function connectWebSocket(){
@@ -831,15 +779,13 @@ const DASHBOARD_BOOTSTRAP = window.DASHBOARD_BOOTSTRAP || {};
 
         function handleLiveTick(tick) {
             if (!tick || !tick.symbol) return;
-            // Update matching row in positions table
-            const rows = document.querySelectorAll('#positions-table tr');
-            rows.forEach(tr => {
-                const symCell = tr.querySelector('.td-mono.font-bold');
-                if (symCell && symCell.textContent.trim().toUpperCase() === tick.symbol.toUpperCase()) {
+            // Update the matching position cards
+            const cards = document.querySelectorAll('#positions-table .pos-card');
+            cards.forEach(tr => {
+                if ((tr.dataset.symbol || '').toUpperCase() === tick.symbol.toUpperCase()) {
                     const curPriceCell = tr.querySelector('.td-current-price');
                     if (curPriceCell) {
-                        const sideBadge = tr.querySelector('.side-chip');
-                        const isBuy = sideBadge && sideBadge.textContent.includes('BUY');
+                        const isBuy = tr.dataset.side === 'BUY';
                         const newPrice = isBuy ? (tick.bid || tick.ask) : (tick.ask || tick.bid);
                         if (newPrice) {
                             const oldPrice = parseFloat(curPriceCell.textContent) || newPrice;
@@ -865,6 +811,8 @@ const DASHBOARD_BOOTSTRAP = window.DASHBOARD_BOOTSTRAP || {};
                     if (tick.levels) {
                         const sltpCell = tr.querySelector('.td-sltp');
                         if (sltpCell) sltpCell.innerHTML = sltpCellHtml(tick.levels, true);
+                        const riskEl = tr.querySelector('.pos-risk');
+                        if (riskEl) riskEl.innerHTML = riskLineHtml(tick.levels);
                     }
                 }
             });
@@ -906,65 +854,27 @@ const DASHBOARD_BOOTSTRAP = window.DASHBOARD_BOOTSTRAP || {};
             }
         }
         function updateDashboard(summary,positions){
-            document.getElementById('open-positions').textContent=summary.open_positions;
-            const dEl=document.getElementById('daily-pnl');dEl.textContent=formatMoney(summary.daily_pnl);dEl.className=`kpi-value ${pnlClass(summary.daily_pnl)}`;
-            const tEl=document.getElementById('total-pnl');tEl.textContent=formatMoney(summary.total_pnl);tEl.className=`kpi-value ${pnlClass(summary.total_pnl)}`;
-            document.getElementById('win-rate').textContent=`${summary.win_rate}%`;
-            const pfEl=document.getElementById('profit-factor');
-            if(pfEl){
-                if(summary.profit_factor!==undefined && summary.profit_factor!==null && summary.total_trades>0){
-                    pfEl.textContent=Number(summary.profit_factor).toFixed(2);
-                    pfEl.className=`kpi-value kpi-value--mono ${summary.profit_factor>=1.5?'kpi-value--profit':(summary.profit_factor<1.0?'kpi-value--loss':'')}`;
-                } else {
-                    pfEl.textContent='--';
-                    pfEl.className='kpi-value kpi-value--mono';
-                }
-            }
+            const money=(id, v, signed)=>{
+                const el=document.getElementById(id); if(!el) return;
+                el.textContent=signed?signedMoney(v):formatMoney(v);
+                if(signed) el.className=`${el.className.split(' ').filter(c=>!c.startsWith('kpi-value--')).join(' ')} ${pnlClass(v)}`.trim();
+            };
+            money('daily-pnl', summary.daily_pnl, true);
+            money('month-pnl', summary.month_pnl, true);
+            money('account-balance', summary.account_balance||0, false);
+            money('account-equity', summary.account_equity||0, false);
             const fEl=document.getElementById('floating-pnl');
             if(fEl){
                 const hasFloating=summary.floating_pnl!==undefined && summary.floating_pnl!==null;
-                fEl.textContent=hasFloating?formatMoney(summary.floating_pnl):'--';
-                fEl.className=`kpi-value kpi-value--mono ${hasFloating?pnlClass(summary.floating_pnl):''}`;
+                fEl.textContent=hasFloating?`(${signedMoney(summary.floating_pnl)})`:'--';
+                fEl.className=hasFloating?pnlClass(summary.floating_pnl):'';
             }
-            document.getElementById('trades-today').textContent=summary.trades_today;
-            const lEl=document.getElementById('loss-streak');lEl.textContent=summary.loss_streak;lEl.className=`kpi-value ${summary.loss_streak>=3?'kpi-value--warn':''}`;
             document.getElementById('last-updated').textContent=new Date().toLocaleTimeString();
-            const isMultiAcc = (selectedAccountId === 'demo' || selectedAccountId === 'live' || selectedAccountId === 'all');
-            document.querySelectorAll('.col-account').forEach(el => { isMultiAcc ? el.classList.remove('hidden') : el.classList.add('hidden') });
-            const bC=document.getElementById('account-balance'),eC=document.getElementById('account-equity');
-            if(bC)bC.textContent=formatMoney(summary.account_balance||0);
-            if(eC)eC.textContent=formatMoney(summary.account_equity||0);
-            
-            const posCountEl = document.getElementById('active-pos-count');
-            if (posCountEl) posCountEl.textContent = positions.length ? `${positions.length} Open` : '0 Open';
 
-            const tb=document.getElementById('positions-table'),ah=isMultiAcc?'':'hidden';
-            if(!positions.length){
-                tb.innerHTML='<tr><td colspan="11" class="empty-state">No active positions</td></tr>';
-            } else {
-                tb.innerHTML=positions.map(p=>{
-                    const curPrice = (p.current_price !== undefined && p.current_price !== null) ? p.current_price : p.entry_price;
-                    const priceAge = (typeof p.price_age_seconds === 'number') ? `<span class="td-dim" title="price from the bot's last snapshot"> ·${Math.floor(p.price_age_seconds/60)}m</span>` : '';
-                    const pnlCell = pnlCellHtml(p.unrealized_pnl, p.unrealized_pnl_pips);
-                    
-                    return `<tr data-bot="${escapeHtml(p.bot_id||'')}">
-                        <td class="col-account account-cell ${ah}">${accountBadge(p.account_type)}<span class="account-name">${escapeHtml(p.account_label||'')}</span></td>
-                        <td>${botBadge(p.bot_id)}</td>
-                        <td class="td-mono font-bold">${escapeHtml(p.symbol)}</td>
-                        <td>${sideChip(p.side)}</td>
-                        <td>${escapeHtml(p.volume)}L</td>
-                        <td class="td-mono">${escapeHtml(p.entry_price)}</td>
-                        <td class="td-mono td-current-price">${escapeHtml(curPrice)}${priceAge}</td>
-                        <td class="td-sltp">${sltpCellHtml(p, true)}</td>
-                        <td class="td-pnl-live">${pnlCell}</td>
-                        <td class="td-dim">${escapeHtml(p.entry_time)}</td>
-                        <td class="td-actions">${closeButtonHtml(p)}</td>
-                    </tr>`;
-                }).join('');
-            }
-            if (typeof updateExposureChart === 'function') {
-                updateExposureChart(positions);
-            }
+            const posCountEl = document.getElementById('active-pos-count');
+            if (posCountEl) posCountEl.textContent = `${positions.length} lệnh`;
+            const box=document.getElementById('positions-table');
+            box.innerHTML = positions.length ? positions.map(positionCardHtml).join('') : '<p class="ov-empty">Không giữ lệnh nào.</p>';
         }
         // --- Manual close (Close button in Active Positions) ---
         // The dashboard queues the close; the position's bot picks it up within ~2 s, closes it at
@@ -981,7 +891,7 @@ const DASHBOARD_BOOTSTRAP = window.DASHBOARD_BOOTSTRAP || {};
             const closing = closingPositions.has(String(p.id));
             const noId = !p.ctrader_id;
             const title = noId ? ' title="No cTrader id recorded for this position - close it in cTrader"' : '';
-            return `<button class="log-btn action-close-pos" data-id="${p.id}" data-bot="${escapeHtml(p.bot_id||'')}" data-symbol="${escapeHtml(p.symbol||'')}" data-side="${escapeHtml(p.side||'')}" data-volume="${escapeHtml(p.volume)}" data-live="${p.account_type==='live'?'1':'0'}"${(noId||closing)?' disabled':''}${title} style="background:rgba(248,113,113,0.15); color:var(--loss);">${closing?'Closing…':'Close'}</button>`;
+            return `<button class="log-btn action-close-pos" data-id="${p.id}" data-bot="${escapeHtml(p.bot_id||'')}" data-symbol="${escapeHtml(p.symbol||'')}" data-side="${escapeHtml(p.side||'')}" data-volume="${escapeHtml(p.volume)}" data-live="${p.account_type==='live'?'1':'0'}"${(noId||closing)?' disabled':''}${title}>${closing?'Đang đóng…':'Đóng lệnh'}</button>`;
         }
         async function waitForBotCommand(id, maxSeconds = 35) {
             for (let i = 0; i < maxSeconds; i++) {
@@ -995,14 +905,14 @@ const DASHBOARD_BOOTSTRAP = window.DASHBOARD_BOOTSTRAP || {};
         }
         async function closePosition(btn) {
             const d = btn.dataset;
-            const tr = btn.closest('tr');
-            const pnlCell = tr ? tr.querySelector('.td-pnl-live') : null;
+            const card = btn.closest('.pos-card');
+            const pnlCell = card ? card.querySelector('.td-pnl-live') : null;
             const pnlText = pnlCell ? pnlCell.textContent.trim() : '';
             const prefix = d.live === '1' ? '[LIVE] ' : '';
             if (!confirm(`${prefix}Close ${d.side} ${d.symbol} ${d.volume}L of ${d.bot} at market?\nCurrent P&L: ${pnlText || 'n/a'}`)) return;
             closingPositions.add(String(d.id));
             btn.disabled = true;
-            btn.textContent = 'Closing…';
+            btn.textContent = 'Đang đóng…';
             try {
                 const res = await fetch(`/api/positions/${d.id}/close`, { method: 'POST' });
                 const data = await res.json();
@@ -1012,10 +922,10 @@ const DASHBOARD_BOOTSTRAP = window.DASHBOARD_BOOTSTRAP || {};
                 refreshDashboardData();   // the broadcast normally removes the row first
             } catch (err) {
                 closingPositions.delete(String(d.id));
-                // updateDashboard() may have re-rendered the table while this waited, so `btn` can be
+                // updateDashboard() may have re-rendered the cards while this waited, so `btn` can be
                 // a detached copy: re-enable whichever button shows this row now.
                 document.querySelectorAll(`#positions-table .action-close-pos[data-id="${d.id}"]`)
-                    .forEach(b => { b.disabled = false; b.textContent = 'Close'; });
+                    .forEach(b => { b.disabled = false; b.textContent = 'Đóng lệnh'; });
                 alert(String((err && err.message) || err));
             } finally {
                 closingPositions.delete(String(d.id));
@@ -1026,58 +936,18 @@ const DASHBOARD_BOOTSTRAP = window.DASHBOARD_BOOTSTRAP || {};
             if (btn && !btn.disabled) closePosition(btn);
         });
 
-        // Periodic Session Status Refresher
-        async function refreshMarketSessions() {
-            try {
-                const res = await fetch('/api/dashboard/sessions');
-                if (!res.ok) return;
-                const s = await res.json();
-                const setPill = (id, active) => {
-                    const el = document.getElementById(id);
-                    if (el) el.className = `session-pill ${active ? 'session-pill--active' : ''}`;
-                };
-                setPill('sess-sydney', s.sessions.sydney.active);
-                setPill('sess-tokyo', s.sessions.tokyo.active);
-                setPill('sess-london', s.sessions.london.active);
-                setPill('sess-ny', s.sessions.new_york.active);
-
-                const fxBadge = document.getElementById('market-forex-badge');
-                if (fxBadge) {
-                    fxBadge.className = `badge ${s.is_forex_weekend ? 'badge--warn' : 'badge--live'}`;
-                    fxBadge.textContent = `Forex: ${s.forex_status}`;
-                }
-            } catch(e) { }
-        }
-        setInterval(refreshMarketSessions, 60000);
         function updateTradeHistory(page){
             const history = page.items || [];
             const totalPages = page.total_pages || 1;
             if ((page.page || 1) > totalPages) { historyPage = totalPages; fetchTradeHistory(); return; }
             historyPage = page.page || 1;
             const label=document.getElementById('history-page-label');
-            if(label) label.textContent=`Page ${historyPage} / ${totalPages}`;
+            if(label) label.textContent=`Trang ${historyPage} / ${totalPages}`;
             const prev=document.getElementById('history-prev'), next=document.getElementById('history-next');
             if(prev) prev.disabled = historyPage <= 1;
             if(next) next.disabled = historyPage >= totalPages;
-            const isMultiAcc = (selectedAccountId === 'demo' || selectedAccountId === 'live' || selectedAccountId === 'all');
-            const tb=document.getElementById('history-table');if(!tb)return;const ah=isMultiAcc?'':'hidden';
-            if(!history.length){
-                tb.innerHTML='<tr><td colspan="11" class="empty-state">No trade history</td></tr>';
-            } else {
-                tb.innerHTML=history.map(t=>`<tr>
-                    <td class="col-account account-cell ${ah}">${accountBadge(t.account_type)}<span class="account-name">${escapeHtml(t.account_label||'')}</span></td>
-                    <td>${botBadge(t.bot_id)}</td>
-                    <td class="td-mono font-bold">${escapeHtml(t.symbol)}</td>
-                    <td>${sideChip(t.side)}</td>
-                    <td>${escapeHtml(t.volume)}L</td>
-                    <td class="td-mono">${escapeHtml(t.entry_price)}</td>
-                    <td class="td-mono">${escapeHtml(t.exit_price)}</td>
-                    <td class="td-sltp">${sltpCellHtml(t, false)}</td>
-                    <td class="${Number(t.pnl)>=0?'pnl-positive':'pnl-negative'} font-bold">${Number(t.pnl)>0?'+':''}${formatMoney(t.pnl)}</td>
-                    <td class="td-reason">${closeReasonHtml(t.close_reason)}</td>
-                    <td class="td-times">${tradeTimesHtml(t)}</td>
-                </tr>`).join('');
-            }
+            const box=document.getElementById('history-table');if(!box)return;
+            box.innerHTML = history.length ? history.map(closedRowHtml).join('') : '<p class="ov-empty">Chưa có lệnh nào đóng.</p>';
         }
         document.getElementById('history-prev')?.addEventListener('click', () => {
             if (historyPage > 1) { historyPage -= 1; fetchTradeHistory(); }

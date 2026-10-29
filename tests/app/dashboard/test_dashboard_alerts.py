@@ -116,3 +116,23 @@ def test_docker_missing_and_docker_error_are_critical():
                           [{"bot_id": "cbot-live-live-x", "status": "error"}], docker_missing=True)
     assert [(a["kind"], a["bot"]) for a in alerts] == [("docker_down", "docker"), ("bot_stopped", "cbot-live-live-x")]
     assert "Docker error" in alerts[1]["message"]
+
+
+def test_summary_month_pnl_counts_this_month_only(tmp_path, monkeypatch):
+    import app.dashboard as dashboard_module
+    from datetime import date, timedelta
+    db = tmp_path / "p.db"
+    conn = sqlite3.connect(db)
+    conn.execute("CREATE TABLE positions (id INTEGER PRIMARY KEY, account_id TEXT, status TEXT, pnl REAL, "
+                 "entry_time TEXT, exit_time TEXT)")
+    conn.execute("CREATE TABLE accounts (account_id TEXT, account_type TEXT, is_configured INTEGER, "
+                 "last_balance REAL, last_equity REAL)")
+    first = date.today().replace(day=1)
+    rows = [(first.isoformat() + " 01:00:00", 10.0), (date.today().isoformat() + " 02:00:00", -3.5),
+            ((first - timedelta(days=1)).isoformat() + " 23:00:00", 100.0)]   # last month: left out
+    conn.executemany("INSERT INTO positions (account_id, status, pnl, entry_time, exit_time) VALUES ('a1', 'closed', ?, ?, ?)",
+                     [(pnl, ts, ts) for ts, pnl in rows])
+    conn.commit()
+    conn.close()
+    monkeypatch.setattr(dashboard_module, "get_db", lambda: sqlite3.connect(db))
+    assert dashboard_module.get_portfolio_summary("a1")["month_pnl"] == 6.5

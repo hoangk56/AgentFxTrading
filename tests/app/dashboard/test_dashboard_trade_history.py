@@ -187,4 +187,5 @@ def test_dashboard_page_renders_recent_trades_pager():
     assert 'id="history-prev"' in html
     assert 'id="history-next"' in html
     assert 'id="history-page-label"' in html
-    assert "<th>Open / Close</th>" in html
+    assert "function closedRowHtml" in html          # the Overview lists closed trades, a page of five
+    assert "const HISTORY_PAGE_SIZE = 5;" in html
