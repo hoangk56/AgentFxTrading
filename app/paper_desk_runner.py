@@ -19,14 +19,18 @@ import sys
 import urllib.error
 import urllib.request
 from pathlib import Path
-from typing import Callable, Dict, List, Optional
+from typing import Callable, Dict, List, Optional, Tuple
 
-from app import paper_desk
+from app import paper_desk, paper_desk_status
 from app.dukascopy import Bar, Dukascopy, cache_dir_from_env
 
 # Round-trip cost in bp per symbol: IC commission plus a typical spread, rounded up. Registered assumptions of the
 # experiment (docs/paper-desk.md), to be replaced by measured medians; they only set the bar the calls must clear.
-COST_BP: Dict[str, float] = {"EURUSD": 1.0, "USDJPY": 1.0, "GBPJPY": 1.8, "XAUUSD": 1.5, "US500": 1.5, "BTCUSD": 8.0}
+# Round-trip bp (long, short): spread + commission + overnight swap, measured 2026-10-29 by
+# research/tools/paper_desk_costs.py (research/results/portfolio/paper_desk_costs_2026-10-29.md).
+COST_BP: Dict[str, Tuple[float, float]] = {
+    "EURUSD": (1.58, 0.64), "USDJPY": (0.67, 2.12), "GBPJPY": (0.92, 2.24),
+    "XAUUSD": (2.55, 0.77), "US500": (0.68, 0.68), "BTCUSD": (9.29, 1.69)}
 CALENDAR = Path(__file__).resolve().parent.parent / "cBot" / "seeds" / "usd_high_calendar.csv"
 HISTORY_DAYS = 30
 MAX_STALE_HOURS = 3
@@ -162,7 +166,7 @@ def parse_answer(text: str) -> dict:
 
 
 def ask(llm: Llm, role: str, style: str, symbol: str, feats: dict, extra: str = "") -> dict:
-    system = SYSTEM.format(role=role, cost=COST_BP[symbol], style=style)
+    system = SYSTEM.format(role=role, cost=round(sum(COST_BP[symbol]) / 2, 1), style=style)
     user = f"Symbol: {symbol}\nFeatures: {json.dumps(feats, sort_keys=True)}\n{extra}"
     try:
         return {**parse_answer(llm(system, user)), "error": None}
@@ -285,7 +289,11 @@ def main(argv: Optional[List[str]] = None) -> int:
             calls = paper_desk.load_calls()
             today = dt.datetime.now(dt.timezone.utc).date()
             prices = outcome_prices(duka, sorted({(c["call_date"], c["symbol"]) for c in calls}), today)
-            print(format_score(paper_desk.score(calls, prices, COST_BP)))
+            result = paper_desk.score(calls, prices, COST_BP)
+            result["scored_cells"] = len(prices)
+            result["cells"] = len({(c["call_date"], c["symbol"]) for c in calls})
+            paper_desk_status.save_score(result)
+            print(format_score(result))
         return 0
     finally:
         duka.close()

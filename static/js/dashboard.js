@@ -48,6 +48,8 @@ const DASHBOARD_BOOTSTRAP = window.DASHBOARD_BOOTSTRAP || {};
                     gotobiOnShow();
                 } else if (targetId === 'view-forward') {
                     fsOnShow();
+                } else if (targetId === 'view-paper-desk') {
+                    pdOnShow();
                 }
             }
         }

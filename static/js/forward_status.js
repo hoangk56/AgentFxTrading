@@ -29,9 +29,16 @@ function fsRowHtml(c) {
         + `<div class="td-dim">Not checked here</div>${fsListHtml(c.manual)}</td></tr>`;
 }
 
+function fsCalendarHtml(g) {
+    if (!g) return '';
+    const cls = g.days_left < 0 ? 'pnl-negative' : (g.days_left <= 21 ? 'pnl-negative' : 'td-dim');
+    return `<p class="${cls}">Gold level calendar seed: valid through ${escapeHtml(g.valid_through)} `
+        + `(${escapeHtml(g.days_left)} days left). The bot stops arming after it; rebuild once the December funding outcome is known.</p>`;
+}
+
 function fsTableHtml(data) {
     if (!data || !data.candidates || !data.candidates.length) return '<p class="td-dim">No candidates.</p>';
-    return '<div class="table-wrap"><table class="data-table"><thead><tr><th>Candidate</th><th>Verdict</th>'
+    return fsCalendarHtml(data.gold_calendar) + '<div class="table-wrap"><table class="data-table"><thead><tr><th>Candidate</th><th>Verdict</th>'
         + '<th>Forward trades</th><th>Mean net bp</th><th>Sum net bp</th><th>Pooled t</th><th>Notes</th></tr></thead>'
         + `<tbody>${data.candidates.map(fsRowHtml).join('')}</tbody></table></div>`;
 }

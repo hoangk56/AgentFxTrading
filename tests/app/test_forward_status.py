@@ -139,3 +139,26 @@ def test_alerts_fire_once_per_change_into_stop_or_promote_check():
     promo = alerts.check([_status("b", "PROMOTE_CHECK", mean=4.0, pooled_t=2.6)])
     assert len(promo) == 1 and "Not checked here: spread x1.5" in promo[0] and promo[0].startswith("🟢")
     assert sent[0][1] == ("forward", "a", "STOP")
+
+
+def test_calendar_guard_reads_valid_through_and_days_left(tmp_path):
+    import datetime
+    from app.forward_status import calendar_guard
+    seed = tmp_path / "seed.csv"
+    seed.write_text("# header\n# valid_through=2026-12-11\nutc_minute,event\n2026-11-02T15:00,x\n")
+    assert calendar_guard(datetime.date(2026, 11, 30), seed) == {"valid_through": "2026-12-11", "days_left": 11}
+    assert calendar_guard(datetime.date(2026, 12, 20), seed)["days_left"] == -9
+    seed.write_text("# header\nutc_minute,event\n")
+    assert calendar_guard(datetime.date(2026, 11, 30), seed) is None
+    assert calendar_guard(datetime.date(2026, 11, 30), tmp_path / "missing.csv") is None
+
+
+def test_calendar_alert_only_inside_the_warning_window():
+    from app.forward_status import ForwardAlerts
+    sent = []
+    alerts = ForwardAlerts(lambda text, key=None: sent.append(text))
+    assert alerts.check_calendar({"valid_through": "2026-12-11", "days_left": 43}) is None
+    assert alerts.check_calendar(None) is None and sent == []
+    assert "11 days left" in alerts.check_calendar({"valid_through": "2026-12-11", "days_left": 11})
+    assert "expired" in alerts.check_calendar({"valid_through": "2026-12-11", "days_left": -1})
+    assert len(sent) == 2
