@@ -16,6 +16,7 @@ from datetime import datetime, date, timedelta, timezone
 from typing import Dict, List, Optional, Any
 from app.accounts import get_account_registry
 from app.auth import login_enabled
+from app.close_reasons import close_reason_vi
 from app.dashboard_alerts import build_alerts, filter_by_mode
 from app.leaderboard import InvalidDateRange, compute_bot_leaderboard, compute_profit_factor
 import logging
@@ -382,6 +383,7 @@ def get_trade_history(account_id: str = "all", page: int = 1, page_size: int = 1
             d = dict(row)
             d["pnl"] = round(d["pnl"], 2) if d["pnl"] is not None else 0
             d["duration"] = format_duration(d["entry_time"], d["exit_time"])
+            d["close_reason_text"] = close_reason_vi(d.get("close_reason"))   # what the Overview shows
             d["entry_time"] = format_vn_time(d["entry_time"])
             d["exit_time"] = format_vn_time(d["exit_time"])
             items.append(d)
