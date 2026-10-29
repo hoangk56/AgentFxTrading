@@ -153,14 +153,14 @@ def _classify_tier(composite_score: float, win_rate: float, total_trades: int) -
     """Tier badge, label and color for a composite score."""
     if total_trades == 0:
         # Nothing closed in the window: no evidence either way, so no tier (and ranked last)
-        return "UNRATED", "⏳ No trades", "#64748b"
+        return "UNRATED", "⏳ Chưa có lệnh", "#64748b"
     if (composite_score >= 80.0 and total_trades >= 3) or (win_rate >= 75.0 and total_trades >= 5):
-        return "TIER_S", "👑 Tier S (Elite)", "#38bdf8"  # Sky blue / Diamond
+        return "TIER_S", "👑 Hạng S (Xuất sắc)", "#38bdf8"  # Sky blue / Diamond
     if composite_score >= 68.0:
-        return "TIER_A", "🥇 Tier A (Strong)", "#f59e0b"  # Amber / Gold
+        return "TIER_A", "🥇 Hạng A (Tốt)", "#f59e0b"  # Amber / Gold
     if composite_score >= 50.0:
-        return "TIER_B", "🥈 Tier B (Moderate)", "#94a3b8"  # Slate / Silver
-    return "TIER_C", "⚠️ Tier C (Review)", "#f87171"  # Red / Warning
+        return "TIER_B", "🥈 Hạng B (Trung bình)", "#94a3b8"  # Slate / Silver
+    return "TIER_C", "⚠️ Hạng C (Cần xem lại)", "#f87171"  # Red / Warning
 
 
 def calculate_quant_score(
@@ -447,7 +447,7 @@ def compute_bot_leaderboard(
 
             # List symbols traded
             symbols = list(set([t["symbol"] for t in b_trades if t.get("symbol")] + [p["symbol"] for p in b_open if p.get("symbol")]))
-            symbol_display = ", ".join(sorted(symbols)) if symbols else "N/A"
+            symbol_display = ", ".join(sorted(symbols)) if symbols else "—"
 
             # Composite Quant Score & Tier
             score, tier_badge, tier_label, tier_color = calculate_quant_score(

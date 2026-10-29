@@ -72,7 +72,7 @@ def test_confirming_the_suggestions_balances_the_ledger(db):
     assert e["unexplained"] == []
     assert [(m["id"], m["amount"], m["balance_log_id"]) for m in e["movements"]] == [
         (opening_id, 1000.0, 1), (movement_id, 500.0, 3)]
-    with pytest.raises(ledger.LedgerError, match="already recorded"):
+    with pytest.raises(ledger.LedgerError, match="đã được ghi"):
         ledger.add_movement(db, "demo-1", None, balance_log_id=3)
 
 
@@ -96,7 +96,7 @@ def test_a_first_balance_the_earlier_closes_explain_is_not_listed(db):
     _log(db, 1, "2026-09-20 00:00:00", None, 25.0)
     e = ledger.account_ledger(db, ACCOUNT)
     assert (e["unexplained"], e["balanced"]) == ([], True)
-    with pytest.raises(ledger.LedgerError, match="closed trades explain"):
+    with pytest.raises(ledger.LedgerError, match="lệnh đã đóng giải thích"):
         ledger.add_movement(db, "demo-1", None, balance_log_id=1)
 
 
@@ -130,13 +130,13 @@ def test_an_account_with_no_balance_yet_has_no_broker_figures(db):
 
 
 @pytest.mark.parametrize("amount, when, note, message", [
-    (0, None, None, "non-zero"),
-    ("abc", None, None, "number"),
-    (float("inf"), None, None, "non-zero"),
+    (0, None, None, "khác 0"),
+    ("abc", None, None, "cần là một số"),
+    (float("inf"), None, None, "khác 0"),
     (10, "yesterday", None, "ISO"),
-    (10, "2099-01-01T00:00:00Z", None, "future"),
-    (10, None, "two\nlines", "one line"),
-    (10, None, "x" * 201, "one line"),
+    (10, "2099-01-01T00:00:00Z", None, "tương lai"),
+    (10, None, "two\nlines", "một dòng"),
+    (10, None, "x" * 201, "một dòng"),
 ])
 def test_invalid_movements_are_refused(db, amount, when, note, message):
     with pytest.raises(ledger.LedgerError, match=message):
@@ -145,9 +145,9 @@ def test_invalid_movements_are_refused(db, amount, when, note, message):
 
 def test_a_balance_change_of_another_account_or_one_a_close_explains_cannot_be_confirmed(db):
     _seed(db)
-    with pytest.raises(ledger.LedgerError, match="does not belong"):
+    with pytest.raises(ledger.LedgerError, match="không thuộc tài khoản"):
         ledger.add_movement(db, "live-2", None, balance_log_id=3)
-    with pytest.raises(ledger.LedgerError, match="closed trades explain"):
+    with pytest.raises(ledger.LedgerError, match="lệnh đã đóng giải thích"):
         ledger.add_movement(db, "demo-1", None, balance_log_id=2)
 
 
@@ -202,7 +202,7 @@ def test_api_refuses_bad_input(api_account):
     assert client.post("/api/ledger/movements", json={"account_id": "nope", "amount": 5}).status_code == 404
     assert client.post("/api/ledger/movements", json={"account_id": "live", "amount": 5}).status_code == 404
     res = client.post("/api/ledger/movements", json={"account_id": api_account, "amount": 0})
-    assert res.status_code == 422 and "non-zero" in res.json()["message"]
+    assert res.status_code == 422 and "khác 0" in res.json()["message"]
 
 
 def test_ledger_handlers_run_off_the_event_loop():

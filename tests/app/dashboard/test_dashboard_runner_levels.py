@@ -86,18 +86,18 @@ def _render_macro(call: str) -> str:
 
 def test_first_paint_says_the_runner_exits_at_its_stop():
     tp = _render_macro("{{ sltp_line('TP', none, none, 40.7, true) }}")
-    assert "none · exits at SL" in tp
+    assert "không có · thoát ở SL" in tp
     assert "40.7p" not in tp
 
     sl = _render_macro("{{ sltp_line('SL', 111.322, 3.71, 27.4, true) }}")
     assert "111.322" in sl and "+$3.71" in sl
-    assert ">trailing<" in sl
+    assert ">dời theo giá<" in sl
 
 
 def test_first_paint_marks_a_stop_past_break_even_and_leaves_the_rest_alone():
-    assert ">locked<" in _render_macro("{{ sltp_line('SL', 2500.5, 0.4, 100, false) }}")
+    assert ">đã khoá lời<" in _render_macro("{{ sltp_line('SL', 2500.5, 0.4, 100, false) }}")
     losing = _render_macro("{{ sltp_line('SL', 2490.0, -100.0, 100, false) }}")
-    assert "locked" not in losing and "trailing" not in losing
+    assert "khoá lời" not in losing and "dời theo giá" not in losing
     # Recent Trades passes no flag: a closed row without a TP price still shows its pips
     assert "40p" in _render_macro("{{ sltp_line('TP', none, none, 40) }}")
 
@@ -145,17 +145,17 @@ def cells(tmp_path_factory):
 @pytest.mark.parametrize("case", ["runner", "runner_tick"])
 def test_live_rows_say_the_runner_exits_at_its_stop(cells, case):
     cell = cells[case]
-    assert "none · exits at SL" in cell
+    assert "không có · thoát ở SL" in cell
     assert "40.7p" not in cell
-    assert "+$3.71" in cell and ">trailing<" in cell
+    assert "+$3.71" in cell and ">dời theo giá<" in cell
 
 
 @pytest.mark.skipif(NODE is None, reason="node is not installed")
 def test_live_rows_mark_a_stop_past_break_even_only(cells):
-    assert ">locked<" in cells["break_even"]
-    assert "none" not in cells["break_even"]
-    assert "locked" not in cells["losing"] and "trailing" not in cells["losing"]
-    assert "40p" in cells["history"] and "none" not in cells["history"]
+    assert ">đã khoá lời<" in cells["break_even"]
+    assert "không có" not in cells["break_even"]
+    assert "khoá lời" not in cells["losing"] and "dời theo giá" not in cells["losing"]
+    assert "40p" in cells["history"] and "không có" not in cells["history"]
 
 
 def test_the_tick_handler_hands_the_levels_to_the_same_renderer():

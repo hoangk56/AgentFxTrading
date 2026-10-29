@@ -66,7 +66,7 @@ def api_ledger(account_id: str = "all"):
 @router.post("/api/ledger/movements", status_code=201)
 def api_add_movement(req: MovementRequest):
     if not _accounts(req.account_id) or req.account_id in ("demo", "live", "all"):
-        return _error(404, f"Unknown account {req.account_id}")
+        return _error(404, f"Không có tài khoản {req.account_id}")
     conn = _conn()
     try:
         movement_id = ledger.add_movement(conn, req.account_id, req.amount, req.occurred_at, req.note,
@@ -83,7 +83,7 @@ def api_delete_movement(movement_id: int):
     conn = _conn()
     try:
         if not ledger.delete_movement(conn, movement_id):
-            return _error(404, "No such movement")
+            return _error(404, "Không có khoản nạp/rút này")
     finally:
         conn.close()
     return {"success": True}

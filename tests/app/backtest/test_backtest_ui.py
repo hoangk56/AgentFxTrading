@@ -65,11 +65,11 @@ def test_the_form_offers_only_the_bots_data_modes():
 
 def test_best_value_rules():
     src = JS.read_text(encoding="utf-8")
-    assert "['max_equity_dd_pct', 'Max equity DD %', 'min', 'pct']" in src
-    assert "['avg_loss', 'Avg loss (deal)', 'zero', 'money']" in src
-    assert "['position_win_rate', 'Win rate % (positions)', 'max', 'num']" in src
-    assert "['avg_position_loss', 'Avg loss (position)', 'zero', 'money']" in src
-    assert "['full_loss_pct', 'Full-size losses %', 'min', 'num']" in src
+    assert "['max_equity_dd_pct', 'Sụt giảm tối đa %', 'min', 'pct']" in src
+    assert "['avg_loss', 'Lỗ TB (lần chốt)', 'zero', 'money']" in src
+    assert "['position_win_rate', 'Tỷ lệ thắng % (lệnh)', 'max', 'num']" in src
+    assert "['avg_position_loss', 'Lỗ TB (lệnh)', 'zero', 'money']" in src
+    assert "['full_loss_pct', 'Lỗ nguyên lệnh %', 'min', 'num']" in src
 
 
 def test_the_avg_win_loss_pair_may_wrap_in_its_card():
@@ -80,7 +80,7 @@ def test_the_avg_win_loss_pair_may_wrap_in_its_card():
 
 def test_job_list_heads_position_columns():
     html = client.get("/demo/dashboard").text
-    assert "<th>Win % (pos)</th>" in html and "<th>Positions</th>" in html
+    assert "<th>% thắng (lệnh)</th>" in html and "<th>Số lệnh</th>" in html
 
 
 HARNESS = r"""
@@ -152,9 +152,9 @@ def test_backtest_renderers_escape_external_strings():
         assert "<img" not in out[name], name
         assert "evil&lt;img" in out[name], name
     assert out["diff"] == [HOSTILE]                               # BotId is ignored
-    assert out["warnings"] == ["date ranges differ"]
+    assert out["warnings"] == ["khoảng ngày khác nhau"]
     assert out["best"] == [1, 0, 1, -1, -1]
-    assert out["runsInfo"] == ["1/3 running · 2 queued", "0 running · 0 queued"]
+    assert out["runsInfo"] == ["1/3 đang chạy · 2 đang chờ", "0 đang chạy · 0 đang chờ"]
     assert out["parallel"] == ('<option value="1">1</option><option value="2">2</option>'
                                '<option value="3" selected>3</option><option value="4">4</option>')
 
@@ -163,14 +163,14 @@ def test_backtest_renderers_escape_external_strings():
 def test_position_stats_lead_and_deal_stats_stay_labelled():
     out = _render()
     kpi = out["kpi"]
-    assert "Win rate · positions" in kpi and "42.2%" in kpi and "56.2% of deals" in kpi
-    assert ">270<" in kpi and "379 deals" in kpi
-    assert "bt-kpi-wrap\">+$33.84 / −$44.93" in kpi and "per deal +$18.20 / −$42.33" in kpi
-    assert "Full-size losses" in kpi and "57.8%" in kpi
-    assert "—%" not in out["kpiOld"] and "56.2% of deals" in out["kpiOld"]
-    assert "42.22<div" in out["rowNew"] and "56.20 deals" in out["rowNew"]
-    assert "270<div" in out["rowNew"] and "379 deals" in out["rowNew"]
-    assert "—<div" in out["rowOld"] and "56.20 deals" in out["rowOld"]   # saved before position stats
+    assert "Tỷ lệ thắng · lệnh" in kpi and "42.2%" in kpi and "56.2% theo lần chốt" in kpi
+    assert ">270<" in kpi and "379 lần chốt" in kpi
+    assert "bt-kpi-wrap\">+$33.84 / −$44.93" in kpi and "mỗi lần chốt +$18.20 / −$42.33" in kpi
+    assert "Lỗ nguyên lệnh" in kpi and "57.8%" in kpi
+    assert "—%" not in out["kpiOld"] and "56.2% theo lần chốt" in out["kpiOld"]
+    assert "42.22<div" in out["rowNew"] and "56.20 lần chốt" in out["rowNew"]
+    assert "270<div" in out["rowNew"] and "379 lần chốt" in out["rowNew"]
+    assert "—<div" in out["rowOld"] and "56.20 lần chốt" in out["rowOld"]   # saved before position stats
 
 
 @pytest.mark.skipif(NODE is None, reason="node is not installed")
@@ -178,11 +178,11 @@ def test_pager_keeps_the_ends_and_the_neighbours():
     out = _render()
     assert out["pages"] == [[1], [1, 2, 3], [1, None, 5, 6, 7, None, 12], [1, None, 11, 12]]
     middle, empty, single = out["pager"]
-    assert "21–40 of 57" in middle and 'data-page="2" aria-current="page" disabled' in middle
-    assert 'data-page="1" aria-label="Previous page"' in middle and 'data-page="3" aria-label="Next page"' in middle
+    assert "21–40 / 57" in middle and 'data-page="2" aria-current="page" disabled' in middle
+    assert 'data-page="1" aria-label="Trang trước"' in middle and 'data-page="3" aria-label="Trang sau"' in middle
     assert '<option value="20" selected>' in middle
-    assert "0–0 of 0" in empty and "bt-pager-btns" not in empty      # one page: no buttons
-    assert "1–45 of 45" in single and "bt-pager-btns" not in single and "<option value=\"50\" selected>" in single
+    assert "0–0 / 0" in empty and "bt-pager-btns" not in empty      # one page: no buttons
+    assert "1–45 / 45" in single and "bt-pager-btns" not in single and "<option value=\"50\" selected>" in single
 
 
 def test_run_detail_and_compare_open_in_a_modal_and_the_form_folds():

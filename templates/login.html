@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="vi">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AgentFxTrading Login</title>
+    <title>Đăng nhập · AgentFxTrading</title>
     <link rel="stylesheet" href="/static/css/dashboard.css?v=20261029_dim1">
     <link rel="icon" type="image/png" href="/static/favicon.png">
 </head>
@@ -13,12 +13,12 @@
         <div class="panel-header"><span class="panel-title">AgentFxTrading</span></div>
         <div class="login-body">
             <input type="hidden" name="next" value="{{ next }}">
-            <label class="login-label" for="login-username">Username</label>
+            <label class="login-label" for="login-username">Tên đăng nhập</label>
             <input id="login-username" class="log-input login-input" name="username" value="{{ username }}" autocomplete="username" required{% if not username %} autofocus{% endif %}>
-            <label class="login-label" for="login-password">Password</label>
+            <label class="login-label" for="login-password">Mật khẩu</label>
             <input id="login-password" class="log-input login-input" name="password" type="password" autocomplete="current-password" required{% if username %} autofocus{% endif %}>
             {% if error %}<p class="login-error" role="alert">{{ error }}</p>{% endif %}
-            <button type="submit" class="log-btn login-submit">Sign in</button>
+            <button type="submit" class="log-btn login-submit">Đăng nhập</button>
         </div>
     </form>
 </body>

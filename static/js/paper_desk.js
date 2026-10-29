@@ -15,10 +15,10 @@ function pdPct(v) {
 }
 
 function pdCoverageHtml(cov) {
-    if (!cov || !cov.analysts || !cov.analysts.length) return '<p class="td-dim">No calls recorded yet.</p>';
+    if (!cov || !cov.analysts || !cov.analysts.length) return '<p class="td-dim">Chưa có lượt dự đoán nào.</p>';
     const rows = cov.analysts.map(a => '<tr>'
         + `<td>${escapeHtml(a.analyst)}</td><td>${escapeHtml(a.calls)}</td>`
-        + `<td>${escapeHtml(a.traded)} <span class="td-dim">(${escapeHtml(a.long)} long, ${escapeHtml(a.short)} short)</span></td>`
+        + `<td>${escapeHtml(a.traded)} <span class="td-dim">(${escapeHtml(a.long)} mua, ${escapeHtml(a.short)} bán)</span></td>`
         + `<td>${pdPct(a.directional_rate)}</td>`
         + `<td class="${a.errors ? 'pnl-negative' : ''}">${escapeHtml(a.errors)}</td></tr>`).join('');
     const days = cov.recent_days.slice().reverse().map(d => '<tr>'
@@ -26,33 +26,38 @@ function pdCoverageHtml(cov) {
         + `<td>${escapeHtml(d.calls)}</td><td>${escapeHtml(d.traded)}</td>`
         + `<td class="${d.errors ? 'pnl-negative' : ''}">${escapeHtml(d.errors)}</td></tr>`).join('');
     const missing = cov.days_missing.length
-        ? `<p class="pnl-negative">Weekdays without any call: ${cov.days_missing.map(escapeHtml).join(', ')}</p>`
-        : '<p class="td-dim">No weekday missed since the first call.</p>';
-    return `<h4 class="pd-h">Coverage</h4>${missing}`
-        + '<div class="table-wrap"><table class="data-table"><thead><tr><th>Analyst</th><th>Calls</th><th>Took a side</th>'
-        + `<th>Share</th><th>Failed</th></tr></thead><tbody>${rows}</tbody></table></div>`
-        + `<h4 class="pd-h">Last ${escapeHtml(cov.recent_days.length)} days (${escapeHtml(cov.days_with_calls)} with calls)</h4>`
-        + '<div class="table-wrap"><table class="data-table"><thead><tr><th>Day</th><th>Symbols</th><th>Calls</th>'
-        + `<th>Took a side</th><th>Failed</th></tr></thead><tbody>${days}</tbody></table></div>`;
+        ? `<p class="pnl-negative">Ngày trong tuần không có lượt dự đoán nào: ${cov.days_missing.map(escapeHtml).join(', ')}</p>`
+        : '<p class="td-dim">Không sót ngày trong tuần nào kể từ lượt dự đoán đầu tiên.</p>';
+    return `<h4 class="pd-h">Độ đầy đủ</h4>${missing}`
+        + '<div class="table-wrap"><table class="data-table"><thead><tr><th>AI phân tích</th><th>Lượt dự đoán</th><th>Có chọn hướng</th>'
+        + `<th>Tỷ lệ</th><th>Thất bại</th></tr></thead><tbody>${rows}</tbody></table></div>`
+        + `<h4 class="pd-h">${escapeHtml(cov.recent_days.length)} ngày gần nhất (${escapeHtml(cov.days_with_calls)} ngày có dự đoán)</h4>`
+        + '<div class="table-wrap"><table class="data-table"><thead><tr><th>Ngày</th><th>Cặp/Mã</th><th>Lượt dự đoán</th>'
+        + `<th>Có chọn hướng</th><th>Thất bại</th></tr></thead><tbody>${days}</tbody></table></div>`;
+}
+
+// Displayed label of each verdict code (the code itself stays in the tooltip)
+function pdVerdictLabel(v) {
+    return {PASS: 'Đạt', FAIL: 'Không đạt', TOO_FEW: 'Chưa đủ', BASELINE: 'Mốc so sánh'}[v] || v;
 }
 
 function pdScoreHtml(score, minTraded) {
-    if (!score) return '<p class="td-dim">No score yet: `python -m app.paper_desk_runner score` has not run.</p>';
+    if (!score) return '<p class="td-dim">Chưa có điểm: `python -m app.paper_desk_runner score` chưa chạy.</p>';
     const row = (name, s) => '<tr>'
         + `<td>${escapeHtml(name)}</td><td>${escapeHtml(s.n)}</td><td>${pdPct(s.hit)}</td>`
         + `<td class="${s.mean === null || s.mean === undefined ? '' : (Number(s.mean) >= 0 ? 'pnl-positive' : 'pnl-negative')}">${pdNum(s.mean, 2, true)}</td>`
-        + `<td>${pdNum(s.t, 2, true)}</td><td><span class="fs-verdict fs-verdict--${escapeHtml(s.verdict === 'PASS' ? 'PROMOTE_CHECK' : s.verdict === 'FAIL' ? 'STOP' : 'CONTINUE')}">${escapeHtml(s.verdict)}</span></td></tr>`;
+        + `<td>${pdNum(s.t, 2, true)}</td><td><span class="fs-verdict fs-verdict--${escapeHtml(s.verdict === 'PASS' ? 'PROMOTE_CHECK' : s.verdict === 'FAIL' ? 'STOP' : 'CONTINUE')}" title="${escapeHtml(s.verdict)}">${escapeHtml(pdVerdictLabel(s.verdict))}</span></td></tr>`;
     const rows = Object.entries(score.analysts).map(([n, s]) => row(n, s)).join('')
         + Object.entries(score.baselines).map(([n, s]) => row(n, s)).join('');
-    return `<h4 class="pd-h">Score</h4><p class="td-dim">Scored ${escapeHtml(score.scored_at)}: ${escapeHtml(score.scored_cells)} of `
-        + `${escapeHtml(score.cells)} day-symbol cells have an exit price yet. A verdict needs ${escapeHtml(minTraded)} calls `
-        + 'that took a side; until then it reads TOO_FEW.</p>'
-        + '<div class="table-wrap"><table class="data-table"><thead><tr><th>Name</th><th>Traded n</th><th>Hit</th>'
-        + `<th>Mean net bp</th><th>Clustered t</th><th>Verdict</th></tr></thead><tbody>${rows}</tbody></table></div>`;
+    return `<h4 class="pd-h">Điểm</h4><p class="td-dim">Chấm lúc ${escapeHtml(score.scored_at)}: ${escapeHtml(score.scored_cells)} / `
+        + `${escapeHtml(score.cells)} ô ngày × mã đã có giá ra. Cần ${escapeHtml(minTraded)} lượt dự đoán có chọn hướng `
+        + 'mới có kết luận; trước đó cột Kết luận ghi "Chưa đủ".</p>'
+        + '<div class="table-wrap"><table class="data-table"><thead><tr><th>Tên</th><th>Số lệnh có hướng</th><th>Tỷ lệ đúng</th>'
+        + `<th>TB ròng (bp)</th><th>t (gom cụm)</th><th>Kết luận</th></tr></thead><tbody>${rows}</tbody></table></div>`;
 }
 
 function pdHtml(data) {
-    if (!data) return '<p class="td-dim">No data.</p>';
+    if (!data) return '<p class="td-dim">Không có dữ liệu.</p>';
     return pdCoverageHtml(data.coverage) + pdScoreHtml(data.score, data.coverage ? data.coverage.min_traded_for_verdict : '');
 }
 
@@ -69,7 +74,7 @@ async function pdLoad() {
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         body.innerHTML = pdHtml(await res.json());
     } catch (e) {
-        body.innerHTML = `<p class="pnl-negative">Could not load the paper desk: ${escapeHtml(e.message)}</p>`;
+        body.innerHTML = `<p class="pnl-negative">Không tải được Dự đoán AI: ${escapeHtml(e.message)}</p>`;
     } finally {
         pdLoading = false;
     }

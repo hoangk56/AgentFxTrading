@@ -33,7 +33,7 @@ def test_dashboard_has_the_gotobi_nav_view_and_script():
     assert 'data-target="view-calendar"' in html and 'id="view-calendar"' in html and 'id="gc-body"' in html
     assert 'href="#calendar"' in html and "view-gotobi" not in html
     nav = html[html.index('data-target="view-calendar"'):]
-    assert '<span class="nav-label">Calendar</span>' in nav[:400]
+    assert '<span class="nav-label">Lịch</span>' in nav[:400]
     assert '<script src="/static/js/gotobi_calendar.js' in html
     page = dashboard_page(client)
     assert "targetId === 'view-calendar'" in page and "gotobiOnShow();" in page
@@ -89,12 +89,12 @@ console.log(JSON.stringify({{month: gcMonthHtml(data, '2026-10-09'), day: gcDayH
     for cls in ("gc-cell--traded", "gc-cell--no-trade", "gc-cell--scheduled", "gc-cell--skipped", "gc-cell--plain",
                 "gc-cell--selected"):
         assert cls in month, cls
-    assert "+$8.50" in month and "1 open" in month and "decoy" in month and "JP holiday" in month
+    assert "+$8.50" in month and "1 đang mở" in month and "nguỵ trang" in month and "Nghỉ lễ Nhật" in month
     assert 'data-date="2026-10-09"' in month
-    assert "Decoy" in out["day"] and "Long" in out["day"]
+    assert "Nguỵ trang" in out["day"] and "Lệnh mua" in out["day"]
     assert "ECB evil&lt;img" in out["day"] and "11-13 London" in out["day"] and "gc-row--ecb" in out["day"]
-    assert "ECB -$2.00 ·1" in month and "ECB P&amp;L (1 trades)" in month
-    assert "No Gotobi or ECB position" in out["empty"]
-    assert "ECB E1 scheduled · F3 if USD-TOP" in month and "<img" not in month.lower()
-    assert "E1 scheduled: sell EURUSD 11:00" in out["planned"] and "decided at 07:00 London" in out["planned"]
-    assert out["label"] == "October 2026"
+    assert "ECB -$2.00 ·1" in month and "Lời/lỗ ECB (1 lệnh)" in month
+    assert "không có lệnh Gotobi hay ECB" in out["empty"]
+    assert "ECB E1 theo lịch · F3 nếu USD-TOP" in month and "<img" not in month.lower()
+    assert "E1 theo lịch: bán EURUSD 11:00" in out["planned"] and "quyết định lúc 07:00 London" in out["planned"]
+    assert out["label"] == "Tháng 10 2026"

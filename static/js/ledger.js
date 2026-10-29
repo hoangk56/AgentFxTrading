@@ -25,72 +25,72 @@ function lgAccountHtml(a, tolerance) {
     const noBalance = a.broker_balance === null || a.broker_balance === undefined;
     const discCls = noBalance ? '' : (a.balanced ? 'kpi-value--profit' : 'kpi-value--warn');
     const stats = '<div class="kpi-grid lg-stats">'
-        + lgStatHtml('Deposits', lgMoney(a.deposits))
-        + lgStatHtml('Withdrawals', lgMoney(a.withdrawals))
-        + lgStatHtml(`Closed P&L (${Number(a.closed_trades) || 0})`, lgMoney(a.closed_pnl, true),
+        + lgStatHtml('Nạp', lgMoney(a.deposits))
+        + lgStatHtml('Rút', lgMoney(a.withdrawals))
+        + lgStatHtml(`Lời/lỗ đã chốt (${Number(a.closed_trades) || 0})`, lgMoney(a.closed_pnl, true),
                      Number(a.closed_pnl) >= 0 ? 'kpi-value--profit' : 'kpi-value--loss')
-        + lgStatHtml('Expected balance', lgMoney(a.expected_balance), '', '0 + deposits - withdrawals + closed P&L')
-        + lgStatHtml('Broker balance', lgMoney(a.broker_balance), '',
-                     noBalance ? 'No balance received yet' : `Reported ${a.broker_balance_at_vn || ''}`)
-        + lgStatHtml('Discrepancy', lgMoney(a.discrepancy, true), discCls,
-                     `Broker - expected; within ±${tolerance} is rounding`)
+        + lgStatHtml('Số dư dự kiến', lgMoney(a.expected_balance), '', '0 + nạp - rút + lời/lỗ đã chốt')
+        + lgStatHtml('Số dư bên sàn', lgMoney(a.broker_balance), '',
+                     noBalance ? 'Chưa nhận được số dư' : `Báo lúc ${a.broker_balance_at_vn || ''}`)
+        + lgStatHtml('Chênh lệch', lgMoney(a.discrepancy, true), discCls,
+                     `Sàn - dự kiến; trong ±${tolerance} là do làm tròn`)
         + '</div>'
-        + (noBalance ? '<p class="td-dim lg-hint">No balance received from this account yet: the broker balance and '
-                       + 'the discrepancy appear once a bot reports one.</p>' : '');
+        + (noBalance ? '<p class="td-dim lg-hint">Chưa nhận được số dư từ tài khoản này: số dư bên sàn và '
+                       + 'chênh lệch sẽ hiện khi có bot báo về.</p>' : '');
 
     const unexplainedRows = a.unexplained || [];
     const unexplained = unexplainedRows.map(u => {
-        const kind = Number(u.delta) >= 0 ? 'deposit' : 'withdrawal';
+        const kind = Number(u.delta) >= 0 ? 'nạp' : 'rút';
         const nearby = u.opening
-            ? `${Number(u.earlier_closes) || 0} earlier closes: ${lgMoney(u.earlier_pnl, true)}`
-            : ((u.nearby_closes || []).length ? u.nearby_closes.map(x => escapeHtml(x)).join(', ') : 'none');
-        const balance = u.opening ? `First balance seen: ${lgMoney(u.balance)}`
+            ? `${Number(u.earlier_closes) || 0} lệnh đóng trước đó: ${lgMoney(u.earlier_pnl, true)}`
+            : ((u.nearby_closes || []).length ? u.nearby_closes.map(x => escapeHtml(x)).join(', ') : 'không có');
+        const balance = u.opening ? `Số dư ghi nhận đầu tiên: ${lgMoney(u.balance)}`
             : `${lgMoney(u.balance_before)} → ${lgMoney(u.balance)}`;
         return `<tr><td class="td-mono">${escapeHtml(u.recorded_at_vn || u.recorded_at)}</td>`
             + `<td class="td-mono">${balance}</td>`
             + `<td class="td-mono ${Number(u.delta) >= 0 ? 'pnl-positive' : 'pnl-negative'}">${lgMoney(u.delta, true)}</td>`
             + `<td class="td-dim">${nearby}</td>`
             + `<td><button class="log-btn lg-confirm" data-account="${id}" data-log="${escapeHtml(u.log_id)}"`
-            + `${u.opening ? ' data-opening="1"' : ''}>Record as ${kind}</button></td></tr>`;
+            + `${u.opening ? ' data-opening="1"' : ''}>Ghi là khoản ${kind}</button></td></tr>`;
     }).join('');
     const openingHint = unexplainedRows.some(u => u.opening)
-        ? '<p class="td-dim lg-hint">The ledger starts from 0. "First balance seen" is the money already in the account '
-          + 'when the server started logging its balance, less the P&amp;L of the closes booked before then: record it '
-          + 'as one deposit, or enter the real deposits and withdrawals by hand with their dates.</p>'
+        ? '<p class="td-dim lg-hint">Sổ tiền bắt đầu từ 0. "Số dư ghi nhận đầu tiên" là tiền đã có sẵn trong tài khoản '
+          + 'khi server bắt đầu ghi số dư, trừ lời/lỗ của các lệnh đã đóng trước đó: ghi nó thành một khoản nạp, '
+          + 'hoặc tự nhập các khoản nạp và rút thật kèm ngày của chúng.</p>'
         : '';
-    const unexplainedHtml = '<h4 class="lg-subtitle">Balance changes no closed trade explains</h4>'
+    const unexplainedHtml = '<h4 class="lg-subtitle">Thay đổi số dư mà không lệnh đã đóng nào giải thích được</h4>'
         + (unexplained
-            ? '<div class="table-wrap"><table class="data-table"><thead><tr><th>Time (GMT+7)</th><th>Balance</th>'
-              + '<th>Change</th><th>Closes nearby</th><th></th></tr></thead><tbody>' + unexplained + '</tbody></table></div>'
-              + '<p class="td-dim lg-hint">A deposit or a withdrawal: record it. Otherwise a trade whose report was lost: check the bot\'s log.</p>'
+            ? '<div class="table-wrap"><table class="data-table"><thead><tr><th>Thời gian (GMT+7)</th><th>Số dư</th>'
+              + '<th>Thay đổi</th><th>Lệnh đóng gần đó</th><th></th></tr></thead><tbody>' + unexplained + '</tbody></table></div>'
+              + '<p class="td-dim lg-hint">Nếu là khoản nạp hoặc rút: hãy ghi lại. Nếu không, có thể là một lệnh bị mất báo cáo: xem nhật ký của bot.</p>'
               + openingHint
-            : '<p class="td-dim lg-hint">None.</p>');
+            : '<p class="td-dim lg-hint">Không có.</p>');
 
     const movements = (a.movements || []).map(m => {
-        const source = m.balance_log_id !== null && m.balance_log_id !== undefined ? 'confirmed' : 'manual';
+        const source = m.balance_log_id !== null && m.balance_log_id !== undefined ? 'đã xác nhận' : 'nhập tay';
         return `<tr><td class="td-mono">${escapeHtml(m.occurred_at_vn || m.occurred_at)}</td>`
             + `<td class="td-mono ${Number(m.amount) >= 0 ? 'pnl-positive' : 'pnl-negative'}">${lgMoney(m.amount, true)}</td>`
             + `<td>${escapeHtml(m.note || '')}</td><td class="td-dim">${source}</td>`
-            + `<td><button class="log-btn lg-delete" data-id="${escapeHtml(m.id)}" title="Delete this entry">✕</button></td></tr>`;
+            + `<td><button class="log-btn lg-delete" data-id="${escapeHtml(m.id)}" title="Xoá khoản này">✕</button></td></tr>`;
     }).join('');
-    const movementsHtml = '<h4 class="lg-subtitle">Deposits and withdrawals</h4>'
+    const movementsHtml = '<h4 class="lg-subtitle">Nạp và rút</h4>'
         + (movements
-            ? '<div class="table-wrap"><table class="data-table"><thead><tr><th>Time (GMT+7)</th><th>Amount</th>'
-              + '<th>Note</th><th>Source</th><th></th></tr></thead><tbody>' + movements + '</tbody></table></div>'
-            : '<p class="td-dim lg-hint">None recorded.</p>');
+            ? '<div class="table-wrap"><table class="data-table"><thead><tr><th>Thời gian (GMT+7)</th><th>Số tiền</th>'
+              + '<th>Ghi chú</th><th>Nguồn</th><th></th></tr></thead><tbody>' + movements + '</tbody></table></div>'
+            : '<p class="td-dim lg-hint">Chưa ghi khoản nào.</p>');
 
     const form = `<form class="lg-form" data-account="${id}">`
-        + '<input type="datetime-local" class="log-input lg-when" title="Time (your browser\'s time zone); empty = now">'
-        + '<input type="number" step="0.01" class="log-input lg-amount" placeholder="Amount: +deposit / -withdrawal" required>'
-        + '<input type="text" maxlength="200" class="log-input lg-note" placeholder="Note (optional)">'
-        + '<button type="submit" class="log-btn">Add</button><span class="lg-msg"></span></form>';
+        + '<input type="datetime-local" class="log-input lg-when" title="Thời gian (theo múi giờ trình duyệt); để trống = bây giờ">'
+        + '<input type="number" step="0.01" class="log-input lg-amount" placeholder="Số tiền: + nạp / - rút" required>'
+        + '<input type="text" maxlength="200" class="log-input lg-note" placeholder="Ghi chú (không bắt buộc)">'
+        + '<button type="submit" class="log-btn">Thêm</button><span class="lg-msg"></span></form>';
 
     return `<section class="panel lg-account">${head}<div class="panel-body">${stats}${unexplainedHtml}${movementsHtml}${form}</div></section>`;
 }
 
 function lgPageHtml(data) {
     const accounts = (data && data.accounts) || [];
-    if (!accounts.length) return '<p class="td-dim">No account in this view. Create one on Docker Bot Management → Setup Instances.</p>';
+    if (!accounts.length) return '<p class="td-dim">Chưa có tài khoản nào trong mục này. Tạo ở màn Bot → Cài bot từ mẫu.</p>';
     return accounts.map(a => lgAccountHtml(a, data.tolerance)).join('');
 }
 
@@ -116,7 +116,7 @@ async function lgLoad() {
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         body.innerHTML = lgPageHtml(await res.json());
     } catch (e) {
-        body.innerHTML = `<p class="pnl-negative">Could not load the ledger: ${escapeHtml(e.message)}</p>`;
+        body.innerHTML = `<p class="pnl-negative">Không tải được sổ tiền: ${escapeHtml(e.message)}</p>`;
     } finally {
         lgLoading = false;
     }
@@ -148,16 +148,16 @@ document.addEventListener('DOMContentLoaded', () => {
         if (confirmBtn) {
             confirmBtn.disabled = true;
             await lgPost({account_id: confirmBtn.dataset.account, balance_log_id: Number(confirmBtn.dataset.log),
-                          note: confirmBtn.dataset.opening ? 'In the account before the balance log started'
-                                                           : 'Confirmed from a balance change'}, null);
+                          note: confirmBtn.dataset.opening ? 'Có sẵn trong tài khoản trước khi bắt đầu ghi số dư'
+                                                           : 'Xác nhận từ một thay đổi số dư'}, null);
             confirmBtn.disabled = false;
             return;
         }
         const del = e.target.closest('.lg-delete');
-        if (del && confirm('Delete this deposit / withdrawal entry?')) {
+        if (del && confirm('Xoá khoản nạp / rút này?')) {
             del.disabled = true;
             const res = await fetch(`/api/ledger/movements/${encodeURIComponent(del.dataset.id)}`, {method: 'DELETE'});
-            if (!res.ok) alert(`Could not delete: HTTP ${res.status}`);
+            if (!res.ok) alert(`Không xoá được: HTTP ${res.status}`);
             await lgLoad();
         }
     });

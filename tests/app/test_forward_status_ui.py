@@ -53,7 +53,7 @@ def test_forward_renderer_escapes_external_strings():
     dash = DASHBOARD_JS.read_text(encoding="utf-8")
     src = JS.read_text(encoding="utf-8")
     helpers = _function(dash, "escapeHtml")
-    renderers = "\n".join(_function(src, n) for n in ("fsNum", "fsListHtml", "fsRowHtml", "fsCalendarHtml", "fsTableHtml"))
+    renderers = "\n".join(_function(src, n) for n in ("fsNum", "fsListHtml", "fsVerdictLabel", "fsRowHtml", "fsCalendarHtml", "fsTableHtml"))
     data = {"candidates": [
         {"label": HOSTILE, "tier": HOSTILE, "prereg": HOSTILE, "verdict": "STOP", "n": 60, "mean": -3.2, "cum": -192.0,
          "pooled_t": -1.4, "hold_n": 117, "reasons": [HOSTILE], "manual": [HOSTILE]},
@@ -66,5 +66,6 @@ def test_forward_renderer_escapes_external_strings():
     out = json.loads(run.stdout)
     assert "<img" not in out["t"].lower() and "evil&lt;img" in out["t"]
     assert "fs-verdict--STOP" in out["t"] and "fs-verdict--NO_DATA" in out["t"]
-    assert "-3.20" in out["t"] and "Why stopped" in out["t"] and "–" in out["t"]
-    assert "No candidates" in out["e"]
+    assert "-3.20" in out["t"] and "Lý do dừng" in out["t"] and "–" in out["t"]
+    assert ">Dừng</span>" in out["t"] and ">Chưa có dữ liệu</span>" in out["t"]
+    assert "Chưa có ứng viên" in out["e"]
