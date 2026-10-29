@@ -137,7 +137,7 @@ def test_alerts_fire_once_per_change_into_stop_or_promote_check():
     assert alerts.check([_status("a", "CONTINUE")]) == []        # leaving a state is not alerted
     assert len(alerts.check([_status("a", "STOP")])) == 1        # back into it: alerted again
     promo = alerts.check([_status("b", "PROMOTE_CHECK", mean=4.0, pooled_t=2.6)])
-    assert len(promo) == 1 and "Not checked here: spread x1.5" in promo[0] and promo[0].startswith("🟢")
+    assert len(promo) == 1 and "Chưa kiểm ở đây: spread x1.5" in promo[0] and promo[0].startswith("🟢")
     assert sent[0][1] == ("forward", "a", "STOP")
 
 
@@ -159,6 +159,6 @@ def test_calendar_alert_only_inside_the_warning_window():
     alerts = ForwardAlerts(lambda text, key=None: sent.append(text))
     assert alerts.check_calendar({"valid_through": "2026-12-11", "days_left": 43}) is None
     assert alerts.check_calendar(None) is None and sent == []
-    assert "11 days left" in alerts.check_calendar({"valid_through": "2026-12-11", "days_left": 11})
-    assert "expired" in alerts.check_calendar({"valid_through": "2026-12-11", "days_left": -1})
+    assert "còn 11 ngày" in alerts.check_calendar({"valid_through": "2026-12-11", "days_left": 11})
+    assert "hết hạn" in alerts.check_calendar({"valid_through": "2026-12-11", "days_left": -1})
     assert len(sent) == 2

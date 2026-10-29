@@ -5,6 +5,7 @@ import re
 import time
 from typing import Dict, List, Optional, Any
 from app import alerts
+from app.alerts_vi import watchdog_reason_vi
 from app.docker_manager import docker_manager
 from app.portfolio import get_portfolio_manager
 
@@ -199,10 +200,10 @@ class CbotWatchdog:
         which alerts on its own)."""
         restarted = [a for a in actions if a["success"]]
         if len(restarted) == 1:
-            alerts.notify(f"🟠 Watchdog restarted {restarted[0]['name']}: {restarted[0]['reason']}")
+            alerts.notify(f"🟠 Watchdog đã khởi động lại {restarted[0]['name']}: {watchdog_reason_vi(restarted[0]['reason'])}")
         elif restarted:
-            alerts.notify(f"🟠 Watchdog restarted {len(restarted)} bots:\n"
-                          + "\n".join(f"• {a['name']}: {a['reason']}" for a in restarted))
+            alerts.notify(f"🟠 Watchdog đã khởi động lại {len(restarted)} bot:\n"
+                          + "\n".join(f"• {a['name']}: {watchdog_reason_vi(a['reason'])}" for a in restarted))
 
     def last_health(self, name: str) -> Optional[Dict[str, Any]]:
         """check_cbot_health() result for `name` from the latest cycle, or None before the first one."""
@@ -220,7 +221,7 @@ class CbotWatchdog:
             # The cooldown right after a restart is routine (the bot is still logging in); the backoff means
             # several restarts did not help.
             if limit_reason.startswith("Backoff"):
-                alerts.notify(f"🔴 Watchdog gave up on {name} ({reason}): {limit_reason}",
+                alerts.notify(f"🔴 Watchdog ngừng tự khởi động lại {name} ({watchdog_reason_vi(reason)}): {watchdog_reason_vi(limit_reason)}",
                               key=("watchdog-backoff", name))
             return
 

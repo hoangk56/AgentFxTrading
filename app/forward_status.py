@@ -169,6 +169,7 @@ def calendar_guard(today: Optional[datetime.date] = None, path: Path = GOLD_CALE
 
 
 ALERT_VERDICTS = {"STOP": "🔴", "PROMOTE_CHECK": "🟢"}
+ALERT_VERDICTS_VI = {"STOP": "DỪNG", "PROMOTE_CHECK": "ĐỦ ĐIỀU KIỆN XÉT"}   # as the Kiểm chứng screen words them
 CHECK_INTERVAL_SECONDS = 3600
 
 
@@ -186,11 +187,11 @@ class ForwardAlerts:
         for s in statuses:
             verdict = s["verdict"]
             if verdict in ALERT_VERDICTS and self._last.get(s["key"]) != verdict:
-                lines = [f"{ALERT_VERDICTS[verdict]} Forward {verdict}: {s['label']}",
-                         f"{s['n']} forward trades, mean net {s['mean']:+.2f} bp, pooled t {s['pooled_t']:+.2f}"]
+                lines = [f"{ALERT_VERDICTS[verdict]} Kiểm chứng {ALERT_VERDICTS_VI[verdict]}: {s['label']}",
+                         f"{s['n']} lệnh kiểm chứng, TB ròng {s['mean']:+.2f} bp, t gộp {s['pooled_t']:+.2f}"]
                 lines += s["reasons"]
                 if verdict == "PROMOTE_CHECK":
-                    lines.append("Not checked here: " + "; ".join(s["manual"]))
+                    lines.append("Chưa kiểm ở đây: " + "; ".join(s["manual"]))
                 sent.append("\n".join(lines))
                 self._notify(sent[-1], key=("forward", s["key"], verdict))
             self._last[s["key"]] = verdict
@@ -202,10 +203,10 @@ class ForwardAlerts:
             return None
         day = guard["valid_through"]
         left = guard["days_left"]
-        text = (f"🟠 Gold level calendar seed is valid through {day} ({left} days left)" if left >= 0 else
-                f"🔴 Gold level calendar seed expired on {day}: the bot no longer arms") \
-            + ". Rebuild cBot/seeds/usd_high_calendar.csv (research/tools/usd_high_calendar_seed.py) once the" \
-              " December funding outcome is known, then redeploy the bot."
+        text = (f"🟠 Lịch mốc giá vàng còn hiệu lực đến {day} (còn {left} ngày)" if left >= 0 else
+                f"🔴 Lịch mốc giá vàng đã hết hạn ngày {day}: bot không còn đặt lệnh chờ") \
+            + ". Dựng lại cBot/seeds/usd_high_calendar.csv (research/tools/usd_high_calendar_seed.py) khi biết" \
+              " kết quả funding tháng 12, rồi deploy lại bot."
         self._notify(text, key=("forward", "calendar", day, datetime.date.today().isoformat()))
         return text
 

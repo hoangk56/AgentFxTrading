@@ -56,7 +56,7 @@ async def lifespan(app: FastAPI):
     except Exception as e:
         logger.warning(f"Failed to set event loop for ws_manager: {e}")
 
-    alerts.notify(f"🟢 Server started (pid {os.getpid()})")
+    alerts.notify(f"🟢 Server đã khởi động (pid {os.getpid()})")
 
     # Start cBot Watchdog service for automatic relogin and crash recovery
     from app.cbot_watchdog import cbot_watchdog
@@ -79,7 +79,7 @@ async def lifespan(app: FastAPI):
 
     yield
 
-    alerts.notify("⚪ Server stopping")
+    alerts.notify("⚪ Server đang dừng")
     # Shutdown watchdog cleanly
     cbot_watchdog.stop()
     watchdog_task.cancel()
