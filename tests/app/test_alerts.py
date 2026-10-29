@@ -53,7 +53,7 @@ def test_a_repeated_key_is_sent_once_per_cooldown_with_the_count_it_held_back():
     alerter.notify("DB down", key="db")
     assert alerter.flush(2)
     assert sent == ["AgentFx @ vps\nDB down", "AgentFx @ vps\nother",
-                    "AgentFx @ vps\nDB down\n(+2 similar held back since the last alert)"]
+                    "AgentFx @ vps\nDB down\n(+2 tin tương tự đã gộp từ lần báo trước)"]
 
 
 def test_notify_without_a_key_always_sends():
@@ -124,8 +124,8 @@ def test_the_handler_alerts_on_error_and_critical_only():
     log.error("Portfolio report error: boom")
     log.critical("disk full")
     assert log.handlers[0].alerter.flush(2)
-    assert sent == ["AgentFx @ vps\n🔴 ERROR · tests.alerts.handler\nPortfolio report error: boom",
-                    "AgentFx @ vps\n🔴 CRITICAL · tests.alerts.handler\ndisk full"]
+    assert sent == ["AgentFx @ vps\n🔴 LỖI · tests.alerts.handler\nLỗi nhận báo cáo lệnh từ bot: boom",
+                    "AgentFx @ vps\n🔴 NGHIÊM TRỌNG · tests.alerts.handler\ndisk full"]
 
 
 def test_the_handler_sends_the_end_of_the_traceback():
@@ -136,7 +136,7 @@ def test_the_handler_sends_the_end_of_the_traceback():
     except ValueError:
         log.error("Unhandled error on POST /portfolio/report", exc_info=True)
     assert log.handlers[0].alerter.flush(2)
-    assert "Unhandled error on POST /portfolio/report\nTraceback (most recent call last):" in sent[0]
+    assert "Lỗi chưa được xử lý ở POST /portfolio/report\nTraceback (most recent call last):" in sent[0]
     assert sent[0].endswith("ValueError: bad value")
 
 
@@ -224,7 +224,7 @@ def test_the_watchdog_alerts_when_it_restarts_a_bot_but_not_during_the_cooldown(
     watchdog.check_and_heal()
     watchdog.check_and_heal()             # still logging in after the restart: the cooldown is routine
     assert alerts.flush(2)
-    assert sent == ["AgentFx @ vps\n🟠 Watchdog restarted cbot-usdjpy: Login failed"]
+    assert sent == ["AgentFx @ vps\n🟠 Watchdog đã khởi động lại cbot-usdjpy: Login failed"]
 
 
 @patch("app.cbot_watchdog.docker_manager")
@@ -239,7 +239,7 @@ def test_the_watchdog_alerts_when_it_gives_up_on_a_bot(mock_get_pm, mock_dm, mon
     watchdog.check_and_heal()             # same episode: one alert per cooldown
     assert alerts.flush(2)
     assert len(sent) == 2
-    assert sent[1].startswith("AgentFx @ vps\n🔴 Watchdog gave up on cbot-usdjpy (Login failed): Backoff active")
+    assert sent[1].startswith("AgentFx @ vps\n🔴 Watchdog ngừng tự khởi động lại cbot-usdjpy (Login failed): tạm ngừng tự khởi động lại")
 
 
 def test_the_server_says_when_it_starts_and_when_it_stops(monkeypatch):
@@ -257,5 +257,5 @@ def test_the_server_says_when_it_starts_and_when_it_stops(monkeypatch):
     monkeypatch.setattr(alerts, "_alerter", _alerter(sent))
     with TestClient(app):
         assert alerts.flush(2)
-        assert sent == [f"AgentFx @ vps\n🟢 Server started (pid {os.getpid()})"]
-    assert sent[-1] == "AgentFx @ vps\n⚪ Server stopping"
+        assert sent == [f"AgentFx @ vps\n🟢 Server đã khởi động (pid {os.getpid()})"]
+    assert sent[-1] == "AgentFx @ vps\n⚪ Server đang dừng"

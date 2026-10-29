@@ -112,11 +112,11 @@ class PaperDeskAlerts:
         cov = coverage(db_target, now)
         today = now.date().isoformat()
         if cov["days_with_calls"] and today in cov["days_missing"]:
-            sent.append(f"🟠 Paper desk: no calls recorded for {today} (cron 03:00-03:40 UTC). Check logs/paper_desk.log.")
+            sent.append(f"🟠 Dự đoán AI: chưa có lượt dự đoán nào cho {today} (cron 03:00-03:40 UTC). Xem logs/paper_desk.log.")
             self._notify(sent[-1], key=("paper_desk", today, "missing"))
         for d in cov["recent_days"][-2:]:
             if d["calls"] and d["errors"] / d["calls"] >= ALERT_ERROR_SHARE:
-                sent.append(f"🟠 Paper desk {d['date']}: {d['errors']} of {d['calls']} calls failed (ERROR rows).")
+                sent.append(f"🟠 Dự đoán AI {d['date']}: {d['errors']}/{d['calls']} lượt dự đoán bị lỗi (dòng ERROR).")
                 self._notify(sent[-1], key=("paper_desk", d["date"], "errors"))
         return sent
 

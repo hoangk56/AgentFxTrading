@@ -20,6 +20,7 @@ import urllib.parse
 import urllib.request
 from typing import Callable, Hashable, Mapping, Optional
 
+from app.alerts_vi import LEVELS_VI, log_alert_vi
 from app.logging_setup import Throttle
 
 TELEGRAM_API = "https://api.telegram.org"
@@ -71,7 +72,7 @@ class Alerter:
             if held is None:
                 return False
             if held:
-                text = f"{text}\n(+{held} similar held back since the last alert)"
+                text = f"{text}\n(+{held} tin tương tự đã gộp từ lần báo trước)"
         message = f"{self.title}\n{text}"
         if len(message) > MAX_TEXT:
             message = message[:MAX_TEXT - 1] + "…"
@@ -121,7 +122,8 @@ class AlertHandler(logging.Handler):
     def emit(self, record: logging.LogRecord) -> None:
         try:
             message = record.getMessage()
-            text = f"🔴 {record.levelname} · {record.name}\n{message}"
+            # The log file keeps the English line; Telegram gets it in Vietnamese (app/alerts_vi.py).
+            text = f"🔴 {LEVELS_VI.get(record.levelname, record.levelname)} · {record.name}\n{log_alert_vi(message)}"
             if record.exc_info:
                 lines = "".join(traceback.format_exception(*record.exc_info)).rstrip().splitlines()
                 if len(lines) > TRACEBACK_LINES:
