@@ -261,7 +261,7 @@
                             <div class="closed-row" title="{{ trade.bot_id }} · {{ trade.volume }} lot · {{ trade.entry_price }} → {{ trade.exit_price }}">
                                 <span class="closed-day">{{ (trade.exit_time or '')[9:14] or '—' }}</span>
                                 <span class="closed-main">{{ strategy_name(trade.bot_id) }} · {{ side_chip(trade.side) }} <span class="td-mono">{{ trade.symbol }}</span>
-                                    <span class="closed-sub">{% if trade.close_reason %}{{ trade.close_reason }}{% endif %}{% if trade.close_reason and trade.duration %} · {% endif %}{% if trade.duration %}giữ {{ trade.duration }}{% endif %}</span></span>
+                                    {% set reason = trade.close_reason_text or trade.close_reason %}<span class="closed-sub">{% if reason %}{{ reason }}{% endif %}{% if reason and trade.duration %} · {% endif %}{% if trade.duration %}giữ {{ trade.duration }}{% endif %}</span></span>
                                 <span class="closed-pnl {% if trade.pnl >= 0 %}pnl-positive{% else %}pnl-negative{% endif %}">{% if trade.pnl > 0 %}+{% endif %}{% if trade.pnl < 0 %}-{% endif %}${{ "{:,.2f}".format(trade.pnl | abs) }}</span>
                             </div>
                             {% else %}
@@ -691,5 +691,5 @@
             leaderboard: {{ leaderboard | tojson }},
         };
     </script>
-    <script src="/static/js/dashboard.js?v=20261029_vi1"></script>
+    <script src="/static/js/dashboard.js?v=20261029_vi2"></script>
 </body></html>

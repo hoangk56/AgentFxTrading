@@ -606,7 +606,8 @@ const DASHBOARD_BOOTSTRAP = window.DASHBOARD_BOOTSTRAP || {};
         // One closed trade on the Overview. Mirrors the closed-row block of templates/dashboard.html.
         function closedRowHtml(t){
             const day = String(t.exit_time||'').slice(9, 14) || '—';   // "HH:MM:SS DD/MM/YYYY" -> "DD/MM"
-            const sub = [t.close_reason ? escapeHtml(t.close_reason) : '', t.duration ? `giữ ${escapeHtml(t.duration)}` : ''].filter(Boolean).join(' · ');
+            const reason = t.close_reason_text || t.close_reason;   // close_reason_text: app/close_reasons.py
+            const sub = [reason ? escapeHtml(reason) : '', t.duration ? `giữ ${escapeHtml(t.duration)}` : ''].filter(Boolean).join(' · ');
             const title = `${t.bot_id||''} · ${t.volume} lot · ${t.entry_price} → ${t.exit_price}`;
             return `<div class="closed-row" title="${escapeHtml(title)}">
                 <span class="closed-day">${escapeHtml(day)}</span>
