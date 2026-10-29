@@ -13,7 +13,9 @@ The PREREGs cluster by day; for these bots (at most about one trade a day) the t
 """
 from __future__ import annotations
 
+import datetime
 import math
+from pathlib import Path
 from dataclasses import dataclass
 from typing import Dict, Iterable, List, Optional, Sequence, Tuple
 
@@ -145,6 +147,27 @@ def forward_status(db_target=None, keys: Optional[Iterable[str]] = None) -> List
     return [evaluate(CANDIDATES[k], load_nets(CANDIDATES[k], db_target)) for k in (keys or CANDIDATES)]
 
 
+GOLD_CALENDAR = Path(__file__).resolve().parent.parent / "cBot" / "seeds" / "usd_high_calendar.csv"
+CALENDAR_WARN_DAYS = 21
+
+
+def calendar_guard(today: Optional[datetime.date] = None, path: Path = GOLD_CALENDAR) -> Optional[dict]:
+    """The gold bot stops arming after the seed's `# valid_through=` day (a funding-lapse guard, see
+    research/tools/usd_high_calendar_seed.py). Returns that day and the days left, or None when the line is missing."""
+    today = today or datetime.datetime.now(datetime.timezone.utc).date()
+    try:
+        with open(path, encoding="utf-8") as f:
+            for line in f:
+                if not line.startswith("#"):
+                    break
+                if "valid_through=" in line:
+                    day = datetime.date.fromisoformat(line.split("valid_through=", 1)[1].strip())
+                    return {"valid_through": day.isoformat(), "days_left": (day - today).days}
+    except (OSError, ValueError):
+        pass
+    return None
+
+
 ALERT_VERDICTS = {"STOP": "🔴", "PROMOTE_CHECK": "🟢"}
 CHECK_INTERVAL_SECONDS = 3600
 
@@ -173,6 +196,19 @@ class ForwardAlerts:
             self._last[s["key"]] = verdict
         return sent
 
+    def check_calendar(self, guard: Optional[dict]) -> Optional[str]:
+        """Warn (once a day per state) when the gold seed's valid_through is close or past: the bot stops arming then."""
+        if guard is None or guard["days_left"] > CALENDAR_WARN_DAYS:
+            return None
+        day = guard["valid_through"]
+        left = guard["days_left"]
+        text = (f"🟠 Gold level calendar seed is valid through {day} ({left} days left)" if left >= 0 else
+                f"🔴 Gold level calendar seed expired on {day}: the bot no longer arms") \
+            + ". Rebuild cBot/seeds/usd_high_calendar.csv (research/tools/usd_high_calendar_seed.py) once the" \
+              " December funding outcome is known, then redeploy the bot."
+        self._notify(text, key=("forward", "calendar", day, datetime.date.today().isoformat()))
+        return text
+
     async def run_loop(self, interval: float = CHECK_INTERVAL_SECONDS):
         import asyncio
         import logging
@@ -181,6 +217,7 @@ class ForwardAlerts:
             try:
                 statuses = await asyncio.to_thread(lambda: forward_status(get_portfolio_manager().db_path))
                 self.check(statuses)
+                self.check_calendar(calendar_guard())
             except asyncio.CancelledError:
                 raise
             except Exception as e:

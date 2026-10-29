@@ -53,7 +53,7 @@ def test_forward_renderer_escapes_external_strings():
     dash = DASHBOARD_JS.read_text(encoding="utf-8")
     src = JS.read_text(encoding="utf-8")
     helpers = _function(dash, "escapeHtml")
-    renderers = "\n".join(_function(src, n) for n in ("fsNum", "fsListHtml", "fsRowHtml", "fsTableHtml"))
+    renderers = "\n".join(_function(src, n) for n in ("fsNum", "fsListHtml", "fsRowHtml", "fsCalendarHtml", "fsTableHtml"))
     data = {"candidates": [
         {"label": HOSTILE, "tier": HOSTILE, "prereg": HOSTILE, "verdict": "STOP", "n": 60, "mean": -3.2, "cum": -192.0,
          "pooled_t": -1.4, "hold_n": 117, "reasons": [HOSTILE], "manual": [HOSTILE]},

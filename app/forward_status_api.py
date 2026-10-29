@@ -8,7 +8,7 @@ import math
 
 from fastapi import APIRouter
 
-from app.forward_status import forward_status
+from app.forward_status import calendar_guard, forward_status
 from app.portfolio import get_portfolio_manager
 
 router = APIRouter()
@@ -27,4 +27,5 @@ def _json_safe(value):
 
 @router.get("/api/forward/status")
 def api_forward_status():
-    return {"candidates": _json_safe(forward_status(get_portfolio_manager().db_path))}
+    return {"candidates": _json_safe(forward_status(get_portfolio_manager().db_path)),
+            "gold_calendar": calendar_guard()}

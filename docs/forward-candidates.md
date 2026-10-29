@@ -41,3 +41,10 @@ so in practice this tracker raises stop signals early and promotion signals late
 
 `round24_relaxed/PREREG_R24_forward.md` appends F3 / E1 on Dukascopy data after 2026-09-24 (HOLD + FWD: F3 +1.86 bp,
 t 1.96 to 2026-10-26). It is not a demo (no fills) and does not enter the promotion rule.
+
+## Gold calendar guard
+
+`cBot/seeds/usd_high_calendar.csv` carries `# valid_through=2026-12-11`: the continuing resolution funds BLS, BEA, Census
+and DOL only to then, and a lapse would move their releases, so the gold bot stops arming after that day. The Forward view
+shows the days left; Telegram warns from 21 days before and again once it has expired. Rebuild with
+`research.tools.usd_high_calendar_seed` (see its docstring) and redeploy the bot only when the funding outcome is known.

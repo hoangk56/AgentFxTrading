@@ -12,6 +12,7 @@
     <script src="/static/js/ledger.js?v=20260927_ledger0" defer></script>
     <script src="/static/js/overview_alerts.js?v=20261029_alerts2" defer></script>
     <script src="/static/js/forward_status.js?v=20261028_fwd1" defer></script>
+    <script src="/static/js/paper_desk.js?v=20261029_pd1" defer></script>
     <script src="/static/js/gotobi_calendar.js?v=20261017_ecbplan" defer></script>
     <link rel="icon" type="image/png" href="/static/favicon.png">
 </head>
@@ -113,6 +114,10 @@
             <a href="#forward" class="nav-item" data-target="view-forward" title="Forward: the registered stop and promotion rules of the research candidates">
                 <span class="nav-icon"><i data-lucide="radar"></i></span>
                 <span class="nav-label">Forward</span>
+            </a>
+            <a href="#paper-desk" class="nav-item" data-target="view-paper-desk" title="Paper desk: LLM analysts' daily calls, scored without money">
+                <span class="nav-icon"><i data-lucide="bot"></i></span>
+                <span class="nav-label">Paper desk</span>
             </a>
             <div class="nav-group-label">System</div>
             <a href="#logs" class="nav-item" data-target="view-logs" title="Agent Logs">
@@ -745,6 +750,20 @@
                     <div class="panel-body">
                         <p class="td-dim lg-hint">Each research candidate against the stop and promotion rules it registered before its forward data existed (docs/forward-candidates.md). Net is the real fills' move minus 0.6 bp commission, pooled with the holdout run. PROMOTE_CHECK is never a promotion: the conditions listed under "Not checked here" still need a person.</p>
                         <div id="fs-body"><p class="td-dim">Loading...</p></div>
+                    </div>
+                </section>
+            </div>
+
+            <!-- Paper desk View: LLM analyst calls and their score (static/js/paper_desk.js) -->
+            <div id="view-paper-desk" class="view-section">
+                <section class="panel">
+                    <div class="panel-header">
+                        <span class="panel-title"><i data-lucide="bot" class="panel-icon text-blue"></i> Paper desk</span>
+                        <button id="pd-refresh-btn" class="log-btn" style="margin-left:auto;"><i data-lucide="refresh-cw" class="btn-icon"></i> Refresh</button>
+                    </div>
+                    <div class="panel-body">
+                        <p class="td-dim lg-hint">An experiment without money (docs/paper-desk.md): DeepSeek analysts call a direction for 6 symbols each weekday before the 07:00 UTC entry. "Took a side" means long or short; a call of 0 is no trade. Net bp uses the measured costs of research/results/portfolio/paper_desk_costs_2026-10-29.md. Even a PASS would only license a demo test of a frozen rule.</p>
+                        <div id="pd-body"><p class="td-dim">Loading...</p></div>
                     </div>
                 </section>
             </div>

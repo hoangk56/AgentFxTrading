@@ -67,11 +67,15 @@ async def lifespan(app: FastAPI):
     from app.backtest_worker import backtest_worker
     backtest_task = None
     forward_task = None
+    paper_desk_task = None
     if not is_running_under_test():
         backtest_task = asyncio.create_task(backtest_worker.run_loop())
         # Telegram alert when a research candidate turns STOP or PROMOTE_CHECK (app/forward_status.py).
         from app.forward_status import ForwardAlerts
         forward_task = asyncio.create_task(ForwardAlerts(alerts.notify).run_loop())
+        # Telegram alert when the paper desk misses a day or its calls fail (app/paper_desk_status.py).
+        from app.paper_desk_status import PaperDeskAlerts
+        paper_desk_task = asyncio.create_task(PaperDeskAlerts(alerts.notify).run_loop())
 
     yield
 
@@ -83,12 +87,13 @@ async def lifespan(app: FastAPI):
         await watchdog_task
     except asyncio.CancelledError:
         pass
-    if forward_task:
-        forward_task.cancel()
-        try:
-            await forward_task
-        except asyncio.CancelledError:
-            pass
+    for task in (forward_task, paper_desk_task):
+        if task:
+            task.cancel()
+            try:
+                await task
+            except asyncio.CancelledError:
+                pass
     if backtest_task:
         backtest_worker.stop()
         backtest_task.cancel()
@@ -140,6 +145,8 @@ from app.gotobi_calendar_api import router as gotobi_calendar_router
 app.include_router(gotobi_calendar_router)
 from app.forward_status_api import router as forward_status_router
 app.include_router(forward_status_router)
+from app.paper_desk_api import router as paper_desk_router
+app.include_router(paper_desk_router)
 
 
 if __name__ == "__main__":

@@ -124,8 +124,15 @@ def clustered_t(values: Sequence[float], groups: Sequence[str]) -> float:
 Prices = Mapping[Tuple[str, str], Tuple[float, float, float]]
 
 
-def net_bp(direction: int, entry: float, exit_: float, cost_bp: float) -> float:
-    return direction * (exit_ / entry - 1.0) * 1e4 - (cost_bp if direction else 0.0)
+def cost_for(cost, direction: int) -> float:
+    """A symbol's cost is one number, or (long, short) when the overnight swap differs by side."""
+    if isinstance(cost, (tuple, list)):
+        return float(cost[0] if direction > 0 else cost[1])
+    return float(cost)
+
+
+def net_bp(direction: int, entry: float, exit_: float, cost_bp) -> float:
+    return direction * (exit_ / entry - 1.0) * 1e4 - (cost_for(cost_bp, direction) if direction else 0.0)
 
 
 def _summary(rows: List[Tuple[str, float, int]]) -> dict:
@@ -139,7 +146,7 @@ def _summary(rows: List[Tuple[str, float, int]]) -> dict:
             "t": clustered_t(nets, [r[0] for r in traded])}
 
 
-def score(calls: Iterable[dict], prices: Prices, cost_bp: Mapping[str, float]) -> dict:
+def score(calls: Iterable[dict], prices: Prices, cost_bp: Mapping[str, object]) -> dict:
     """Per analyst, plus the always-long and previous-day-momentum baselines on the same (day, symbol) cells.
     Calls without prices yet (the exit has not happened) are skipped."""
     by_analyst: Dict[str, List[Tuple[str, float, int]]] = {}

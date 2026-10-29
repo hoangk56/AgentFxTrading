@@ -1215,3 +1215,6 @@ body.login-shell{display:flex;align-items:center;justify-content:center;padding:
 .fs-verdict--STOP{background:rgba(244,67,54,0.14);color:var(--loss);border:1px solid rgba(244,67,54,0.4)}
 .fs-verdict--PROMOTE_CHECK{background:var(--profit-soft);color:var(--profit);border:1px solid rgba(52,211,153,0.4)}
 .fs-notes{margin:4px 0 0;padding-left:16px;font-size:0.72rem}
+
+/* Paper desk view (static/js/paper_desk.js) */
+.pd-h{margin:14px 0 6px;font-size:0.8rem;font-weight:600}

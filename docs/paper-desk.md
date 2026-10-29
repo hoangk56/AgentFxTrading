@@ -42,14 +42,29 @@ later. `asof_utc` and `hours_until_entry` are in the features and in the stored 
 matter as long as it is before 07:00 UTC: cron may run at 03:00, 03:20 and 03:40 UTC (10:00-10:40 Vietnam). A newest bar
 older than 3 hours before 00:00 UTC withholds the call (a weekend gap does: no call on such a day).
 
-## Costs (registered assumptions)
-Round-trip bp per symbol, `COST_BP` in `app/paper_desk_runner.py`: EURUSD 1.0, USDJPY 1.0, GBPJPY 1.8, XAUUSD 1.5,
-US500 1.5, BTCUSD 8.0. IC commission plus a typical spread, rounded up; not measured medians. They set the bar the calls
-must clear and change the result: replace them with measured values in a new dated section, not silently.
+## Costs
+2026-10-28 (superseded): assumed round-trip bp EURUSD 1.0, USDJPY 1.0, GBPJPY 1.8, XAUUSD 1.5, US500 1.5, BTCUSD 8.0.
+
+2026-10-29 (in force from the 2026-10-30 call date; calls of 10-29 and earlier were made with the assumed figures in
+the prompt, but every call is scored with the measured costs, which the prompt only quotes): measured by
+`research/tools/paper_desk_costs.py`, result in `research/results/portfolio/paper_desk_costs_2026-10-29.md`. Each symbol
+has a (long, short) pair: spread at the 07:00 UTC minute + commission + the overnight swap of the side, with swap credits
+not counted. `COST_BP` in `app/paper_desk_runner.py` holds them; the prompt shows the analyst the mean of the pair. US500
+has no calibrated swap fit, so its swap is assumed 0 (a disclosed gap). They set the bar the calls must clear and change
+the result: change them only with a new dated section, not silently.
 
 ## Running it
     python -m app.paper_desk_runner run [--date YYYY-MM-DD] [--dry-run]   # before 07:00 UTC; needs DEEPSEEK_API_KEY
-    python -m app.paper_desk_runner score
+    python -m app.paper_desk_runner score     # fetches exit prices, prints the table and writes score.json
 
 `DEEPSEEK_API_KEY` is read from the environment (the VPS `.env`) and never written or logged. Nothing is scheduled
-by the code: the VPS cron (`/etc/cron.d/agentfx-paper-desk`) runs `run` on weekdays; a dashboard view is not built.
+by the code: the VPS cron (`/etc/cron.d/agentfx-paper-desk`) runs `run` at 03:00, 03:20 and 03:40 UTC on weekdays and
+`score` at 04:30 UTC.
+
+## Dashboard and alerts
+The Paper desk view (`#paper-desk`, `/api/paper-desk/status`) shows, from the call log, calls per analyst, how many took
+a side (the share of calls that are not 0), how many failed, the last 14 days and the weekdays with no call at all; and
+from `score.json` the last score with its time. Telegram (once `TELEGRAM_*` are set) hears of a weekday still without
+calls at 05:00 UTC, and of a day where a quarter or more of the calls failed (an ops threshold, not a research one).
+The share of calls that take a side decides how long the 600-call bar takes: watch it, do not tune the prompts to raise it
+(prompts are fixed by this document).

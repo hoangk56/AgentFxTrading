@@ -6,6 +6,12 @@ detail. The numbers are copied from those files, and the file wins if the two ev
 When you write a new result file, add a row to that day's entry (or start a new entry) and link the file. Don't
 repeat its tables here.
 
+## 2026-10-29: paper desk costs measured (not a strategy test)
+
+| tested | verdict | detail |
+|---|---|---|
+| Round-trip cost at the paper desk's 07:00 UTC entry/exit for EURUSD, USDJPY, GBPJPY, XAUUSD, US500, BTCUSD: median tick spread of 06:55-07:05 UTC (2026-01-01 to 09-24), fitted commission, overnight swap (credits not counted) | **replaces the assumed `COST_BP`**: long/short bp EURUSD 1.58/0.64, USDJPY 0.67/2.12, GBPJPY 0.92/2.24, XAUUSD 2.55/0.77, US500 0.68/0.68 (no swap fit, 0 assumed), BTCUSD 9.29/1.69 | [paper_desk_costs_2026-10-29.md](results/portfolio/paper_desk_costs_2026-10-29.md) |
+
 ## 2026-10-28: rounds 34-36 (SHFE / LETF / Deribit; option volume, Taiwan positioning; Asian CB liquidity, US household cash) and the joint HOLD look of the VAL-strong rules. No LIVE or DEMO candidate; research paused after round 36 at the user's request
 
 | tested | verdict | detail |
