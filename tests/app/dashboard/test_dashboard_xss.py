@@ -68,7 +68,7 @@ const window = {lucide};
 let currentMode = 'demo';
 let selectedAccountId = 'demo', historyPage = 1;
 function fetchTradeHistory() {}
-const closingPositions = new Set();
+const closingPositions = new Set(), openPositionCards = new Set();
 const LB_WEIGHT_HINTS = {usd: '', lot: ''}, LB_ROLLING = {all: 'All time'}, LB_CALENDAR = {};
 let lbTab = 'usd', lbPeriod = 'all', lbDateFrom = '', lbDateTo = '', lbData = null;
 %(functions)s

@@ -493,8 +493,7 @@ const DASHBOARD_BOOTSTRAP = window.DASHBOARD_BOOTSTRAP || {};
                 return '<span class="td-dim" title="Lời/lỗ từ sàn sẽ có khi bot gửi báo cáo tiếp theo">—</span>';
             }
             const v=Number(pnl)||0, p=Number(pips)||0;
-            const cls=v>=0?'pnl-chip--profit':'pnl-chip--loss';
-            return `<span class="pnl-chip ${cls}">${v>0?'+':''}$${v.toFixed(2)} (${p>0?'+':''}${p.toFixed(1)}p)</span>`;
+            return `<span class="pos-money ${v>=0?'pnl-positive':'pnl-negative'}">${signedMoney(v)}</span> <span class="pos-pips">${p>0?'+':''}${p.toFixed(1)}p</span>`;
         }
         function escapeHtml(v){return String(v).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
         // One SL or TP line: the price plus the bot's P&L estimate at it. Rows written before
@@ -574,22 +573,26 @@ const DASHBOARD_BOOTSTRAP = window.DASHBOARD_BOOTSTRAP || {};
             return v<0 ? `Nếu chạm stop <b class="pnl-negative">${formatMoney(v)}</b>`
                        : `Stop đã khoá lời <b class="pnl-positive">+${formatMoney(v)}</b>`;
         }
-        // One open position on the Overview. Mirrors the pos-card block of templates/dashboard.html.
+        // One open position on the Overview: a two-line row that opens to the facts and the Close button.
+        // Mirrors the pos-card block of templates/dashboard.html.
         function positionCardHtml(p){
             const curPrice = (p.current_price !== undefined && p.current_price !== null) ? p.current_price : p.entry_price;
             const priceAge = (typeof p.price_age_seconds === 'number') ? `<span class="td-dim" title="giá từ báo cáo gần nhất của bot"> ·${Math.floor(p.price_age_seconds/60)}m</span>` : '';
-            const acct = p.account_type==='live' ? '<span class="badge badge--live">Thật</span>' : '<span class="badge badge--demo">Demo</span>';
-            return `<article class="pos-card" data-bot="${escapeHtml(p.bot_id||'')}" data-symbol="${escapeHtml(p.symbol||'')}" data-side="${escapeHtml(p.side||'')}">
-                <div class="pos-head">
-                    <span class="pos-sym td-mono">${escapeHtml(p.symbol)}</span>
-                    ${sideChip(p.side)}
-                    <span class="pos-strategy">${strategyName(p.bot_id)}</span>
-                    ${acct}
-                </div>
-                <div class="pos-pnl td-pnl-live">${pnlCellHtml(p.unrealized_pnl, p.unrealized_pnl_pips)}</div>
-                <div class="pos-risk">${riskLineHtml(p)}</div>
-                <details class="pos-more">
-                    <summary>Chi tiết</summary>
+            const open = openPositionCards.has(String(p.id)) ? ' open' : '';
+            return `<details class="pos-card" data-id="${escapeHtml(p.id)}" data-bot="${escapeHtml(p.bot_id||'')}" data-symbol="${escapeHtml(p.symbol||'')}" data-side="${escapeHtml(p.side||'')}"${open}>
+                <summary class="pos-row">
+                    <span class="pos-main">
+                        <span class="pos-head">
+                            <span class="pos-sym">${escapeHtml(p.symbol)}</span>
+                            ${sideChip(p.side)}
+                            <span class="pos-strategy">${strategyName(p.bot_id)}</span>
+                        </span>
+                        <span class="pos-risk">${riskLineHtml(p)}</span>
+                    </span>
+                    <span class="pos-pnl td-pnl-live">${pnlCellHtml(p.unrealized_pnl, p.unrealized_pnl_pips)}</span>
+                    <span class="pos-chevron" aria-hidden="true"></span>
+                </summary>
+                <div class="pos-body">
                     <dl class="pos-facts">
                         <dt>Bot</dt><dd>${botBadge(p.bot_id)}</dd>
                         <dt>Tài khoản</dt><dd>${escapeHtml(p.account_label||'')}</dd>
@@ -599,9 +602,9 @@ const DASHBOARD_BOOTSTRAP = window.DASHBOARD_BOOTSTRAP || {};
                         <dt>SL / TP</dt><dd class="td-sltp">${sltpCellHtml(p, true)}</dd>
                         <dt>Mở lúc</dt><dd>${escapeHtml(p.entry_time||'—')}</dd>
                     </dl>
-                </details>
-                <div class="pos-actions">${closeButtonHtml(p)}</div>
-            </article>`;
+                    <div class="pos-actions">${closeButtonHtml(p)}</div>
+                </div>
+            </details>`;
         }
         // One closed trade on the Overview. Mirrors the closed-row block of templates/dashboard.html.
         function closedRowHtml(t){
@@ -881,6 +884,14 @@ const DASHBOARD_BOOTSTRAP = window.DASHBOARD_BOOTSTRAP || {};
         // The dashboard queues the close; the position's bot picks it up within ~2 s, closes it at
         // market and reports back. The existing broadcast then removes the row.
         const closingPositions = new Set();   // row ids with a close in flight (survives re-renders)
+        // Rows the user opened stay open when updateDashboard() redraws the list.
+        const openPositionCards = new Set();
+        // 'toggle' does not bubble, hence the capture listener on the list.
+        document.getElementById('positions-table').addEventListener('toggle', e => {
+            const card = e.target.closest && e.target.closest('.pos-card');
+            if (!card || !card.dataset.id) return;
+            if (card.open) openPositionCards.add(card.dataset.id); else openPositionCards.delete(card.dataset.id);
+        }, true);
         const COMMAND_FAILURE_TEXT = {
             expired: 'Bot không nhận lệnh trong 15 giây - có thể bị treo hoặc đang chạy bản cũ. Hãy đóng lệnh trong cTrader.',
             unconfirmed: 'Bot đã nhận lệnh nhưng không báo lại kết quả. Hãy kiểm tra lệnh trong cTrader.',
