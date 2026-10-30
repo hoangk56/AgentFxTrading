@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AgentFxTrading</title>
-    <link rel="stylesheet" href="/static/css/dashboard.css?v=20261029_dim1">
+    <link rel="stylesheet" href="/static/css/dashboard.css?v=20261030_pos1">
     <script src="/static/js/auth.js?v=20260927_login"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -204,26 +204,31 @@
                     <section class="ov-card ov-hold" aria-labelledby="ov-hold-title">
                         <h2 id="ov-hold-title" class="ov-card-title">Đang giữ <span id="active-pos-count" class="ov-card-count">{{ positions|length }} lệnh</span></h2>
                         <div id="positions-table" class="ov-positions">
+                            {# One two-line row per position (2026-10-30: three cards used to fill the screen); the
+                               whole row opens the facts and the Close button. The page already says real or demo. #}
                             {% for pos in positions %}
-                            <article class="pos-card" data-bot="{{ pos.bot_id }}" data-symbol="{{ pos.symbol }}" data-side="{{ pos.side }}">
-                                <div class="pos-head">
-                                    <span class="pos-sym td-mono">{{ pos.symbol }}</span>
-                                    {{ side_chip(pos.side) }}
-                                    <span class="pos-strategy">{{ strategy_name(pos.bot_id) }}</span>
-                                    {% if pos.account_type == 'live' %}<span class="badge badge--live">Thật</span>{% else %}<span class="badge badge--demo">Demo</span>{% endif %}
-                                </div>
-                                <div class="pos-pnl td-pnl-live">
-                                    {% if pos.unrealized_pnl is none %}
-                                    <span class="td-dim" title="Lời/lỗ từ sàn sẽ có khi bot gửi báo cáo tiếp theo">—</span>
-                                    {% else %}
-                                    {% set u_pnl = pos.unrealized_pnl %}
-                                    {% set u_pips = pos.unrealized_pnl_pips | default(0) %}
-                                    <span class="pnl-chip {% if u_pnl >= 0 %}pnl-chip--profit{% else %}pnl-chip--loss{% endif %}">{% if u_pnl > 0 %}+{% endif %}${{ u_pnl }} ({% if u_pips > 0 %}+{% endif %}{{ u_pips }}p)</span>
-                                    {% endif %}
-                                </div>
-                                <div class="pos-risk">{{ risk_line(pos.sl_price, pos.sl_pnl) }}</div>
-                                <details class="pos-more">
-                                    <summary>Chi tiết</summary>
+                            <details class="pos-card" data-id="{{ pos.id }}" data-bot="{{ pos.bot_id }}" data-symbol="{{ pos.symbol }}" data-side="{{ pos.side }}">
+                                <summary class="pos-row">
+                                    <span class="pos-main">
+                                        <span class="pos-head">
+                                            <span class="pos-sym">{{ pos.symbol }}</span>
+                                            {{ side_chip(pos.side) }}
+                                            <span class="pos-strategy">{{ strategy_name(pos.bot_id) }}</span>
+                                        </span>
+                                        <span class="pos-risk">{{ risk_line(pos.sl_price, pos.sl_pnl) }}</span>
+                                    </span>
+                                    <span class="pos-pnl td-pnl-live">
+                                        {% if pos.unrealized_pnl is none %}
+                                        <span class="td-dim" title="Lời/lỗ từ sàn sẽ có khi bot gửi báo cáo tiếp theo">—</span>
+                                        {% else %}
+                                        {% set u_pnl = pos.unrealized_pnl %}
+                                        {% set u_pips = pos.unrealized_pnl_pips or 0 %}
+                                        <span class="pos-money {% if u_pnl >= 0 %}pnl-positive{% else %}pnl-negative{% endif %}">{% if u_pnl > 0 %}+{% endif %}{% if u_pnl < 0 %}-{% endif %}${{ "{:,.2f}".format(u_pnl | abs) }}</span> <span class="pos-pips">{% if u_pips > 0 %}+{% endif %}{{ "%.1f" | format(u_pips) }}p</span>
+                                        {% endif %}
+                                    </span>
+                                    <span class="pos-chevron" aria-hidden="true"></span>
+                                </summary>
+                                <div class="pos-body">
                                     <dl class="pos-facts">
                                         <dt>Bot</dt><dd>{{ bot_badge(pos.bot_id) }}</dd>
                                         <dt>Tài khoản</dt><dd>{{ pos.account_label }}</dd>
@@ -233,11 +238,11 @@
                                         <dt>SL / TP</dt><dd class="td-sltp">{{ sltp_line('SL', pos.sl_price, pos.sl_pnl, pos.sl_pips, pos.no_tp) }}{{ sltp_line('TP', pos.tp_price, pos.tp_pnl, pos.tp_pips, pos.no_tp) }}</dd>
                                         <dt>Mở lúc</dt><dd>{{ pos.entry_time }}</dd>
                                     </dl>
-                                </details>
-                                <div class="pos-actions">
-                                    <button class="log-btn action-close-pos" data-id="{{ pos.id }}" data-bot="{{ pos.bot_id }}" data-symbol="{{ pos.symbol }}" data-side="{{ pos.side }}" data-volume="{{ pos.volume }}" data-live="{{ '1' if pos.account_type == 'live' else '0' }}"{% if not pos.ctrader_id %} disabled title="Lệnh này chưa có mã cTrader - hãy đóng trong cTrader"{% endif %}>Đóng lệnh</button>
+                                    <div class="pos-actions">
+                                        <button class="log-btn action-close-pos" data-id="{{ pos.id }}" data-bot="{{ pos.bot_id }}" data-symbol="{{ pos.symbol }}" data-side="{{ pos.side }}" data-volume="{{ pos.volume }}" data-live="{{ '1' if pos.account_type == 'live' else '0' }}"{% if not pos.ctrader_id %} disabled title="Lệnh này chưa có mã cTrader - hãy đóng trong cTrader"{% endif %}>Đóng lệnh</button>
+                                    </div>
                                 </div>
-                            </article>
+                            </details>
                             {% else %}
                             <p class="ov-empty">Không giữ lệnh nào.</p>
                             {% endfor %}
@@ -691,5 +696,5 @@
             leaderboard: {{ leaderboard | tojson }},
         };
     </script>
-    <script src="/static/js/dashboard.js?v=20261029_vi2"></script>
+    <script src="/static/js/dashboard.js?v=20261030_pos1"></script>
 </body></html>
