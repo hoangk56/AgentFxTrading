@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AgentFxTrading</title>
-    <link rel="stylesheet" href="/static/css/dashboard.css?v=20261030_pos1">
+    <link rel="stylesheet" href="/static/css/dashboard.css?v=20261030_strip2">
     <script src="/static/js/auth.js?v=20260927_login"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -176,25 +176,27 @@
                 {% else %}<span class="reason-chip {% if 'stop out' in r or 'stopout' in r %}reason-chip--loss{% elif 'trailing' in r or 'break-even' in r or 'breakeven' in r %}reason-chip--lock{% elif 'takeprofit' in r or 'take profit' in r %}reason-chip--profit{% elif 'stoploss' in r or 'stop loss' in r %}reason-chip--loss{% endif %}" title="{{ reason }}">{{ reason }}</span>{% endif %}
                 {% endmacro %}
 
+                {# One strip of four figures (2026-10-30: the big hero card plus two stacked cards took ~227px). #}
                 <section class="ov-hero">
-                    <div class="ov-today">
-                        <div class="ov-label">Lời/lỗ đã chốt hôm nay</div>
-                        <div id="daily-pnl" class="ov-today-num {% if summary.daily_pnl >= 0 %}kpi-value--profit{% else %}kpi-value--loss{% endif %}">{% if summary.daily_pnl > 0 %}+{% endif %}{% if summary.daily_pnl < 0 %}-{% endif %}${{ "{:,.2f}".format(summary.daily_pnl | abs) }}</div>
+                    <div class="ov-stat ov-stat--today">
+                        <div class="ov-label">Đã chốt hôm nay</div>
+                        <div id="daily-pnl" class="ov-stat-num {% if summary.daily_pnl >= 0 %}kpi-value--profit{% else %}kpi-value--loss{% endif %}">{% if summary.daily_pnl > 0 %}+{% endif %}{% if summary.daily_pnl < 0 %}-{% endif %}${{ "{:,.2f}".format(summary.daily_pnl | abs) }}</div>
                         <div id="ov-status" class="ov-status ov-status--checking">Đang kiểm tra bot…</div>
                     </div>
-                    <div class="ov-stats">
-                        <div class="ov-stat">
-                            <div class="ov-label">Tháng này</div>
-                            {% set month = summary.month_pnl or 0 %}
-                            <div id="month-pnl" class="ov-stat-num {% if month >= 0 %}kpi-value--profit{% else %}kpi-value--loss{% endif %}">{% if month > 0 %}+{% endif %}{% if month < 0 %}-{% endif %}${{ "{:,.2f}".format(month | abs) }}</div>
-                        </div>
-                        <div class="ov-stat" title="Số dư: tiền đã chốt. Tính cả lệnh đang mở: tiền bạn có nếu đóng hết lệnh ngay bây giờ.">
-                            <div class="ov-label">Tiền trong tài khoản</div>
-                            <div id="account-balance" class="ov-stat-num">${{ "{:,.2f}".format(summary.account_balance or 0) }}</div>
-                            {% set floating = summary.floating_pnl %}
-                            <div class="ov-stat-sub">Tính cả lệnh đang mở <span id="account-equity">${{ "{:,.2f}".format(summary.account_equity or 0) }}</span>
-                                <span id="floating-pnl" class="{% if floating is none %}{% elif floating >= 0 %}kpi-value--profit{% else %}kpi-value--loss{% endif %}">{% if floating is none %}--{% else %}({% if floating > 0 %}+{% endif %}{% if floating < 0 %}-{% endif %}${{ "{:,.2f}".format(floating | abs) }}){% endif %}</span></div>
-                        </div>
+                    <div class="ov-stat">
+                        <div class="ov-label">Tháng này</div>
+                        {% set month = summary.month_pnl or 0 %}
+                        <div id="month-pnl" class="ov-stat-num {% if month >= 0 %}kpi-value--profit{% else %}kpi-value--loss{% endif %}">{% if month > 0 %}+{% endif %}{% if month < 0 %}-{% endif %}${{ "{:,.2f}".format(month | abs) }}</div>
+                    </div>
+                    <div class="ov-stat" title="Số dư: tiền đã chốt.">
+                        <div class="ov-label">Tiền trong tài khoản</div>
+                        <div id="account-balance" class="ov-stat-num">${{ "{:,.2f}".format(summary.account_balance or 0) }}</div>
+                    </div>
+                    <div class="ov-stat" title="Tiền bạn có nếu đóng hết lệnh ngay bây giờ.">
+                        <div class="ov-label">Tính cả lệnh đang mở</div>
+                        {% set floating = summary.floating_pnl %}
+                        <div id="account-equity" class="ov-stat-num">${{ "{:,.2f}".format(summary.account_equity or 0) }}</div>
+                        <div class="ov-stat-sub"><span id="floating-pnl" class="{% if floating is none %}{% elif floating >= 0 %}kpi-value--profit{% else %}kpi-value--loss{% endif %}">{% if floating is none %}--{% else %}({% if floating > 0 %}+{% endif %}{% if floating < 0 %}-{% endif %}${{ "{:,.2f}".format(floating | abs) }}){% endif %}</span></div>
                     </div>
                 </section>
 

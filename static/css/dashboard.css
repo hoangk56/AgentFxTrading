@@ -1224,26 +1224,28 @@ body.login-shell{display:flex;align-items:center;justify-content:center;padding:
 /* ---------- Overview (compact view, redesign 2026-10-29) ---------- */
 #view-dashboard{max-width:1280px;margin:0 auto}
 #view-dashboard.active{display:flex;flex-direction:column;gap:16px}
-.ov-hero{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,1fr);gap:16px}
-.ov-today,.ov-stat,.ov-card{background:var(--bg-surface);border-radius:var(--radius-lg);box-shadow:var(--shadow);min-width:0}
-.ov-today{padding:24px 26px;display:flex;flex-direction:column;justify-content:center;gap:4px}
-.ov-label{font-size:0.82rem;color:var(--text-muted)}
-.ov-today-num{font-size:3rem;font-weight:800;line-height:1.1;letter-spacing:-0.02em;color:var(--text-primary)}
-.ov-status{display:inline-flex;align-items:center;gap:8px;font-size:0.9rem;color:var(--text-muted)}
-.ov-status::before{content:"";width:9px;height:9px;border-radius:50%;background:var(--text-dim)}
+/* One strip of four figures, divided by hairlines; 2 × 2 on phones (2026-10-30). */
+.ov-hero{display:grid;grid-template-columns:minmax(0,1.25fr) repeat(3,minmax(0,1fr));background:var(--bg-surface);border-radius:var(--radius-lg);box-shadow:var(--shadow)}
+.ov-card{background:var(--bg-surface);border-radius:var(--radius-lg);box-shadow:var(--shadow);min-width:0}
+.ov-stat{padding:14px 20px;display:flex;flex-direction:column;justify-content:center;gap:2px;min-width:0}
+.ov-stat+.ov-stat{border-left:1px solid var(--border-subtle)}
+.ov-label{font-size:0.78rem;color:var(--text-muted)}
+.ov-stat-num{font-size:1.35rem;font-weight:700;line-height:1.25;color:var(--text-primary);white-space:nowrap}
+.ov-stat--today .ov-stat-num{font-size:1.7rem;font-weight:800;letter-spacing:-0.01em}
+.ov-stat-sub{font-size:0.78rem;color:var(--text-muted)}
+.ov-status{display:inline-flex;align-items:center;gap:6px;font-size:0.78rem;color:var(--text-muted)}
+.ov-status::before{content:"";flex:none;width:8px;height:8px;border-radius:50%;background:var(--text-dim)}
 .ov-status--ok{color:var(--text-primary)}.ov-status--ok::before{background:var(--profit)}
 .ov-status--warn{color:var(--warn)}.ov-status--warn::before{background:var(--warn)}
 .ov-status--crit{color:var(--loss);font-weight:600}.ov-status--crit::before{background:var(--loss)}
-.ov-stats{display:grid;gap:16px}
-.ov-stat{padding:16px 22px;display:flex;flex-direction:column;justify-content:center;gap:2px}
-.ov-stat-num{font-size:1.55rem;font-weight:700;color:var(--text-primary)}
-.ov-stat-sub{font-size:0.78rem;color:var(--text-muted)}
 #view-dashboard .health-alerts{margin:0}
 .health-alert{border-radius:var(--radius-sm)}
 .health-alert--warn{border-left-color:var(--warn);background:var(--warn-soft)}
 .health-alert--warn .health-alert-tag{color:var(--warn)}
 .health-alert-tag{text-transform:none;letter-spacing:0;font-size:0.75rem}
-.ov-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;align-items:start}
+/* Two columns that fill independently: Closed starts right under the short Upcoming card instead of below Holding. */
+.ov-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));grid-template-areas:"hold next" "hold closed" "curve closed";gap:16px;align-items:start}
+.ov-hold{grid-area:hold}.ov-next{grid-area:next}.ov-curve{grid-area:curve}.ov-closed{grid-area:closed}
 .ov-card{padding:20px 22px;display:flex;flex-direction:column;gap:12px}
 .ov-card-title{margin:0;font-size:1rem;font-weight:600;color:var(--text-primary);display:flex;align-items:baseline;gap:8px}
 .ov-card-count{font-size:0.8rem;font-weight:500;color:var(--text-muted)}
@@ -1281,20 +1283,31 @@ body.login-shell{display:flex;align-items:center;justify-content:center;padding:
 .ov-list{list-style:none;margin:0;padding:0;display:flex;flex-direction:column}
 .up-row,.closed-row{display:grid;grid-template-columns:58px minmax(0,1fr) auto;gap:12px;align-items:baseline;padding:10px 0;border-top:1px solid var(--border-subtle);font-size:0.88rem}
 .up-row:first-child,.closed-row:first-child{border-top:0;padding-top:2px}
+/* A closed trade fits one line: the reason and holding time trail the symbol, cut with an ellipsis. */
+.closed-row{grid-template-columns:44px minmax(0,1fr) auto;padding:8px 0}
+.closed-main{display:flex;align-items:center;gap:6px;white-space:nowrap;overflow:hidden}
+.closed-main>.closed-sub{display:block;flex:1 1 auto;min-width:0}
+.closed-sub:not(:empty)::before{content:"· "}
 .up-time,.closed-day{font-weight:600;color:var(--text-primary)}
 .up-main,.closed-main{min-width:0}
 .up-sub,.closed-sub{display:block;font-size:0.76rem;color:var(--text-muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .up-day{font-size:0.78rem;color:var(--text-muted);white-space:nowrap}
 .closed-pnl{font-weight:700;white-space:nowrap}
 .ov-closed .pager{margin:0;justify-content:flex-end}
-.ov-chart{position:relative;height:200px}
+.ov-chart{position:relative;height:140px}
 @media (max-width:900px){
-  .ov-hero,.ov-grid{grid-template-columns:minmax(0,1fr)}
-  .ov-stats{grid-template-columns:1fr 1fr}
-  .ov-today{padding:20px}
-  .ov-today-num{font-size:2.5rem}
-  .ov-stat{padding:14px 16px}
-  .ov-stat-num{font-size:1.3rem}
+  .ov-grid{grid-template-columns:minmax(0,1fr);grid-template-areas:"hold" "next" "closed" "curve"}
+  .ov-hero{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .ov-stat{padding:12px 16px}
+  .ov-stat:nth-child(3){border-left:0}
+  .ov-stat:nth-child(n+3){border-top:1px solid var(--border-subtle)}
+  .ov-stat-num{font-size:1.15rem}
+  .ov-stat--today .ov-stat-num{font-size:1.35rem}
   .ov-card{padding:18px}
 }
-@media (max-width:420px){.ov-stats{grid-template-columns:1fr}}
+/* Phones: too narrow for the close reason on the same line, so it drops under the trade. */
+@media (max-width:600px){
+  .closed-main{flex-wrap:wrap;row-gap:2px}
+  .closed-main>.closed-sub{flex-basis:100%}
+  .closed-sub:not(:empty)::before{content:none}
+}
