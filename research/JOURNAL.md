@@ -6,6 +6,244 @@ detail. The numbers are copied from those files, and the file wins if the two ev
 When you write a new result file, add a row to that day's entry (or start a new entry) and link the file. Don't
 repeat its tables here.
 
+## 2026-10-31: round 63, parallel streams (S, V, C, D, M, B). B (altcoin perp-discount basis reversion) passes HOLD as DEMO, t 14; no LIVE yet
+
+| tested | verdict | detail |
+|---|---|---|
+| S overnight/intraday US large caps; V Deribit VRP; C intraday crypto cross-section; D Binance announcements; M known effects at CME / ECN cost | **none** (D not testable: robots.txt bans /bapi/); M F15 EURJPY quarter-end DEMO draft only (~5 HOLD events) | [round63 report](results/portfolio/round63_parallel_2026-10-31.md) |
+| B k100_H24_cheap: perp > 100 bp below spot vs 7-day median -> long perp / short spot (margin), exit when the gap halves or 24 h | **DEMO, HOLD passed**: IS +286.5 bp (t 2.46), VAL +174.6 (t 6.41), HOLD +213.5 (t 14.38, n 429, 1 h late +114.7); 59 % of HOLD = negative funding received; spot borrow availability unknown | [PREREG_B](results/portfolio/round63_parallel/B/PREREG_B_cheap_basis.md) |
+
+Later streams (same round): R bond auctions, U token unlocks, O Binance metrics, P Polymarket, X VIX roll, W Kalshi weather, A A-share limit-ups: none; BX (B hedged with a Bybit perp) fails (spot is what moves); BY (B on Bybit) not executable (1h opens = prior close, edge gone in minutes); **BM: B on Binance at +5 min entry HOLD +222.8 bp, t 13.89** (not a latency race).
+
+Standing: C3 is the only LIVE algorithm. B is the strongest DEMO; LIVE needs a demo measuring spot borrow and fills (Binance margin account, user decision).
+
+## 2026-10-31: round 62, extreme altcoin funding stamps on Binance. No LIVE or DEMO; P2 (1-second post-stamp payer) strong in 2022-24 only
+
+| tested | verdict | detail |
+|---|---|---|
+| R receive through stamp; P1 payer side in the hour after; P2 payer side T+1 s..T+60 s (aggTrades samples) | **none**: R IS -111 / VAL +2.5 bp; P1 1h bar +85 (t 2.76) / +50 (t 5.05) but the edge is the first trade (T+1 min: VAL -11.6 bp); P2 VAL fresh sample +31.2 bp t 4.87, IS fresh +3.3 bp t 0.15 (negative-funding side flips between eras) | [round62 report](results/portfolio/round62_funding_capture_2026-10-31.md) |
+
+Later the same day the user approved a new-era test; P2 HOLD (600 random stamps, [PREREG_P2](results/portfolio/round62_funding_capture/PREREG_P2_post_stamp_1s.md)): -5.7 bp, t -1.38: **FAIL**, dropped.
+
+Standing: C3 is the only LIVE algorithm. Round 63 runs 4 parallel streams (S, C, D, V).
+
+## 2026-10-31: round 61, weekly crypto factors on Binance perps. X3 (momentum + funding carry) passes HOLD as DEMO; no LIVE
+
+| tested | verdict | detail |
+|---|---|---|
+| X1 momentum 28 d, X2 funding carry, X3 = 50/50; top-40 perps, long 8 / short 8 weekly | **X3 DEMO**: IS +2.39 %/wk (t_nw 4.32), VAL +0.83 % (1.51), HOLD +1.14 % (t 1.16, net > 0 = DEMO bar); power at VAL size 1.33 < 3 so not LIVE. X1 IS t 2.37 / VAL 1.28 / HOLD 2.47; X2 3.41 / 1.29 / -0.72 | [round61 report](results/portfolio/round61_crypto_factors_2026-10-31.md), [PREREG_X3](results/portfolio/round61_crypto_factors/PREREG_X3_crypto_mom_carry.md) |
+
+Standing: C3 is the only LIVE algorithm; new DEMO candidate X3 (needs a Binance demo / paper log, user decision).
+
+## 2026-10-31: round 60, short new Binance perp listings (BTC-hedged, 30 days). No LIVE or DEMO candidate
+
+| tested | verdict | detail |
+|---|---|---|
+| N1: short each new USDT-M perp at L0+1 close, long BTC, exit L0+31; 374 listings 2020-24, groups NEW / OLD, k / H / hedge variants | **none**: median +18-21 %/ep but mean +9.6 % IS (t_cl 1.11) / +6.6 % VAL (1.30), sd ~50 %, squeezes to -345 %; beats random alts 100 %; post-hoc stops lift VAL t to 2.5-3.4 but IS stays 1.1-1.8 | [round60 report](results/portfolio/round60_new_listings_2026-10-31.md) |
+
+Standing: C3 is the only LIVE algorithm. Round 61 tests cross-sectional factors on Binance perps (top-40 universe).
+
+## 2026-10-31: round 59, cross-venue perp-perp funding spread (Binance vs Bybit). No LIVE or DEMO candidate
+
+| tested | verdict | detail |
+|---|---|---|
+| B1: trailing-7-day Binance - Bybit funding > 15 %/yr, short the dearer venue, K 10, 252 symbols, one declared cell | **FAIL**: IS +10.5 %/yr (t_nw 4.65), VAL -0.14 % (t -0.20; 2023 -2.6 %); VAL gross +4.1 %/yr vs ~4.3 % taker costs | [round59 report](results/portfolio/round59_cross_venue_funding_2026-10-31.md) |
+| B2: same rule, Binance vs Hyperliquid, 30 coins, DISCOVERY 2023-06..2024-12, registered HOLD | **FAIL at HOLD**: DISC +16.3 %/yr (t_nw 6.81, excess over cash +13.5 %), HOLD +0.74 % (t 1.27), excess -0.35 %, costs x1.5 -1.36 % | [PREREG_B2](results/portfolio/round59_cross_venue_funding/PREREG_B2_binance_hyperliquid.md) |
+
+Standing: C3 is the only LIVE algorithm. Round 60 tests shorting new Binance perp listings (supply unlocks, held weeks).
+
+## 2026-10-31: round 58, no operational limits: delta-neutral perp funding carry on Binance. A3 passes the registered bar but earns only the cash rate in HOLD: not LIVE
+
+| tested | verdict | detail |
+|---|---|---|
+| A1-A3: long spot / short USDT-M perp, BTC + ETH (A3) and top-30 coins K 10 (A2), enter on trailing funding > 10 %/yr, exit < 0; 891 perps incl. delisted, 2020-24 + registered HOLD 2025-01..2026-10-29 | **A3 registered PASS, economically rejected**: IS +26.9 %/yr (t_nw 7.30), VAL +6.1 % (6.97), HOLD +1.91 % (5.62); excess over Fed funds on deployed capital IS +26.7 %, VAL +3.3 % (t 4.34), HOLD **+0.01 % (t 0.02)**. A2 HOLD +1.36 % t 1.73, late -0.21 %: FAIL | [round58 report](results/portfolio/round58_unconstrained_carry_2026-10-31.md), [PREREG_A](results/portfolio/round58_unconstrained_carry/PREREG_A_funding_carry.md) |
+
+Standing: C3 is the only LIVE algorithm. Funding carry since 2025 = the cash rate; capital-heavy rules must be graded on excess over cash. Round 59 tests the perp-perp cross-venue spread (interest component cancels).
+
+## 2026-10-30: round 57, large earnings gaps entered after the opening auction (single-stock CFDs). No LIVE or DEMO candidate
+
+| tested | verdict | detail |
+|---|---|---|
+| G: 2,920 gaps >= 2 % after 8-K 2.02, follow / fade from 09:45 / 10:00 to 15:55 or 1-4 days, by bucket, 48 cells; graded on 1,125 events (374 random dates) after the datafeed throttled | **none**: primary follow -3.2 bp (t -0.32) / -5.7 (t -0.56); fade -35 / -38; the 09:45-close leg equals random firms'; > 8 % down follow +80 IS / +26 VAL but 60 % of VAL is one trade, ~60 HOLD trades | [round57 report](results/portfolio/round57_earnings_gaps_2026-10-30.md), [STREAM_G.md](results/portfolio/round57_earnings_gaps/STREAM_G.md) |
+
+Standing: C3 is the only LIVE algorithm. Single-stock CFD route (rounds 54-57) exhausted on free data; next round starts from a user decision.
+
+## 2026-10-30: round 56, short-term cross-section of US large-cap CFDs. No LIVE or DEMO candidate
+
+| tested | verdict | detail |
+|---|---|---|
+| R: no-news reversal / news continuation / Nagel high-vol reversal on 207 large caps, dollar-neutral k 3-9 books at the close, holds 1-5, 48 cells | **none**: every cell net < 0 in VAL; primary -1.3 bp (t -0.09) / -36.9 (t -2.51); gross reversal +3 to +22 bp at mid within the max-t null (best 2.39 vs p95 2.97) and start-day dependent; close-fill cost ~20-24 bp | [round56 report](results/portfolio/round56_stock_cross_section_2026-10-30.md), [STREAM_R.md](results/portfolio/round56_stock_cross_section/STREAM_R.md) |
+
+Standing: C3 is the only LIVE algorithm. Round 57 tests large earnings gaps entered at 09:45 (no candidate).
+
+## 2026-10-30: round 55, insider-purchase day-1 drift with an intraday entry (single-stock CFDs). No LIVE or DEMO candidate
+
+| tested | verdict | detail |
+|---|---|---|
+| M: round 54's insider buys, long D+1 from 09:35 / 09:45 / 10:00 ET to 15:55 (D+2 variant), hedged / unhedged, Dukascopy M1 for 7,686 firm-days, 48 cells | **none**: best net IS t +0.36 (null p95 1.07); primary (all buys 09:45, hedged) -14.0 bp (t -1.97) / -21.4 (t -2.54), 0/8 years; only +6.4 bp of the VAL drift left after 09:45 vs ~24 bp cost; round 54's CEO / CFO IS mean was one penny-price trade | [round55 report](results/portfolio/round55_insider_intraday_2026-10-30.md), [STREAM_M.md](results/portfolio/round55_insider_intraday/STREAM_M.md) |
+
+Standing: C3 is the only LIVE algorithm. Round 56 ranks the daily stock cross-section (no candidate).
+
+## 2026-10-30: round 54, single-stock CFDs (user-approved): data, blackout selling, insider buys, buyback windows. No LIVE or DEMO candidate
+
+| tested | verdict | detail |
+|---|---|---|
+| D: Dukascopy daily bid / ask for 263 US CFDs 2016-24, splits adjusted, IC MT5 cost model, stocklib | data ready; opening candle spread median 65 bp, close 7 bp | [round54 report](results/portfolio/round54_single_stocks_2026-10-30.md), [DATA_D.md](results/portfolio/round54_single_stocks/DATA_D.md) |
+| E: Hartzmark-Solomon blackout selling, large-cap post-earnings drift, 28 cells | **none**: blackout short wrong sign at mid (-29 bp IS and VAL); drift +10-17 bp mid below 27-33 bp cost | [STREAM_E.md](results/portfolio/round54_single_stocks/STREAM_E.md) |
+| I: Cohen-Malloy-Pomorski insider purchases on the firm, 48 cells | **none** at open / close entries; day-1 session after filing real at mid in both eras (all +17.6 / +19.7 bp, CEO / CFO +46.5 / +59.3, random-firm >= 0.99) but opening round trip 95-137 bp | [STREAM_I.md](results/portfolio/round54_single_stocks/STREAM_I.md) |
+| B: firm-level buyback windows, 24 cells | **none**: all net < 0; gross is post-earnings day-2 drift | [STREAM_B.md](results/portfolio/round54_single_stocks/STREAM_B.md) |
+
+Standing: C3 is the only LIVE algorithm. Round 55 tests the insider day-1 drift with an intraday entry (no candidate).
+
+## 2026-10-30: round 53, USDT mint events -> BTC at minutes. No LIVE or DEMO candidate
+
+| tested | verdict | detail |
+|---|---|---|
+| M: USDT mints / burns (Omni 2017-19 + Tron 2019-24, >= $10M, clustered) -> BTCUSD / ETHUSD 5-60 min, matched random and no-mint placebo, 20 cells | **none**: best IS net t +0.72 (chance bar 1.29); every long cell negative in VAL; mints follow a rising BTC; Saggu 2022 size absent after 2018 | [round53 report](results/portfolio/round53_usdt_mints_2026-10-30.md), [STREAM_M.md](results/portfolio/round53_usdt_mints/STREAM_M.md) |
+
+Standing: C3 is the only LIVE algorithm. After round 52's census and round 53, no free direction without a user decision has an expected LIVE chance of 1 %.
+
+## 2026-10-30: round 52, census of untested mechanisms 2018-24. No item cleared the grading gate
+
+| tested | verdict | detail |
+|---|---|---|
+| Z: 48,633 Crossref + 797 arXiv titles 2018-24, 426 read, against the record of rounds 2-51 | **nothing graded**: one open mechanism, USDT mint -> BTC 5-30 min (Saggu 2022), LIVE ~1-1.5 % on free Tron mints only (~28 HOLD events) | [round52 report](results/portfolio/round52_lit_census_2026-10-30.md), [CENSUS_Z.md](results/portfolio/round52_lit_census/CENSUS_Z.md) |
+
+Standing: C3 is the only LIVE algorithm. Round 53 opens next.
+
+## 2026-10-30: round 51, LBMA auction volume / rounds. Not testable without an account
+
+| tested | verdict | detail |
+|---|---|---|
+| L: availability of per-auction LBMA gold / silver volume, rounds, imbalance 2015-24 | **not testable**: only IBA report 179 (registered account) has it; LBMA tables moved to a members' portal; price JSON host 403 | [round51 report](results/portfolio/round51_gold_auction_volume_2026-10-30.md), [STREAM_L.md](results/portfolio/round51_gold_auction_volume/STREAM_L.md) |
+
+Standing: C3 is the only LIVE algorithm. Round 52 opens next.
+
+## 2026-10-30: round 50, money-market fund assets (ICI unreachable, Fed H.6 fallback). No LIVE or DEMO candidate
+
+| tested | verdict | detail |
+|---|---|---|
+| F: Fed H.6 retail MMF surges -> US index book (cash on the sidelines vs continuation), EURUSD / USDJPY / XAU controls, 28 cells; ICI 403 bot-wall (a browser-UA retry was refused by the classifier; nothing fetched) | **none**: best candidate IS net t +0.26; EURUSD control at DEMO numbers (IS t 2.35 / VAL t 1.78) inside the control null, PRE < 0, HOLD ~0-11 trades: draft not recommended | [round50 report](results/portfolio/round50_fund_flows_2026-10-30.md), [STREAM_F.md](results/portfolio/round50_fund_flows/STREAM_F.md) |
+
+Standing: C3 is the only LIVE algorithm. Round 51 opens next.
+
+## 2026-10-30: round 49, Fed / ECB speech text tone. No LIVE or DEMO candidate
+
+| tested | verdict | detail |
+|---|---|---|
+| T: dictionary hawk / dove tone of 1,156 Fed Board speeches (posting times) and ECB speeches (dates) vs speaker's trailing tone -> EURUSD, USDJPY, XAU, US500, DE40, 76 cells | **none**: best IS net t 1.59 vs chance p95 2.71; +15 min priced move ~0; Fed VAL drift to NY close (t 3.12) is 2022 only, IS t 1.24, PRE < 0: not registered | [round49 report](results/portfolio/round49_cb_speech_tone_2026-10-30.md), [STREAM_T.md](results/portfolio/round49_cb_speech_tone/STREAM_T.md) |
+
+Standing: C3 is the only LIVE algorithm. Round 50 opens next.
+
+## 2026-10-30: round 48, Bitcoin network fundamentals from block data. No LIVE or DEMO candidate
+
+| tested | verdict | detail |
+|---|---|---|
+| N: hashrate / hash ribbons / capitulation, difficulty retargets, hashprice, fee share, mempool congestion (Coin Metrics community, mempool.space, blockchain.com) -> BTCUSD, ETH / US500 / XAU legs, PRE 2012-17, 37 cells | **none**: best \|IS net t\| 1.88 (wrong sign) vs best-of-37 chance 2.40; BOOK IS t -0.81 / VAL -0.46; retarget side flips between eras | [round48 report](results/portfolio/round48_btc_network_2026-10-30.md), [STREAM_N.md](results/portfolio/round48_btc_network/STREAM_N.md) |
+
+Standing: C3 is the only LIVE algorithm. Round 49 opens next.
+
+## 2026-10-30: round 47, buyback capacity from XBRL repurchases and true earnings dates. No LIVE or DEMO candidate
+
+| tested | verdict | detail |
+|---|---|---|
+| B: top-200 US issuers, XBRL repurchase run-rate x 8-K 2.02 windows -> daily open-window capacity -> US500 / USTEC / US30 (US2000 control), level / reopening / within-season, 60 cells | **none**: best IS net t 1.47 vs chance p95 2.37; capacity is 94 % week-of-quarter (= round 23 P4 proxy); season effect also in US2000, not a buyback bid | [round47 report](results/portfolio/round47_buyback_capacity_2026-10-30.md), [STREAM_B.md](results/portfolio/round47_buyback_capacity/STREAM_B.md) |
+
+Standing: C3 is the only LIVE algorithm. Round 48 opens next.
+
+## 2026-10-30: round 46, 60/40 rebalancing and risk parity with the bond leg. No LIVE or DEMO candidate
+
+| tested | verdict | detail |
+|---|---|---|
+| P: Harvey-Mazzoleni-Melone 60/40 threshold / month-end rebalancing built with the 10y Treasury (and JGB / Bund) leg, 2-asset risk-parity cuts -> US500 / USTEC / US30, JP225, DE40; 17 cells | **none**: primary net IS -2.1 bp (t -0.68) / VAL +6.1 (t 1.35, all 2022); paper slope reproduces (-20 bp per sd, t -2.57) but only on turmoil days, sign rule earns nothing; bond leg adds ~0 | [round46 report](results/portfolio/round46_rebalancing_bond_leg_2026-10-30.md), [STREAM_P.md](results/portfolio/round46_rebalancing_bond_leg/STREAM_P.md) |
+
+Standing: C3 is the only LIVE algorithm. Round 47 opens next.
+
+## 2026-10-30: round 45, combined model over the round 37-44 non-price sources; JPX daily short selling. No LIVE or DEMO candidate
+
+| tested | verdict | detail |
+|---|---|---|
+| X: one declared pooled ridge over 26 families / 86 series from 13 sources of rounds 37-44 -> 12-symbol daily book, yearly refits on IS, VAL frozen | **none**: net IS WF -0.0336 R (t -2.30) / VAL -0.0026 R (t -0.14); inside the date-shuffled null (p 0.37 / 0.11); forecast-return corr ~0 out of sample | [round45 report](results/portfolio/round45_combined_jpx_short_2026-10-30.md), [STREAM_X.md](results/portfolio/round45_combined_jpx_short/STREAM_X.md) |
+| S: TSE daily short-selling ratio 2017-24 and karauri.net large short-position reports -> JP225 (USDJPY / HK50 controls), 39 declared cells x 2 sides | **none**: best net IS t 0.99 (VAL t 1.67), best-of-24 p 0.70; ratio = same-day return (corr -0.38), nothing left next session | [STREAM_S.md](results/portfolio/round45_combined_jpx_short/STREAM_S.md) |
+
+Standing: C3 is the only LIVE algorithm. Round 46 opens next.
+
+## 2026-10-30: round 44, aggregate insider trading; CFTC TFF positioning. No LIVE or DEMO candidate
+
+| tested | verdict | detail |
+|---|---|---|
+| I: SEC insider transactions data sets 2014-24 (606k Form 4 P / S, officers and directors): aggregate net purchases, surges after falls, size splits, CEO / CFO, clusters -> US indices 1-5 days, 112 cells | **none**: large-cap value cell met DEMO numbers (IS t 2.23 / VAL +2.5) at chance (p 0.68), IS t 1.88 without 2020-03/04: not registered; the effect lives at months and flips sign in VAL | [round44 report](results/portfolio/round44_insiders_tff_2026-10-30.md), [STREAM_I.md](results/portfolio/round44_insiders_tff/STREAM_I.md) |
+| T: CFTC TFF 2010-24 (Hugging Face mirror = CFTC files) on 13 FX / index / VIX legs, managed-money commodity controls, 250 cells | **none**: best book IS net t +0.76 (p 0.34); asset-manager continuation wrong sign; cftc.gov robots.txt disallows ClaudeBot (round 39 D had fetched from it) | [STREAM_T.md](results/portfolio/round44_insiders_tff/STREAM_T.md) |
+
+Standing: C3 is the only LIVE algorithm. Round 45 opens next.
+
+## 2026-10-30: round 43, investor-mood shocks (weather, haze, football); sovereign rating actions. No LIVE or DEMO candidate
+
+| tested | verdict | detail |
+|---|---|---|
+| M: NOAA ISD cloud cover / temperature / wind at 11 exchange cities 2004-24, Chinese haze proxy, 296 national-team football losses -> 9 local index CFDs and currencies, 36 book + 72 city cells | **none**: sunshine net IS t -3.46 (mid ~0, negative every year); football losses -> index up (wrong side); haze IS ~0; calm wind mid +2.17 (t 2.41) / VAL +0.61 but below the 2.7 bp index cost | [round43 report](results/portfolio/round43_mood_ratings_2026-10-30.md), [STREAM_M.md](results/portfolio/round43_mood_ratings/STREAM_M.md) |
+| R: Moody's + S&P sovereign ratings / outlooks 2004-24 for 22 countries, EU review calendar 2014-20 -> index and currency, 25 cells | **none**: best IS t 1.85 / 1.68, negative in PRE and VAL; ~8 HOLD events, LIVE impossible | [STREAM_R.md](results/portfolio/round43_mood_ratings/STREAM_R.md) |
+
+Standing: C3 is the only LIVE algorithm. Round 44 opens next.
+
+## 2026-10-30: round 42, index heavyweight earnings; BoJ JGB purchase operations. No LIVE or DEMO candidate
+
+| tested | verdict | detail |
+|---|---|---|
+| E: top-40 US index weights (Vanguard 13F), 1,510 8-K 2.02 releases with acceptance times -> after-hours continuation / reversal, announcement premium, pre-release drift, first minutes, on US500 / USTEC / US30, 132 cells | **none**: 0 cells IS t >= 2 (best 1.69 on 25 trades, chance p95 3.05); evening reversal is a 2016-21 session property (also DE40 / JP225, random evenings); premium absent in VAL | [round42 report](results/portfolio/round42_megacap_boj_ops_2026-10-30.md), [STREAM_E.md](results/portfolio/round42_megacap_boj_ops/STREAM_E.md) |
+| J: BoJ operation results 2013-24 (offer-to-cover, cut-off spreads), schedule / amount changes, YCC defence -> USDJPY, EURJPY, JP225, 96 cells | **none**: best IS t 1.65 (7 events); no tick-activity change at the result release; amount changes move EUR, not JPY; corr with C3 ~0 | [STREAM_J.md](results/portfolio/round42_megacap_boj_ops/STREAM_J.md) |
+
+Standing: C3 is the only LIVE algorithm. Round 43 opens next.
+
+## 2026-10-30: round 41, sovereign auction supply cycles; US equity issuance supply. No LIVE or DEMO candidate
+
+| tested | verdict | detail |
+|---|---|---|
+| A: US Treasury coupon / TIPS, JGB, Bund auctions 2004-24 (DV01-sized concession / reversal, heavy weeks, result surprises, auction-day sessions) -> 10 FX pairs, XAU, US500 / JP225 / DE40, PRE on Dukascopy, 252 cells | **none**: primary net IS t -2.90; post-auction reversal at mid only 2004-15; US morning -> short EURUSD met DEMO numbers (IS +2.17, t 2.51) but VAL t 0.25, PRE t -2.20, at the null median: not registered | [round41 report](results/portfolio/round41_supply_cycles_2026-10-30.md), [STREAM_A.md](results/portfolio/round41_supply_cycles/STREAM_A.md) |
+| B: SEC EDGAR full index 2015-24 (IPO, shelf, secondary, tender offers, lock-ups, EFFECT, settlement, weekly) -> US500, USTEC, US2000, 162 cells | **none**: indices rise after heavy issuance (hot markets); best buyback -> long USTEC IS t 2.16 / VAL t 0.82 beats only 76 % of random longs, p 0.35 | [STREAM_B.md](results/portfolio/round41_supply_cycles/STREAM_B.md) |
+
+Standing: C3 is the only LIVE algorithm. Round 42 opens next.
+
+## 2026-10-30: round 40, GDELT news event and tone flows; Chinese margin financing. No LIVE or DEMO candidate; HK50 rebound failed HOLD
+
+| tested | verdict | detail |
+|---|---|---|
+| G: GDELT 1.0 daily events 2013-24 (tone, Goldstein, attention, producer-region conflict, dyads, protests) -> index / FX books, XAU, XBR, BTC from 08:00 UTC D+1, 82 declared cells | **none**: tone continuation wrong sign (index book net IS t -2.45, FX -2.06), slope ~0 bp per sd; best positive IS cell (conflict -> XAU, 22 trades, t 2.67) VAL -13.8, chance p 0.38 | [round40 report](results/portfolio/round40_news_leverage_2026-10-30.md), [STREAM_G.md](results/portfolio/round40_news_leverage/STREAM_G.md) |
+| C: SSE + SZSE margin financing / securities lending 2010-24 -> HK50, CNH, AUD, XAU, JP225, 147 declared cells | **none**: deleveraging -> HK50 rebounds (declared short net IS t -2.73); short sales -> XAU met DEMO numbers (IS t 2.73, VAL +8.9) at the chance median, PRE negative: not registered | [STREAM_C.md](results/portfolio/round40_news_leverage/STREAM_C.md) |
+| C1 HK50 rebound (post hoc, user-approved registration 10-30, frozen code, one HOLD look) | **fail**: HOLD 24 trades, net +19.0 bp, t 0.74 < 1.0; pooled 2016-26 t 1.92; dropped | [PREREG_C1_hk50_rebound.md](results/portfolio/round40_news_leverage/PREREG_C1_hk50_rebound.md) |
+
+Standing: C3 is the only LIVE algorithm. Round 41 opens next.
+
+## 2026-10-29: round 39, scheduled futures-roll flows; retail and broker-client positioning. No LIVE or DEMO candidate
+
+| tested | verdict | detail |
+|---|---|---|
+| R: GSCI / BCOM / USO roll window (business days 5-9) -> XTI, XBR, XNG on IC 2018-24, CL1 / NG1 1995-2017 as PRE, controls XAU / XAG / US500, 15 declared cells | **none**: DEMO out of reach from the count (12 windows a year); best IC cell XBR net IS +45.9 (t 0.44) / VAL -106.7; the pressure is in the C2-C1 spread (+17.7 bp, t 2.11, shrinking), IC's XTI / XBR are interpolated with no roll day | [round39 report](results/portfolio/round39_rolls_positioning_2026-10-29.md), [STREAM_R.md](results/portfolio/round39_rolls_positioning/STREAM_R.md) |
+| D: free broker sentiment archives (none reachable without an account), then CFTC COT small-trader positions 2004-24 on 17 markets and JPX weekly investor-type flows 2016-24, 226 COT + 8 JPX cells | **none**: best COT book net IS +28.8 (t 2.06) / VAL -15.7, mid t 2.56 inside the best-of-14 null (p95 2.69); JPX individuals' flow wrong sign; weekly sources cannot reach LIVE | [STREAM_D.md](results/portfolio/round39_rolls_positioning/STREAM_D.md) |
+
+Standing: C3 is the only LIVE algorithm. Round 40 opens next.
+
+## 2026-10-29: round 38, daily short-sale volume and ETF primary flows; Atlantic storms and supply disruptions. No LIVE or DEMO candidate
+
+| tested | verdict | detail |
+|---|---|---|
+| S: FINRA Reg SHO daily short volume 2009-24 for 11 ETFs + top-10 components, ETF creations / redemptions (SSGA, iShares), creation-delay buying, country-ETF short spread, Rule 201 load via short-exempt share -> US / foreign indices, metals, oil, FX, 408 declared cells | **none**: best cells DIA ratio -> short US30 net IS +9.0 (t 2.13) / VAL -5.0, EWG spread -> DE40 IS t 2.08 / VAL -1.01; best book day-Sharpe 0.058 vs ~0.15 needed; no family beats its null (p 0.33-0.97) | [round38 report](results/portfolio/round38_short_volume_storms_2026-10-29.md), [STREAM_S.md](results/portfolio/round38_short_volume_storms/STREAM_S.md) |
+| H: NHC HURDAT2 + ATCF official forecasts 1995-2024 (first Gulf threat, all-clear, revisions), dated non-storm disruptions -> XTI, XBR, XNG, EIA settlements 1995-2017 as PRE, 30 declared cells | **none**: ~2-3 storms a year (19 IS / 4 VAL threats, LIVE impossible); best right-side cell XBR 24 h net IS +70.1 (t 1.53), VAL -52.8, PRE negative; gas sides flip between eras (null p 0.077) | [STREAM_H.md](results/portfolio/round38_short_volume_storms/STREAM_H.md) |
+
+Standing: C3 is the only LIVE algorithm. Round 39 opens next.
+
+## 2026-10-29: round 37, forced and rule-driven flows (exchange margins, funding stamps, record-level stops, Stock Connect). No LIVE or DEMO candidate
+
+| tested | verdict | detail |
+|---|---|---|
+| M: SHFE gold / silver margin and limit changes from 2,733 daily parameter files 2013-24, SGE pre-holiday hikes 2008-24, SHFE client OI, copper -> AUDUSD, 17 cells (CME unreachable) | **none**: ~4.7 hikes / year (LIVE impossible); best declared IS t +1.31 (null median 1.74); holiday hikes have no price effect in any era | [round37 report](results/portfolio/round37_forced_flows_2026-10-29.md), [STREAM_M.md](results/portfolio/round37_forced_flows/STREAM_M.md) |
+| F: perpetual-funding stamps conditioned on the predicted rate (Binance 2019-09+, Bybit 2018-11+) -> BTCUSD, ETH as information, 74 cells | **none**: BTC falls into a large-funding stamp by about the funding paid (PP-A5 w15 mid IS +8.9, t 1.91; VAL +15.3, t 2.68) but IS cost 7.7 bp, net t 0.27; large funding nearly gone 2022-24 | [STREAM_F.md](results/portfolio/round37_forced_flows/STREAM_F.md) |
+| A: stop orders through fresh records (all-time, 52-week) and salient extremes (prior week / month / quarter / year, release-day range, 200-day average) on 12 IC symbols + 10 FX, gold $50 construction, tick fills, 159 cells | **none at book level**: continuation real at mid (prior week mid t 4.02, null p 0.001) but +1-7 bp vs 1-4 bp cost, power <= 2.3 at zero cost; best book IS net t 1.97; BTC record cell meets DEMO numbers on 9 IS trades, draft **not registered** (VAL = one +955 bp trade, HOLD power 0.57) | [STREAM_A.md](results/portfolio/round37_forced_flows/STREAM_A.md), [PREREG_DRAFT_A_btc_record_stop.md](results/portfolio/round37_forced_flows/PREREG_DRAFT_A_btc_record_stop.md) |
+| N: Stock Connect northbound / southbound flows 2014-24, Connect-closed blocks, inclusion steps, quarter-end -> HK50, USDCNH, AUDUSD, JP225, US500, 36 cells | **none**: same-window co-move only (next window \|corr\| <= 0.06); best declared IS t +1.72 (northbound unpublished since 2024-08); HK50 rose in 10 / 13 VAL closed blocks | [STREAM_N.md](results/portfolio/round37_forced_flows/STREAM_N.md) |
+| Forward log slice 4 of F3 / E1 (FWD 2026-09-25..10-28, registered code `cmp`-identical) | F3 FWD n 5, net -5.03 bp; HOLD + FWD n 122, +1.71 (t 1.82). E1 HOLD + FWD +0.51 (t 0.82) | [PREREG_R24_forward.md](results/portfolio/round24_relaxed/PREREG_R24_forward.md) |
+
+Standing: C3 is the only LIVE algorithm. Round 38 opens next.
+
 ## 2026-10-29: paper desk costs measured (not a strategy test)
 
 | tested | verdict | detail |

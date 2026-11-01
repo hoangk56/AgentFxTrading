@@ -1,0 +1,122 @@
+
+===== BTC: IS term ratio sig/DVOL {7: 0.8413277088496336, 30: 0.8750871162077581}, IS median half spread {7: 0.019157175716694598, 30: 0.007731037737993444}
+-- BTC 7d pricing: n 196, both legs from marks 194, iv fallback 2; median half spread 2.11 % of premium
+   BS @ DVOL x IS ratio vs trade price: median -2.5 %, median |err| 4.8 %, p90 |err| 14.4 %
+   entry straddle iv / DVOL: median 0.854; BS @ raw DVOL would overprice by ~17.1 %
+   IS: mean DVOL 83.7, mean RV30 72.8, DVOL-RV30 mean +10.9 pts, share > 10 pts 0.52, share > 0 0.83
+   VAL: mean DVOL 56.6, mean RV30 49.3, DVOL-RV30 mean +7.3 pts, share > 10 pts 0.40, share > 0 0.82
+   [BTC 7d H24] per trade % of C: premium 12.07, payoff -11.55, hedge -0.08, funding -0.09; costs: half spread 0.314, option fees 0.120, hedge taker 0.215; net -0.01
+BTC-7d-H24-V1          IS n  66 mean -0.106% t -0.13 SR -0.11 | VAL n 130 mean -0.061% t -0.17 SR -0.10 | x1.5 IS -0.450 VAL -0.397 | late IS -0.381 VAL +0.147 | yrs 2021:+27.6 2022:-2.1 2023:-33.1 2024:-7.2 | rnd IS 46% VAL 37% | power -0.13 | maxDD 68.4% of C
+BTC-7d-H24-V2t10       IS n  34 mean +0.874% t +0.97 SR +0.95 | VAL n  52 mean -0.337% t -0.65 SR -0.47 | x1.5 IS +0.520 VAL -0.668 | late IS +0.912 VAL +0.133 | yrs 2021:+23.8 2022:+3.9 2023:-30.9 2024:+15.3 | rnd IS 89% VAL 27% | power -0.41 | maxDD 43.2% of C
+BTC-7d-H24-V2t0        IS n  55 mean -0.025% t -0.03 SR -0.03 | VAL n 107 mean +0.242% t +0.64 SR +0.40 | x1.5 IS -0.372 VAL -0.092 | late IS -0.436 VAL +0.436 | yrs 2021:+16.1 2022:+12.4 2023:-31.4 2024:+27.5 | rnd IS 61% VAL 95% | power 0.49 | maxDD 47.5% of C
+   tail V1 BTC 7d H24: worst weeks 2021-05-07 -21.5%, 2021-12-03 -18.3%, 2023-01-13 -17.5%, 2021-04-16 -14.6%, 2023-02-10 -13.7%
+      2021-05 crash week 2021-05-14: -6.0% of C
+      LUNA week 2022-05-06: -3.4% of C
+      3AC week 2022-06-10: -7.7% of C
+      FTX week 2022-11-04: -10.3% of C
+   margin: peak capital needed to stay above maintenance (x S0): median 0.248, max 0.546; trades needing > 0.5 S0 (C): 1/196; worst intra-trade MTM -23.9% of C
+   [BTC 7d H4] per trade % of C: premium 12.07, payoff -11.55, hedge +0.13, funding -0.10; costs: half spread 0.314, option fees 0.120, hedge taker 0.431; net -0.03
+BTC-7d-H4-V1           IS n  66 mean +0.033% t +0.05 SR +0.06 | VAL n 130 mean -0.154% t -0.60 SR -0.32 | x1.5 IS -0.426 VAL -0.595 | late IS +0.290 VAL +0.225 | yrs 2021:+24.4 2022:+5.4 2023:-23.6 2024:-24.0 | rnd IS 26% VAL 25% | power -0.43 | maxDD 49.8% of C
+BTC-7d-H4-V2t10        IS n  34 mean +0.948% t +1.50 SR +2.03 | VAL n  52 mean -0.287% t -0.68 SR -0.50 | x1.5 IS +0.480 VAL -0.723 | late IS +0.883 VAL -0.091 | yrs 2021:+29.9 2022:-0.7 2023:-15.7 2024:+3.8 | rnd IS 97% VAL 35% | power -0.43 | maxDD 40.2% of C
+BTC-7d-H4-V2t0         IS n  55 mean +0.078% t +0.10 SR +0.13 | VAL n 107 mean -0.030% t -0.10 SR -0.06 | x1.5 IS -0.384 VAL -0.471 | late IS +0.247 VAL +0.232 | yrs 2021:+21.6 2022:+9.2 2023:-29.0 2024:-0.8 | rnd IS 59% VAL 82% | power -0.07 | maxDD 41.5% of C
+   tail V1 BTC 7d H4: worst weeks 2022-11-04 -19.5%, 2022-01-21 -8.8%, 2022-03-04 -8.7%, 2023-01-13 -8.3%, 2021-05-07 -8.0%
+      2021-05 crash week 2021-05-14: -7.8% of C
+      LUNA week 2022-05-06: -2.0% of C
+      3AC week 2022-06-10: -3.5% of C
+      FTX week 2022-11-04: -19.5% of C
+   margin: peak capital needed to stay above maintenance (x S0): median 0.243, max 0.533; trades needing > 0.5 S0 (C): 1/196; worst intra-trade MTM -19.5% of C
+-- BTC 30d pricing: n 191, both legs from marks 119, iv fallback 72; median half spread 0.79 % of premium
+   BS @ DVOL x IS ratio vs trade price: median +9.9 %, median |err| 10.4 %, p90 |err| 18.5 %
+   entry straddle iv / DVOL: median 0.895; BS @ raw DVOL would overprice by ~11.7 %
+   IS: mean DVOL 83.4, mean RV30 72.1, DVOL-RV30 mean +11.3 pts, share > 10 pts 0.52, share > 0 0.84
+   VAL: mean DVOL 56.5, mean RV30 49.2, DVOL-RV30 mean +7.3 pts, share > 10 pts 0.41, share > 0 0.82
+   [BTC 30d H24] per trade % of C: premium 22.97, payoff -23.11, hedge +1.53, funding -0.41; costs: half spread 0.226, option fees 0.120, hedge taker 0.347; net +0.48
+BTC-30d-H24-V1         IS n  66 mean -0.181% t -0.37 SR -0.30 | VAL n 130 mean +0.229% t +0.82 SR +0.52 | x1.5 IS -0.305 VAL +0.120 | late IS -0.295 VAL +0.160 | yrs 2021:+13.4 2022:+10.3 2023:-19.2 2024:+13.3 | rnd IS 1% VAL 95% | power 0.70 | maxDD 30.6% of C
+BTC-30d-H24-V2t10      IS n  41 mean +0.335% t +0.68 SR +0.63 | VAL n  80 mean +0.428% t +1.11 SR +0.77 | x1.5 IS +0.207 VAL +0.311 | late IS +0.493 VAL +0.465 | yrs 2021:+8.4 2022:+32.5 2023:-16.0 2024:+23.0 | rnd IS 99% VAL 27% | power 0.82 | maxDD 24.5% of C
+BTC-30d-H24-V2t0       IS n  62 mean -0.088% t -0.15 SR -0.14 | VAL n 124 mean +0.313% t +1.08 SR +0.68 | x1.5 IS -0.216 VAL +0.203 | late IS -0.070 VAL +0.235 | yrs 2021:+10.8 2022:+19.2 2023:-19.0 2024:+22.4 | rnd IS 96% VAL 79% | power 0.90 | maxDD 34.3% of C
+   tail V1 BTC 30d H24: worst weeks 2022-11-04 -14.5%, 2021-12-03 -13.3%, 2021-04-16 -11.9%, 2023-02-10 -11.7%, 2022-02-18 -11.6%
+      2021-05 crash week 2021-05-14: -5.6% of C
+      LUNA week 2022-05-06: -4.3% of C
+      3AC week 2022-06-10: -11.3% of C
+      FTX week 2022-11-04: -14.5% of C
+   margin: peak capital needed to stay above maintenance (x S0): median 0.320, max 0.731; trades needing > 0.5 S0 (C): 24/191; worst intra-trade MTM -27.2% of C
+   [BTC 30d H4] per trade % of C: premium 22.97, payoff -23.11, hedge +1.89, funding -0.42; costs: half spread 0.226, option fees 0.120, hedge taker 0.670; net +0.50
+BTC-30d-H4-V1          IS n  66 mean -0.030% t -0.07 SR -0.07 | VAL n 130 mean +0.152% t +0.64 SR +0.39 | x1.5 IS -0.208 VAL -0.006 | late IS +0.213 VAL +0.270 | yrs 2021:+17.8 2022:+13.2 2023:-15.2 2024:+2.1 | rnd IS 3% VAL 3% | power 0.52 | maxDD 26.6% of C
+BTC-30d-H4-V2t10       IS n  41 mean +0.470% t +1.04 SR +1.35 | VAL n  80 mean +0.378% t +1.14 SR +0.80 | x1.5 IS +0.286 VAL +0.214 | late IS +0.588 VAL +0.399 | yrs 2021:+17.5 2022:+29.0 2023:-9.7 2024:+12.7 | rnd IS 100% VAL 26% | power 0.84 | maxDD 20.8% of C
+BTC-30d-H4-V2t0        IS n  62 mean +0.020% t +0.04 SR +0.04 | VAL n 124 mean +0.235% t +0.97 SR +0.59 | x1.5 IS -0.170 VAL +0.076 | late IS +0.345 VAL +0.324 | yrs 2021:+17.7 2022:+15.5 2023:-14.0 2024:+11.1 | rnd IS 92% VAL 80% | power 0.77 | maxDD 26.7% of C
+   tail V1 BTC 30d H4: worst weeks 2022-11-04 -19.8%, 2021-05-14 -10.1%, 2023-03-10 -9.7%, 2022-02-18 -7.7%, 2022-06-10 -7.6%
+      2021-05 crash week 2021-05-14: -10.1% of C
+      LUNA week 2022-05-06: -3.8% of C
+      3AC week 2022-06-10: -7.6% of C
+      FTX week 2022-11-04: -19.8% of C
+   margin: peak capital needed to stay above maintenance (x S0): median 0.323, max 0.721; trades needing > 0.5 S0 (C): 24/191; worst intra-trade MTM -22.6% of C
+
+===== ETH: IS term ratio sig/DVOL {7: 0.847322362469108, 30: 0.8950693165345825}, IS median half spread {7: 0.019203285176970245, 30: 0.008754556794350138}
+-- ETH 7d pricing: n 196, both legs from marks 183, iv fallback 13; median half spread 1.96 % of premium
+   BS @ DVOL x IS ratio vs trade price: median -3.0 %, median |err| 6.1 %, p90 |err| 13.9 %
+   entry straddle iv / DVOL: median 0.863; BS @ raw DVOL would overprice by ~15.9 %
+   IS: mean DVOL 99.7, mean RV30 93.6, DVOL-RV30 mean +6.0 pts, share > 10 pts 0.48, share > 0 0.65
+   VAL: mean DVOL 65.4, mean RV30 60.2, DVOL-RV30 mean +5.2 pts, share > 10 pts 0.28, share > 0 0.73
+   [ETH 7d H24] per trade % of C: premium 14.37, payoff -14.86, hedge +0.71, funding -0.12; costs: half spread 0.328, option fees 0.120, hedge taker 0.222; net -0.27
+ETH-7d-H24-V1          IS n  66 mean -1.116% t -1.01 SR -0.99 | VAL n 130 mean +0.068% t +0.16 SR +0.09 | x1.5 IS -1.503 VAL -0.263 | late IS -1.661 VAL +0.278 | yrs 2021:-22.4 2022:-19.7 2023:-27.3 2024:+4.6 | rnd IS 60% VAL 58% | power 0.12 | maxDD 106.2% of C
+ETH-7d-H24-V2t10       IS n  32 mean -1.691% t -1.04 SR -1.29 | VAL n  37 mean -0.651% t -0.72 SR -0.75 | x1.5 IS -2.068 VAL -0.966 | late IS -2.028 VAL -0.115 | yrs 2021:-32.2 2022:-18.4 2023:-34.6 2024:+7.0 | rnd IS 29% VAL 18% | power -0.54 | maxDD 94.4% of C
+ETH-7d-H24-V2t0        IS n  43 mean -1.019% t -0.76 SR -0.86 | VAL n  95 mean +0.029% t +0.06 SR +0.04 | x1.5 IS -1.424 VAL -0.296 | late IS -1.659 VAL +0.355 | yrs 2021:-34.1 2022:+21.8 2023:-43.4 2024:+14.7 | rnd IS 57% VAL 45% | power 0.04 | maxDD 78.1% of C
+   tail V1 ETH 7d H24: worst weeks 2021-04-16 -42.5%, 2024-05-17 -21.4%, 2022-01-21 -16.2%, 2022-07-15 -13.6%, 2021-12-03 -13.1%
+      2021-05 crash week 2021-05-14: -3.5% of C
+      LUNA week 2022-05-06: -3.1% of C
+      3AC week 2022-06-10: -12.5% of C
+      FTX week 2022-11-04: -11.1% of C
+   margin: peak capital needed to stay above maintenance (x S0): median 0.266, max 0.600; trades needing > 0.5 S0 (C): 5/196; worst intra-trade MTM -42.5% of C
+   [ETH 7d H4] per trade % of C: premium 14.37, payoff -14.86, hedge +1.05, funding -0.14; costs: half spread 0.328, option fees 0.120, hedge taker 0.446; net -0.17
+ETH-7d-H4-V1           IS n  66 mean -0.659% t -0.97 SR -1.05 | VAL n 130 mean -0.013% t -0.03 SR -0.02 | x1.5 IS -1.163 VAL -0.453 | late IS -0.493 VAL +0.251 | yrs 2021:-20.4 2022:+18.1 2023:-42.8 2024:-0.1 | rnd IS 61% VAL 58% | power -0.03 | maxDD 73.8% of C
+ETH-7d-H4-V2t10        IS n  32 mean -1.079% t -0.97 SR -1.68 | VAL n  37 mean -0.422% t -0.50 SR -0.53 | x1.5 IS -1.588 VAL -0.831 | late IS -0.616 VAL +0.086 | yrs 2021:-19.3 2022:-0.3 2023:-25.8 2024:-4.7 | rnd IS 26% VAL 26% | power -0.38 | maxDD 62.4% of C
+ETH-7d-H4-V2t0         IS n  43 mean -0.687% t -0.78 SR -1.10 | VAL n  95 mean -0.047% t -0.10 SR -0.07 | x1.5 IS -1.219 VAL -0.485 | late IS -0.674 VAL +0.380 | yrs 2021:-22.6 2022:+31.9 2023:-53.1 2024:+9.8 | rnd IS 49% VAL 44% | power -0.09 | maxDD 70.8% of C
+   tail V1 ETH 7d H4: worst weeks 2022-11-04 -20.0%, 2021-04-16 -19.2%, 2024-03-01 -12.0%, 2022-07-15 -11.9%, 2024-05-17 -10.3%
+      2021-05 crash week 2021-05-14: -7.4% of C
+      LUNA week 2022-05-06: -2.5% of C
+      3AC week 2022-06-10: -4.6% of C
+      FTX week 2022-11-04: -20.0% of C
+   margin: peak capital needed to stay above maintenance (x S0): median 0.255, max 0.592; trades needing > 0.5 S0 (C): 5/196; worst intra-trade MTM -20.0% of C
+-- ETH 30d pricing: n 190, both legs from marks 111, iv fallback 79; median half spread 0.80 % of premium
+   BS @ DVOL x IS ratio vs trade price: median +11.9 %, median |err| 12.0 %, p90 |err| 21.7 %
+   entry straddle iv / DVOL: median 0.899; BS @ raw DVOL would overprice by ~11.3 %
+   IS: mean DVOL 99.4, mean RV30 92.1, DVOL-RV30 mean +7.2 pts, share > 10 pts 0.49, share > 0 0.67
+   VAL: mean DVOL 65.0, mean RV30 59.8, DVOL-RV30 mean +5.2 pts, share > 10 pts 0.29, share > 0 0.72
+   [ETH 30d H24] per trade % of C: premium 27.05, payoff -29.25, hedge +2.92, funding -0.54; costs: half spread 0.266, option fees 0.120, hedge taker 0.359; net -0.34
+ETH-30d-H24-V1         IS n  66 mean -0.329% t -0.44 SR -0.43 | VAL n 130 mean -0.076% t -0.24 SR -0.13 | x1.5 IS -0.480 VAL -0.184 | late IS -0.682 VAL -0.183 | yrs 2021:+10.8 2022:-4.1 2023:-14.6 2024:-23.6 | rnd IS 23% VAL 88% | power -0.18 | maxDD 50.8% of C
+ETH-30d-H24-V2t10      IS n  45 mean +0.616% t +0.79 SR +0.79 | VAL n  64 mean +0.238% t +0.47 SR +0.37 | x1.5 IS +0.442 VAL +0.131 | late IS +0.217 VAL +0.257 | yrs 2021:+29.3 2022:+35.8 2023:-5.8 2024:-16.4 | rnd IS 91% VAL 69% | power 0.36 | maxDD 31.5% of C
+ETH-30d-H24-V2t0       IS n  54 mean +0.187% t +0.24 SR +0.25 | VAL n 116 mean +0.063% t +0.18 SR +0.11 | x1.5 IS +0.033 VAL -0.050 | late IS -0.757 VAL +0.071 | yrs 2021:+10.2 2022:+38.2 2023:-11.1 2024:-19.9 | rnd IS 91% VAL 62% | power 0.14 | maxDD 48.6% of C
+   tail V1 ETH 30d H24: worst weeks 2021-04-16 -22.2%, 2022-11-04 -17.7%, 2024-05-17 -16.9%, 2022-06-10 -14.5%, 2022-02-18 -13.5%
+      2021-05 crash week 2021-05-14: -13.0% of C
+      LUNA week 2022-05-06: -7.0% of C
+      3AC week 2022-06-10: -14.5% of C
+      FTX week 2022-11-04: -17.7% of C
+   margin: peak capital needed to stay above maintenance (x S0): median 0.363, max 1.362; trades needing > 0.5 S0 (C): 42/190; worst intra-trade MTM -54.8% of C
+   [ETH 30d H4] per trade % of C: premium 27.05, payoff -29.25, hedge +3.08, funding -0.58; costs: half spread 0.266, option fees 0.120, hedge taker 0.710; net -0.57
+ETH-30d-H4-V1          IS n  66 mean -0.693% t -0.75 SR -0.79 | VAL n 130 mean +0.011% t +0.04 SR +0.02 | x1.5 IS -0.905 VAL -0.150 | late IS -0.287 VAL -0.031 | yrs 2021:-25.6 2022:+13.9 2023:-20.5 2024:-12.1 | rnd IS 3% VAL 2% | power 0.03 | maxDD 78.6% of C
+ETH-30d-H4-V2t10       IS n  45 mean +0.216% t +0.29 SR +0.38 | VAL n  64 mean +0.208% t +0.40 SR +0.35 | x1.5 IS -0.025 VAL +0.052 | late IS +0.301 VAL +0.345 | yrs 2021:+13.8 2022:+30.4 2023:-7.4 2024:-13.6 | rnd IS 90% VAL 59% | power 0.33 | maxDD 35.5% of C
+ETH-30d-H4-V2t0        IS n  54 mean -0.419% t -0.40 SR -0.47 | VAL n 116 mean +0.108% t +0.33 SR +0.21 | x1.5 IS -0.633 VAL -0.060 | late IS -0.410 VAL +0.119 | yrs 2021:-20.9 2022:+37.3 2023:-14.5 2024:-12.0 | rnd IS 87% VAL 74% | power 0.27 | maxDD 73.5% of C
+   tail V1 ETH 30d H4: worst weeks 2021-05-14 -41.5%, 2022-11-04 -25.1%, 2021-04-16 -16.0%, 2024-05-17 -9.9%, 2022-07-15 -8.8%
+      2021-05 crash week 2021-05-14: -41.5% of C
+      LUNA week 2022-05-06: -5.8% of C
+      3AC week 2022-06-10: -7.4% of C
+      FTX week 2022-11-04: -25.1% of C
+   margin: peak capital needed to stay above maintenance (x S0): median 0.358, max 1.381; trades needing > 0.5 S0 (C): 40/190; worst intra-trade MTM -94.2% of C
+   BTC IS Fridays: DVOL 83.7, realised next 30 d 73.0, trailing RV30 72.8; DVOL^2 - RV_next^2 mean +1514 var pts; DVOL > RV_next share 0.74
+   BTC VAL Fridays: DVOL 56.5, realised next 30 d 47.0, trailing RV30 49.1; DVOL^2 - RV_next^2 mean +1001 var pts; DVOL > RV_next share 0.78
+   [BTC-7d-H24-V3] per trade % of C: premium 4.61, payoff -4.25, hedge +0.06, funding -0.06, half spread 3.3 % of premium, option fees 0.120, median leg deltas +0.24 / -0.25, leg iv / DVOL call 0.87 put 0.89
+BTC-7d-H24-V3          IS n  66 mean +0.029% t +0.06 SR +0.05 | VAL n 130 mean +0.023% t +0.08 SR +0.05 | x1.5 IS -0.200 VAL -0.201 | late IS -0.027 VAL +0.080 | yrs 2021:+25.1 2022:+0.7 2023:-34.2 2024:+13.3 | power 0.06 | maxDD 46.4% of C
+   tail: worst weeks 2021-12-03 -14.3%, 2023-01-13 -13.1%, 2023-02-10 -11.5%, 2021-04-16 -10.5%, 2023-10-20 -9.7%; capital needed max 0.497 x S0, > C in 0/196; worst MTM -15.9% of C
+   [BTC-30d-H24-V3] per trade % of C: premium 8.85, payoff -8.83, hedge +1.70, funding -0.29, half spread 1.4 % of premium, option fees 0.120, median leg deltas +0.25 / -0.25, leg iv / DVOL call 0.93 put 0.93
+BTC-30d-H24-V3         IS n  66 mean +0.259% t +0.70 SR +0.57 | VAL n 130 mean +0.173% t +0.79 SR +0.49 | x1.5 IS +0.168 VAL +0.096 | late IS +0.070 VAL +0.099 | yrs 2021:+25.4 2022:+19.8 2023:-12.6 2024:+7.0 | power 0.67 | maxDD 21.0% of C
+   tail: worst weeks 2024-08-02 -10.7%, 2021-04-16 -10.4%, 2022-11-04 -9.9%, 2021-12-03 -9.4%, 2022-06-10 -9.3%; capital needed max 0.623 x S0, > C in 8/191; worst MTM -18.4% of C
+   ETH IS Fridays: DVOL 99.7, realised next 30 d 95.0, trailing RV30 93.6; DVOL^2 - RV_next^2 mean +413 var pts; DVOL > RV_next share 0.67
+   ETH VAL Fridays: DVOL 65.2, realised next 30 d 57.2, trailing RV30 60.0; DVOL^2 - RV_next^2 mean +1113 var pts; DVOL > RV_next share 0.71
+   [ETH-7d-H24-V3] per trade % of C: premium 5.36, payoff -5.94, hedge +0.40, funding -0.08, half spread 3.4 % of premium, option fees 0.120, median leg deltas +0.24 / -0.24, leg iv / DVOL call 0.87 put 0.91
+ETH-7d-H24-V3          IS n  66 mean -0.904% t -1.02 SR -1.03 | VAL n 130 mean -0.453% t -1.54 SR -0.78 | x1.5 IS -1.167 VAL -0.715 | late IS -1.188 VAL -0.210 | yrs 2021:-7.1 2022:-48.8 2023:-33.9 2024:-28.9 | power -1.05 | maxDD 124.8% of C
+   tail: worst weeks 2021-04-16 -32.9%, 2024-05-17 -20.1%, 2024-08-02 -14.0%, 2021-12-03 -13.3%, 2022-02-18 -12.6%; capital needed max 0.513 x S0, > C in 2/196; worst MTM -32.9% of C
+   [ETH-30d-H24-V3] per trade % of C: premium 10.54, payoff -11.83, hedge +2.16, funding -0.42, half spread 1.3 % of premium, option fees 0.120, median leg deltas +0.25 / -0.25, leg iv / DVOL call 0.91 put 0.94
+ETH-30d-H24-V3         IS n  66 mean -0.117% t -0.19 SR -0.19 | VAL n 130 mean -0.056% t -0.22 SR -0.12 | x1.5 IS -0.218 VAL -0.137 | late IS -0.329 VAL -0.057 | yrs 2021:+17.4 2022:-8.6 2023:-9.1 2024:-14.8 | power -0.16 | maxDD 43.0% of C
+   tail: worst weeks 2021-04-16 -16.3%, 2022-11-04 -16.1%, 2024-05-17 -14.7%, 2022-06-10 -14.6%, 2024-08-02 -13.1%; capital needed max 1.096 x S0, > C in 18/192; worst MTM -41.1% of C
+max-over-28-cells null IS: observed best NW t 1.50; null p50 1.29, p95 4.95
+max-over-28-cells null VAL: observed best NW t 1.14; null p50 1.24, p95 3.05

@@ -1,0 +1,24 @@
+# Round 43 brief: investor-mood shocks (weather, air pollution, international football); sovereign rating actions
+
+Written 2026-10-30 (round 42 closed the same day with no candidate). Repo: /Users/hoangbk/00.code_base/105.AgentFxTrading.
+Same bars as rounds 25-42 (LIVE / DEMO in research/PROMPT.md; no RELAXED tier). Everything in
+research/results/portfolio/round37_forced_flows/BRIEF.md applies unchanged (Read first, Data, HOLD closed at
+2024-12-31 at load, Network rules, Rules for this round, What to return), except the streams, the round folder
+(research/results/portfolio/round43_mood_ratings/) and the scratchpad
+(`/private/tmp/claude-501/-Users-hoangbk-00-code-base-105-AgentFxTrading/a4a9bef6-96f0-4934-8440-9b5af3c564e7/scratchpad/r43/<stream>/`).
+Also read the round 37-42 reports (research/results/portfolio/round3[7-9]_*_2026-10-29.md and
+round4[0-2]_*_2026-10-30.md), especially "Pitfalls": **do not use web.archive.org**; any downloaded row after
+2024-12-31 is cut at parse, before anything is printed.
+
+**Speed (the user is waiting):** prefer small official files; measure the download budget first and keep the full pull
+under ~1 hour. Any background job must log progress, and every wait must also exit when its worker dies. Grade IS + VAL
+as soon as they are complete; PRE is an add-on.
+
+## Streams
+| stream | direction | prior work to read, and how this differs | why it might escape the limits |
+|---|---|---|---|
+| M | **Investor-mood shocks -> local index CFDs (US500 / US30 / USTEC for New York, UK100, DE40, F40, ES35, IT40, STOXX50, JP225, HK50, AUS200) and the local currency.** (1) Morning cloud cover / sunshine at the exchange city (Hirshleifer & Shumway 2003; Saunders 1993): NOAA ISD / Global Hourly (free, ncei.noaa.gov access files by station-year) for the main airport of each city, deseasonalised by week of year; signal known before the local open. (2) Air pollution in Shanghai / Beijing / Hong Kong (Li, Massa, Zhang & Zhang 2021 on pollution and investor mood; US State Department AirNow historical PM2.5 CSVs or official sources reachable without login) -> HK50, USDCNH. (3) International football results (Edmans, Garcia & Norli 2007: national team losses -> next-day local index down): World Cup, Euro, Copa América, Asian Cup, Nations League, qualifiers, from a free dated results dataset (e.g. the public international-results CSV on GitHub; declare it), kick-off before the next local open, sides fixed before returns. Count events per year, do the power arithmetic first (sunshine is daily: say what per-trade Sharpe LIVE needs), and declare all variants before any return. | No round used weather or mood data for indices (round 31 G used NOAA CPC temperature outlooks for gas only). Round 32 attention (Wikipedia / HN), round 40 G (GDELT tone): news priced before publication. Mood is not news: the literature claims a behavioural price effect from information-free shocks. | Daily weather at 11+ exchange cities is information-free but known before the open, gives thousands of index-day signals, and IC's cost is a small share of a full-session index move. Football losses are rare but large in the literature. Expect decay since publication; say so from the eras. |
+| R | **Sovereign credit-rating actions -> the rated country's index CFD and currency (IT40, ES35, F40, DE40, UK100, JP225, US500, AUS200, HK50; EURUSD, GBPUSD, USDJPY, AUDUSD, USDCNH, USDMXN, EURNOK...).** Rating and outlook actions of S&P, Moody's and Fitch 2004-24 from a free dated source reachable without login (agency press-release lists, official debt-agency pages, or a public compiled history: declare it and check against two known actions). Since 2014 EU rules fix the sovereign rating calendar in advance and actions come on Fridays after the close: test the next-session reaction and 1-5 day drift after downgrades / upgrades / outlook changes, the pre-calendar-date drift into scheduled review dates (positioning), and non-action review dates. Sides from the literature (Gande & Parsley 2005, Afonso, Furceri & Gomes 2012: downgrades move spreads and spill over; upgrades little), fixed before returns. Count actions per year first. | round 20-21 (central bank events), round 25 (scheduled surprises priced before release), round 37 M (exchange margin changes: rare). No round used rating actions or the EU sovereign rating calendar. | Scheduled review dates give a public clock (EU calendar published each December), actions land when markets are shut, and slow-moving holders (rating-constrained funds, collateral rules) must rebalance after a downgrade over days, not minutes. Expect DEMO at most from the count unless outlook changes and review dates add enough events: say so. |
+
+If a stream's first construction fails, it moves to related public, dated by-products in its row (declare first), as in
+rounds 37-42. Two streams this round; each may use up to 3 heavy Python processes (under ~3 GB RAM each).

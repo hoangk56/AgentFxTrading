@@ -1,0 +1,2 @@
+stocks compared 124; bars compared 208301; OHLC agree within 0.005: 208301 (100.0000%)
+bars in Tencent missing from OV: 0; bars in OV missing from Tencent: 993

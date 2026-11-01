@@ -1,0 +1,452 @@
+"""Round 56 stream R: large-cap short-term reversal (no-news) vs news continuation, cross-section of D's stocks.
+Declared in research/results/portfolio/round56_stock_cross_section/HYPOTHESES_R.md (12:03 UTC, before returns).
+Run: research/.venv/bin/python -I grade.py  (writes out/*.json, out/cells.csv, out/grade.log)."""
+import csv, glob, json, os, sys, time
+import numpy as np
+
+SP = "/private/tmp/claude-501/-Users-hoangbk-00-code-base-105-AgentFxTrading/a4a9bef6-96f0-4934-8440-9b5af3c564e7/scratchpad"
+sys.path.insert(0, SP + "/r54/D/out")
+import stocklib as sl  # noqa: E402
+
+OUT = SP + "/r56/R/out"
+os.makedirs(OUT, exist_ok=True)
+LOG = open(OUT + "/grade.log", "w")
+T0 = time.time()
+NREP = int(os.environ.get("NREP", "200"))
+
+
+def log(*a):
+    s = " ".join(str(x) for x in a)
+    print(s, flush=True)
+    LOG.write(f"[{time.time()-T0:7.1f}s] {s}\n")
+    LOG.flush()
+
+
+S = sl.load()
+assert S.dates.max() < np.datetime64("2025-01-01")
+N, T = len(S.syms), len(S.dates)
+YEAR = S.dates.astype("datetime64[Y]").astype(int) + 1970
+MON = S.dates.astype("datetime64[M]")
+ISP = YEAR <= 2021
+EXC = (MON != np.datetime64("2020-03")) & (MON != np.datetime64("2020-04"))
+log("loaded", N, T, S.dates[0], S.dates[-1])
+
+# ------------------------------------------------------------------ universe and news days
+ev = [r for r in csv.DictReader(open(SP + "/r54/E/out/events.csv")) if r["acc_date_et"] < "2025-01-01"]
+ev_ciks = {r["cik"].lstrip("0") for r in ev}
+U = np.array([(not S.is_etf[i]) and S.info["cik"][i].lstrip("0") in ev_ciks and S.info["ticker"][i] != "USO"
+              for i in range(N)])
+log("universe", U.sum())
+NEWS = np.zeros((N, T), bool)
+cik2i = {S.info["cik"][i].lstrip("0"): i for i in range(N) if U[i]}
+nev = 0
+for r in ev:
+    i = cik2i.get(r["cik"].lstrip("0"))
+    if i is None:
+        continue
+    d = np.datetime64(r["acc_date_et"])
+    j = int(np.searchsorted(S.dates, d))           # first trading day >= acc date
+    if j < T and S.dates[j] == d and r["acc_time_et"] >= "16:00:00":
+        j += 1
+    if j < T:
+        NEWS[i, j] = True
+        nev += 1
+log("news days mapped", nev, NEWS.sum())
+
+# ------------------------------------------------------------------ returns, betas, signals
+M = S.mid("close")
+Mraw = S.mid("close", adjusted=False)
+r = np.full((N, T), np.nan)
+r[:, 1:] = M[:, 1:] / M[:, :-1] - 1
+spy = S.idx("SPY")
+rs = r[spy]
+SPRC = S.spread_bp("close")
+W = 250
+
+
+def roll(a, w):
+    c = np.cumsum(np.concatenate([np.zeros(a.shape[:-1] + (1,)), a], axis=-1), axis=-1)
+    out = c[..., w:] - c[..., :-w]
+    pad = np.full(a.shape[:-1] + (w - 1,), np.nan)
+    return np.concatenate([pad, out], axis=-1)
+
+
+def rolling_beta(y, x):
+    v = np.isfinite(y) & np.isfinite(x)[None, :]
+    yy, xx = np.where(v, y, 0.0), np.where(v, x[None, :], 0.0)
+    n, sx, sy = roll(v.astype(float), W), roll(xx, W), roll(yy, W)
+    sxy, sxx = roll(xx * yy, W), roll(xx * xx, W)
+    var = sxx - sx * sx / np.maximum(n, 1)
+    b = (sxy - sx * sy / np.maximum(n, 1)) / np.where(var > 0, var, np.nan)
+    b[n < 60] = np.nan
+    return b                                     # beta over the 250 days ending at d (inclusive)
+
+
+BETA = rolling_beta(r, rs)
+log("betas done")
+
+# sector map from SIC (declared rules)
+subs = {}
+for f in glob.glob(SP + "/r*/*/web*/**/submissions/CIK*.json", recursive=True) + \
+        glob.glob(SP + "/r*/*/web/data.sec.gov/submissions/CIK*.json"):
+    b = os.path.basename(f)
+    if "-" not in b:
+        subs.setdefault(b, f)
+
+
+def sector(sic):
+    s = int(sic) if sic and str(sic).isdigit() else -1
+    R = lambda a, b: a <= s <= b  # noqa: E731
+    if R(2834, 2836) or s in (3826, 5122, 6324, 8731) or R(3841, 3851) or R(8000, 8099):
+        return "XLV"
+    if s in (1311, 2911) or R(1381, 1389) or R(4610, 4619) or R(4922, 4924):
+        return "XLE"
+    if R(4900, 4991):
+        return "XLU"
+    if R(6500, 6599) or s == 6798:
+        return "IYR"
+    if R(6000, 6499):
+        return "XLF"
+    if R(3570, 3579) or R(3600, 3629) or R(3640, 3699) or s == 3825 or R(7370, 7379):
+        return "XLK"
+    if R(2000, 2199) or R(2670, 2679) or R(2840, 2844) or R(5140, 5149) or s == 5331 or R(5400, 5499):
+        return "XLP"
+    if s in (1531, 3021, 3711, 3714, 7389) or R(2300, 2399) or R(2510, 2599) or R(3630, 3639) or R(3940, 3949) \
+            or R(4700, 4799) or R(5000, 5999) or R(7000, 7099):
+        return "XLY"
+    if R(3400, 3569) or R(3580, 3599) or R(3720, 3729) or R(3760, 3769) or s == 3812 or R(4000, 4599):
+        return "XLI"
+    return "SPY"
+
+
+SECT = np.array(["SPY"] * N, dtype=object)
+for i in range(N):
+    if U[i]:
+        f = subs.get("CIK" + S.info["cik"][i].zfill(10) + ".json")
+        if f:
+            SECT[i] = sector(json.load(open(f)).get("sic"))
+log("sector counts", {k: int((SECT[U] == k).sum()) for k in sorted(set(SECT[U]))})
+# sector benchmark returns per stock (fallback SPY where ETF missing)
+RB = np.tile(rs, (N, 1))
+for e in set(SECT[U]):
+    if e == "SPY":
+        continue
+    re = r[S.idx(e)]
+    m = SECT == e
+    RB[m] = np.where(np.isfinite(re)[None, :], re[None, :], rs[None, :])
+
+
+def window_sum(a, L):
+    if L == 1:
+        return a.copy()
+    v = np.isfinite(a)
+    out = roll(np.where(v, a, 0.0), L)
+    out[roll(v.astype(float), L) < L - 0.5] = np.nan
+    return out
+
+
+SIG, ELIG = {}, {}
+for L in (1, 5):
+    b = np.full((N, T), np.nan)
+    b[:, L:] = BETA[:, :-L]                      # beta ending at t-L
+    sr = window_sum(r, L)                        # sum of r over t-L+1..t (NaN if any missing)
+    ss = window_sum(rs, L)
+    sb = window_sum(RB, L)
+    SIG[("beta", L)] = sr - b * ss[None, :]
+    SIG[("sect", L)] = sr - sb
+    validM = np.isfinite(M)
+    prev = np.zeros((N, T), bool)
+    prev[:, L:] = validM[:, :-L]
+    el = U[:, None] & np.isfinite(sr) & prev & (Mraw >= 10) & (SPRC <= 50) & np.isfinite(b) & np.isfinite(ss)[None, :]
+    ELIG[L] = el
+    log("L", L, "eligible per day median", np.median(el.sum(0)[el.sum(0) > 0]))
+NEWSW = {}
+for L in (1, 5):
+    w = L + 2                                     # [t-L-1, t]
+    NEWSW[L] = roll(NEWS.astype(float), w) > 0
+    NEWSW[L][:, :w - 1] = True
+
+# realized vol state (Nagel proxy)
+rv = np.full(T, np.nan)
+for t in range(19, T):
+    x = rs[t - 19:t + 1]
+    if np.isfinite(x).sum() >= 18:
+        rv[t] = np.nanstd(x)
+HIGHV = np.zeros(T, bool)
+for t in range(T):
+    prior = rv[:t][np.isfinite(rv[:t])]
+    if np.isfinite(rv[t]) and len(prior) >= 120:
+        HIGHV[t] = rv[t] > np.percentile(prior, 67)
+log("high-vol days", HIGHV.sum(), "IS", (HIGHV & ISP).sum())
+
+# ------------------------------------------------------------------ trade matrices
+ALL_I = np.repeat(np.arange(N), T)
+ALL_T = np.tile(np.arange(T), N)
+TR = {}
+for h in (1, 3, 5):
+    for side in (1, -1):
+        for var, kw, delay in (("base", {}, 0), ("x15", {"spread_mult": 1.5}, 0), ("d1", {}, 1)):
+            res = S.trade(ALL_I, ALL_T + delay, np.full(ALL_I.shape, side), ALL_T + delay + h,
+                          entry_at="close", exit_at="close", **kw)
+            good = res["ok"] & ~res["jump"]
+            for k in (("net_bp", "gross_bp", "spread_bp", "comm_bp", "fin_bp") if var == "base" else ("net_bp",)):
+                TR[(h, side, var, k)] = np.where(good, res[k], np.nan).reshape(N, T)
+log("trade matrices done")
+
+
+# ------------------------------------------------------------------ position builders
+def first_day(L, k):
+    c = (ELIG[L] & ~NEWSW[L]).sum(0)
+    return int(np.argmax(c >= 2 * k + 10))
+
+
+def f1_positions(L, h, k, sig="beta", newsfilter=True, offset=0, cond=None):
+    pool = ELIG[L] & (~NEWSW[L] if newsfilter else True)
+    s = SIG[(sig, L)]
+    d0 = first_day(L, k) + offset
+    I, D, SD = [], [], []
+    for t in range(d0, T, h):
+        if cond is not None and not cond[t]:
+            continue
+        idx = np.where(pool[:, t] & np.isfinite(s[:, t]))[0]
+        if len(idx) < 2 * k:
+            continue
+        o = idx[np.argsort(s[idx, t], kind="stable")]
+        lo, hi = o[:k], o[-k:]
+        I += list(lo) + list(hi)
+        D += [t] * (2 * k)
+        SD += [1] * k + [-1] * k
+    return np.array(I, int), np.array(D, int), np.array(SD, int)
+
+
+EV_IDX = np.argwhere(NEWS)                       # (i, news day)
+
+
+def f2_positions(L, h, book):
+    s = SIG[("beta", L)]
+    I, D, SD = [], [], []
+    by_t = {}
+    for i, e in EV_IDX:
+        t = e + L - 1
+        if t >= T or not ELIG[L][i, t] or not np.isfinite(s[i, t]) or s[i, t] == 0:
+            continue
+        by_t.setdefault(t, []).append(i)
+    for t in sorted(by_t):
+        ii = np.array(sorted(set(by_t[t])))
+        if book == "sign":
+            I += list(ii)
+            D += [t] * len(ii)
+            SD += list(np.sign(s[ii, t]).astype(int))
+        else:
+            if len(ii) < 6:
+                continue
+            o = ii[np.argsort(s[ii, t], kind="stable")]
+            I += list(o[-3:]) + list(o[:3])
+            D += [t] * 6
+            SD += [1] * 3 + [-1] * 3
+    return np.array(I, int), np.array(D, int), np.array(SD, int)
+
+
+def vals(I, D, SD, h, var="base", key="net_bp"):
+    lo = TR[(h, 1, var, key)][I, D]
+    sh = TR[(h, -1, var, key)][I, D]
+    return np.where(SD > 0, lo, sh)
+
+
+def st(x, d):
+    k = np.isfinite(x)
+    if k.sum() < 3:
+        return dict(n=int(k.sum()), nd=0, mean=np.nan, t=np.nan)
+    r_ = sl.clustered_t(x[k], d[k])
+    return dict(n=r_["n"], nd=r_["n_clusters"], mean=round(r_["mean"], 2), t=round(r_["t"], 2))
+
+
+def bookdate_series(x, d):
+    k = np.isfinite(x)
+    u, inv = np.unique(d[k], return_inverse=True)
+    return u, np.bincount(inv, weights=x[k]) / np.bincount(inv)
+
+
+def concurrency(D, h):
+    c = np.zeros(T + h + 2)
+    for t in D:
+        c[t:t + h + 1] += 1                       # held from entry close to exit close (inclusive both days)
+    c = c[c > 0]
+    return int(c.max()), float(np.percentile(c, 99))
+
+
+# ------------------------------------------------------------------ cells
+CELLS = []
+for L in (1, 5):
+    for h in (1, 3, 5):
+        for k in (3, 6, 9):
+            CELLS.append(dict(fam="F1", L=L, h=h, k=k))
+for L in (1, 5):
+    for h in (1, 3, 5):
+        for book in ("sign", "k3"):
+            CELLS.append(dict(fam="F2", L=L, h=h, k=book))
+for L in (1, 5):
+    for h in (1, 3, 5):
+        for k in (3, 6, 9):
+            CELLS.append(dict(fam="F3", L=L, h=h, k=k))
+
+
+def name(c):
+    return f"{c['fam']}_L{c['L']}_h{c['h']}_k{c['k']}"
+
+
+def build(c):
+    if c["fam"] == "F1":
+        return f1_positions(c["L"], c["h"], c["k"])
+    if c["fam"] == "F3":
+        return f1_positions(c["L"], c["h"], c["k"], cond=HIGHV)
+    return f2_positions(c["L"], c["h"], c["k"])
+
+
+def pool_of(c):
+    return ELIG[c["L"]] & (~NEWSW[c["L"]] if c["fam"] in ("F1", "F3") else True) & np.isfinite(SIG[("beta", c["L"])])
+
+
+HOLD_DAYS = 435
+results, POS = [], {}
+for c in CELLS:
+    I, D, SD = build(c)
+    POS[name(c)] = (I, D, SD)
+    h = c["h"]
+    x = vals(I, D, SD, h)
+    isp, vap = ISP[D], ~ISP[D]
+    out = dict(cell=name(c), **c)
+    out["IS"] = st(x[isp], D[isp])
+    out["VAL"] = st(x[vap], D[vap])
+    for comp in ("gross_bp", "spread_bp", "comm_bp", "fin_bp"):
+        y = vals(I, D, SD, h, key=comp)
+        out[comp + "_IS"] = round(float(np.nanmean(y[isp])), 2) if isp.any() else np.nan
+        out[comp + "_VAL"] = round(float(np.nanmean(y[vap])), 2) if vap.any() else np.nan
+    g = vals(I, D, SD, h, key="gross_bp")
+    out["gross_IS_t"] = st(g[isp], D[isp])["t"]
+    out["gross_VAL_t"] = st(g[vap], D[vap])["t"]
+    x15 = vals(I, D, SD, h, "x15")
+    out["x15_IS"], out["x15_VAL"] = st(x15[isp], D[isp]), st(x15[vap], D[vap])
+    xd = vals(I, D, SD, h, "d1")
+    out["d1_IS"], out["d1_VAL"] = st(xd[isp], D[isp]), st(xd[vap], D[vap])
+    ex = EXC[D]
+    out["exc_IS"] = st(x[isp & ex], D[isp & ex])
+    out["long_IS"], out["long_VAL"] = st(x[isp & (SD > 0)], D[isp & (SD > 0)]), st(x[vap & (SD > 0)], D[vap & (SD > 0)])
+    out["short_IS"], out["short_VAL"] = st(x[isp & (SD < 0)], D[isp & (SD < 0)]), st(x[vap & (SD < 0)], D[vap & (SD < 0)])
+    yrs = sl.by_year(x[np.isfinite(x)], YEAR[D][np.isfinite(x)], D[np.isfinite(x)])
+    out["years"] = {int(y): [n, round(m, 1), round(t_, 2)] for y, n, m, t_ in yrs}
+    out["years_pos"] = f"{sum(m > 0 for _, _, m, _ in yrs)}/{len(yrs)}"
+    # power: VAL book-date Sharpe x sqrt(HOLD book dates)
+    u, bs = bookdate_series(x[vap], D[vap])
+    nval_years = 3.0
+    if len(bs) > 2 and np.std(bs) > 0:
+        sh = np.mean(bs) / np.std(bs, ddof=1)
+        n_hold = len(bs) / nval_years * (HOLD_DAYS / 251.0)
+        out["power_VAL"] = round(float(sh * np.sqrt(n_hold)), 2)
+        out["n_hold_bookdates"] = round(float(n_hold))
+    # turnover: share of positions repeated in the next book (same name, same side)
+    rep, tot = 0, 0
+    keyset = set(zip(I.tolist(), D.tolist(), SD.tolist()))
+    for i, d, sd in keyset:
+        tot += 1
+        rep += (i, d + h, sd) in keyset
+    out["repeat_share"] = round(rep / max(tot, 1), 3)
+    if c["fam"] == "F2":
+        mx, p99 = concurrency(D, h)
+        out["conc_max"], out["conc_p99"] = mx, p99
+        out["bots"] = int(np.ceil(p99 / 3))
+    else:
+        out["bots"] = 2 * c["k"] // 3
+    results.append(out)
+    log(name(c), "IS", out["IS"], "VAL", out["VAL"], "grossIS", out["gross_bp_IS"], "grossVAL", out["gross_bp_VAL"])
+
+# ------------------------------------------------------------------ random control + chance benchmark
+log("random control / chance benchmark, reps", NREP)
+rng = np.random.default_rng(56)
+POOLS = {name(c): pool_of(c) for c in CELLS}
+null_mean_IS = np.zeros((len(CELLS), NREP))
+null_mean_VAL = np.zeros((len(CELLS), NREP))
+null_t_net = np.zeros((len(CELLS), NREP))
+null_t_gross = np.zeros((len(CELLS), NREP))
+prep = []
+for ci, c in enumerate(CELLS):
+    I, D, SD = POS[name(c)]
+    dates = np.unique(D)
+    nl = np.array([(SD[D == t] > 0).sum() for t in dates])
+    ns = np.array([(SD[D == t] < 0).sum() for t in dates])
+    prep.append((dates, nl, ns))
+for rep in range(NREP):
+    for ci, c in enumerate(CELLS):
+        dates, nl, ns = prep[ci]
+        if len(dates) == 0:
+            continue
+        P = POOLS[name(c)][:, dates]
+        key = np.where(P, rng.random(P.shape), np.inf)
+        o = np.argsort(key, axis=0)
+        ntot = nl + ns
+        kmax = int(ntot.max())
+        sel = o[:kmax]                             # (kmax, nd)
+        rank = np.arange(kmax)[:, None]
+        valid = (rank < ntot[None, :]) & np.take_along_axis(P, sel, 0)
+        side = np.where(rank < nl[None, :], 1, -1)
+        Dm = np.broadcast_to(dates[None, :], sel.shape)
+        I_, D_, S_ = sel[valid], Dm[valid], side[valid]
+        x = vals(I_, D_, S_, c["h"])
+        g = vals(I_, D_, S_, c["h"], key="gross_bp")
+        isp = ISP[D_]
+        null_mean_IS[ci, rep] = np.nanmean(x[isp]) if isp.any() else np.nan
+        null_mean_VAL[ci, rep] = np.nanmean(x[~isp]) if (~isp).any() else np.nan
+        null_t_net[ci, rep] = st(x[isp], D_[isp])["t"]
+        null_t_gross[ci, rep] = st(g[isp], D_[isp])["t"]
+    if rep % 20 == 0:
+        log("rep", rep)
+maxnet = np.nanmax(null_t_net, axis=0)
+maxgross = np.nanmax(null_t_gross, axis=0)
+chance = dict(p95_max_net_t=round(float(np.percentile(maxnet, 95)), 2),
+              p95_max_gross_t=round(float(np.percentile(maxgross, 95)), 2),
+              median_max_gross_t=round(float(np.median(maxgross)), 2))
+for ci, out in enumerate(results):
+    a, v = out["IS"]["mean"], out["VAL"]["mean"]
+    out["rand_beat_IS"] = round(float(np.mean(null_mean_IS[ci] < a)), 3)
+    out["rand_beat_VAL"] = round(float(np.mean(null_mean_VAL[ci] < v)), 3)
+    out["rand_mean_IS"] = round(float(np.nanmean(null_mean_IS[ci])), 2)
+    out["rand_mean_VAL"] = round(float(np.nanmean(null_mean_VAL[ci])), 2)
+    out["p_maxgross"] = round(float(np.mean(maxgross >= (out["gross_IS_t"] if np.isfinite(out["gross_IS_t"]) else -9))), 3)
+    out["p_maxnet"] = round(float(np.mean(maxnet >= (out["IS"]["t"] if np.isfinite(out["IS"]["t"]) else -9))), 3)
+log("chance", chance)
+
+
+def grade(o):
+    def ok(v):
+        return v is not None and np.isfinite(v)
+    isT, valT, valM = o["IS"]["t"], o["VAL"]["t"], o["VAL"]["mean"]
+    rob = (o["x15_IS"]["mean"] > 0 and o["x15_VAL"]["mean"] > 0 and o["d1_IS"]["mean"] > 0 and o["d1_VAL"]["mean"] > 0)
+    yp, yn = (int(z) for z in o["years_pos"].split("/"))
+    if ok(isT) and isT >= 2.5 and ok(valT) and valT >= 1.5 and yp >= 2 * yn / 3 and o["rand_beat_IS"] >= 0.95 and rob \
+            and o.get("power_VAL", 0) >= 3:
+        return "LIVE"
+    if ok(isT) and isT >= 2.0 and ok(valM) and valM > 0 and o["rand_beat_IS"] >= 0.90 and rob:
+        return "DEMO"
+    return "none"
+
+
+for o in results:
+    o["grade"] = grade(o)
+json.dump(dict(cells=results, chance=chance), open(OUT + "/cells.json", "w"), indent=1, default=float)
+with open(OUT + "/cells.csv", "w") as fh:
+    w = csv.writer(fh)
+    w.writerow(["cell", "n_IS", "nd_IS", "net_IS", "t_IS", "n_VAL", "net_VAL", "t_VAL", "gross_IS", "gross_IS_t",
+                "gross_VAL", "gross_VAL_t", "spread_IS", "comm_IS", "fin_IS", "x15_IS", "x15_VAL", "d1_IS", "d1_VAL",
+                "d1_IS_t", "exc_IS", "long_IS", "short_IS", "long_VAL", "short_VAL", "years_pos", "rand_beat_IS",
+                "rand_beat_VAL", "p_maxgross", "power_VAL", "repeat", "bots", "grade"])
+    for o in results:
+        w.writerow([o["cell"], o["IS"]["n"], o["IS"]["nd"], o["IS"]["mean"], o["IS"]["t"], o["VAL"]["n"],
+                    o["VAL"]["mean"], o["VAL"]["t"], o["gross_bp_IS"], o["gross_IS_t"], o["gross_bp_VAL"],
+                    o["gross_VAL_t"], o["spread_bp_IS"], o["comm_bp_IS"], o["fin_bp_IS"], o["x15_IS"]["mean"],
+                    o["x15_VAL"]["mean"], o["d1_IS"]["mean"], o["d1_VAL"]["mean"], o["d1_IS"]["t"],
+                    o["exc_IS"]["mean"], o["long_IS"]["mean"], o["short_IS"]["mean"], o["long_VAL"]["mean"],
+                    o["short_VAL"]["mean"], o["years_pos"], o["rand_beat_IS"], o["rand_beat_VAL"], o["p_maxgross"],
+                    o.get("power_VAL"), o["repeat_share"], o["bots"], o["grade"]])
+np.savez(OUT + "/positions.npz", **{k + "__" + n_: v for k, (I, D, SD) in POS.items() for n_, v in
+                                     (("I", I), ("D", D), ("SD", SD))})
+log("DONE")

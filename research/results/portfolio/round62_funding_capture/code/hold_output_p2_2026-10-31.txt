@@ -1,0 +1,10 @@
+sample 600, scored 576, errors 24
+P2 HOLD net -5.7 bp, median -12.4, sd 98.4, SR -0.058, t_cl -1.38, win 39%
+per year {np.str_('2025'): np.float64(5.2), np.str_('2026'): np.float64(-15.9)} | entry T+2s -12.6 bp | costs x1.5 -15.7 bp
+f>0 n 22 +24.1 bp; f<0 n 554 -6.9 bp
+worst 5 [-679. -514. -401. -329. -315.]
+   FAIL 1 net > 0 and t_cl >= 2.5
+   FAIL 2 entry T+2s > 0 and costs x1.5 > 0
+   FAIL 3 2025 and 2026 > 0
+   PASS 4 >= 500 events scored
+VERDICT: FAIL

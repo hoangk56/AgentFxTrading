@@ -1,0 +1,15 @@
+kalshi markets loaded 2260 Counter({('HIGHNY', 2024): 900, ('HIGHNY', 2023): 900, ('INXD', 2023): 300, ('INXD', 2024): 160})
+K1 T 6h thr0.80 2023: n  85 mean -14.09% t_cl -3.31 z_net -6.04 p(cal) 1.000 paid 0.931 mid 0.738 | fee x1.5 -14.31% | +1h -17.26% | by series {'INXD': 30, 'HIGHNY': 55} {'INXD': np.float64(2.9), 'HIGHNY': np.float64(-23.36)}
+K1 T 6h thr0.80 2024: n  64 mean -34.65% t_cl -6.24 z_net -12.75 p(cal) 1.000 paid 0.940 mid 0.660 | fee x1.5 -34.79% | +1h -44.09% | by series {'HIGHNY': 50, 'INXD': 14} {'HIGHNY': np.float64(-43.84), 'INXD': np.float64(-1.82)}
+K1 T 6h thr0.90 2023: n  74 mean -17.52% t_cl -3.84 z_net -8.47 p(cal) 1.000 paid 0.958 mid 0.762 | fee x1.5 -17.64% | +1h -14.13% | by series {'INXD': 27, 'HIGHNY': 47} {'INXD': np.float64(-3.28), 'HIGHNY': np.float64(-25.71)}
+K1 T 6h thr0.90 2024: n  59 mean -31.52% t_cl -5.40 z_net -13.48 p(cal) 1.000 paid 0.961 mid 0.689 | fee x1.5 -31.61% | +1h -35.85% | by series {'HIGHNY': 45, 'INXD': 14} {'HIGHNY': np.float64(-40.19), 'INXD': np.float64(-3.63)}
+K1 T24h thr0.80 2023: n 152 mean -9.41% t_cl -3.74 z_net -4.80 p(cal) 1.000 paid 0.907 mid 0.798 | fee x1.5 -9.69% | +1h -10.53% | by series {'HIGHNY': 145, 'INXD': 7} {'HIGHNY': np.float64(-9.55), 'INXD': np.float64(-6.45)}
+K1 T24h thr0.80 2024: n 146 mean -10.77% t_cl -3.90 z_net -5.09 p(cal) 1.000 paid 0.901 mid 0.810 | fee x1.5 -11.08% | +1h -9.20% | by series {'HIGHNY': 141, 'INXD': 5} {'HIGHNY': np.float64(-11.25), 'INXD': np.float64(2.64)}
+K1 T24h thr0.90 2023: n 125 mean -6.19% t_cl -2.35 z_net -3.28 p(cal) 0.995 paid 0.945 mid 0.808 | fee x1.5 -6.37% | +1h -9.25% | by series {'HIGHNY': 120, 'INXD': 5} {'HIGHNY': np.float64(-6.64), 'INXD': np.float64(4.59)}
+K1 T24h thr0.90 2024: n 123 mean -9.97% t_cl -3.25 z_net -5.34 p(cal) 1.000 paid 0.945 mid 0.834 | fee x1.5 -10.15% | +1h -7.25% | by series {'HIGHNY': 118, 'INXD': 5} {'HIGHNY': np.float64(-9.76), 'INXD': np.float64(-15.15)}
+
+--- POST-HOC (not declared; info only): same rule, only brackets with yes_ask - yes_bid <= 4c at entry ---
+K1 T 6h thr0.80 spread<=4c | 2023: n 32 mean +2.83% t +0.91 paid 0.918 mid 0.909 | 2024: n 15 mean -1.58% t -0.35 paid 0.934 mid 0.926
+K1 T 6h thr0.90 spread<=4c | 2023: n 29 mean -2.93% t -0.68 paid 0.955 mid 0.947 | 2024: n 15 mean -3.26% t -0.68 paid 0.962 mid 0.955
+K1 T24h thr0.80 spread<=4c | 2023: n 67 mean -5.08% t -1.26 paid 0.907 mid 0.892 | 2024: n 40 mean -2.31% t -0.42 paid 0.890 mid 0.876
+K1 T24h thr0.90 spread<=4c | 2023: n 50 mean +0.28% t +0.09 paid 0.945 mid 0.931 | 2024: n 21 mean +1.13% t +0.22 paid 0.940 mid 0.924

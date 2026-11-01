@@ -1,0 +1,21 @@
+IS: +0 ex-crash n 224 net 144.3 median 74.3 t 3.47; +5 ex-crash n 224 net 91.9 median 39.3 t 4.72; +15 ex-crash n 224 net 161.3 median 30.8 t 1.78;
+   +5 top-5 days share 0.86, top-5 coins share 0.33 (XLMUSDT, RUNEUSDT, ALPHAUSDT, YFIUSDT, OMGUSDT)
+   k= 0: median deviation  -169.2 bp, median ratio to signal deviation 1.00
+   k= 1: median deviation  -153.1 bp, median ratio to signal deviation 0.93
+   k= 2: median deviation  -145.4 bp, median ratio to signal deviation 0.89
+   k= 5: median deviation  -119.0 bp, median ratio to signal deviation 0.75
+   k=15: median deviation  -120.9 bp, median ratio to signal deviation 0.78
+VAL: +0 ex-crash n 283 net 131.3 median 91.2 t 6.92; +5 ex-crash n 283 net 115.4 median 65.8 t 6.01; +15 ex-crash n 283 net 93.0 median 33.2 t 4.81;
+   +5 top-5 days share 0.34, top-5 coins share 0.65 (LUNAUSDT, TRBUSDT, FTTUSDT, SRMUSDT, UMAUSDT)
+   k= 0: median deviation  -140.0 bp, median ratio to signal deviation 1.00
+   k= 1: median deviation  -137.8 bp, median ratio to signal deviation 0.97
+   k= 2: median deviation  -133.7 bp, median ratio to signal deviation 0.93
+   k= 5: median deviation  -121.1 bp, median ratio to signal deviation 0.85
+   k=15: median deviation  -104.9 bp, median ratio to signal deviation 0.67
+HOLD: +0 ex-crash n 429 net 213.5 median 126.7 t 14.38; +5 ex-crash n 429 net 222.8 median 134.2 t 13.89; +15 ex-crash n 429 net 216.5 median 109.8 t 12.86;
+   +5 top-5 days share 0.15, top-5 coins share 0.42 (DEXEUSDT, ONEUSDT, HOMEUSDT, ONGUSDT, LSKUSDT)
+   k= 0: median deviation  -141.1 bp, median ratio to signal deviation 1.00
+   k= 1: median deviation  -150.7 bp, median ratio to signal deviation 1.01
+   k= 2: median deviation  -150.4 bp, median ratio to signal deviation 1.01
+   k= 5: median deviation  -148.8 bp, median ratio to signal deviation 1.00
+   k=15: median deviation  -132.9 bp, median ratio to signal deviation 0.94

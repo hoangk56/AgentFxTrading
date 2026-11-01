@@ -101,3 +101,23 @@ prereg_code/). Slices 1 and 2 reproduce trade by trade. Output:
   10-26 +7.1.
 - Reading: still too few trades for either rule. F3's HOLD + FWD net is +1.86 (t 1.96); its promotion rule needs 2.5
   with demo trades pooled. E1 stays near zero after cost.
+
+### Slice 4: FWD 2026-09-25..2026-10-28 (run 2026-10-29 09:35 UTC)
+Dukascopy fetched 09:24-09:34 UTC (EURUSD, USDJPY, USDCHF, 2026-08-03..2026-10-28 weekdays). Many HTTP 503s again;
+every FWD weekday is present on both sides for all three symbols; USDJPY lacks seven August days (bid and ask), all in
+the calibration window. Panel T0 2024-01-01, cut 2026-09-25, end 2026-10-29 (exclusive), IC spread reference
+2026-07-01..09-24. Code unchanged (`cmp` against prereg_code/). Slices 1-3 reproduce trade by trade. Output:
+[prereg_code/fwd_output_2026-10-28.txt](prereg_code/fwd_output_2026-10-28.txt),
+[prereg_code/calib_output_2026-10-28.txt](prereg_code/calib_output_2026-10-28.txt) (median |mid difference| 0.04 /
+0.06 / 0.03 bp for EURUSD / USDCHF / USDJPY, as before).
+
+| rule | era | n | mid (t) | net (a) Duka spread (t) | net (b) IC spread (t) | x1.5 (b) | +1 min (b) |
+|---|---|---|---|---|---|---|---|
+| F3 | FWD | 5 | -4.35 (-0.57) | -5.21 (-0.68) | -5.03 (-0.66) | -5.06 | -6.57 |
+| F3 | HOLD + FWD | 122 | +2.35 (2.50) | +1.70 (1.81) | +1.71 (1.82) | +1.69 | +1.07 |
+| E1 | FWD | 24 | -1.14 (-0.45) | -1.99 (-0.78) | -1.81 (-0.71) | -1.85 | -2.63 |
+| E1 | HOLD + FWD | 468 | +1.15 (1.84) | +0.50 (0.80) | +0.51 (0.82) | +0.49 | -0.14 |
+
+- New days: 10-27 and 10-28 were USD-TOP days; F3 (b) -4.1 and -10.7, the same two E1 trades.
+- Reading: F3's HOLD + FWD fell from t 1.96 to 1.82 (promotion needs 2.5 with demo pooled; stop rule not reached at 5
+  trades). E1 stays near zero after cost.

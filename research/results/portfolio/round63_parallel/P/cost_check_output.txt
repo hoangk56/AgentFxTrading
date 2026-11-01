@@ -1,0 +1,20 @@
+
+P1-all-thr0.90-T1d: sampled 400, with a buy-side print in [t, t+2h]: 198
+  [0.90,0.95) n  93  fill-mid: median +1.00c  mean +1.03c  p75 +1.50c   assumed h 1.00c
+  [0.95,0.97) n  62  fill-mid: median +0.80c  mean +0.76c  p75 +1.40c   assumed h 0.50c
+  [0.97,0.99) n  43  fill-mid: median +0.65c  mean +0.78c  p75 +1.42c   assumed h 0.50c
+  same subset, mean net excess: model (mid + h) -1.20%   first print -1.30%   vwap 2h -1.29%
+  entries without a print (no evidence of fill): mean model return -0.37%  vs with print -1.20%
+
+P2a-L1h: sampled 400, with a buy-side print in [t, t+2h]: 225
+  [0.90,0.95) n 105  fill-mid: median +1.00c  mean +0.42c  p75 +2.00c   assumed h 1.00c
+  [0.95,0.97) n  43  fill-mid: median +0.65c  mean +0.78c  p75 +1.15c   assumed h 0.50c
+  [0.97,0.99) n  77  fill-mid: median +0.55c  mean +0.71c  p75 +1.00c   assumed h 0.50c
+  same subset, mean net excess: model (mid + h) +1.63%   first print +1.36%   vwap 2h +1.17%
+  entries without a print (no evidence of fill): mean model return +0.14%  vs with print +1.63%
+
+P2b-first95: sampled 400, with a buy-side print in [t, t+2h]: 202
+  [0.95,0.97) n 136  fill-mid: median +1.00c  mean +1.18c  p75 +2.00c   assumed h 0.50c
+  [0.97,0.99) n  66  fill-mid: median +0.85c  mean +0.93c  p75 +1.49c   assumed h 0.50c
+  same subset, mean net excess: model (mid + h) -2.24%   first print -2.69%   vwap 2h -2.80%
+  entries without a print (no evidence of fill): mean model return +0.50%  vs with print -2.24%

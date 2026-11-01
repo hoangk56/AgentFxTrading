@@ -35,13 +35,12 @@ Dữ liệu (research/data/, git-ignore):
   Vòng 24 thêm data/duka/m1c/ (npz gọn): AUDUSD, NZDUSD (Chủ nhật-thứ Sáu), XAUUSD, XAGUSD (thứ Hai-thứ Sáu),
   GBPUSD, USDCAD (chỉ thứ Tư); kim loại 2004-09 chỉ có bid. Bạc Dukascopy trước 2008 thưa, không tin được.
 
-Ràng buộc cố định (chỉ những điều này):
-- Lot không phụ thuộc vốn; thuật toán được tăng giảm lot quanh một lot/rủi ro mặc định.
-- Mỗi lệnh giữ tối đa 5 ngày.
-- Một bot giữ tối đa 3 lệnh cùng lúc.
-Mọi thứ khác tôi không nói đều được tự đổi: mã, khung thời gian, cách vào/thoát lệnh, engine, số mã mỗi bot...
+Ràng buộc: từ 2026-10-31 tôi bỏ hết ("lần này không có ràng buộc gì cả"): không còn giới hạn giữ 5 ngày, 3 lệnh
+mỗi bot, lot không theo vốn, và không bắt buộc IC / cTrader (sàn khác như Binance được). Ngưỡng thống kê LIVE / DEMO
+bên dưới giữ nguyên. Luật nào chiếm vốn (chân spot, lệnh trả đủ tiền) phải chấm theo lợi suất VƯỢT lãi suất cash
+(Fed funds, research/data/rates/DFF.csv) trên vốn đã dùng (bài học vòng 58).
 
-Đọc trước để không test lại (36 vòng đã chạy, chỉ C3 đạt bậc live; vòng mới nhất ở đầu JOURNAL; tạm dừng sau vòng 29
+Đọc trước để không test lại (63 vòng đã chạy, chỉ C3 đạt bậc live; vòng mới nhất ở đầu JOURNAL; tạm dừng sau vòng 29
 theo yêu cầu của tôi, rồi ngày 2026-10-18 tôi duyệt quyết định 1, 2, 4: luật vàng chạy demo, vòng 30 trên 6 mã FX mới,
 chạy lại log forward; ngày 2026-10-27 tôi cho research tiếp và cho tìm các nguồn khác (vòng 31 trở đi: dữ liệu công
 khai không phải giá); hiện trạng ở cuối báo cáo vòng mới nhất):
@@ -128,6 +127,53 @@ khai không phải giá); hiện trạng ở cuối báo cáo vòng mới nhất
   2006-24 qua JSON thống kê ngày; vị thế tổ chức TAIFEX 2018-24 qua FinMind, dòng tiền TWSE 2004-24)
 - research/results/portfolio/round36_asia_liquidity_household_cash_2026-10-28.md (giao dịch currency board HKMA, HIBOR /
   SHIBOR, RRR; tiền Kho bạc Mỹ trả hộ gia đình từ DTS; mục "State after round 36 (pause)")
+- research/results/portfolio/round37_forced_flows_2026-10-29.md và thư mục round37_forced_flows/ (ký quỹ / biên độ SHFE
+  và SGE từ file tham số ngày 2013-24, funding crypto theo mức trả ở mốc 00/08/16 UTC, lệnh stop qua đỉnh / đáy kỷ lục
+  và cực trị tuần / tháng / quý / năm, dòng tiền Stock Connect; mục "Pitfalls" về nguồn)
+- research/results/portfolio/round38_short_volume_storms_2026-10-29.md và thư mục của nó (khối lượng bán khống FINRA
+  Reg SHO hằng ngày 2009-24 và số chứng chỉ quỹ ETF SSGA / iShares; bão Đại Tây Dương qua dự báo chính thức ATCF; mục
+  "Pitfalls" về file FINRA, file issuer có dòng 2025-26)
+- research/results/portfolio/round39_rolls_positioning_2026-10-29.md và thư mục của nó (lịch roll GSCI / BCOM / USO cho
+  dầu / khí, cách IC dựng giá XTI / XBR; khảo sát nguồn sentiment broker miễn phí, COT small-trader, dòng tiền JPX theo
+  loại nhà đầu tư)
+- research/results/portfolio/round40_news_leverage_2026-10-30.md và thư mục của nó (GDELT 1.0 daily events 2013-24 và
+  giờ công bố; vay ký quỹ / bán khống SSE + SZSE 2010-24 qua Eastmoney; bản đăng ký HK50 bật tăng đã trượt holdout)
+- research/results/portfolio/round41_supply_cycles_2026-10-30.md và thư mục của nó (lịch và kết quả đấu giá trái phiếu
+  Mỹ / JGB / Bund 2004-24 kèm cách đọc file MoF / Finanzagentur; chỉ mục SEC EDGAR 2015-24 cho phát hành cổ phiếu)
+- research/results/portfolio/round42_megacap_boj_ops_2026-10-30.md và thư mục của nó (giờ công bố lợi nhuận của top-40 mã
+  Mỹ từ EDGAR submissions JSON + trọng số từ 13F Vanguard; file nghiệp vụ mua JGB của BoJ 2013-24)
+- research/results/portfolio/round43_mood_ratings_2026-10-30.md và thư mục của nó (thời tiết NOAA ISD qua bucket AWS công
+  khai cho 11 thành phố có sàn, kết quả bóng đá quốc tế, xếp hạng tín nhiệm quốc gia; mục "Pitfalls" về robots.txt)
+- research/results/portfolio/round44_insiders_tff_2026-10-30.md và thư mục của nó (bộ dữ liệu giao dịch nội bộ SEC 2014-24;
+  CFTC TFF qua mirror Hugging Face; cftc.gov chặn ClaudeBot trong robots.txt)
+- research/results/portfolio/round45_combined_jpx_short_2026-10-30.md và thư mục của nó (mô hình ridge gộp các đặc trưng
+  không phải giá của vòng 37-44; tỉ lệ bán khống hằng ngày TSE qua stock-marketdata.com, báo cáo vị thế bán khống lớn qua karauri.net)
+- research/results/portfolio/round46_rebalancing_bond_leg_2026-10-30.md và thư mục của nó (lợi suất ngày Treasury / MoF JGB /
+  Bundesbank 2004-24 và cách đọc file; tín hiệu tái cân bằng 60/40 của Harvey-Mazzoleni-Melone 2025 dựng đủ hai chân)
+- research/results/portfolio/round47_buyback_capacity_2026-10-30.md và thư mục của nó (XBRL company-concept mua lại cổ phiếu
+  và giờ 8-K item 2.02 của top-200 mã Mỹ 2014-24; ghép tên 13F Vanguard với CIK)
+- research/results/portfolio/round48_btc_network_2026-10-30.md và thư mục của nó (chuỗi block BTC của Coin Metrics community,
+  mốc điều chỉnh độ khó của mempool.space, mempool 15 phút của blockchain.com; giá BTC 2012-17 làm PRE)
+- research/results/portfolio/round49_cb_speech_tone_2026-10-30.md và thư mục của nó (JSON bài phát biểu Fed có giờ đăng,
+  CSV bài phát biểu ECB, lịch FOMC 2009-24; từ điển diều hâu / bồ câu)
+- research/results/portfolio/round50_fund_flows_2026-10-30.md và thư mục của nó (Fed H.6 quỹ thị trường tiền tệ và ngày công
+  bố; ici.org chặn bot)
+- research/results/portfolio/round51_gold_auction_volume_2026-10-30.md (khối lượng / số vòng đấu giá LBMA cần tài khoản IBA)
+- research/results/portfolio/round52_lit_census_2026-10-30.md và CENSUS_Z.md (rà 48.633 tiêu đề Crossref + 797 arXiv 2018-24
+  đối chiếu với 51 vòng: chỉ còn USDT mint -> BTC vài phút là mở)
+- research/results/portfolio/round53_usdt_mints_2026-10-30.md và thư mục của nó (mint USDT Omni + Tron 2017-24; hướng mở cuối
+  của bản rà vòng 52 cũng trượt)
+- research/results/portfolio/round54_single_stocks_2026-10-30.md và thư mục của nó (tôi duyệt hướng CFD cổ phiếu MT5 ngày
+  2026-10-30: dữ liệu ngày Dukascopy 263 mã Mỹ 2016-24, mô hình phí IC MT5, stocklib; DATA_D.md cách tải và bẫy)
+- research/results/portfolio/round55_insider_intraday_2026-10-30.md và thư mục của nó (M1 Dukascopy cổ phiếu ngày có sự kiện,
+  spread 09:30-10:30 theo phút; commission $0.02 / cổ phiếu của IC ~12 bp khứ hồi là chi phí trói buộc)
+- research/results/portfolio/round56_stock_cross_section_2026-10-30.md và thư mục của nó (cross-section ngày của ~200 mã lớn,
+  bẫy ngày bắt đầu của book giữ nhiều ngày)
+- research/results/portfolio/round57_earnings_gaps_2026-10-30.md và thư mục của nó (gap lớn sau công bố lợi nhuận; datafeed
+  Dukascopy bóp tốc độ sau khi tải nhiều trong ngày, quy tắc cắt mẫu theo ngày ngẫu nhiên)
+- research/results/portfolio/round58_unconstrained_carry_2026-10-31.md và thư mục của nó (bỏ ràng buộc: carry funding
+  long spot / short perp USDT-M Binance; dữ liệu research/data/binance/ = 891 perp kể cả đã huỷ niêm yết, funding + spot
+  384 mã, code/carry.py; A3 qua ngưỡng đã đăng ký nhưng HOLD chỉ bằng lãi suất cash)
   và báo cáo các vòng sau nếu có (xem JOURNAL)
 
 Những họ đã cạn, đừng quét lại kiểu cũ (chỉ làm lại nếu cách dựng khác hẳn và nói rõ khác ở đâu):
@@ -229,7 +275,100 @@ Những họ đã cạn, đừng quét lại kiểu cũ (chỉ làm lại nếu 
   lịch hay thực trả đều phẳng);
 - đăng ký chung các luật chỉ mạnh ở VAL (2026-10-28): 4 luật chọn theo VAL t của vòng 32-36 (fade đáo hạn Deribit,
   USTEC liều ETF đòn bẩy, HN "recession", U3 tiền hộ gia đình) đều âm ở holdout (t -1.12 đến -0.25): luật trượt IS mà
-  chỉ đẹp ở VAL không giữ được; đừng gom luật kiểu này để mở holdout nữa.
+  chỉ đẹp ở VAL không giữ được; đừng gom luật kiểu này để mở holdout nữa;
+- vòng 37 (2026-10-29), dòng lệnh bị ép có ngày công bố: ký quỹ / biên độ SHFE và SGE (tăng trước lễ, tăng tuỳ ý, giảm
+  sau lễ, OI khách hàng SHFE; ~4.7 lần/năm, không có tác động giá ở kỷ nào; CME không truy cập được); funding vĩnh cửu
+  theo mức dự báo quanh mốc 00/08/16 UTC (BTC giảm vào mốc cỡ phần funding, có ở mid nhưng phí IC 2020-21 7-8 bp, từ
+  2022 hết funding lớn); stop qua kỷ lục / cực trị nổi bật (ATH, 52 tuần, tuần / tháng / quý / năm trước, biên ngày ra
+  tin, MA200) trên chỉ số, kim loại, BTC, FX: đi tiếp ở mid (tuần trước t 4.02) nhưng +1-7 bp so với phí 1-4 bp, power
+  <= 2.3 kể cả không phí, kỷ lục vàng không thêm gì cho luật $50; dòng tiền Stock Connect (chỉ cùng chiều trong cùng khung,
+  chiều bắc ngừng công bố từ 2024-08; ngày Connect đóng đi ngược giả thuyết);
+- vòng 38 (2026-10-29): khối lượng bán khống FINRA hằng ngày của ETF chỉ số / quốc gia / hàng hoá và top-10 thành phần
+  (mức, z, thay đổi, ETF trừ rổ, tỉ lệ short-exempt / Rule 201; 408 ô, không họ nào hơn null: đó là market maker hedge
+  ngay lập tức); dòng tạo / huỷ chứng chỉ ETF (SPY, DIA, IWM, IVV, EWJ) theo chiều đảo chiều (dòng tiền chạy theo giá);
+  bão Đại Tây Dương (mối đe doạ đầu tiên theo dự báo chính thức, hết đe doạ, điều chỉnh dự báo) và gián đoạn cung có
+  ngày (Abqaiq, Colonial, Freeport) cho dầu / khí: 2-3 lần/năm, chiều đổi giữa các kỷ, sự cố vào giá ở phút đầu;
+- vòng 39 (2026-10-29): lịch roll của chỉ số / ETF hàng hoá (GSCI, BCOM, USO / UNG) trên CFD năng lượng (áp lực chỉ nằm
+  ở chênh lệch C2-C1 và đang co lại; XTI / XBR của IC nội suy giữa 2 hợp đồng, không có ngày roll; 12 cửa sổ/năm không
+  tới DEMO); vị thế small-trader COT (mức, thay đổi, ngược large spec, cross-section FX) và dòng tiền JPX theo loại nhà
+  đầu tư vào JP225 (theo tuần nên không thể LIVE, không ô nào giữ từ IS sang VAL); không có kho sentiment broker miễn
+  phí nào tải được mà không cần tài khoản (Dukascopy SWFX, FXCM SSI, Myfxbook, IG, FXSSI, AAII, NAAIM);
+- vòng 40 (2026-10-29/30): tin tức mã hoá máy GDELT (tone, Goldstein, độ chú ý, xung đột vùng sản xuất dầu, cặp quốc gia,
+  biểu tình) từ sáng hôm sau: đã vào giá trước khi file công bố, tone tiếp diễn sai chiều; vay ký quỹ / bán khống Trung
+  Quốc (cắt nợ, tăng đòn bẩy, bán khống tăng vọt) cho HK50, CNH, AUD, vàng, JP225: không tiếp diễn, chỉ số bật tăng;
+  luật HK50 bật tăng (hậu kiểm, tôi duyệt đăng ký 2026-10-30) trượt holdout (net +19.0 bp, t 0.74), bỏ hẳn.
+- vòng 41 (2026-10-30): nguồn cung trái phiếu chính phủ có lịch (Mỹ mọi kỳ hạn, JGB, Bund; nhượng giá trước đấu giá theo
+  DV01, đảo chiều sau, tuần đấu giá dày, bất ngờ kết quả, phiên sáng / chiều ngày đấu giá) cho FX, vàng, chỉ số ở 15 phút-5
+  ngày: đảo chiều sau đấu giá chỉ có ở mid 2004-15, kết quả vào giá trong 15 phút; phát hành cổ phiếu Mỹ gộp từ EDGAR
+  (IPO, shelf, secondary, tender offer, lock-up, EFFECT, ngày thanh toán, theo tuần): chỉ là chỉ báo thị trường nóng.
+- vòng 42 (2026-10-30): công bố lợi nhuận của các mã nặng nhất chỉ số Mỹ ở cấp chỉ số (đi tiếp / đảo chiều sau giờ, mở-
+  đóng cửa, phần bù ngày công bố, drift trước công bố, vài phút sau acceptance): không có, đảo chiều tối là tính chất của
+  phiên tối 2016-21; nghiệp vụ mua JGB của BoJ (offer-to-cover, cut-off, đổi lịch / khối lượng, bảo vệ YCC) cho USDJPY,
+  EURJPY, JP225: thị trường không giao dịch theo kết quả nghiệp vụ.
+- vòng 43 (2026-10-30): cú sốc tâm lý (nắng / mây buổi sáng, nhiệt độ, gió ở thành phố có sàn, khói mù Trung Quốc, đội
+  tuyển quốc gia thua bóng đá) cho chỉ số và tiền tệ địa phương: đã mất từ sau các mẫu 1982-2004, gió lặng chỉ +1-2 bp ở
+  mid, dưới phí; hạ / nâng hạng tín nhiệm quốc gia và lịch xét hạng EU: vài chục lần/năm, chiều đổi giữa các kỷ.
+- vòng 44 (2026-10-30): giao dịch nội bộ gộp (Form 4: mua / bán ròng, sau khi giảm, theo cỡ, CEO / CFO, mua cụm) cho chỉ
+  số Mỹ ở 1-5 ngày (hiệu ứng ở mức tháng, đổi dấu ở VAL); vị thế CFTC TFF (quỹ đòn bẩy, quản lý tài sản, dealer) ở 1-3 ngày.
+- vòng 45 (2026-10-30): gộp toàn bộ đặc trưng không phải giá của vòng 37-44 vào một mô hình khai báo trước (ridge, vote theo
+  chiều khai báo): tương quan dự báo ngoài mẫu ~0, bằng null xáo ngày, nên các hiệu ứng lẻ là nhiễu; tỉ lệ bán khống hằng
+  ngày TSE (mức, phần dư, thay đổi, luật >= 45 %, qua đêm) và thay đổi báo cáo vị thế bán khống >= 0.5 % cho JP225 ở 1-3 ngày.
+- vòng 46 (2026-10-30): áp lực tái cân bằng quỹ 60/40 (ngưỡng, cuối tháng, hồi quy của bài) dựng cả chân trái phiếu Mỹ /
+  JGB / Bund, và cắt đòn bẩy risk-parity 2 tài sản, ở 1-3 ngày: độ dốc của bài có thật nhưng chỉ ở ngày hỗn loạn, luật theo
+  chiều không kiếm được gì; chân trái phiếu không thêm gì.
+- vòng 47 (2026-10-30): cửa sổ mua lại cổ phiếu đo theo từng công ty (đô la XBRL x ngày 8-K 2.02 thật) ở cấp chỉ số
+  (mức, mở lại cửa sổ, tách trong mùa báo cáo) ở 1-5 ngày: 94 % là tuần trong quý (= lịch của vòng 23 P4); mùa báo cáo
+  dương cả ở US2000 nên là hiệu ứng mùa của cả thị trường, không phải lực mua lại.
+- vòng 48 (2026-10-30): dữ liệu mạng Bitcoin (hashrate, hash ribbons, thợ đào đầu hàng, điều chỉnh độ khó, hashprice, tỉ
+  lệ phí, nghẽn mempool) cho BTC / ETH ở 1-5 ngày: luật sự kiện quá hiếm, điều chỉnh độ khó đổi chiều giữa các kỷ.
+- vòng 49 (2026-10-30): giọng điệu văn bản bài phát biểu Fed / ECB (từ điển, so với giọng thường của người nói, lọc
+  blackout / ngày ra tin, chênh Fed - ECB) từ +5 phút đến 5 ngày: thị trường không giao dịch theo giọng điệu; drift Fed ở
+  VAL chỉ là năm 2022, đừng đăng ký.
+- vòng 50 (2026-10-30): tài sản quỹ thị trường tiền tệ (Fed H.6) cho chỉ số Mỹ, FX, vàng ở 1-3 ngày; dòng tiền quỹ ICI
+  chưa test (ici.org chặn bot).
+- vòng 53 (2026-10-30): từng lần mint / burn USDT (Omni, Tron) cho BTC / ETH ở 5-60 phút: mint đi sau giá tăng, hiệu ứng
+  của Saggu 2022 không còn sau 2018.
+- vòng 54 (2026-10-30, CFD cổ phiếu): bán khống sau blackout theo Hartzmark-Solomon (sai chiều ở mã lớn), drift sau công bố
+  lợi nhuận mã lớn 1-5 ngày (dưới phí), cửa sổ mua lại theo từng công ty, lệnh mua nội bộ vào lúc mở / đóng cửa giữ 1-5 ngày
+  (drift phiên đầu sau ngày nộp có thật ở mid cả IS lẫn VAL nhưng phí khớp lúc mở cửa ăn hết).
+- vòng 55 (2026-10-30, CFD cổ phiếu): lệnh mua nội bộ vào trong phiên D+1 (09:35 / 09:45 / 10:00) giữ đến đóng cửa hoặc
+  D+2: sau 09:45 chỉ còn +6 bp drift ở VAL, phí ~24 bp; con số CEO / CFO IS của vòng 54 là một lệnh giá penny. Họ lệnh mua
+  nội bộ đóng hẳn ở mọi giờ vào, giữ 0-5 ngày.
+- vòng 56 (2026-10-30, CFD cổ phiếu): cross-section ngắn hạn của ~200 mã lớn Mỹ: đảo chiều mã không có tin (Chan / DLS /
+  Lehmann, phần dư beta SPY hoặc ETF ngành, cửa sổ 1 / 5 ngày, giữ 1-5 ngày, k 3-9, điều kiện vol cao theo Nagel) và đi theo
+  mã có tin 8-K 2.02: đảo chiều có ở mid (+3 đến +22 bp) nhưng nằm trong benchmark ngẫu nhiên, phụ thuộc ngày bắt đầu, phí
+  khớp đóng cửa ~20-24 bp; không ô nào có net VAL > 0.
+- vòng 57 (2026-10-30, CFD cổ phiếu): gap lớn sau công bố lợi nhuận (>= 2 %) vào lệnh 09:45 / 10:00, đi tiếp hoặc fade, giữ
+  đến đóng cửa hoặc 1-4 ngày: chân 09:45 -> đóng cửa bằng của mã ngẫu nhiên (không riêng gì lợi nhuận), fade âm mọi năm,
+  gap > 8 % quá ít cho power HOLD. Hướng CFD cổ phiếu lớn của IC (vòng 54-57) cạn với dữ liệu miễn phí và giới hạn cố định.
+- vòng 58 (2026-10-31, không ràng buộc): carry funding trung tính delta trên Binance (long spot, short perp USDT-M, giữ
+  nhiều tuần), BTC + ETH (A3) và top-30 mã (A2): IS +27-29 %/năm, VAL +6-9 % (t_nw ~7), A3 qua holdout đã đăng ký (+1.91
+  %/năm, t 5.62) nhưng vượt lãi suất cash trên vốn đã dùng chỉ +0.01 %/năm (t 0.02); A2 trượt. Từ 2025 carry spot-perp =
+  lãi suất cash (thành phần lãi 0.01 %/8h của funding); đừng làm lại carry có chân spot. Còn mở: chênh funding perp-perp
+  giữa các sàn (thành phần lãi triệt tiêu), vòng 59.
+- vòng 59 (2026-10-31): chênh funding perp-perp Binance vs Bybit (dữ liệu research/data/bybit/, 252 mã): IS +10.5 %/năm
+  (t 4.65), VAL -0.14 %; gross VAL +4.1 % bằng phí taker. Hyperliquid (từ 2023-05) chưa chạy vì giới hạn API, tối đa RELAXED.
+- vòng 60 (2026-10-31): short perp mới niêm yết Binance, hedge BTC, giữ 30 ngày (374 lần niêm yết 2020-24): trung vị
+  +18-21 %/lần nhưng trung bình t 1.11 / 1.30 vì squeeze tới -345 %; stop chọn sau khi nhìn chỉ cứu VAL. Đừng làm lại.
+- vòng 61 (2026-10-31): nhân tố tuần trên top-40 perp Binance: momentum 28 ngày (IS t 2.37, VAL 1.28, HOLD 2.47), carry
+  funding (3.41 / 1.29 / -0.72), X3 = 50/50 (4.32 / 1.51 / HOLD +1.14 %/tuần t 1.16): X3 là ứng viên DEMO đã qua holdout
+  (round61_crypto_factors/PREREG_X3_crypto_mom_carry.md, có luật dừng / lên live). Book theo chiều nào cũng cần Sharpe
+  năm >= ~2.2 mới đủ power LIVE trên holdout 21 tháng; nhân tố crypto chỉ ~1.
+- vòng 59 B2 (2026-10-31): chênh funding Binance vs Hyperliquid (30 mã, research/data/hyperliquid/): kỷ khám phá
+  2023-06..2024-12 +16.3 %/năm t 6.81, holdout đã đăng ký +0.74 % t 1.27: trượt; chênh funding giữa sàn bị arbitrage hết.
+- vòng 62 (2026-10-31): mốc funding cực lớn của altcoin Binance: nhận funding qua mốc thua (giờ sau mốc ngược phía nhận);
+  phía trả trong giờ sau mốc +85 / +50 bp ở nến 1h nhưng toàn bộ nằm trong vài giây đầu (vào T+1 phút: VAL âm). P2 (vào
+  T+1 s, thoát T+60 s, aggTrades) VAL mẫu mới +31 bp t 4.87, IS +3 bp t 0.15. Tôi duyệt test kỷ mới cho P2
+  (round62_funding_capture/PREREG_P2_post_stamp_1s.md): holdout -5.7 bp t -1.38, trượt, bỏ hẳn. Dữ liệu: research/data/binance/perp_1h, perp_1m_stamps,
+  aggtrades_stamps (REST aggTrades chỉ 2 ngày gần nhất, dùng file ngày data.binance.vision).
+- vòng 63 (2026-10-31, điều phối nhiều subagent song song theo yêu cầu của tôi, round63_parallel/BRIEF.md): S cổ phiếu Mỹ qua
+  đêm / trong phiên khớp đấu giá (không có; stooq cấm bot), V bán biến động Deribit có hedge (không có), C cross-section
+  trong ngày perp (không có), D thông báo Binance (robots cấm /bapi/), M hiệu ứng cũ theo phí CME (không có), B hồi quy basis
+  perp-spot: phía perp rẻ hơn spot >100 bp (long perp / short spot vay margin) là ứng viên DEMO đã qua holdout (+213.5 bp, t 14.4);
+  vào trễ 5 phút trên nến 1m holdout vẫn +222.8 bp t 13.9 (BM); lên live chỉ còn phụ thuộc vay được coin để short spot: cần demo trên tài
+  khoản Binance margin (tôi quyết). Không có gì ở R (đấu giá trái phiếu), U (mở khoá token), O (metrics Binance), P (Polymarket), X (roll VIX),
+  W (Kalshi thời tiết), A (A-share chạm trần), BX (hedge B bằng perp Bybit: spot mới là bên dịch chuyển), BY (B trên Bybit: nến 1h Bybit mở = đóng trước).
+  Nguồn cần tôi duyệt trước khi dùng lại: defillama-datasets.llama.fi (U), OHLCVault (A). Ý tưởng còn lại: round63_parallel/I/IDEAS_I.md.
 
 Kết luận chung của các vòng 3-9: các dòng lệnh có thật ngoài gotobi chỉ 0.02-3 bp, cỡ spread + commission của IC;
 premia nhiều tuần thua phí qua đêm (financing markup) của IC; thông tin giữa các mã được định giá trong phút đầu;
@@ -302,7 +441,8 @@ NISA) và A1 (BTCUSD 15-16 NY theo dòng tiền ETF hôm trước), hai luật t
 (round24_relaxed/PREREG_R24_forward_B3_A1.md; chạy lại fwd_b3a1.py.txt khi có capture Farside mới, mốc B3 n 30 /
 A1 n 250, đạt khi FWD t >= 2.0); lát đầu B3 n 2 +10.9 bp, A1 n 12 -7.3 bp. Lát 2 của F3 / E1 (đến 16/10, vòng 25): F3
 vẫn 2 lệnh, E1 16 lệnh net -2.27 bp. Lát 3 (đến 26/10, vòng 31): F3 3 lệnh net -3.47 bp, HOLD + FWD +1.86 (t 1.96);
-E1 22 lệnh net -1.31. Chạy fwd_r24.py cần PYTHONPATH=. (clib gọi research.swing); Dukascopy hay rơi ngày EURUSD vì
+E1 22 lệnh net -1.31. Lát 4 (đến 28/10, vòng 37): F3 5 lệnh net -5.03, HOLD + FWD +1.71 (t 1.82); E1 HOLD + FWD +0.51
+(t 0.82). Chạy fwd_r24.py cần PYTHONPATH=. (clib gọi research.swing); Dukascopy hay rơi ngày EURUSD vì
 lỗi kết nối: kiểm số ngày từng mã cả bid lẫn ask rồi tải lại vào thư mục mới. Thêm từ vòng 31-33 (giá trị = khả năng ra
 ứng viên live, chi tiết trong báo cáo từng vòng): order / position book OANDA cần tài khoản (DEMO ~3-5 %, LIVE ~1 %),
 vị thế retail ròng OANDA Japan / Gaitame / FFAJ (~1-2 %), dòng tiền crypto point-in-time và OI / thanh lý gộp sàn trả phí
@@ -313,7 +453,55 @@ mạng khác, quy mô OMO của PBoC (Wind / CEIC hoặc cho phép dùng pbc.gov
 yêu cầu của tôi (2026-10-28). Bản đăng ký chung (joint_prereg_2026-10/PREREG_JOINT.md, tôi duyệt đổi ngưỡng, bỏ L3 /
 V1, U3 trên BTC) đã mở holdout một lần ngày 2026-10-28: fade đáo hạn Deribit, USTEC liều ETF đòn bẩy cao, HN "recession"
 -> mua US500, U3 tiền hộ gia đình -> BTC đều trượt và đều âm ở holdout; bỏ hẳn, không log forward, không đăng ký lại
-(premium Coinbase, L3, V1 không mở nhưng cũng không còn là hướng đi). Thêm từ vòng 25 (STREAM_A.md xếp hạng theo khả năng ra ứng viên live): đã làm ở vòng 30 phần kéo
+(premium Coinbase, L3, V1 không mở nhưng cũng không còn là hướng đi). Ngày 2026-10-29 tôi yêu cầu research tiếp đến khi
+có bot live; vòng 37 không có ứng viên. Thêm từ vòng 37: lịch sử ký quỹ từng sản phẩm CME (DataMine / FOIA; LIVE ~1 %,
+DEMO ~3 %), dòng tiền Stock Connect trong ngày trả phí (~1 % / 3 %), funding BitMEX 2016-19 trả phí (< 1 %).
+Vòng 38 không có ứng viên. Thêm từ vòng 38: EIA API key cho sự cố nhà máy hạt nhân -> khí (DEMO ~2 %), danh sách Rule
+201 / threshold của nasdaqtrader (tài khoản hoặc feed trả phí; DEMO ~2 %), shares outstanding hằng ngày trả phí của QQQ
+/ USO / UNG, PDF shut-in BSEE (< 1 % mỗi cái).
+Vòng 39 không có ứng viên. Thêm từ vòng 39: tài khoản demo JForex của Dukascopy để lấy lịch sử SWFX sentiment 30 phút
+(DEMO ~3 %, LIVE ~1 %), SSI trả phí của FXCM (~3 % / 1 %), sàn có CFD / futures năng lượng theo từng hợp đồng để giao
+dịch chênh lệch C2-C1 qua kỳ roll (DEMO ~1-2 %).
+Vòng 40 không có ứng viên; ngày 2026-10-30 tôi duyệt đăng ký luật HK50 bật tăng sau ngày cắt nợ ký quỹ, đã mở holdout
+một lần và trượt. Thêm từ vòng 40: lịch sử GDELT 2.0 15 phút (BigQuery cần tài khoản Google; < 1 %), sentiment tin tức
+trả phí RavenPack / MarketPsych (~2 %), phân bố tỉ lệ ký quỹ và khối lượng thanh lý cưỡng bức Wind / iFinD (~2 %).
+Vòng 41 không có ứng viên. Thêm từ vòng 41: when-issued yields trả phí, dữ liệu phát hành Dealogic / SDC, crawl từng
+hồ sơ EDGAR (< 1 % / ~1 % mỗi cái); sàn không có commission FX 0.6 bp lại thêm một hiệu ứng (đảo chiều sau đấu giá, ~2 %).
+Vòng 42 không có ứng viên. Thêm từ vòng 42: CFD cổ phiếu IC (MT5) để giao dịch chính mã nặng sau công bố (LIVE ~3-5 %,
+DEMO ~25 %: vẫn là quyết định giá trị nhất), futures chỉ số sau giờ rẻ hơn (~3 %), tick JGB futures / OIS yên trả phí (~1 %).
+Vòng 43 không có ứng viên. Thêm từ vòng 43: PM2.5 theo giờ trả phí / cần đăng ký, lịch sử xếp hạng XBRL 17g-7(b) của các
+hãng, CFD chỉ số / trái phiếu EM (~1-2 % DEMO). Không dùng lại countryeconomy.com (robots.txt cấm ClaudeBot đích danh).
+Vòng 44 không có ứng viên. Thêm từ vòng 44: CFD cổ phiếu (MT5) theo lệnh mua "cơ hội" của người nội bộ (LIVE ~2-3 %, DEMO
+~10 %), họ hàng hoá "fade thay đổi tuần của managed money" khai báo mới (DEMO ~2 %). cftc.gov chặn ClaudeBot trong robots.txt:
+không tải từ đó nữa (vòng 39 D đã tải trước khi biết), dùng mirror Hugging Face nếu cần.
+Vòng 45 không có ứng viên. Thêm từ vòng 45: J-Quants (gói trả phí) / QUICK cho tách bán khống có / không giới hạn giá 2008-24
+(DEMO ~1-2 %). Mô hình gộp cho thấy không sàn rẻ hơn nào cứu được các nguồn miễn phí của vòng 37-44 (power HOLD < 1 kể cả ở mid).
+Vòng 46 không có ứng viên. Thêm từ vòng 46: sàn có futures / CFD trái phiếu (LIVE < 1 %), lịch sử ES1 / TY1 1997-2015 trả phí
+(DEMO ~2 %). data-api.ecb.europa.eu chặn ClaudeBot trong robots.txt: không dùng.
+Vòng 47 không có ứng viên. Thêm từ vòng 47: CFD cổ phiếu (MT5) cho các mã mua lại lớn trong cửa sổ mở vs blackout (LIVE ~2-3 %,
+DEMO ~10 %); dòng lệnh mua lại trả phí của sell-side (< 1 % / ~2 %).
+Vòng 48 không có ứng viên. Thêm từ vòng 48: dòng coin của thợ đào point-in-time trả phí (CryptoQuant / Glassnode; < 1 % / ~1 %).
+Vòng 49 không có ứng viên. Thêm từ vòng 49: giờ tin wire trả phí cho bài phát biểu, futures trái phiếu trong ngày, điểm giọng
+điệu LLM / FinBERT thiết kế chỉ trên 2010-21 (mỗi cái LIVE < 1 %, DEMO ~1-2 %).
+Vòng 50 không có ứng viên. Thêm từ vòng 50: tôi tải tay file dòng tiền tuần của ICI bằng trình duyệt (LIVE < 1 %, DEMO ~1-2 %).
+www.ici.org nằm sau bot-wall Akamai (403 cả robots.txt): không tải, không thử lại bằng UA trình duyệt.
+Vòng 51 không test được. Thêm từ vòng 51: đăng ký tài khoản IBA (ice.com report 179) để có giá từng vòng và khối lượng từng
+phiên đấu giá vàng LBMA từ ~2015 (LIVE < 5 %, DEMO ~5 %, chỉ tốn một lần đăng ký). prices.lbma.org.uk sau Cloudflare 403.
+Vòng 52 (rà tài liệu 2018-24): không còn hướng miễn phí nào có khả năng ra live >= 2 %. Thêm từ vòng 52: token RPC archive
+Ethereum để lấy giờ mint USDT / USDC (LIVE ~2.5 %, DEMO ~10 %). export.arxiv.org cấm mọi bot trong robots.txt; apilist.tronscanapi.com
+cấm ClaudeBot.
+Vòng 53 không có ứng viên; token Ethereum giảm giá trị còn LIVE < 0.5 %, DEMO ~1-2 %. Sau bản rà vòng 52 và vòng 53, không còn
+hướng miễn phí nào không cần tôi quyết có khả năng ra live >= 1 %: vòng tiếp theo nên bắt đầu từ một quyết định trong mục này
+(CFD cổ phiếu MT5 vẫn giá trị nhất).
+Ngày 2026-10-30 tôi duyệt hướng CFD cổ phiếu IC MT5 (research, chưa mở tài khoản / bot). Vòng 54 không có ứng viên. Thêm từ
+vòng 54: đăng nhập demo IC MT5 để đo spread thật 09:30-09:45 của CFD cổ phiếu Mỹ (quyết định mọi luật vào lệnh lúc mở cửa),
+sàn cổ phiếu không thu commission theo cổ phiếu (DEMO ~3 %), cổ phiếu nhỏ (IC / Dukascopy không có; LIVE ~1 %).
+Vòng 55 không có ứng viên; đăng nhập demo IC MT5 để đo spread mở cửa giảm giá trị (commission ~12 bp đã lớn hơn drift còn lại;
+DEMO < 2 %). Luật cổ phiếu ở IC cần > ~20 bp mỗi lệnh khi khớp lúc đóng cửa hoặc giữa phiên.
+Vòng 56 không có ứng viên. Sàn không thu commission theo cổ phiếu giảm còn DEMO < 1 % cho cross-section.
+Vòng 57 không có ứng viên. Sau 4 vòng cổ phiếu (54-57), không còn hướng miễn phí nào không cần tôi quyết có khả năng ra
+live >= 1 %: vòng tiếp theo nên bắt đầu từ một quyết định trong mục này.
+web.archive.org đã gắn cờ IP máy này là bot sau 6 request (vòng 37 M): đừng dùng làm nguồn tải hàng loạt. Thêm từ vòng 25 (STREAM_A.md xếp hạng theo khả năng ra ứng viên live): đã làm ở vòng 30 phần kéo
 tick IC + Dukascopy cho USDCNH, USDMXN, USDSGD, EURNOK, USDNOK, EURSEK (không ra ứng viên). Còn lại: có chấp nhận nền
 tảng khác cTrader không (cổ phiếu CFD của IC chỉ có trên MT5), trước khi dựng engine cổ phiếu từ dữ liệu miễn phí
 (Dukascopy US stock CFD 2017-24 + SEC EDGAR; luật bán sau khi hết blackout lợi nhuận, live ~3-5 %); có log forward luật
@@ -415,7 +603,7 @@ nguyên ngày vì HTTP 503 khi server bận: kiểm từng ngày forward và t�
 mỗi phiên chỉ có ~200 lượt web search dùng chung và OpenAlex miễn phí hết hạn mức trong ngày, nên chia ngân sách cho các
 nhánh tài liệu; không bao giờ đưa email của tôi vào request (tham số mailto / contact).
 
-Cách chạy một vòng (đã dùng từ vòng 10): viết BRIEF.md cho vòng (copy round12_flows_execution/BRIEF.md, sửa phần
+Cách chạy một vòng (đã dùng từ vòng 10; từ vòng 63 tôi muốn phiên chính làm điều phối, giao nhiều giả thuyết cho subagent chạy song song, brief mẫu round63_parallel/BRIEF.md): viết BRIEF.md cho vòng (copy round12_flows_execution/BRIEF.md, sửa phần
 hướng), chạy 3-4 nhánh song song bằng subagent, mỗi nhánh ghi giả thuyết kèm giờ UTC vào HYPOTHESES_<nhánh>.md
 TRƯỚC khi tính, viết STREAM_<nhánh>.md, và PREREG_DRAFT_* nếu đạt. Panel phút dùng chung (26 mã, 2016-2024, không có
 holdout) dựng lại từ data/m1 nếu scratchpad cũ đã mất. Máy 10 lõi / 16 GB: tối đa 2 tiến trình nặng mỗi nhánh.

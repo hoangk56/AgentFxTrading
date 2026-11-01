@@ -1,0 +1,12 @@
+H1 q0.02 p0.03 H4 half-years: -86 (n 283, t -1.63) | +36 (n 297, t +1.08) | -19 (n 356, t -0.85) | +35 (n 258, t +1.28) | +15 (n 274, t +0.53) | +3 (n 243, t +0.11)
+   DISC without 2022-05 and 2022-11: -17.1 bp n 771 t -1.35
+   VAL top-3 coins by summed net: [(np.str_('TRBUSDT'), 37, 4957), (np.str_('BLZUSDT'), 17, 3008), (np.str_('1000PEPEUSDT'), 61, 2923)] VAL total 13950 without top-3 3061
+H1 q0.02 p0.03 H24 half-years: -38 (n 236, t -0.40) | +149 (n 248, t +2.04) | -14 (n 334, t -0.40) | +105 (n 219, t +1.84) | +44 (n 228, t +0.55) | +38 (n 212, t +0.46)
+   DISC without 2022-05 and 2022-11: +27.2 bp n 692 t +0.85
+   VAL top-3 coins by summed net: [(np.str_('REEFUSDT'), 12, 13303), (np.str_('XRPUSDT'), 29, 6578), (np.str_('DOGEUSDT'), 31, 6466)] VAL total 41067 without top-3 14720
+H1 q0.02 p0.05 H4 half-years: -233 (n 66, t -1.03) | +108 (n 106, t +1.45) | -2 (n 148, t -0.07) | +78 (n 77, t +1.01) | +89 (n 105, t +1.50) | +45 (n 74, t +0.81)
+   DISC without 2022-05 and 2022-11: +13.2 bp n 254 t +0.54
+   VAL top-3 coins by summed net: [(np.str_('TRBUSDT'), 20, 4877), (np.str_('DOGEUSDT'), 12, 1924), (np.str_('BLZUSDT'), 6, 1655)] VAL total 18630 without top-3 10175
+H1 q0.04 p0.03 H24 half-years: -81 (n 78, t -0.43) | +169 (n 137, t +1.88) | -14 (n 221, t -0.37) | +100 (n 141, t +1.33) | +85 (n 107, t +0.73) | +81 (n 70, t +0.68)
+   DISC without 2022-05 and 2022-11: +31.2 bp n 372 t +0.83
+   VAL top-3 coins by summed net: [(np.str_('1000PEPEUSDT'), 26, 5346), (np.str_('DOGEUSDT'), 14, 4869), (np.str_('1000SATSUSDT'), 7, 3946)] VAL total 28893 without top-3 14733

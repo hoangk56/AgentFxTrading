@@ -1,0 +1,361 @@
+"""Round 57 G grading (HYPOTHESES_G.md): 48 counted cells, variants, random-firm control, placebo, gross max-t
+chance benchmark, top-trade check, decomposition, spread profile, concurrency, power (1/2 rule), C3 correlation.
+cd <repo>; PYTHONPATH=. research/.venv/bin/python <G>/scripts/grade.py"""
+import sys, os, csv, datetime, pickle
+from zoneinfo import ZoneInfo
+import numpy as np
+
+SP = "/private/tmp/claude-501/-Users-hoangbk-00-code-base-105-AgentFxTrading/a4a9bef6-96f0-4934-8440-9b5af3c564e7/scratchpad"
+G = SP + "/r57/G"
+sys.path.insert(0, SP + "/r54/D/out")
+import stocklib as sl
+from research.m1 import load as m1load
+
+SEEDS = int(os.environ.get("SEEDS", 1000))
+LOG = open(os.environ.get("GLOG", f"{G}/out/grade.log"), "w")
+def P(*a):
+    s = " ".join(str(x) for x in a); print(s, flush=True); LOG.write(s + "\n"); LOG.flush()
+
+S = sl.load(); T = len(S.dates)
+assert S.dates.max() <= np.datetime64("2024-12-31")
+DAYS = (S.dates - np.datetime64("1970-01-01")).astype(int)
+YEAR = S.dates.astype("datetime64[Y]").astype(int) + 1970
+DI = np.array([int(str(x).replace("-", "")) for x in S.dates])
+ISO = [str(x) for x in S.dates]
+ET = ZoneInfo("America/New_York")
+CUT = 1735689600000
+T0 = np.array([int(datetime.datetime(x // 10000, x // 100 % 100, x % 100, 9, 30, tzinfo=ET).timestamp() * 1000) for x in DI])
+RBC, RAC = S.raw["bc"], S.raw["ac"]
+
+# ---------------------------------------------------------------- M1 store
+z = np.load(f"{G}/out/m1_days.npz")
+P("M1 store", len(z["keys"]))
+ROW = {k: i for i, k in enumerate(z["keys"])}
+BO, AO, VOL, HAVE = z["bo"].astype(float), z["ao"].astype(float), z["vol"], z["have"]
+def rix(R, J):
+    out = np.array([ROW.get(f"{S.syms[r]} {ISO[j]}", -1) for r, j in zip(R, J)], int)
+    out[out >= 0] = np.where(HAVE[out[out >= 0]], out[out >= 0], -1)
+    return out
+
+# ---------------------------------------------------------------- US500 (IC M1), cut at load
+u = m1load("US500"); k = u["ts"] < CUT
+uts, uo, usm = u["ts"][k], u["o"][k], u["smean"][k]
+assert uts.max() < CUT
+def us_at(ms):
+    i = np.clip(np.searchsorted(uts, ms), 0, len(uts) - 1)
+    ok = (uts[i] >= ms) & (uts[i] < ms + 4 * 60000)
+    return np.where(ok, uo[i] + usm[i] / 2, np.nan), np.where(ok, usm[i], np.nan)
+
+# ---------------------------------------------------------------- trade sets
+def rd(f):
+    return list(csv.DictReader(open(f"{G}/out/{f}")))
+ev = rd("events_g.csv")
+ER = np.array([int(r["row"]) for r in ev]); EJ = np.array([int(r["j"]) for r in ev]); EG = np.array([float(r["gap"]) for r in ev])
+assert DI[EJ].max() <= 20241231
+pool = {}
+for r in rd("pool_g.csv"):
+    pool.setdefault(int(r["j"]), {})[int(r["rank"])] = (int(r["row"]), float(r["gap"]))
+# A2 sample rule: keep reaction dates whose event and pool firm-days are all cached
+CACHED = {k: bool(c) for k, c in zip(z["keys"], z["cached"])}
+okd = {}
+for r, j in zip(ER, EJ):
+    okd[j] = okd.get(j, True) and CACHED.get(f"{S.syms[r]} {ISO[j]}", False)
+for j in list(okd):
+    okd[j] = okd[j] and all(CACHED.get(f"{S.syms[pool[j][q][0]]} {ISO[j]}", False) for q in pool.get(j, {}))
+keep = np.array([okd[j] for j in EJ])
+P(f"A2 sample: {int(keep.sum())} of {len(ER)} events on {sum(okd.values())} of {len(okd)} reaction dates complete")
+ER, EJ, EG = ER[keep], EJ[keep], EG[keep]
+PR = np.array([[pool[j].get(q, (-1, np.nan))[0] for q in (0, 1)] for j in EJ])
+PG = np.array([[pool[j].get(q, (-1, np.nan))[1] for q in (0, 1)] for j in EJ])
+pl = rd("placebo_g.csv")
+QR = np.array([int(r["row"]) for r in pl]); QJ = np.array([int(r["j"]) for r in pl]); QG = np.array([float(r["gap"]) for r in pl])
+RI_E = rix(ER, EJ)
+RI_P = [np.where(PR[:, q] >= 0, rix(np.maximum(PR[:, q], 0), EJ), -1) for q in (0, 1)]
+RI_Q = rix(QR, QJ)
+P(f"events {len(ER)} with M1 {np.sum(RI_E >= 0)}; pool names with M1 {[int(np.sum(x >= 0)) for x in RI_P]};"
+  f" placebo {len(QR)} with M1 {np.sum(RI_Q >= 0)}")
+
+def first_vol(ri, lo, hi):
+    out = np.full(len(ri), -1)
+    g = ri >= 0
+    v = VOL[ri[g], lo:hi]
+    has = v.any(1)
+    out[np.flatnonzero(g)[has]] = lo + v[has].argmax(1)
+    return out
+
+def legs(R, J, ri, side, off, h, sx=1.0, delay=0):
+    """side +1 long / -1 short the stock from the first bar at/after 09:30+off(+delay), exit 15:55(+delay) of day J
+    (h = 0) or the daily close of J+h; hedge = opposite US500 at the same minutes. bp arrays (NaN = no trade)."""
+    n = len(R)
+    me = first_vol(ri, off + delay, off + delay + 5)
+    ok = (me >= 0) & (side != 0)
+    rr, mme = np.where(ok, ri, 0), np.where(ok, me, 0)
+    eb, ea = BO[rr, mme], AO[rr, mme]
+    JX = J + h
+    if h == 0:
+        mx = first_vol(ri, 385 + delay, 390)
+        ok &= mx >= 0
+        mmx = np.where(ok, mx, 0)
+        xb, xa = BO[rr, mmx], AO[rr, mmx]
+        xms = T0[J] + mmx * 60000
+    else:
+        ok &= (S.adj[R, J] == S.adj[R, JX]) & (S.cjump[R, J] == S.cjump[R, JX])
+        xb, xa = RBC[R, JX], RAC[R, JX]
+        xms = T0[JX] + 389 * 60000
+    ok &= np.isfinite(eb) & np.isfinite(ea) & np.isfinite(xb) & np.isfinite(xa) & (ea >= eb) & (xa >= xb) & (eb > 0)
+    m0, m1 = (eb + ea) / 2, (xb + xa) / 2
+    hs0, hs1 = (ea - eb) / 2, (xa - xb) / 2
+    fe, fx = m0 + side * sx * hs0, m1 - side * sx * hs1
+    mid = side * (m1 / m0 - 1) * 1e4
+    pxr = side * (fx / fe - 1) * 1e4
+    comm = (0.02 / m0 + 0.02 / m1) * 1e4
+    nights = (DAYS[JX] - DAYS[J]).astype(float)
+    rate = np.where(side > 0, S.effr[J] + 0.03, 0.03 - S.effr[J])
+    fin = rate / 360 * nights * 1e4
+    net = pxr - comm - fin
+    hside = -side
+    h0, s0 = us_at(T0[J] + mme * 60000); h1, s1 = us_at(xms)
+    he, hx = h0 + hside * sx * s0 / 2, h1 - hside * sx * s1 / 2
+    hnet = hside * (hx / he - 1) * 1e4 - nights * np.where(hside > 0, 2.0, 0.5)
+    hmid = hside * (h1 / h0 - 1) * 1e4
+    okh = ok & np.isfinite(hnet)
+    nan = lambda x, o: np.where(o, x, np.nan)
+    return dict(net_u=nan(net, ok), mid_u=nan(mid, ok), net_h=nan(net + hnet, okh), mid_h=nan(mid + hmid, okh),
+                spr=nan(mid - pxr, ok), comm=nan(comm, ok), fin=nan(fin, ok), hcost=nan(hmid - hnet, okh), me=me)
+
+def ct(x, cl):
+    g = np.isfinite(x); x, cl = x[g], cl[g]
+    n = len(x)
+    if n < 5:
+        return np.nan, np.nan, n
+    m = x.mean(); _, inv = np.unique(cl, return_inverse=True)
+    se = np.sqrt((np.bincount(inv, weights=x - m) ** 2).sum()) / n
+    return m, (m / se if se > 0 else np.nan), n
+
+IS = YEAR[EJ] <= 2021
+COV = (DI[EJ] >= 20200301) & (DI[EJ] <= 20200430)
+OFFS = {"0945": 15, "1000": 30}
+HS = (0, 1, 2, 4)
+SIDES = {"follow": 1, "fade": -1}
+sgnE = np.sign(EG)
+
+# precompute legs: events (base, x1.5, +1), pool (base), placebo (base)
+L = {}
+for on, off in OFFS.items():
+    for h in (0, 1, 2, 3, 4):   # E3 legs for the reported rows only
+        for sn, s in SIDES.items():
+            sd = s * sgnE
+            L[("E", on, h, sn, "b")] = legs(ER, EJ, RI_E, sd, off, h)
+            L[("E", on, h, sn, "x")] = legs(ER, EJ, RI_E, sd, off, h, sx=1.5)
+            L[("E", on, h, sn, "p")] = legs(ER, EJ, RI_E, sd, off, h, delay=1)
+            for q in (0, 1):
+                L[("P", on, h, sn, q)] = legs(np.maximum(PR[:, q], 0), EJ, RI_P[q], s * np.sign(PG[:, q]), off, h)
+            L[("Q", on, h, sn, "b")] = legs(QR, QJ, RI_Q, s * np.sign(QG), off, h)
+P("legs ready")
+
+# opening move (09:30-09:34 first bar -> entry bar mid), signed by the gap
+m930 = first_vol(RI_E, 0, 5)
+me945 = first_vol(RI_E, 15, 20)
+def midat(ri, mm):
+    g = (ri >= 0) & (mm >= 0)
+    out = np.full(len(ri), np.nan)
+    out[g] = (BO[ri[g], mm[g]] + AO[ri[g], mm[g]]) / 2
+    return out
+OPEN_MV = sgnE * (midat(RI_E, me945) / midat(RI_E, m930) - 1)
+EXT, RET = OPEN_MV > 0, OPEN_MV < 0
+
+AG = np.abs(EG)
+BUCK = {"2-4": (AG >= .02) & (AG < .04), "4-8": (AG >= .04) & (AG < .08), ">8": AG >= .08}
+
+# ---------------------------------------------------------------- cells
+cells = []
+for sn in SIDES:
+    for on in OFFS:
+        for h in HS:
+            for hd in ("h", "u"):
+                cells.append(dict(name=f"{sn} all {on} E{h} {hd.upper()}", side=sn, on=on, h=h, hd=hd, mask=np.ones(len(ER), bool), counted=True))
+for sn in SIDES:
+    for bn, bm in BUCK.items():
+        for gs, gv in (("up", 1), ("down", -1)):
+            cells.append(dict(name=f"{sn} {bn} {gs} 0945 E0 H", side=sn, on="0945", h=0, hd="h", mask=bm & (sgnE == gv), counted=True))
+for sn in SIDES:
+    for cn, cm in (("extends", EXT), ("retraces", RET)):
+        cells.append(dict(name=f"{sn} {cn} 0945 E0 H", side=sn, on="0945", h=0, hd="h", mask=cm, counted=True))
+for sn in SIDES:   # reported only
+    for hd in ("h", "u"):
+        cells.append(dict(name=f"{sn} all 0945 E3 {hd.upper()} (rep)", side=sn, on="0945", h=3, hd=hd, mask=np.ones(len(ER), bool), counted=False))
+    for bn, bm in BUCK.items():
+        cells.append(dict(name=f"{sn} {bn} both 0945 E0 H (rep)", side=sn, on="0945", h=0, hd="h", mask=bm, counted=False))
+        cells.append(dict(name=f"{sn} {bn} both 0945 E1 H (rep)", side=sn, on="0945", h=1, hd="h", mask=bm, counted=False))
+    for cn, cm in (("extends", EXT), ("retraces", RET)):
+        cells.append(dict(name=f"{sn} {cn} 0945 E1 H (rep)", side=sn, on="0945", h=1, hd="h", mask=cm, counted=False))
+
+rng = np.random.default_rng(570)
+U = rng.random((SEEDS, len(ER)))
+RES = {}
+hdr = ("cell | n IS/VAL | mid IS (t) / VAL (t) | cost IS/VAL | net IS (t) | net VAL (t) | x1.5 IS/VAL | +1m IS/VAL |"
+       " exCov IS | sd VAL | Sh IS/VAL | rnd IS/VAL | plc net IS/VAL | top IS/VAL | yrs>0 | power(1/2) | by year")
+P(hdr)
+for c in cells:
+    key = ("E", c["on"], c["h"], c["side"])
+    b = L[key + ("b",)]
+    net, mid = b["net_" + c["hd"]], b["mid_" + c["hd"]]
+    m0 = c["mask"] & np.isfinite(net)
+    o = dict(c)
+    for e, em in (("IS", IS), ("VAL", ~IS)):
+        m = m0 & em
+        o["n" + e] = int(m.sum())
+        o["net" + e], o["t" + e], _ = ct(np.where(m, net, np.nan), EJ)
+        o["mid" + e], o["tm" + e], _ = ct(np.where(m, mid, np.nan), EJ)
+        cost = b["spr"] + b["comm"] + b["fin"] + (b["hcost"] if c["hd"] == "h" else 0)
+        o["cost" + e] = np.nanmean(cost[m])
+        o["x15" + e] = np.nanmean(L[key + ("x",)]["net_" + c["hd"]][c["mask"] & em])
+        o["p1" + e] = np.nanmean(L[key + ("p",)]["net_" + c["hd"]][c["mask"] & em])
+        o["sd" + e] = np.nanstd(net[m])
+        x = net[m]
+        o["top" + e] = (x.max() / x.sum()) if (x.sum() > 0 and len(x)) else np.nan
+        # random-firm control: one of the 2 pool names per event, per seed
+        if (key + (0,)) in L:
+            pr = np.stack([L[key + (q,)]["net_" + c["hd"]] for q in (0, 1)], 1)
+            av = np.isfinite(pr); nav = av.sum(1)
+            use = m & (nav > 0)
+            if use.sum() > 4:
+                order = np.argsort(~av, axis=1, kind="stable")
+                pick = np.minimum((U * np.maximum(nav, 1)).astype(int), np.maximum(nav - 1, 0))
+                ar = np.arange(len(ER))[None, :]
+                rv = pr[ar, order[ar, pick]][:, use]
+                o["rnd" + e] = float(np.mean(np.nanmean(net[use]) > np.nanmean(rv, 1)))
+                o["rndmean" + e] = float(np.nanmean(rv))
+            else:
+                o["rnd" + e] = np.nan; o["rndmean" + e] = np.nan
+    mIS = m0 & IS & ~COV
+    o["exc"] = ct(np.where(mIS, net, np.nan), EJ)[0]
+    yy = YEAR[EJ]
+    o["by"] = {int(y): (np.nanmean(net[m0 & (yy == y)]), int((m0 & (yy == y)).sum())) for y in np.unique(yy[m0])}
+    o["yrs"] = f"{sum(v[0] > 0 for v in o['by'].values())}/{len(o['by'])}"
+    nh = o["nVAL"] / 3 * 1.73
+    o["power"] = (o["netVAL"] / 2) / o["sdVAL"] * np.sqrt(nh) if o["sdVAL"] > 0 else np.nan
+    # placebo, same side rule and timing (all |gap| >= 2 % placebo gaps; buckets / conditions not applied)
+    qb = L[("Q", c["on"], c["h"], c["side"], "b")]["net_" + c["hd"]]
+    QIS = YEAR[QJ] <= 2021
+    o["plcIS"], o["plcVAL"] = np.nanmean(qb[QIS]), np.nanmean(qb[~QIS])
+    o["_net"], o["_mid"], o["_m"] = net, mid, m0
+    RES[c["name"]] = o
+    ys = " ".join(f"{y}:{v[0]:+.0f}({v[1]})" for y, v in o["by"].items())
+    P(f"{c['name']}{'' if c['counted'] else ''} | {o['nIS']}/{o['nVAL']} | {o['midIS']:+.1f} ({o['tmIS']:.2f}) / {o['midVAL']:+.1f} ({o['tmVAL']:.2f}) |"
+      f" {o['costIS']:.1f}/{o['costVAL']:.1f} | {o['netIS']:+.1f} ({o['tIS']:.2f}) | {o['netVAL']:+.1f} ({o['tVAL']:.2f}) |"
+      f" {o['x15IS']:+.1f}/{o['x15VAL']:+.1f} | {o['p1IS']:+.1f}/{o['p1VAL']:+.1f} | {o['exc']:+.1f} | {o['sdVAL']:.0f} |"
+      f" {o['netIS'] / o['sdIS']:+.3f}/{o['netVAL'] / o['sdVAL']:+.3f} | {o.get('rndIS', np.nan):.2f}/{o.get('rndVAL', np.nan):.2f} |"
+      f" {o['plcIS']:+.1f}/{o['plcVAL']:+.1f} | {o['topIS']:.2f}/{o['topVAL']:.2f} | {o['yrs']} | {o['power']:+.2f} | {ys}")
+
+# ---------------------------------------------------------------- chance benchmark (gross mid, shared date flips)
+counted = [c["name"] for c in cells if c["counted"]]
+udates, inv_all = np.unique(EJ, return_inverse=True)
+flips = rng.choice([-1.0, 1.0], size=(SEEDS, len(udates)))
+def tmax_null(era_mask, field):
+    mx = np.full(SEEDS, -np.inf)
+    for nm in counted:
+        o = RES[nm]; m = o["_m"] & era_mask
+        x = o[field][m]; inv = inv_all[m]
+        if len(x) < 5: continue
+        X = flips[:, inv] * x[None, :]
+        mu = X.mean(1)
+        cnt = np.bincount(inv, minlength=len(udates)).astype(float)
+        OH = np.zeros((len(x), len(udates))); OH[np.arange(len(x)), inv] = 1
+        sums = X @ OH
+        se = np.sqrt(((sums - mu[:, None] * cnt[None, :]) ** 2).sum(1)) / len(x)
+        mx = np.maximum(mx, mu / se)
+    return mx
+nullIS = tmax_null(IS, "_mid")
+bm = max(counted, key=lambda n: RES[n]["tmIS"]); bn = max(counted, key=lambda n: RES[n]["tIS"])
+P(f"\ncounted cells {len(counted)}; chance benchmark (max IS mid t over counted cells, date sign flips): median"
+  f" {np.median(nullIS):.2f}, p95 {np.percentile(nullIS, 95):.2f}")
+P(f"best IS mid t {RES[bm]['tmIS']:.2f} ({bm}), P(null >= obs) {np.mean(nullIS >= RES[bm]['tmIS']):.3f};"
+  f" best IS net t {RES[bn]['tIS']:.2f} ({bn}); cells with IS net t >= 2: {sum(RES[n]['tIS'] >= 2 for n in counted)};"
+  f" IS net > 0: {sum(RES[n]['netIS'] > 0 for n in counted)}; IS and VAL net > 0: {sum((RES[n]['netIS'] > 0) & (RES[n]['netVAL'] > 0) for n in counted)}")
+np.save(f"{G}/out/null_maxt.npy", nullIS)
+
+# ---------------------------------------------------------------- bars
+P("\nbar check (counted cells): DEMO = IS t >= 2, VAL > 0, rnd IS/VAL >= 0.90, x1.5 and +1m > 0 IS and VAL; LIVE adds"
+  " IS t >= 2.5, VAL t >= 1.5, years >= 2/3, rnd >= 0.95, power >= 3")
+for n in counted:
+    o = RES[n]
+    demo = (o["tIS"] >= 2 and o["netVAL"] > 0 and o.get("rndIS", 0) >= .9 and o.get("rndVAL", 0) >= .9
+            and min(o["x15IS"], o["x15VAL"], o["p1IS"], o["p1VAL"]) > 0)
+    yp, yn = map(int, o["yrs"].split("/"))
+    live = demo and o["tIS"] >= 2.5 and o["tVAL"] >= 1.5 and yp >= 2 / 3 * yn and min(o["rndIS"], o["rndVAL"]) >= .95 and o["power"] >= 3
+    if demo or live or o["tIS"] >= 1.5:
+        P(f"  {n}: DEMO {demo} LIVE {live} (IS t {o['tIS']:.2f}, VAL {o['netVAL']:+.1f})")
+P("  (cells not listed have IS net t < 1.5 and fail both bars)")
+
+# ---------------------------------------------------------------- decomposition (mid, unhedged, signed by gap)
+P("\ndecomposition, mid bp signed by the gap (follow side), events vs placebo, all bars present: set era | n | gap |"
+  " 09:30 first quote -> 09:45 | 09:45 -> 15:55 | 15:55 -> day close | close -> close+1 | close -> close+4")
+def decomp(R, J, ri, g, lab):
+    sg = np.sign(g)
+    a = midat(ri, first_vol(ri, 0, 5)); b_ = midat(ri, first_vol(ri, 15, 20)); c_ = midat(ri, first_vol(ri, 385, 390))
+    MC = S.mid("close", adjusted=False)
+    dc = MC[R, J]; d1 = MC[R, np.minimum(J + 1, T - 1)]; d4 = MC[R, np.minimum(J + 4, T - 1)]
+    allok = np.isfinite(a) & np.isfinite(b_) & np.isfinite(c_) & np.isfinite(dc) & np.isfinite(d1) & np.isfinite(d4)
+    for e, em in (("IS", YEAR[J] <= 2021), ("VAL", YEAR[J] > 2021)):
+        m = allok & em
+        seg = [sg * (b_ / a - 1), sg * (c_ / b_ - 1), sg * (dc / c_ - 1), sg * (d1 / dc - 1), sg * (d4 / dc - 1)]
+        P(f"{lab} {e} | {m.sum()} | {np.mean(np.abs(g[m])) * 1e4:.0f} | " + " | ".join(
+            f"{ct(np.where(m, s_ * 1e4, np.nan), J)[0]:+.1f} ({ct(np.where(m, s_ * 1e4, np.nan), J)[1]:.2f})" for s_ in seg))
+decomp(ER, EJ, RI_E, EG, "EVENTS")
+for bn_, bm_ in BUCK.items():
+    decomp(ER[bm_], EJ[bm_], RI_E[bm_], EG[bm_], f"EVENTS {bn_}")
+decomp(QR, QJ, RI_Q, QG, "PLACEBO")
+decomp(np.maximum(PR[:, 0], 0)[PR[:, 0] >= 0], EJ[PR[:, 0] >= 0], RI_P[0][PR[:, 0] >= 0], PG[PR[:, 0] >= 0, 0], "POOL0")
+
+# ---------------------------------------------------------------- spreads and cost split
+P("\nspread (median bp at bar open, bars with volume): set | 09:30 | 09:31 | 09:35 | 09:45 | 10:00 | 15:55")
+for lab, ri in (("EVENTS", RI_E), ("POOL0", RI_P[0]), ("PLACEBO", RI_Q)):
+    r = ri[ri >= 0]
+    sp = np.where(VOL[r], (AO[r] - BO[r]) / ((AO[r] + BO[r]) / 2) * 1e4, np.nan)
+    P(f"{lab} (n {len(r)}) | " + " | ".join(f"{np.nanmedian(sp[:, k]):.1f}" for k in (0, 1, 5, 15, 30, 385)))
+for h in HS:
+    b = L[("E", "0945", h, "follow", "b")]
+    P(f"cost split follow 0945 E{h} (IS / VAL mean bp): spread {np.nanmean(b['spr'][IS]):.1f}/{np.nanmean(b['spr'][~IS]):.1f}"
+      f" commission {np.nanmean(b['comm'][IS]):.1f}/{np.nanmean(b['comm'][~IS]):.1f} financing {np.nanmean(b['fin'][IS]):.1f}/{np.nanmean(b['fin'][~IS]):.1f}"
+      f" hedge {np.nanmean(b['hcost'][IS]):.1f}/{np.nanmean(b['hcost'][~IS]):.1f}")
+P("events without a tradeable entry/exit (follow 0945 E0):", int(np.sum(~np.isfinite(L[("E", "0945", 0, "follow", "b")]["net_u"]))))
+
+# ---------------------------------------------------------------- top trades of the primary and best cells
+for n in ["follow all 0945 E0 H", bn, bm]:
+    o = RES[n]; x = np.where(o["_m"], o["_net"], np.nan); k = np.argsort(-np.nan_to_num(np.abs(x)))[:5]
+    P(f"top |net| trades {n}: " + "; ".join(f"{S.syms[ER[i]]} {ISO[EJ[i]]} gap {EG[i] * 100:+.1f}% net {x[i]:+.0f}" for i in k))
+
+# ---------------------------------------------------------------- concurrency
+_, cnt = np.unique(EJ, return_counts=True)
+P(f"\nconcurrency E0 (flat each day): per reaction date mean {cnt.mean():.2f}, p95 {np.percentile(cnt, 95):.0f}, max {cnt.max()},"
+  f" share of dates > 3: {np.mean(cnt > 3):.3f}, > 6: {np.mean(cnt > 6):.3f}")
+for h in (1, 2, 4):
+    c_ = np.zeros(T, int)
+    for j in EJ:
+        c_[j:j + h + 1] += 1
+    a = c_[c_ > 0]
+    P(f"concurrency E{h}: active days {len(a)}, mean {a.mean():.2f}, p95 {np.percentile(a, 95):.0f}, max {a.max()}, share > 3 {np.mean(a > 3):.3f}")
+
+pickle.dump({k: {kk: vv for kk, vv in v.items() if not kk.startswith("_") and kk != "mask"} for k, v in RES.items()},
+            open(f"{G}/out/res.pkl", "wb"))
+
+# ---------------------------------------------------------------- C3 correlation (information)
+C3 = "/Users/hoangbk/00.code_base/105.AgentFxTrading/research/results/portfolio/trades_C3_gotobi_jpy_basket.csv"
+if os.path.exists(C3):
+    c3 = {}
+    for r in csv.DictReader(open(C3)):
+        dd = int(r["t_out_utc"][:10].replace("-", ""))
+        if dd <= 20241231:
+            c3[dd] = c3.get(dd, 0.0) + float(r["r"])
+    for n in ["follow all 0945 E0 H", bn]:
+        o = RES[n]; h = o["h"]
+        pnl = {}
+        for v, j in zip(o["_net"], EJ):
+            if np.isfinite(v):
+                pnl[int(DI[j + h])] = pnl.get(int(DI[j + h]), 0.0) + v
+        days = sorted(set(pnl) | set(k for k in c3 if k >= 20170101))
+        a = np.array([pnl.get(k, 0.0) for k in days]); bb = np.array([c3.get(k, 0.0) for k in days])
+        P(f"C3 daily corr {n}: {np.corrcoef(a, bb)[0, 1]:+.3f} over {len(days)} days")
+else:
+    P("C3 file missing")

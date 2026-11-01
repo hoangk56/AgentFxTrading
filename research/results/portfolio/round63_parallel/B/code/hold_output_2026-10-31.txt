@@ -1,0 +1,42 @@
+coins loaded 383
+
+reproduction check (registered IS 303 / +286.5 / t 2.46, VAL 333 / +174.6 / t 6.41):
+  IS: n 303 net 286.5 t 2.46
+  VAL: n 336 net 174.6 t 6.47
+
+=== HOLD 2025-01-01..2026-10-29, k100_H24_cheap, taker costs ===
+n 429  event-days 206  coins 60
+net 213.5 bp  median 126.7  t(day) 14.38  win 100%  SR/trade 0.788  SR/day 0.770
+gross 139.5  funding 126.0  cost 49.7  carry 2.19  hold 4.4 h  forced 0  adv>25% 2.8%  adv>50% 0.2%
+costs x1.5: net 188.7 bp  t 12.71
+one hour late: n 533 net 114.7 bp  median 24.3  t 8.27
+year 2025: n 113 net 138.7 bp median 99.5 t 8.50
+year 2026: n 316 net 240.3 bp median 133.3 t 12.76
+share of HOLD P&L from top 5 coins: 0.40 [(np.str_('DEXEUSDT'), 17, np.float64(10278.0)), (np.str_('HOMEUSDT'), 23, np.float64(8129.0)), (np.str_('ONEUSDT'), 30, np.float64(7213.0)), (np.str_('ONGUSDT'), 20, np.float64(5770.0)), (np.str_('SENTUSDT'), 14, np.float64(5340.0))]
+share of HOLD P&L from top 5 days: 0.15 [('2026-07-21', 6, np.float64(3856.0)), ('2026-08-26', 5, np.float64(2774.0)), ('2026-06-07', 3, np.float64(2683.0)), ('2026-06-11', 13, np.float64(2224.0)), ('2026-07-22', 2, np.float64(2189.0))]
+bottom 5 coins: [(np.str_('DOLOUSDT'), 1, np.float64(63.0)), (np.str_('GLMUSDT'), 1, np.float64(52.0)), (np.str_('QTUMUSDT'), 1, np.float64(44.0)), (np.str_('JTOUSDT'), 1, np.float64(44.0)), (np.str_('FILUSDT'), 1, np.float64(34.0))]
+worst 10 trades:
+  VANRYUSDT      2026-07-27T20:00 net      -13 price       37 fund     -0 hold   1 d   -113 Fo 0.003995->0.003997 So 0.004047->0.004034 Fn 18565 Sn 1995 adv 0.01 forced 0
+  AVNTUSDT       2026-01-13T01:00 net       -2 price       48 fund     -0 hold   1 d   -102 Fo 0.3159->0.3121 So 0.3202->0.3148 Fn 47958 Sn 9006 adv 0.02 forced 0
+  ASRUSDT        2025-08-21T16:00 net        2 price       52 fund     -0 hold   1 d   -159 Fo 3.676->3.429 So 3.728->3.458 Fn 188928 Sn 28254 adv 0.08 forced 0
+  SAHARAUSDT     2026-04-04T08:00 net        2 price       53 fund     -0 hold   2 d   -127 Fo 0.022->0.02197 So 0.02235->0.0222 Fn 42754 Sn 2400 adv 0.02 forced 0
+  SKLUSDT        2025-08-21T18:00 net        6 price       57 fund     -0 hold   1 d   -103 Fo 0.03445->0.03429 So 0.03484->0.03448 Fn 198329 Sn 40213 adv 0.03 forced 0
+  VANRYUSDT      2026-07-27T09:00 net        7 price       57 fund     -0 hold   1 d   -119 Fo 0.003894->0.003872 So 0.003951->0.003906 Fn 18851 Sn 1855 adv 0.01 forced 0
+  SPKUSDT        2025-09-26T04:00 net        8 price       59 fund     -0 hold   2 d   -108 Fo 0.05491->0.054 So 0.055609->0.054361 Fn 126418 Sn 45342 adv 0.02 forced 0
+  SPKUSDT        2025-09-26T02:00 net        8 price       59 fund     -0 hold   1 d   -111 Fo 0.05516->0.05377 So 0.055858->0.054123 Fn 64578 Sn 25424 adv 0.03 forced 0
+  AVNTUSDT       2026-01-12T01:00 net       11 price       62 fund     -0 hold   2 d   -119 Fo 0.3142->0.3196 So 0.3191->0.3226 Fn 36574 Sn 6415 adv 0.01 forced 0
+  SYNUSDT        2026-08-03T05:00 net       15 price       66 fund     -0 hold   2 d   -104 Fo 0.0836->0.0858 So 0.0847->0.08637 Fn 8684 Sn 3005 adv 0.01 forced 0
+best 10 trades:
+  DEXEUSDT       2026-07-22T16:00 net     2146 price       13 fund   2194 hold  24 d   -626 Fo 4.211->2.486 So 4.482->2.64 Fn 166157 Sn 14983 adv 0.42 forced 0
+  HOMEUSDT       2026-06-07T08:00 net     1873 price      -45 fund   1980 hold  24 d   -368 Fo 0.05393->0.03168 So 0.05661->0.03351 Fn 175281 Sn 38144 adv 0.50 forced 0
+  DEXEUSDT       2026-07-21T16:00 net     1690 price     -171 fund   1923 hold  24 d   -215 Fo 10.55->4.211 So 10.768->4.482 Fn 420985 Sn 87578 adv 0.63 forced 0
+  ONGUSDT        2026-08-26T21:00 net     1595 price      969 fund    678 hold   4 d  -1327 Fo 0.15981->0.15401 So 0.18412->0.15959 Fn 557723 Sn 36121 adv 0.09 forced 0
+  SENTUSDT       2026-01-29T07:00 net     1547 price      -77 fund   1686 hold  24 d   -409 Fo 0.0283->0.03661 So 0.0295->0.03839 Fn 450806 Sn 141020 adv 0.02 forced 0
+  LSKUSDT        2026-09-14T01:00 net     1499 price       77 fund   1480 hold  16 d   -135 Fo 0.7061->0.45445 So 0.721->0.4585 Fn 1412969 Sn 136354 adv 0.47 forced 0
+  STGUSDT        2026-06-13T01:00 net     1471 price       63 fund   1467 hold  16 d   -216 Fo 0.6209->0.3241 So 0.6358->0.3279 Fn 184146 Sn 11637 adv 0.48 forced 0
+  ONEUSDT        2026-09-27T21:00 net     1180 price     1201 fund     29 hold   1 d  -1255 Fo 0.0025093->0.0026198 So 0.002904->0.002683 Fn 123542 Sn 20396 adv 0.01 forced 0
+  DEXEUSDT       2026-07-21T12:00 net     1157 price      810 fund    398 hold   2 d  -1565 Fo 12.66->11.7 So 14.793->12.473 Fn 1190690 Sn 600751 adv 0.24 forced 0
+  ONEUSDT        2026-09-24T20:00 net      948 price      652 fund    350 hold   7 d  -1153 Fo 0.0021474->0.0023462 So 0.002446->0.002513 Fn 162212 Sn 6358 adv 0.07 forced 0
+top-10 |net| trades share of sum: 0.16; trimmed 1 % mean 200.3 bp
+
+VERDICT (registered DEMO bar: FAIL if HOLD net <= 0): PASS (DEMO bar)
