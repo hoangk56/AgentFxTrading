@@ -14,8 +14,8 @@ JS = REPO_ROOT / "static" / "js" / "research.js"
 PURE = ("rsNum", "rsTierOf", "rsTierLabel", "rsFold", "rsMatches", "rsFilter", "rsCounts", "rsParseHash", "rsHashFor",
         "rsSelection", "rsVerdictLabel", "rsVerdictHtml", "rsListItemsHtml", "rsCode", "rsChipsHtml",
         "rsItemStateHtml", "rsListHtml", "rsResearchHtml", "rsStatsHtml", "rsTone", "rsRulesWords", "rsCalendarHtml",
-        "rsRulesTrackerHtml", "rsFillable", "rsBasisHtml", "rsTrackerHtml", "rsDetailHtml", "rsPendingHtml",
-        "rsTriedHtml")
+        "rsRulesTrackerHtml", "rsFillable", "rsBasisHtml", "rsTrackerHtml", "rsDetailHtml",
+        "rsTriedHtml", "rsStatusOf")
 
 
 def test_dashboard_has_the_research_nav_view_and_script():
@@ -74,12 +74,12 @@ def test_research_renderers_escape_external_strings():
                "rules: rsDetailHtml(d.algorithms[0], d), basis: rsDetailHtml(d.algorithms[1], d),"
                "list: rsListHtml(sel.ordered, sel.selected, st, {}),"
                "chips: rsChipsHtml(rsCounts(d.algorithms), st),"
-               "pending: rsPendingHtml(d.algorithms), triedOpen: rsTriedHtml(d.tried, true),"
+               "status: rsStatusOf(d), triedOpen: rsTriedHtml(d.tried, true),"
                "triedShut: rsTriedHtml(d.tried, false), none: rsDetailHtml(null, d),"
                "basisOff: rsBasisHtml({available: false, data: {has_secret: false, verdict: 'NO_DATA'}}),"
                "noTracker: rsTrackerHtml(d.algorithms[2], d)}));")
     for key, html in out.items():
-        assert "<img" not in html.lower(), key
+        assert "<img" not in str(html).lower(), key
     assert "evil&lt;img" in out["rules"] and "evil&lt;img" in out["basis"] and "evil&lt;img" in out["triedOpen"]
     assert "fs-verdict--STOP" in out["rules"] and ">Dừng</span>" in out["rules"] and "-3.20" in out["rules"]
     assert "Dừng nếu sau 60 lệnh, tổng ròng &lt; 0." in out["rules"] and "&amp;lt;" not in out["rules"]
@@ -90,7 +90,8 @@ def test_research_renderers_escape_external_strings():
     assert "thu gọn sẵn" in out["list"] and 'data-rs-group="da-loai" aria-expanded="false"' in out["list"]
     assert 'data-rs-id="d"' not in out["list"] and "is-selected" in out["list"]
     assert "Tất cả <b>4</b>" in out["chips"] and "Demo <b>1</b>" in out["chips"]
-    assert 'data-rs-id="p"' in out["pending"] and "Chờ kiểm" in out["pending"]
+    # the title line counts the tiers and names the tracker that hit its stop rule
+    assert out["status"] == ["crit", "1 đang live · 1 chạy demo · 1 chờ kiểm · 1 chạm luật dừng"]
     assert "Thu gọn" in out["triedOpen"] and "<table" not in out["triedShut"] and "1 hướng" in out["triedShut"]
     assert "Không có thuật toán nào khớp bộ lọc" in out["none"]
     assert "Chưa có dữ liệu" in out["basisOff"] and "API secret" not in out["basisOff"]

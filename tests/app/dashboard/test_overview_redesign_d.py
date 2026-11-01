@@ -92,9 +92,9 @@ def test_overview_has_no_mode_switch_in_the_topbar_and_both_blocks():
     html = client.get("/demo/dashboard").text
     topbar = html[html.index('<header class="topbar">'):html.index("</header>")]
     assert "trade-mode-switch" not in html and "account-selector" not in html and 'id="todo-pill"' in topbar
-    # Step 4: no page-wide scope at all; Lịch, Xếp hạng chi tiết and Nhật ký carry their own switch
+    # Step 4: no page-wide scope at all; Lịch and Nhật ký carry their own switch, Bot shows both modes
     assert 'id="scope-bar"' not in html and "data-scoped" not in html and "🔴" not in html
-    for seg in ('id="gc-mode"', 'id="lb-mode"', 'id="log-mode"'):
+    for seg in ('id="gc-mode"', 'id="log-mode"'):
         assert seg in html, seg
     for part in ('<h1>Tổng quan</h1>', 'id="ov-todo"', 'class="ov-real"', 'id="ov-demo"',
                  'data-upcoming-account="live"', 'data-upcoming-account="demo"', 'id="confirm-dialog"',
@@ -114,9 +114,9 @@ def test_overview_first_paint_is_the_live_accounts_on_either_url(monkeypatch):
 
 def test_overview_script_reads_the_live_scope_not_the_scope_bar():
     js = DASHBOARD_JS.read_text(encoding="utf-8")
-    refresh = js[js.index("async function refreshDashboardData()"):js.index("bindModeSeg('lb-mode'")]
+    refresh = js[js.index("async function refreshDashboardData()"):js.index("bindModeSeg('log-mode'")]
     assert "selectedAccountId" not in refresh and "OV_ACCOUNT" in refresh
     assert "ws.send(JSON.stringify({type:'subscribe',account_id:OV_ACCOUNT,mode:'real'}))" in js
-    assert "bindModeSeg('lb-mode'" in js and "bindModeSeg('log-mode'" in js
+    assert "bindModeSeg('log-mode'" in js and "lb-mode" not in js
     close = js[js.index("async function closePosition(btn)"):js.index("closingPositions.add(String(d.id));")]
     assert "askConfirm(" in close and "confirm(`" not in close

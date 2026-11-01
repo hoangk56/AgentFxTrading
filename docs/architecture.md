@@ -19,7 +19,7 @@ graph LR
 | cBots (`cBot/*.cs`) | C# / cTrader, run headless by `ghcr.io/spotware/ctrader-console` | Detect setups on their own rules, size and execute trades, manage open positions |
 | Server (`app/`) | Python / FastAPI / uvicorn | Position tracking, dashboard, bot management, backtests |
 | Database | PostgreSQL 17 in production, SQLite `portfolio.db` fallback | Positions, trade history, bot configs, accounts, pause flags, backtest jobs |
-| Dashboard | Jinja2 template + static JS/CSS | Monitoring, leaderboard, Docker bot management, Setup Instances, Backtest, Ledger, logs |
+| Dashboard | Jinja2 template + static JS/CSS | Overview, Bot (management, Setup Instances and the per-bot results that were the leaderboard screen), Calendar, Ledger, Research (candidates, AI forecast, Backtest), logs |
 
 The server must run as a **single uvicorn worker** (`uvicorn app.server:app`, no `--workers`): the dashboard →
 cBot command queue (`app/bot_commands.py`) and several caches live in process memory.
@@ -75,7 +75,7 @@ Started from the FastAPI lifespan in `app/server.py`:
   unavailable. Warning: a stalled bar feed, a watchdog restart in the last hour. On the forex weekend only a failed
   restart, a dead container and Docker alerts remain. "Stopped on purpose" is the `bot_stopped` table, set by Stop,
   Close & Stop, Remove and by saving a config without starting, cleared by Start, Restart, Update and Delete; a
-  container stopped by hand with `docker stop` keeps alerting until Stop is pressed in the Bots tab.
+  container stopped by hand with `docker stop` keeps alerting until Stop is pressed on the Bot screen.
 - **Backtest worker** (`app/backtest_worker.py`): runs queued Backtest-page jobs in `bt-<id>` containers, several
   at once (setting on the page, else `BACKTEST_MAX_PARALLEL`). Reports are kept in `webui_data/backtests/`.
   - Bots it backtests: GotobiBot, EcbWindowBot and GoldLevelBot.

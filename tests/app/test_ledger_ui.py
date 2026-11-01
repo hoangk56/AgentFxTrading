@@ -43,7 +43,9 @@ def test_ledger_renderers_escape_external_strings():
     dash = DASHBOARD_JS.read_text(encoding="utf-8")
     src = JS.read_text(encoding="utf-8")
     helpers = "\n".join(_function(dash, n) for n in ("escapeHtml", "formatMoney", "accountBadge"))
-    renderers = "\n".join(_function(src, n) for n in ("lgMoney", "lgStatHtml", "lgAccountHtml", "lgPageHtml"))
+    shown = src[src.index("const LG_SHOWN_ROWS"):src.index("\n", src.index("const LG_SHOWN_ROWS"))]
+    renderers = shown + "\n" + "\n".join(_function(src, n) for n in ("lgMoney", "lgStatHtml", "lgVerdict", "lgCancelling", "lgAccountHtml",
+                                                                    "lgStatusOf", "lgPageHtml"))
     script = f"""{helpers}
 {renderers}
 const H = {json.dumps(HOSTILE)};
@@ -58,7 +60,8 @@ const full = {{account_id: H, label: H, account_type: 'demo',
 const empty = {{account_id: H, label: H, account_type: 'live', deposits: 0, withdrawals: 0, closed_pnl: 0,
     closed_trades: 0, expected_balance: 0, broker_balance: null, discrepancy: null, movements: [], unexplained: []}};
 console.log(JSON.stringify({{full: lgPageHtml({{accounts: [full], tolerance: 0.05}}),
-                             empty: lgPageHtml({{accounts: [empty]}}), none: lgPageHtml({{accounts: []}})}}));
+                             empty: lgPageHtml({{accounts: [empty]}}), none: lgPageHtml({{accounts: []}}),
+                             status: lgStatusOf({{accounts: [full]}})}}));
 """
     run = subprocess.run([NODE, "-e", script], capture_output=True, text=True, timeout=30)
     assert run.returncode == 0, run.stderr
@@ -66,7 +69,10 @@ console.log(JSON.stringify({{full: lgPageHtml({{accounts: [full], tolerance: 0.0
     for name in ("full", "empty"):
         assert "<img" not in out[name].lower(), name
         assert "evil&lt;img" in out[name], name
-    assert "Ghi là khoản nạp" in out["full"] and "+$5.00" in out["full"] and "kpi-value--warn" in out["full"]
+    assert 'aria-label="Ghi là khoản nạp"' in out["full"] and "+$5.00" in out["full"] and "kpi-value--warn" in out["full"]
     assert "Số dư ghi nhận đầu tiên: $1,040.00" in out["full"] and "2 lệnh đóng trước đó: +$40.00" in out["full"]
     assert 'data-opening="1"' in out["full"] and "Opening balance" not in out["full"]
     assert "Chưa nhận được số dư" in out["empty"] and "Cài bot từ mẫu" in out["none"]
+    # the account answers first (lệch / khớp), the recorded movements fold below the to-do
+    assert "sàn nhiều hơn sổ $1,005.00" in out["full"] and out["full"].index("lg-unexp") < out["full"].index("lg-moves")
+    assert out["status"] == ["", "Chưa có tài khoản tiền thật"]   # the only account is demo

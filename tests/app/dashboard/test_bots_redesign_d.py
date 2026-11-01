@@ -57,8 +57,8 @@ def test_each_state_gets_its_main_button_and_words():
         "ok": {"name": "cbot-live-live-usdjpy-fix-gotobi", "status": "running", "polling": True, "account_type": "live", "run_command": GOTOBI},
     }
     out = _run(names, f"const B = {json.dumps(bots)}; const o = {{}};"
-               "for (const k in B) o[k] = {row: botRowHtml(B[k], k === 'ok' ? {total_pnl_usd: -12.5, total_trades: 4,"
-               " profit_factor: 0.8} : null), need: botNeedsAction(B[k]), state: botState(B[k])[1]};"
+               "for (const k in B) o[k] = {row: botRowHtml(B[k], k === 'ok' ? {usd: {total_pnl_usd: -12.5, total_trades: 4,"
+               " total_wins: 1, profit_factor: 0.8}} : null, 'usd'), need: botNeedsAction(B[k]), state: botState(B[k])[1]};"
                "console.log(JSON.stringify(o));")
     first_button = lambda row: row[row.index('<td class="bot-actions">'):].split('class="log-btn ')[1].split('"')[0]
     assert first_button(out["stuck"]["row"]).startswith("action-restart") and out["stuck"]["state"] == "Bị treo"
@@ -72,7 +72,7 @@ def test_each_state_gets_its_main_button_and_words():
     assert [out[k]["need"] for k in bots] == [True, True, True, False, False, False]
     ok = out["ok"]["row"]
     assert 'data-live="1"' in ok and 'data-symbol="USDJPY"' in ok and "Gotobi USDJPY" in ok
-    assert "-$12.50" in ok and "ít lệnh" in ok and "action-delete" in ok and "action-close-stop" in ok   # PF needs 5 trades
+    assert "-$12.50" in ok and "1/4" in ok and "25%" in ok and "ít lệnh" in ok and "action-delete" in ok and "action-close-stop" in ok   # PF needs 5 trades
     assert 'data-open="0"' in ok
 
 
@@ -86,14 +86,16 @@ def test_sizing_fields_escape_and_only_show_the_flags_the_command_has():
     assert 'data-param="Lots"' not in out["g"] and "<img" not in out["h"].lower()
 
 
-def test_bot_screen_has_both_blocks_no_scope_bar_and_the_ranking_link():
+def test_bot_screen_has_both_blocks_no_scope_bar_and_the_result_switches():
     html = client.get("/real/dashboard").text
     view = html[html.index('id="view-docker"'):html.index("<!-- Ledger View")]
     for part in ("<h1>Bot</h1>", 'id="bots-status"', 'class="ov-real"', 'id="bots-tbody"', 'id="bots-demo"',
                  'id="bots-tbody-demo"', 'id="bots-period"', 'id="bot-sizing"', 'id="bot-cmd-advanced"',
-                 'href="#leaderboard"'):
+                 'id="bots-basis"', 'value="thismonth"'):
         assert part in view, part
     assert 'id="view-docker" class="view-section">' in html   # not data-scoped any more
+    # The ranking screen joined Bot (2026-11-01): no view of its own, no link to it
+    assert 'id="view-leaderboard"' not in html and 'href="#leaderboard"' not in html
     js = DASHBOARD_JS.read_text(encoding="utf-8")
     assert "confirm(`" not in js[js.index("// --- Bot screen"):js.index("// --- Setup Instances")]
 
@@ -109,11 +111,40 @@ def test_a_risk_change_is_worded_old_to_new_with_its_ratio():
 
 
 @pytest.mark.skipif(NODE is None, reason="node is not installed")
-def test_the_detailed_ranking_keeps_its_own_mode_and_renumbers():
-    data = {"rankings": [{"bot_id": "cbot-live-live-a", "rank": 1}, {"bot_id": "cbot-demo-demo-b", "rank": 2},
-                         {"bot_id": "cbot-demo-demo-c", "rank": 3}],
-            "lot_neutral": {"rankings": [{"bot_id": "cbot-demo-demo-c", "rank": 1}, {"bot_id": "cbot-live-live-a", "rank": 2}]}}
-    out = _run(("lbOwnMode",), f"const d = {json.dumps(data)}; console.log(JSON.stringify({{demo: lbOwnMode(d, 'demo'), live: lbOwnMode(d, 'live')}}));")
-    assert [(b["bot_id"], b["rank"]) for b in out["demo"]["rankings"]] == [("cbot-demo-demo-b", 1), ("cbot-demo-demo-c", 2)]
-    assert out["demo"]["total_bots"] == 2 and out["demo"]["lot_neutral"]["top_performer"]["bot_id"] == "cbot-demo-demo-c"
-    assert [b["bot_id"] for b in out["live"]["rankings"]] == ["cbot-live-live-a"]
+def test_results_read_in_dollars_or_per_unit_of_risk():
+    res = {"usd": {"total_trades": 31, "total_wins": 14, "total_pnl_usd": -1466.51, "floating_pnl_usd": -35.5,
+                   "profit_factor": 0.9},
+           "risk": {"total_trades": 31, "total_wins": 14, "net_units": 51.68, "max_dd_units": 28.39, "profit_factor": 1.57}}
+    out = _run(("botResultCells",), f"const r = {json.dumps(res)};"
+               "console.log(JSON.stringify({usd: botResultCells(r, 'usd'), risk: botResultCells(r, 'risk'),"
+               " noRisk: botResultCells({usd: r.usd}, 'risk'), none: botResultCells(undefined, 'usd')}));")
+    # the same 31 trades: a dollar loss from the bigger lots, a gain per unit of risk taken
+    assert "-$1,466.51" in out["usd"] and "lệnh mở -$35.50" in out["usd"] and "0.90" in out["usd"]
+    assert "+51.7 R" in out["risk"] and "sụt tối đa 28.4 R" in out["risk"] and "1.57" in out["risk"]
+    assert "14/31" in out["usd"] and "45%" in out["risk"]
+    assert "không ghi khoảng stop" in out["noRisk"] and "—" in out["none"]
+
+
+@pytest.mark.skipif(NODE is None, reason="node is not installed")
+def test_calendar_periods_are_vietnam_days():
+    # 2026-11-01 18:00 UTC is already Monday 2 November in Vietnam
+    now = "Date.UTC(2026, 10, 1, 18, 0)"
+    out = _run(("botPeriodRange", "botPeriodQuery"), f"const n = {now}; console.log(JSON.stringify({{"
+               "today: botPeriodRange('today', n), week: botPeriodRange('thisweek', n), month: botPeriodRange('thismonth', n),"
+               " last: botPeriodRange('lastmonth', n), rolling: botPeriodQuery('1w', n), q: botPeriodQuery('today', n)}));")
+    assert out["today"] == {"from": "2026-11-02", "to": "2026-11-02"} and out["week"]["from"] == "2026-11-02"
+    assert out["month"] == {"from": "2026-11-01", "to": "2026-11-02"}
+    assert out["last"] == {"from": "2026-10-01", "to": "2026-10-31"}
+    assert out["rolling"] == "period=1w" and out["q"] == "period=custom&date_from=2026-11-02&date_to=2026-11-02"
+
+
+@pytest.mark.skipif(NODE is None, reason="node is not installed")
+def test_the_real_block_says_its_period_result_next_to_its_health():
+    bots = [{"bot_id": "a", "status": "running"}, {"bot_id": "b", "status": "exited"}, {"bot_id": "c", "status": "running"}]
+    res = {"a": {"usd": {"total_trades": 3, "total_pnl_usd": -1200.5}, "risk": {"total_trades": 3, "net_units": 2.5}},
+           "b": {"usd": {"total_trades": 1, "total_pnl_usd": 100}}}
+    out = _run(("botsGroupLine",), f"const B = {json.dumps(bots)}, R = {json.dumps(res)};"
+               "console.log(JSON.stringify({usd: botsGroupLine(B, R, 'usd', '30 ngày qua'), risk: botsGroupLine(B, R, 'risk', 'x'),"
+               " none: botsGroupLine(B, {}, 'usd', 'x')}));")
+    assert out["usd"].startswith("3 bot · 2 đang chạy · 30 ngày qua: ") and "-$1,100.50" in out["usd"] and "pnl-negative" in out["usd"]
+    assert "+2.5 R" in out["risk"] and out["none"] == "3 bot · 2 đang chạy"

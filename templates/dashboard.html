@@ -4,19 +4,19 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AgentFxTrading</title>
-    <link rel="stylesheet" href="/static/css/dashboard.css?v=20261101_d4">
+    <link rel="stylesheet" href="/static/css/dashboard.css?v=20261102_d5">
     <script src="/static/js/auth.js?v=20260927_login"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="/static/js/backtest.js?v=20261101_d4" defer></script>
-    <script src="/static/js/ledger.js?v=20261101_d4" defer></script>
-    <script src="/static/js/confirm_dialog.js?v=20261101_d4" defer></script>
-    <script src="/static/js/overview_alerts.js?v=20261101_d4" defer></script>
-    <script src="/static/js/overview_demo.js?v=20261101_d4" defer></script>
-    <script src="/static/js/overview_upcoming.js?v=20261101_d4" defer></script>
+    <script src="/static/js/backtest.js?v=20261102_d5" defer></script>
+    <script src="/static/js/ledger.js?v=20261102_d5" defer></script>
+    <script src="/static/js/confirm_dialog.js?v=20261102_d5" defer></script>
+    <script src="/static/js/overview_alerts.js?v=20261102_d5" defer></script>
+    <script src="/static/js/overview_demo.js?v=20261102_d5" defer></script>
+    <script src="/static/js/overview_upcoming.js?v=20261102_d5" defer></script>
     <script src="/static/js/research.js?v=20261101_rs1" defer></script>
     <script src="/static/js/paper_desk.js?v=20261029_vi1" defer></script>
-    <script src="/static/js/gotobi_calendar.js?v=20261101_d4" defer></script>
+    <script src="/static/js/gotobi_calendar.js?v=20261102_d5" defer></script>
     <link rel="icon" type="image/png" href="/static/favicon.png">
 </head>
 {# Nghiên cứu (redesign D step 3, 2026-11-01): one menu item, three tabs. Each tab is still its own view (#research,
@@ -297,149 +297,12 @@
             </div>
 
             <!-- Leaderboard View -->
-            <div id="view-leaderboard" class="view-section">
-                <!-- Leaderboard KPI Summary Grid -->
-                <div class="kpi-grid--4">
-                    <div class="kpi-card">
-                        <div class="kpi-label"><i data-lucide="crown" class="kpi-icon text-amber"></i> Dẫn đầu</div>
-                        <div id="lb-top-performer" class="kpi-value font-bold" style="color: #fbbf24; font-size: 0.95rem;">
-                            {% if leaderboard and leaderboard.top_performer %}
-                                {{ leaderboard.top_performer.bot_name }} ({{ leaderboard.top_performer.composite_score }}/100)
-                            {% else %}
-                                —
-                            {% endif %}
-                        </div>
-                    </div>
-                    <div class="kpi-card">
-                        <div class="kpi-label"><i data-lucide="target" class="kpi-icon text-cyan"></i> Tỷ lệ thắng chung</div>
-                        <div id="lb-fleet-winrate" class="kpi-value font-bold kpi-value--mono" style="color: #38bdf8;">
-                            {{ "%.1f"|format(leaderboard.fleet_win_rate if leaderboard else 0) }}%
-                        </div>
-                    </div>
-                    <div class="kpi-card">
-                        <div class="kpi-label"><i data-lucide="dollar-sign" class="kpi-icon text-green"></i> Lời/lỗ ròng chung</div>
-                        <div id="lb-fleet-pnl" class="kpi-value font-bold kpi-value--mono {% if leaderboard and leaderboard.fleet_total_pnl_usd >= 0 %}kpi-value--profit{% else %}kpi-value--loss{% endif %}">
-                            ${{ "%.2f"|format(leaderboard.fleet_total_pnl_usd if leaderboard else 0) }}
-                        </div>
-                    </div>
-                    <div class="kpi-card">
-                        <div class="kpi-label"><i data-lucide="cpu" class="kpi-icon text-blue"></i> Số bot theo dõi</div>
-                        <div id="lb-total-bots" class="kpi-value font-bold kpi-value--mono">
-                            {{ leaderboard.total_bots if leaderboard else 0 }}
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Leaderboard Table Panel -->
-                <section class="panel">
-                    <div class="panel-header lb-panel-header">
-                        <div>
-                            <span class="panel-title"><i data-lucide="trophy" class="panel-icon text-amber"></i> Xếp hạng bot</span>
-                            <span id="lb-weight-hint" class="td-dim" style="font-size: 0.72rem; margin-left: 10px;">Điểm: 30% tỷ lệ thắng + 30% hệ số lời + 20% lời/lỗ ròng + 20% độ đều</span>
-                        </div>
-                        <div class="lb-toolbar">
-                            <div class="mode-seg" id="lb-mode" role="group" aria-label="Xếp hạng bot tiền thật hay demo"><button type="button" data-mode="live" aria-pressed="true">Thật</button><button type="button" data-mode="demo" aria-pressed="false">Demo</button></div>
-                            <div class="seg-group" id="lb-tab-group" role="group" aria-label="Cách xếp hạng">
-                                <button type="button" class="seg-btn active" data-lb-tab="usd" aria-pressed="true" title="Chấm theo lời/lỗ bằng USD: cùng một lợi thế, lot lớn hơn được điểm cao hơn">Theo USD</button>
-                                <button type="button" class="seg-btn" data-lb-tab="lot" aria-pressed="false" title="Chấm mỗi lệnh đã đóng so với rủi ro nó chịu (lot × khoảng stop): bỏ qua ảnh hưởng của khối lượng">Theo rủi ro</button>
-                            </div>
-                            <div class="lb-period">
-                                <button type="button" id="lb-period-btn" class="lb-period-btn" aria-haspopup="dialog" aria-expanded="false" aria-controls="lb-period-pop">
-                                    <i data-lucide="calendar" class="btn-icon"></i>
-                                    <span id="lb-period-label" class="lb-period-label">7 ngày qua</span>
-                                    <span id="lb-period-dates" class="lb-period-dates" hidden></span>
-                                    <i data-lucide="chevron-down" class="btn-icon lb-period-caret"></i>
-                                </button>
-                                <span id="lb-range-note" class="lb-range-note" hidden title="Khoảng này kết thúc trước hôm nay: không tính lệnh đang mở, vì lời/lỗ của chúng là của hôm nay">Chỉ lệnh đã đóng</span>
-                            </div>
-                            <!-- Period picker; moved under <body> on load so the panel's overflow never clips it -->
-                            <div id="lb-period-pop" class="lb-period-pop" role="dialog" aria-label="Khoảng thời gian xếp hạng" hidden>
-                                <div class="lb-period-cols">
-                                    <div class="lb-period-col" role="group" aria-label="Khoảng trượt">
-                                        <div class="lb-period-heading">Gần đây</div>
-                                        <button type="button" class="lb-period-opt" data-lb-period="1d" title="Lệnh đóng và lệnh mở trong 24 giờ qua">24 giờ qua<span class="lb-period-hint">24H</span></button>
-                                        <button type="button" class="lb-period-opt" data-lb-period="1w" title="Lệnh đóng và lệnh mở trong 7 ngày qua">7 ngày qua<span class="lb-period-hint">7D</span></button>
-                                        <button type="button" class="lb-period-opt" data-lb-period="1m" title="Lệnh đóng và lệnh mở trong 30 ngày qua">30 ngày qua<span class="lb-period-hint">30D</span></button>
-                                        <button type="button" class="lb-period-opt" data-lb-period="6m" title="Lệnh đóng và lệnh mở trong 6 tháng qua">6 tháng qua<span class="lb-period-hint">6M</span></button>
-                                        <button type="button" class="lb-period-opt" data-lb-period="1y" title="Lệnh đóng và lệnh mở trong 12 tháng qua">12 tháng qua<span class="lb-period-hint">1Y</span></button>
-                                        <button type="button" class="lb-period-opt" data-lb-period="all" title="Mọi lệnh">Toàn bộ</button>
-                                    </div>
-                                    <div class="lb-period-col" role="group" aria-label="Theo ngày, giờ Việt Nam">
-                                        <div class="lb-period-heading">Theo lịch <span class="lb-period-sub">GMT+7</span></div>
-                                        <button type="button" class="lb-period-opt" data-lb-period="today">Hôm nay<span class="lb-period-hint"></span></button>
-                                        <button type="button" class="lb-period-opt" data-lb-period="yesterday">Hôm qua<span class="lb-period-hint"></span></button>
-                                        <button type="button" class="lb-period-opt" data-lb-period="thisweek">Tuần này<span class="lb-period-hint"></span></button>
-                                        <button type="button" class="lb-period-opt" data-lb-period="lastweek">Tuần trước<span class="lb-period-hint"></span></button>
-                                        <button type="button" class="lb-period-opt" data-lb-period="thismonth">Tháng này<span class="lb-period-hint"></span></button>
-                                        <button type="button" class="lb-period-opt" data-lb-period="lastmonth">Tháng trước<span class="lb-period-hint"></span></button>
-                                    </div>
-                                </div>
-                                <form class="lb-period-custom" id="lb-period-custom" novalidate>
-                                    <div class="lb-period-heading">Tự chọn <span class="lb-period-sub">GMT+7 · tính cả hai ngày</span></div>
-                                    <div class="lb-period-custom-row">
-                                        <input id="lb-date-from" type="date" class="log-input" aria-label="Ngày đầu (giờ Việt Nam)">
-                                        <span class="td-dim">→</span>
-                                        <input id="lb-date-to" type="date" class="log-input" aria-label="Ngày cuối, có tính (giờ Việt Nam)">
-                                        <button type="submit" id="lb-date-apply" class="lb-period-apply">Áp dụng</button>
-                                    </div>
-                                    <div id="lb-date-error" class="lb-period-error" role="alert" hidden></div>
-                                </form>
-                            </div>
-                            <button id="lb-refresh-btn" class="log-btn"><i data-lucide="refresh-cw" class="btn-icon"></i> Làm mới</button>
-                        </div>
-                    </div>
-                    <div class="panel-body">
-                        <div class="table-wrap" id="lb-pane-usd">
-                            <table class="data-table">
-                                <thead>
-                                    <tr>
-                                        <th class="rank-cell">Hạng</th>
-                                        <th>Bot</th>
-                                        <th>Cặp</th>
-                                        <th>Đánh giá</th>
-                                        <th>Tỷ lệ thắng</th>
-                                        <th title="Tổng lời / tổng lỗ của các lệnh đã đóng">Hệ số lời</th>
-                                        <th>Số lệnh</th>
-                                        <th>Lời/lỗ ròng</th>
-                                        <th>Đã chốt</th>
-                                        <th>Đang mở</th>
-                                        <th>Điểm</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="leaderboard-table-body">
-                                    <tr><td colspan="11" class="empty-state">Đang tải…</td></tr>
-                                </tbody>
-                            </table>
-                        </div>
-                        <!-- Lot-neutral ranking; both tables are filled by renderLeaderboard() -->
-                        <div class="table-wrap" id="lb-pane-lot" hidden>
-                            <table class="data-table">
-                                <thead>
-                                    <tr>
-                                        <th class="rank-cell">Hạng</th>
-                                        <th>Bot</th>
-                                        <th>Cặp</th>
-                                        <th>Đánh giá</th>
-                                        <th>Tỷ lệ thắng</th>
-                                        <th title="Tổng lời / tổng lỗ, mỗi lệnh đã đóng tính trên rủi ro lúc vào (lot × pip stop)">Hệ số lời</th>
-                                        <th title="Lời trung bình / lỗ trung bình, tính trên rủi ro lúc vào">Lời TB / lỗ TB</th>
-                                        <th title="Kết quả ròng / mức sụt giảm lớn nhất, cả hai tính trên rủi ro lúc vào">Lời / sụt giảm</th>
-                                        <th>Số lệnh</th>
-                                        <th>Điểm</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="leaderboard-lot-table-body">
-                                    <tr><td colspan="10" class="empty-state">Đang tải…</td></tr>
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                </section>
-            </div>
-            
             <!-- Backtest View (static/js/backtest.js) -->
-            <div id="view-backtest" class="view-section">
-{{ research_tabs('backtest') }}                <section class="panel" id="bt-form-panel">
+            <div id="view-backtest" class="view-section page">
+{{ research_tabs('backtest') }}                <div class="rs-head">
+                    <p id="bt-status" class="ov-status ov-status--checking" aria-live="polite">Đang tải các lần chạy…</p>
+                </div>
+                <section class="panel" id="bt-form-panel">
                     <div class="panel-header">
                         <button type="button" id="bt-form-toggle" class="bt-form-toggle" aria-expanded="true" aria-controls="bt-form-body">
                             <span class="bt-chevron" aria-hidden="true">▾</span>
@@ -482,7 +345,7 @@
                     </div>
                     <div class="table-wrap">
                         <table class="data-table">
-                            <thead><tr><th></th><th>#</th><th>Cặp</th><th>Khoảng ngày</th><th>Thay đổi</th><th>Trạng thái</th><th>Ròng</th><th title="Hệ số lời">HSL</th><th>% thắng (lệnh)</th><th>Sụt giảm tối đa %</th><th>Số lệnh</th><th>Ghi chú</th><th></th></tr></thead>
+                            <thead><tr><th><span class="sr-only">Chọn để so sánh</span></th><th class="num">#</th><th>Cặp · thay đổi</th><th>Khoảng ngày</th><th>Trạng thái</th><th class="num">Ròng</th><th class="num" title="Hệ số lời: tổng lời / tổng lỗ">Hệ số lời</th><th class="num">% thắng (lệnh)</th><th class="num">Sụt tối đa</th><th class="num">Số lệnh</th><th><span class="sr-only">Thao tác</span></th></tr></thead>
                             <tbody id="bt-jobs-tbody"></tbody>
                         </table>
                     </div>
@@ -506,8 +369,9 @@
 
             <!-- Docker Bots View -->
             {# Bot (redesign D step 2, 2026-11-01): Real bots first behind the red rule, Demo folded, each row with its
-               sizing, open positions and result for the period (the former Xếp hạng, still at #leaderboard for the
-               scores). One main button per row by state, Sửa, the rest under ⋯; real-money actions ask for the pair. #}
+               sizing, open positions and result for the period, in dollars or per unit of risk (the former Xếp hạng screen,
+               merged here 2026-11-01; #leaderboard opens this view). One main button per row by state, Sửa, the rest
+               under ⋯; real-money actions ask for the pair. #}
             <div id="view-docker" class="view-section">
                 <div class="ov-title bots-title">
                     <div>
@@ -517,12 +381,18 @@
                     <div class="bots-tools">
                         <label class="bots-period" for="bots-period">Kết quả
                             <select id="bots-period" class="log-select">
+                                <option value="today">Hôm nay</option>
+                                <option value="thisweek">Tuần này</option>
+                                <option value="thismonth">Tháng này</option>
+                                <option value="lastmonth">Tháng trước</option>
                                 <option value="1w">7 ngày qua</option>
                                 <option value="1m" selected>30 ngày qua</option>
                                 <option value="6m">6 tháng qua</option>
                                 <option value="all">Toàn bộ</option>
                             </select>
                         </label>
+                        <div class="mode-seg" id="bots-basis" role="group" aria-label="Tính kết quả theo"
+                             title="Theo rủi ro: mỗi lệnh đã đóng chia cho số tiền nó chịu lúc vào (lot × khoảng stop), nên đổi cỡ lệnh không làm lệch kết quả"><button type="button" data-mode="usd" aria-pressed="true">Theo $</button><button type="button" data-mode="risk" aria-pressed="false">Theo rủi ro</button></div>
                         <button id="setup-instances-btn" class="log-btn"><i data-lucide="layout-grid" class="btn-icon"></i> Cài bot từ mẫu</button>
                         <button id="add-bot-btn" class="log-btn"><i data-lucide="plus" class="btn-icon"></i> Thêm bot</button>
                     </div>
@@ -575,7 +445,7 @@
                                 </div>
                                 <div>
                                     <label for="setup-acc-email" style="font-size:0.75rem; color:var(--text-muted); display:block; margin-bottom:4px;">Email cTID</label>
-                                    <input type="text" id="setup-acc-email" class="log-input" style="width:100%" placeholder="you@example.com" autocomplete="off">
+                                    <input type="text" id="setup-acc-email" class="log-input" style="width:100%" placeholder="email đăng nhập cTrader" autocomplete="off">
                                 </div>
                                 <div>
                                     <label for="setup-acc-password" style="font-size:0.75rem; color:var(--text-muted); display:block; margin-bottom:4px;">Mật khẩu cTID (ghi vào file quyền 0600, không lưu vào DB)</label>
@@ -618,8 +488,8 @@
                                     <th>Trạng thái</th>
                                     <th class="num">Rủi ro / lệnh</th>
                                     <th class="num">Đang giữ</th>
-                                    <th class="num bots-period-head">Lời/lỗ</th>
-                                    <th class="num">Số lệnh</th>
+                                    <th class="num bots-period-head" data-usd="Lời/lỗ" data-risk="Lời/lỗ (R)">Lời/lỗ</th>
+                                    <th class="num" title="Lệnh thắng / lệnh đã đóng trong khoảng đã chọn">Thắng / lệnh</th>
                                     <th class="num" title="Tổng lời / tổng lỗ của các lệnh đã đóng">Hệ số lời</th>
                                     <th class="bot-actions-head"><span class="sr-only">Thao tác</span></th>
                                 </tr>
@@ -646,8 +516,8 @@
                                         <th>Trạng thái</th>
                                         <th class="num">Rủi ro / lệnh</th>
                                         <th class="num">Đang giữ</th>
-                                        <th class="num bots-period-head">Lời/lỗ</th>
-                                        <th class="num">Số lệnh</th>
+                                        <th class="num bots-period-head" data-usd="Lời/lỗ" data-risk="Lời/lỗ (R)">Lời/lỗ</th>
+                                        <th class="num" title="Lệnh thắng / lệnh đã đóng trong khoảng đã chọn">Thắng / lệnh</th>
                                         <th class="num" title="Tổng lời / tổng lỗ của các lệnh đã đóng">Hệ số lời</th>
                                         <th class="bot-actions-head"><span class="sr-only">Thao tác</span></th>
                                     </tr>
@@ -657,108 +527,131 @@
                         </div>
                     </div>
                 </details>
-                <p class="bots-more"><a href="#leaderboard" id="bots-more-link">Xếp hạng chi tiết: điểm, tỷ lệ thắng, chấm theo rủi ro</a></p>
             </div>
 
             <!-- Ledger View (static/js/ledger.js) -->
-            <div id="view-ledger" class="view-section">
-                <section class="panel">
-                    <div class="panel-header">
-                        <span class="panel-title"><i data-lucide="book-open" class="panel-icon text-blue"></i> Sổ tiền</span>
-                        <button id="lg-refresh-btn" class="log-btn" style="margin-left:auto;"><i data-lucide="refresh-cw" class="btn-icon"></i> Làm mới</button>
+            {# Sổ tiền (redesign D, 2026-11-01): per account, does the book match the broker; the changes nothing explains
+               yet are the to-do, the recorded deposits and withdrawals fold below. #}
+            <div id="view-ledger" class="view-section page">
+                <div class="ov-title page-head">
+                    <div>
+                        <h1>Sổ tiền</h1>
+                        <p id="lg-status" class="ov-status ov-status--checking" aria-live="polite">Đang tải sổ tiền…</p>
                     </div>
-                    <div class="panel-body">
-                        <p class="td-dim lg-hint">Sổ bắt đầu từ 0: số dư dự kiến = nạp − rút + lời/lỗ các lệnh bot đã đóng. Chênh lệch là khoản tiền sổ chưa giải thích được: ghi nạp và rút ở đây, từ danh sách biến động số dư chưa rõ hoặc nhập tay.</p>
+                    <div class="page-tools">
+                        <button id="lg-refresh-btn" class="log-btn"><i data-lucide="refresh-cw" class="btn-icon"></i> Làm mới</button>
                     </div>
-                </section>
+                </div>
                 <div id="lg-body"><p class="td-dim">Đang tải…</p></div>
+                <details class="page-help">
+                    <summary>Cách đọc sổ tiền</summary>
+                    <ul>
+                        <li>Sổ bắt đầu từ 0: <b>số dư dự kiến</b> = nạp − rút + lời/lỗ các lệnh bot đã đóng.</li>
+                        <li><b>Chênh lệch</b> = số dư bên sàn − số dư dự kiến: khoản tiền sổ chưa giải thích được. Trong mức làm tròn thì coi là khớp.</li>
+                        <li>Mỗi lần số dư đổi mà không có lệnh đóng nào gần đó, dòng đó hiện trong danh sách chưa ghi: nếu là nạp hoặc rút thì bấm ghi lại, hoặc tự nhập ở mục "Nạp và rút đã ghi".</li>
+                    </ul>
+                </details>
             </div>
 
             <!-- Research View: research/registry.yaml by tier, forward trackers, pending and tried (static/js/research.js) -->
-            <div id="view-research" class="view-section">
-{{ research_tabs('research') }}                <section class="panel">
-                    <div class="panel-header">
-                        <span class="panel-title"><i data-lucide="microscope" class="panel-icon text-blue"></i> Ứng viên</span>
-                        <span id="rs-meta" class="td-dim rs-meta"></span>
-                        <button id="rs-refresh-btn" class="log-btn"><i data-lucide="refresh-cw" class="btn-icon"></i> Làm mới</button>
-                    </div>
-                    <div class="panel-body rs-panel-body">
-                        <p class="td-dim lg-hint">Mọi thuật toán đã nghiên cứu, theo bậc: Đang live, Demo, Chờ kiểm, Đã loại (docs/research-screen.md). Bấm một dòng để xem số nghiên cứu (IS, VAL, HOLD) và kết quả kiểm chứng so với luật dừng và nâng hạng đã đăng ký trước. Số chỉ lấy từ sổ nghiên cứu và từ lệnh của bot kiểm chứng.</p>
-                        <div id="rs-warning"></div>
-                        <div class="rs-toolbar">
-                            <div id="rs-chips" class="rs-chips" role="group" aria-label="Lọc theo bậc"></div>
-                            <input type="search" id="rs-search" class="log-input rs-search" placeholder="Tìm theo tên, thị trường…" aria-label="Tìm thuật toán">
-                        </div>
-                    </div>
-                </section>
+            <div id="view-research" class="view-section page">
+{{ research_tabs('research') }}                <div class="rs-head">
+                    <p id="rs-status" class="ov-status ov-status--checking" aria-live="polite">Đang đọc sổ nghiên cứu…</p>
+                    <span id="rs-meta" class="rs-meta"></span>
+                    <button id="rs-refresh-btn" class="log-btn"><i data-lucide="refresh-cw" class="btn-icon"></i> Làm mới</button>
+                </div>
+                <div id="rs-warning"></div>
+                <div class="rs-toolbar">
+                    <div id="rs-chips" class="rs-chips" role="group" aria-label="Lọc theo bậc"></div>
+                    <input type="search" id="rs-search" class="log-input rs-search" placeholder="Tìm theo tên, thị trường…" aria-label="Tìm thuật toán">
+                </div>
                 <div id="rs-grid" class="rs-grid"><p class="td-dim">Đang tải…</p></div>
-                <div id="rs-pending"></div>
                 <div id="rs-tried"></div>
+                <details class="page-help">
+                    <summary>Cách đọc màn Ứng viên</summary>
+                    <ul>
+                        <li>Mọi thuật toán đã nghiên cứu, theo bậc: <b>Đang live</b>, <b>Demo</b>, <b>Chờ kiểm</b>, <b>Đã loại</b> (docs/research-screen.md).</li>
+                        <li>Bấm một dòng để xem số nghiên cứu (IS, VAL, HOLD) và kết quả kiểm chứng so với luật dừng và nâng hạng đã đăng ký trước.</li>
+                        <li>Số chỉ lấy từ sổ nghiên cứu và từ lệnh của bot kiểm chứng.</li>
+                    </ul>
+                </details>
             </div>
 
             <!-- Paper desk View: LLM analyst calls and their score (static/js/paper_desk.js) -->
-            <div id="view-paper-desk" class="view-section">
-{{ research_tabs('paper-desk') }}                <section class="panel">
-                    <div class="panel-header">
-                        <span class="panel-title"><i data-lucide="bot" class="panel-icon text-blue"></i> Dự đoán AI</span>
-                        <button id="pd-refresh-btn" class="log-btn" style="margin-left:auto;"><i data-lucide="refresh-cw" class="btn-icon"></i> Làm mới</button>
-                    </div>
-                    <div class="panel-body">
-                        <p class="td-dim lg-hint">Thí nghiệm không dùng tiền (docs/paper-desk.md): các mô hình DeepSeek đoán hướng cho 6 cặp mỗi ngày làm việc, trước giờ vào lệnh 07:00 UTC. "Có chọn hướng" là mua hoặc bán; đoán 0 là không vào lệnh. Bp ròng dùng chi phí đo được ở research/results/portfolio/paper_desk_costs_2026-10-29.md. Kể cả khi "Đạt" cũng chỉ cho phép thử trên demo một quy tắc đã cố định.</p>
-                        <div id="pd-body"><p class="td-dim">Đang tải…</p></div>
-                    </div>
-                </section>
+            <div id="view-paper-desk" class="view-section page">
+{{ research_tabs('paper-desk') }}                <div class="rs-head">
+                    <p id="pd-status" class="ov-status ov-status--checking" aria-live="polite">Đang tải Dự đoán AI…</p>
+                    <button id="pd-refresh-btn" class="log-btn rs-head-end"><i data-lucide="refresh-cw" class="btn-icon"></i> Làm mới</button>
+                </div>
+                <div id="pd-body"><p class="td-dim">Đang tải…</p></div>
+                <details class="page-help">
+                    <summary>Cách đọc Dự đoán AI</summary>
+                    <ul>
+                        <li>Thí nghiệm không dùng tiền (docs/paper-desk.md): các mô hình DeepSeek đoán hướng cho 6 cặp mỗi ngày làm việc, trước giờ vào lệnh 07:00 UTC.</li>
+                        <li><b>Có chọn hướng</b> là mua hoặc bán; đoán 0 là không vào lệnh.</li>
+                        <li><b>Bp ròng</b> dùng chi phí đo được ở research/results/portfolio/paper_desk_costs_2026-10-29.md.</li>
+                        <li>Kể cả khi "Đạt" cũng chỉ cho phép thử trên demo một quy tắc đã cố định.</li>
+                    </ul>
+                </details>
             </div>
 
             <!-- Calendar View: Gotobi and ECB window trades by day (static/js/gotobi_calendar.js) -->
-            <div id="view-calendar" class="view-section">
-                <section class="panel">
-                    <div class="panel-header">
-                        <span class="panel-title"><i data-lucide="calendar-days" class="panel-icon text-blue"></i> Lịch</span>
-                        <div class="gc-nav">
-                            <div class="mode-seg" id="gc-mode" role="group" aria-label="Lịch của tiền thật hay demo"><button type="button" data-mode="live" aria-pressed="true">Thật</button><button type="button" data-mode="demo" aria-pressed="false">Demo</button></div>
-                            <button id="gc-prev-btn" class="log-btn" title="Tháng trước">◀</button>
+            {# Lịch (redesign D, 2026-11-01): the month's answer in one line under the title, the grid, then the
+               chosen day's trades; the long explanation is folded under "Cách đọc lịch". #}
+            <div id="view-calendar" class="view-section page">
+                <div class="ov-title page-head">
+                    <div>
+                        <h1>Lịch</h1>
+                        <p id="gc-status" class="ov-status ov-status--checking" aria-live="polite">Đang tải lịch…</p>
+                    </div>
+                    <div class="page-tools gc-nav">
+                        <div class="mode-seg" id="gc-mode" role="group" aria-label="Lịch của tiền thật hay demo"><button type="button" data-mode="live" aria-pressed="true">Thật</button><button type="button" data-mode="demo" aria-pressed="false">Demo</button></div>
+                        <div class="gc-month" role="group" aria-label="Chọn tháng">
+                            <button id="gc-prev-btn" class="log-btn" aria-label="Tháng trước">‹</button>
                             <span id="gc-month-label" class="gc-month-label"></span>
-                            <button id="gc-next-btn" class="log-btn" title="Tháng sau">▶</button>
-                            <button id="gc-today-btn" class="log-btn" title="Tháng này">Hôm nay</button>
+                            <button id="gc-next-btn" class="log-btn" aria-label="Tháng sau">›</button>
                         </div>
+                        <button id="gc-today-btn" class="log-btn">Tháng này</button>
                     </div>
-                    <div class="panel-body gc-panel-body">
-                        <p class="td-dim lg-hint">Ngày gotobi (mùng 5, 10, 15, 20, 25 và cuối tháng; rơi vào cuối tuần thì lùi về thứ Sáu trước đó) và các lệnh GotobiBot mở cho từng ngày: lệnh mua từ tối hôm trước, lệnh bán lúc fix Tokyo 07:55 giờ Việt Nam. Lệnh nguỵ trang (đặt vào ngày thường để che chiến lược) được tính riêng. BỎ QUA = ngày lễ Nhật có trong SkipDates của mẫu bot. ECB = các lệnh bán EURUSD của bot ECB (bán lúc 18:00 giờ Việt Nam mùa đông, 17:00 mùa hè, đóng sau hai giờ): F3 vào ngày USD-TOP, E1 mọi ngày làm việc, tính theo ngày mở lệnh. Khi đã cài bot ECB, các ngày tới của E1 ghi "theo lịch" (ngày đã qua mà không có lệnh ghi "không có lệnh"), còn thứ Ba đến thứ Sáu sắp tới của F3 ghi "nếu USD-TOP": 07:00 giờ London bot mới biết ngày đó có đủ điều kiện không.</p>
-                        <div id="gc-body"><p class="td-dim">Đang tải…</p></div>
-                        <div id="gc-day"></div>
-                    </div>
-                </section>
+                </div>
+                <div id="gc-body"><p class="td-dim">Đang tải…</p></div>
+                <div id="gc-day" class="gc-day"></div>
+                <details class="page-help">
+                    <summary>Cách đọc lịch</summary>
+                    <ul>
+                        <li><b>Ngày gotobi</b>: mùng 5, 10, 15, 20, 25 và cuối tháng; rơi vào cuối tuần thì lùi về thứ Sáu trước đó. GotobiBot mua từ tối hôm trước và bán lúc fix Tokyo 07:55 giờ Việt Nam.</li>
+                        <li><b>Nguỵ trang</b>: lệnh nhỏ đặt vào ngày thường để che chiến lược, tính riêng, không cộng vào lời/lỗ thật.</li>
+                        <li><b>Bỏ qua</b>: ngày lễ Nhật có trong SkipDates của mẫu bot.</li>
+                        <li><b>ECB</b>: lệnh bán EURUSD của bot ECB, vào lúc 18:00 giờ Việt Nam mùa đông (17:00 mùa hè), đóng sau hai giờ, tính theo ngày mở lệnh. F3 (tiền thật) chỉ vào ngày USD-TOP, E1 (demo) vào mọi ngày làm việc.</li>
+                        <li>Ngày tới của E1 ghi "theo lịch"; ngày đã qua mà không có lệnh ghi "không có lệnh". Thứ Ba đến thứ Sáu sắp tới của F3 ghi "nếu USD-TOP": 07:00 giờ London bot mới biết ngày đó có đủ điều kiện không.</li>
+                    </ul>
+                </details>
             </div>
 
             <!-- Agent Logs View -->
-            <div id="view-logs" class="view-section">
-                <section class="panel log-section">
-                    <div class="panel-header">
-                        <span class="panel-title"><i data-lucide="scroll-text" class="panel-icon text-blue"></i> Nhật ký trực tiếp</span>
-                        <span id="log-status" class="td-dim">Tự làm mới</span>
+            <div id="view-logs" class="view-section page">
+                <div class="ov-title page-head">
+                    <div>
+                        <h1>Nhật ký</h1>
+                        <p id="log-status" class="ov-status ov-status--checking" aria-live="polite">Đang tải nhật ký…</p>
                     </div>
-                    <div class="panel-body log-panel-wrap">
-                        <div class="log-toolbar">
-                            <div class="log-toolbar-group">
-                                <div class="mode-seg" id="log-mode" role="group" aria-label="Nhật ký của bot nào"><button type="button" data-mode="all" aria-pressed="true">Tất cả</button><button type="button" data-mode="live" aria-pressed="false">Thật</button><button type="button" data-mode="demo" aria-pressed="false">Demo</button></div>
-                                <label for="log-date-select" class="td-dim">Ngày:</label>
-                                <select id="log-date-select" class="log-select"></select>
-                                <input type="text" id="log-filter-input" class="log-input" placeholder="Lọc nhật ký (vd OPEN, CLOSE, WATCHDOG)…" style="min-width: 240px;">
-                            </div>
-                            <div class="log-toolbar-group">
-                                <label style="display:flex;align-items:center;gap:4px;cursor:pointer;font-size:0.75rem;">
-                                    <input type="checkbox" id="log-autoscroll" checked> Tự cuộn
-                                </label>
-                                <button id="log-refresh-btn" class="log-btn"><i data-lucide="refresh-cw" class="btn-icon"></i> Làm mới</button>
-                                <button id="log-clear-btn" class="log-btn"><i data-lucide="trash-2" class="btn-icon"></i> Xoá màn hình</button>
-                            </div>
-                        </div>
-                        <div id="agent-log-box" class="log-terminal">
-                            <div class="log-line td-dim">Đang tải nhật ký…</div>
-                        </div>
+                </div>
+                <div class="log-toolbar">
+                    <div class="log-toolbar-group">
+                        <div class="mode-seg" id="log-mode" role="group" aria-label="Nhật ký của bot nào"><button type="button" data-mode="all" aria-pressed="true">Tất cả</button><button type="button" data-mode="live" aria-pressed="false">Thật</button><button type="button" data-mode="demo" aria-pressed="false">Demo</button></div>
+                        <label for="log-date-select" class="log-label">Ngày</label>
+                        <select id="log-date-select" class="log-select"></select>
+                        <input type="search" id="log-filter-input" class="log-input log-filter" placeholder="Lọc: tên bot, OPEN, CLOSE, WATCHDOG…" aria-label="Lọc nhật ký">
                     </div>
-                </section>
+                    <div class="log-toolbar-group">
+                        <label class="log-label log-check"><input type="checkbox" id="log-autoscroll" checked> Tự cuộn</label>
+                        <button id="log-refresh-btn" class="log-btn"><i data-lucide="refresh-cw" class="btn-icon"></i> Làm mới</button>
+                        <button id="log-clear-btn" class="log-btn" title="Chỉ ẩn khỏi màn hình, file nhật ký vẫn còn">Ẩn các dòng đang xem</button>
+                    </div>
+                </div>
+                <div id="agent-log-box" class="log-terminal" role="log" aria-label="Các dòng nhật ký">
+                    <div class="log-line td-dim">Đang tải nhật ký…</div>
+                </div>
             </div>
 
         </main>
@@ -789,8 +682,7 @@
             currentMode: '{{ current_mode }}',
             pnlHistory: {{ pnl_history | tojson }},
             positions: {{ positions | tojson }},
-            leaderboard: {{ leaderboard | tojson }},
         };
     </script>
-    <script src="/static/js/dashboard.js?v=20261101_d4"></script>
+    <script src="/static/js/dashboard.js?v=20261102_d5"></script>
 </body></html>

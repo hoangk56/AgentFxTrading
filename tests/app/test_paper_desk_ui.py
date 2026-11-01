@@ -26,7 +26,8 @@ def test_paper_desk_renderer_escapes_external_strings():
     dash = DASHBOARD_JS.read_text(encoding="utf-8")
     src = JS.read_text(encoding="utf-8")
     helpers = _function(dash, "escapeHtml")
-    renderers = "\n".join(_function(src, n) for n in ("pdNum", "pdPct", "pdCoverageHtml", "pdVerdictLabel", "pdScoreHtml", "pdHtml"))
+    renderers = "\n".join(_function(src, n) for n in ("pdNum", "pdPct", "pdCoverageHtml", "pdWhen", "pdVerdictLabel",
+                                                         "pdScoreHtml", "pdProgress", "pdStatusOf", "pdSummaryHtml", "pdHtml"))
     cov = {"analysts": [{"analyst": HOSTILE, "calls": 10, "traded": 4, "long": 3, "short": 1, "errors": 2,
                          "directional_rate": 0.4}],
            "recent_days": [{"date": HOSTILE, "symbols": 6, "calls": 24, "traded": 5, "errors": 0}],
@@ -35,10 +36,16 @@ def test_paper_desk_renderer_escapes_external_strings():
     score = {"scored_at": HOSTILE, "scored_cells": 3, "cells": 6,
              "analysts": {HOSTILE: stat}, "baselines": {"always_long": dict(stat, verdict="BASELINE")}}
     script = f"{helpers}\n{renderers}\nconst d = {json.dumps({'coverage': cov, 'score': score})};\n" \
-             "console.log(JSON.stringify({t: pdHtml(d), e: pdHtml({coverage: {analysts: []}, score: null})}));"
+             "console.log(JSON.stringify({t: pdHtml(d), e: pdHtml({coverage: {analysts: []}, score: null})," \
+             " s: pdStatusOf(d), es: pdStatusOf({coverage: {analysts: []}})}));"
     run = subprocess.run([NODE, "-e", script], capture_output=True, text=True, timeout=30)
     assert run.returncode == 0, run.stderr
     out = json.loads(run.stdout)
     assert "<img" not in out["t"].lower() and "evil&lt;img" in out["t"]
-    assert "-1.50" in out["t"] and ">Chưa đủ</span>" in out["t"] and "Ngày trong tuần không có lượt dự đoán" in out["t"]
+    assert "-1.50" in out["t"] and ">Chưa đủ</span>" in out["t"] and "Ngày làm việc không có lượt dự đoán" in out["t"]
+    # the answer first: how far from a verdict, and the score before the coverage tables
+    assert out["s"] == ["warn", "Chưa đủ để kết luận: 4 / 600 lượt có chọn hướng · với nhịp hiện tại cần thêm khoảng "
+                        "30 tuần làm việc · thiếu 1 ngày làm việc"]
+    assert out["t"].index("pd-stats") < out["t"].index(">Điểm<") < out["t"].index(">Từng AI<")
+    assert out["es"] == ["", "Chưa có lượt dự đoán nào"]
     assert "Chưa có lượt dự đoán nào" in out["e"] and "Chưa có điểm" in out["e"]

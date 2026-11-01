@@ -80,7 +80,7 @@ def test_the_avg_win_loss_pair_may_wrap_in_its_card():
 
 def test_job_list_heads_position_columns():
     html = client.get("/demo/dashboard").text
-    assert "<th>% thắng (lệnh)</th>" in html and "<th>Số lệnh</th>" in html
+    assert "<th class=\"num\">% thắng (lệnh)</th>" in html and "<th class=\"num\">Số lệnh</th>" in html
 
 
 HARNESS = r"""
@@ -168,9 +168,10 @@ def test_position_stats_lead_and_deal_stats_stay_labelled():
     assert "bt-kpi-wrap\">+$33.84 / −$44.93" in kpi and "mỗi lần chốt +$18.20 / −$42.33" in kpi
     assert "Lỗ nguyên lệnh" in kpi and "57.8%" in kpi
     assert "—%" not in out["kpiOld"] and "56.2% theo lần chốt" in out["kpiOld"]
-    assert "42.22<div" in out["rowNew"] and "56.20 lần chốt" in out["rowNew"]
-    assert "270<div" in out["rowNew"] and "379 lần chốt" in out["rowNew"]
-    assert "—<div" in out["rowOld"] and "56.20 lần chốt" in out["rowOld"]   # saved before position stats
+    # the list shows the per-position figure; the per-deal one is its tooltip (the run's detail shows both)
+    assert ">42.2%</td>" in out["rowNew"] and 'title="56.2% theo lần chốt"' in out["rowNew"]
+    assert ">270</td>" in out["rowNew"] and 'title="379 lần chốt"' in out["rowNew"]
+    assert ">—</td>" in out["rowOld"] and 'title="56.2% theo lần chốt"' in out["rowOld"]   # saved before position stats
 
 
 @pytest.mark.skipif(NODE is None, reason="node is not installed")

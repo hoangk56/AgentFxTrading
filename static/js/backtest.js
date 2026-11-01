@@ -48,7 +48,7 @@ function btNum(v, digits = 2) {
 function btMoney(v) {
     const n = Number(v);
     if (v === null || v === '' || !Number.isFinite(n)) return '—';
-    return `${n < 0 ? '−' : n > 0 ? '+' : ''}$${Math.abs(n).toFixed(2)}`;
+    return `${n < 0 ? '−' : n > 0 ? '+' : ''}$${Math.abs(n).toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
 }
 
 function btPct(v, digits = 1) {
@@ -119,14 +119,17 @@ function btParamGroupsHtml(view, overrides, openGroups) {
 
 function btLockedHtml(locked) {
     const items = Object.entries(locked || {}).map(([k, v]) => `${escapeHtml(k)}=${escapeHtml(v)}`).join(' · ');
-    return `🔒 Cố định khi backtest: ${items}`;
+    return `Cố định khi backtest: ${items}`;
 }
 
 function btChipsHtml(overrides) {
     const entries = Object.entries(overrides || {});
     if (!entries.length) return '<span class="td-dim">(theo bot)</span>';
+    // The sizing flags read in words, as on the Bot screen; any other parameter keeps its cBot name.
+    const word = {RiskPerTradeMoney: 'Rủi ro $', MaxLotsPerTrade: 'Lot tối đa', Lots: 'Lot'};
+    const num = v => (v === null || v === undefined || v === '' || Number.isNaN(Number(v)) ? v : String(Number(v)));
     return entries.map(([k, c]) =>
-        `<span class="bt-chip">${escapeHtml(k)} ${escapeHtml((c && c.from) ?? '—')}→${escapeHtml(c && c.to)}</span>`).join(' ');
+        `<span class="bt-chip" title="${escapeHtml(k)}">${escapeHtml(word[k] || k)} ${escapeHtml(num((c && c.from) ?? '—'))}→${escapeHtml(num(c && c.to))}</span>`).join(' ');
 }
 
 function btStatusHtml(job) {
@@ -145,6 +148,14 @@ function btRunsInfoText(counts, maxParallel) {
     const max = Number(maxParallel);
     const slots = Number.isFinite(max) && max > 0 ? `${count('running')}/${max} đang chạy` : `${count('running')} đang chạy`;
     return `${slots} · ${count('queued')} đang chờ`;
+}
+
+/** The title line: what is running now, else how many runs are kept. */
+function btStatusLine(data) {
+    const running = Number(data && data.running) || 0, queued = Number(data && data.queued) || 0;
+    const total = Number(data && data.total) || 0;
+    if (running || queued) return `${running} đang chạy · ${queued} đang chờ · ${total} lần chạy đã lưu`;
+    return total ? `Không có backtest nào đang chạy · ${total} lần chạy đã lưu` : 'Chưa có backtest nào';
 }
 
 function btParallelOptionsHtml(current, cap) {
@@ -171,34 +182,36 @@ async function btSaveParallel(e) {
 }
 
 function btJobRowsHtml(jobs, selected) {
-    if (!jobs.length) return '<tr><td colspan="13" class="td-dim" style="text-align:center;">Chưa có backtest nào</td></tr>';
+    if (!jobs.length) return '<tr><td colspan="11" class="td-dim" style="text-align:center;">Chưa có backtest nào</td></tr>';
     return jobs.map(j => {
         const id = Number(j.id);
         const s = j.summary || {};
         const done = j.status === 'done';
         const active = j.status === 'queued' || j.status === 'running';
         const cell = (v, kind) => (done ? btFormat(v, kind) : '—');
-        // Summaries saved before the position stats existed show only the deal figure.
-        const withDeals = (pos, deals, kind) =>
-            (done ? `${btFormat(pos, kind)}<div class="td-dim bt-small">${btFormat(deals, kind)} lần chốt</div>` : '—');
         const lastButton = active
             ? `<button class="log-btn bt-act" data-act="cancel" data-id="${id}">Huỷ</button>`
             : `<button class="log-btn bt-act" data-act="delete" data-id="${id}">Xoá</button>`;
-        return `<tr>
-            <td><input type="checkbox" class="bt-select" data-id="${id}"${done ? '' : ' disabled'}${selected.has(id) ? ' checked' : ''}></td>
-            <td>#${id}</td>
-            <td>${escapeHtml(j.symbol)} <span class="td-dim">${escapeHtml(j.period)}</span><div class="td-dim bt-small">${escapeHtml(j.bot_name)}</div></td>
-            <td>${escapeHtml(btDateText(j.start_date))} – ${escapeHtml(btDateText(j.end_date))}<div class="td-dim bt-small">${escapeHtml(j.data_mode)}</div></td>
-            <td>${btChipsHtml(j.overrides)}</td>
+        // A profit factor of one or two trades is noise (0.00 after one loss): the Bot screen's 5-trade rule.
+        const pf = done && Number(s.positions ?? s.total_trades) < 5 ? '<span class="td-dim" title="Cần ít nhất 5 lệnh">ít lệnh</span>'
+            : cell(s.profit_factor, 'num');
+        const live = /(^|[-_])live([-_]|$)/i.test(String(j.bot_name || ''));
+        const changes = Object.keys(j.overrides || {}).length ? `<div class="bt-sub">${btChipsHtml(j.overrides)}</div>` : '';
+        const note = j.note ? `<div class="bt-sub bt-note" title="${escapeHtml(j.note)}">${escapeHtml(j.note)}</div>` : '';
+        const openable = done || j.status === 'failed';
+        return `<tr class="bt-row${openable ? ' bt-row--open' : ''}" data-id="${id}">
+            <td><input type="checkbox" class="bt-select" data-id="${id}" aria-label="Chọn #${id} để so sánh"${done ? '' : ' disabled'}${selected.has(id) ? ' checked' : ''}></td>
+            <td class="num">${openable ? `<button type="button" class="bt-act bt-id" data-act="view" data-id="${id}" aria-label="Xem lần chạy #${id}">#${id}</button>` : `#${id}`}</td>
+            <td>${escapeHtml(j.symbol)} <span class="td-dim">${escapeHtml(j.period)}</span>${live ? ' <span class="mode-chip mode-chip--live">Thật</span>' : ''}
+                <div class="td-dim bt-small">${escapeHtml(j.bot_name)}</div>${changes}${note}</td>
+            <td>${escapeHtml(btDateText(j.start_date).replace(/\/\d\d(\d\d)$/, '/$1'))} – ${escapeHtml(btDateText(j.end_date).replace(/\/\d\d(\d\d)$/, '/$1'))}<div class="td-dim bt-small">${escapeHtml(j.data_mode)}</div></td>
             <td>${btStatusHtml(j)}</td>
-            <td class="${done ? btSignClass(s.net_profit) : ''}">${cell(s.net_profit, 'money')}</td>
-            <td>${cell(s.profit_factor, 'num')}</td>
-            <td>${withDeals(s.position_win_rate, s.win_rate, 'num')}</td>
-            <td>${cell(s.max_equity_dd_pct, 'num')}</td>
-            <td>${withDeals(s.positions, s.total_trades, 'int')}</td>
-            <td class="bt-note">${escapeHtml(j.note || '')}</td>
+            <td class="num ${done ? btSignClass(s.net_profit) : ''}">${cell(s.net_profit, 'money')}</td>
+            <td class="num">${pf}</td>
+            <td class="num" title="${done ? `${escapeHtml(btPct(s.win_rate))} theo lần chốt` : ''}">${done ? btPct(s.position_win_rate) : '—'}</td>
+            <td class="num">${done ? btPct(s.max_equity_dd_pct) : '—'}</td>
+            <td class="num" title="${done ? `${escapeHtml(btFormat(s.total_trades, 'int'))} lần chốt` : ''}">${done ? btFormat(s.positions ?? s.total_trades, 'int') : '—'}</td>
             <td><div class="bt-actions">
-                <button class="log-btn bt-act" data-act="view" data-id="${id}"${done || j.status === 'failed' ? '' : ' disabled'}>Xem</button>
                 <button class="log-btn bt-act" data-act="clone" data-id="${id}">Nhân bản</button>
                 ${lastButton}
             </div></td>
@@ -384,7 +397,8 @@ async function btOnShow() {
 function btInitForm() {
     const perPage = Number(btStored('bt-per-page', ''));
     if (BT_PAGE_SIZES.includes(perPage)) bt.perPage = perPage;
-    btSetFormOpen(btStored('bt-form-collapsed', 'false') !== 'true');
+    // Folded by default (redesign D): the list of runs is what the screen opens on; the header opens the form.
+    btSetFormOpen(btStored('bt-form-collapsed', 'true') !== 'true');
     document.getElementById('bt-form-toggle').addEventListener('click', () => {
         const open = document.getElementById('bt-form-panel').classList.contains('bt-collapsed');
         btSetFormOpen(open);
@@ -566,6 +580,11 @@ async function btRefreshJobs() {
         bt.selected = new Set([...bt.selected].filter(id => !notDone.has(id)));
         document.getElementById('bt-jobs-tbody').innerHTML = btJobRowsHtml(bt.jobs, bt.selected);
         document.getElementById('bt-runs-info').textContent = btRunsInfoText(data, data.max_parallel);
+        const status = document.getElementById('bt-status');
+        if (status) {
+            status.textContent = btStatusLine(data);
+            status.className = `ov-status${data.active > 0 ? ' ov-status--warn' : ''}`;
+        }
         const parallel = document.getElementById('bt-parallel');
         if (document.activeElement !== parallel) parallel.innerHTML = btParallelOptionsHtml(data.max_parallel, data.max_parallel_cap);
         document.getElementById('bt-pager').innerHTML = btPagerHtml(bt.page, bt.perPage, bt.total);
@@ -655,7 +674,12 @@ function btStepDetail(step) {
 
 async function btOnJobAction(e) {
     const btn = e.target.closest('.bt-act');
-    if (!btn) return;
+    if (!btn) {
+        // The whole row of a finished run opens it, except its checkbox and buttons.
+        const row = e.target.closest('tr.bt-row--open');
+        if (row && !e.target.closest('input,button,a,label')) await btShowDetail(Number(row.dataset.id)).catch(err => btMessage(err.message, true));
+        return;
+    }
     const id = Number(btn.dataset.id);
     try {
         if (btn.dataset.act === 'view') {
@@ -667,7 +691,7 @@ async function btOnJobAction(e) {
             await btFetchJson(`/api/backtests/${id}/cancel`, {method: 'POST'});
             await btRefreshJobs();
         } else if (btn.dataset.act === 'delete') {
-            if (!confirm(`Xoá backtest #${id} và báo cáo của nó?`)) return;
+            if (!await askConfirm({title: `Xoá backtest #${id}?`, body: 'Báo cáo và biểu đồ của lần chạy này bị xoá theo.', ok: 'Xoá'})) return;
             btn.disabled = true;
             await btFetchJson(`/api/backtests/${id}`, {method: 'DELETE'});
             bt.selected.delete(id);
