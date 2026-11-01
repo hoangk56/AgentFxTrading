@@ -10,3 +10,6 @@ pydantic>=2.7.0
 python-dotenv>=1.0.1
 httpx>=0.27.0  # fastapi.testclient
 psycopg2-binary>=2.9.9
+
+# Research view registry (research/registry.yaml, app/research_api.py)
+pyyaml>=6.0

@@ -1,0 +1,574 @@
+# Sổ đăng ký research của AgentFx, đọc bởi code app cho màn "Nghiên cứu" trên dashboard.
+# Viết lúc 2026-11-01 06:07 UTC (date -u), chép từ research/JOURNAL.md, research/PROMPT.md, các báo cáo vòng trong
+# research/results/portfolio/ và docs/forward-candidates.md. File kết quả thắng nếu số ở đây lệch.
+#
+# algorithms: mọi luật đã lên bậc DEMO trở lên, hoặc đang / từng chạy trên bot (live hay demo).
+#   tier: live (đang chạy tiền thật) | demo (qua holdout bậc DEMO, đang chạy hoặc được phép chạy demo / paper)
+#         | cho-kiem (bản nháp hoặc ứng viên đã đăng ký, chờ một lần xem holdout hay chờ người dùng quyết)
+#         | da-loai (từng là ứng viên / bot nhưng đã dừng hoặc trượt sau đó).
+#   Bậc chỉ đổi bằng cách sửa file này (kèm tier_reason và file làm căn cứ). App không tự đổi bậc.
+#   forward: khoá bộ theo dõi forward (ecb_f3 | ecb_e1 | gold_levels | basis_b) hoặc null.
+# tried: các họ giả thuyết đã test mà không đạt, mỗi nhánh (stream) một dòng, vòng mới nhất ở đầu.
+#   Luật đã đăng ký rồi trượt holdout nằm ở algorithms (da-loai), không lặp lại ở đây.
+# Sau mỗi vòng research: thêm dòng tried cho từng nhánh, thêm / sửa algorithms nếu có ứng viên mới hay bậc đổi.
+# Số viết kiểu Việt Nam: dấu phẩy thập phân, dấu chấm hàng nghìn. bp = phần vạn giá; R = bội số rủi ro mỗi lệnh.
+# Các kỷ: IS 2016–2021, VAL 2022–2024, HOLD 2025-01..2026-09 (luật crypto: IS 2020–2021, HOLD tới 2026-10-29).
+
+algorithms:
+  # ---------------------------------------------------------------- live
+  - id: c3-gotobi
+    name: Gotobi JPY (C3)
+    description: "Ngày gotobi (5, 10, 15, 20, 25 và cuối tháng) mua USDJPY, EURJPY, GBPJPY từ 18:00 UTC tới fix Tokyo 00:55 UTC, rồi bán 00:55 → 02:55 UTC; stop 3 x ATR20 H1, bỏ ngày lễ Nhật."
+    market: USDJPY, EURJPY, GBPJPY
+    round: Swing v2
+    tier: live
+    tier_reason: "Đạt holdout đã đăng ký (738 lệnh, R +0,042, t 2,9, cả 3 cặp lãi) và kỷ Dukascopy 2004–2015 (5.184 lệnh, R +0,038, t 4,8); thuật toán duy nhất qua bậc LIVE (research/results/portfolio/prereg_swing_v2.md, round7_new_data_2026-10-05.md)."
+    research:
+      is: "2016–2021: R +0,043/lệnh, t 5,4, 6/6 năm dương"
+      val: "2022–2024: R +0,041, t 3,7, 3/3 năm"
+      hold: "2025-01..2026-09: n 738, R +0,042, t 2,9, 2/2 năm; spread x1,5 vẫn +0,019"
+    forward: null
+    bot: "cbot-live-live-{usdjpy,eurjpy,gbpjpy}-fix-gotobi"
+    prereg: research/results/portfolio/prereg_swing_v2.md
+    report: research/results/portfolio/swing_lab_v2_2026-09-27.md
+
+  - id: ecb-f3
+    name: "ECB F3: bán EURUSD giữa trưa ngày USD mạnh"
+    description: "Bán EURUSD 11:00 → 13:00 giờ London, chỉ những ngày USD mạnh nhất từ tối hôm trước (bộ lọc USD-TOP), kỳ vọng EUR yếu dần trước giờ fix ECB."
+    market: EURUSD
+    round: R24
+    tier: live
+    tier_reason: "Qua holdout bậc RELAXED (117 lệnh, +2,00 bp/lệnh, t 2,16) nhưng chưa đạt luật lên live (cần gộp t ≥ 2,5); chạy tài khoản thật ở 0,01 lot chỉ để đo khớp lệnh từ 2026-10-16 (round24_relaxed/PREREG_R24_relaxed_hold.md, app/cbot_presets.py)."
+    research:
+      is: "2016–2021: n 381, +2,39 bp/lệnh, t 3,29"
+      val: "2022–2024: n 207, +3,01 bp, t 2,60"
+      hold: "2025-01..2026-09: n 117, +2,00 bp, t 2,16; 2025 +4,02, 2026 -0,91 (đang yếu đi)"
+    forward: ecb_f3
+    bot: cbot-live-live-eurusd-ecb-f3
+    prereg: research/results/portfolio/round24_relaxed/PREREG_R24_relaxed_hold.md
+    report: research/results/portfolio/round24_relaxed_2026-10-15.md
+
+  # ---------------------------------------------------------------- demo
+  - id: ecb-e1
+    name: "ECB E1: bán EURUSD giữa trưa mỗi ngày"
+    description: "Bán EURUSD 11:00 → 13:00 giờ London mọi ngày thường, kỳ vọng EUR yếu dần trước giờ fix ECB."
+    market: EURUSD
+    round: R13
+    tier: demo
+    tier_reason: "Qua holdout bậc DEMO nhưng yếu (444 lệnh, +0,64 bp/lệnh, t 0,99; vào và ra trễ 1 phút thì về 0); chạy demo 0,1 lot từ 2026-10-16 (round13_structural/PREREG_M_eurusd_midday.md)."
+    research:
+      is: "2016–2021: +1,17 bp/lệnh, t 3,29"
+      val: "2022–2024: +1,35 bp, t 2,46"
+      hold: "2025-01..2026-09: n 444, +0,64 bp, t 0,99; 2025 +1,37, 2026 -0,34"
+    forward: ecb_e1
+    bot: cbot-demo-demo-eurusd-ecb-e1
+    prereg: research/results/portfolio/round13_structural/PREREG_M_eurusd_midday.md
+    report: research/results/portfolio/round13_structural_2026-10-06.md
+
+  - id: gold-50
+    name: Vàng phá mốc $50
+    description: "Đặt lệnh stop chờ ngay sau một mốc $50 còn 'tươi' của vàng (mốc + nửa spread), vào theo chiều phá mốc, đóng sau 30 phút."
+    market: vàng (XAUUSD)
+    round: R27
+    tier: demo
+    tier_reason: "Qua holdout bậc DEMO (228 lệnh, +2,87 bp/lệnh, t 1,43) nhưng power 1,40 nên không lên live; chạy demo 0,01 lot từ 2026-10-18 (round27_levels_opens/PREREG_G_gold_round50_cascade.md)."
+    research:
+      is: "2016–2021: +5,99 bp/lệnh, t 2,66; 9/9 năm IS + VAL dương"
+      val: "2022–2024: +3,27 bp, t 1,81"
+      hold: "2025-01..2026-09: n 228, +2,87 bp, t 1,43; 2025 +0,80, 2026 +5,43; 5 lệnh lớn nhất chiếm 518/655 bp"
+    forward: gold_levels
+    bot: cbot-demo-demo-xauusd-levels-gold50
+    prereg: research/results/portfolio/round27_levels_opens/PREREG_G_gold_round50_cascade.md
+    report: research/results/portfolio/round27_levels_opens_2026-10-17.md
+
+  - id: basis-b
+    name: Perp altcoin rẻ hơn spot (basis B)
+    description: "Khi giá perp của một altcoin trên Binance rẻ hơn spot quá 100 bp so với trung vị 7 ngày, mua perp và bán khống spot (vay margin), thoát khi chênh lệch thu hẹp một nửa hoặc sau 24 giờ."
+    market: crypto Binance (altcoin)
+    round: R63
+    tier: demo
+    tier_reason: "Qua holdout bậc DEMO (429 lệnh, +213,5 bp/lệnh, t 14,38) nhưng IS t 2,46 < 2,5 nên không phải LIVE; 59 % lãi HOLD là funding nhận được; chưa có bot, lên live cần demo đo khả năng vay spot và giá khớp (round63_parallel/B/PREREG_B_cheap_basis.md)."
+    research:
+      is: "2020–2021: n 303, +286,5 bp/lệnh, t 2,46"
+      val: "2022–2024: n 333, +174,6 bp, t 6,41 (dữ liệu mở rộng: n 336, t 6,47)"
+      hold: "2025-01..2026-10: n 429, +213,5 bp, t 14,38; phí x1,5 +188,7; trễ 1 giờ +114,7 (t 8,27); vào sau 5 phút +222,8 (t 13,89)"
+    forward: basis_b
+    bot: basis-b-demo
+    prereg: research/results/portfolio/round63_parallel/B/PREREG_B_cheap_basis.md
+    report: research/results/portfolio/round63_parallel/B/STREAM_B.md
+
+  # ---------------------------------------------------------------- chờ kiểm
+  - id: x3-crypto-mom-carry
+    name: Đà + carry funding crypto theo tuần (X3)
+    description: "Mỗi tuần xếp 40 perp lớn nhất Binance theo điểm gộp đà 28 ngày và carry funding (50/50), mua 8 mã đầu, bán 8 mã cuối."
+    market: crypto Binance (perp)
+    round: R61
+    tier: cho-kiem
+    tier_reason: "Qua holdout bậc DEMO (94 tuần, +1,14 %/tuần, t 1,16; tuần tệ nhất -30 %, sụt tối đa -57 %) nhưng chưa có bot hay log paper: chạy demo cần tài khoản Binance, chờ người dùng quyết (round61_crypto_factors/PREREG_X3_crypto_mom_carry.md)."
+    research:
+      is: "2020–2021: 89 tuần, +2,39 %/tuần, t 4,32"
+      val: "2022–2024: 156 tuần, +0,83 %/tuần, t 1,51"
+      hold: "2025-01..2026-10: 94 tuần, +1,14 %/tuần, t 1,16; lãi đến từ đà, carry lỗ"
+    forward: null
+    bot: null
+    prereg: research/results/portfolio/round61_crypto_factors/PREREG_X3_crypto_mom_carry.md
+    report: research/results/portfolio/round61_crypto_factors_2026-10-31.md
+
+  - id: gold-settlement-bigday
+    name: Vàng vào giờ settlement COMEX ngày biến động lớn
+    description: "Ngày vàng đã chạy mạnh (top 10 %) tới 13:14 giờ New York, vào lệnh theo chiều đó lúc 13:15 và thoát 13:30 lúc chốt giá settlement COMEX."
+    market: vàng (XAUUSD)
+    round: R12
+    tier: cho-kiem
+    tier_reason: "Qua holdout bậc DEMO nhưng rất yếu (46 lệnh, +1,68 bp, t 0,37; ba lệnh quyết định trung bình); chưa chạy demo, chờ người dùng quyết (round12_flows_execution/PREREG_L_gold_settlement_bigday.md)."
+    research:
+      is: "2016–2021: n 150, +3,48 bp/lệnh, t 3,19"
+      val: "2022–2024: n 78, +2,11 bp, t 1,70"
+      hold: "2025-01..2026-09: n 46, +1,68 bp, t 0,37; 2025 +0,89, 2026 +3,49"
+    forward: null
+    bot: null
+    prereg: research/results/portfolio/round12_flows_execution/PREREG_L_gold_settlement_bigday.md
+    report: research/results/portfolio/round12_flows_execution_2026-10-06.md
+
+  - id: f15-eurjpy-quarter-end
+    name: Bán EURJPY sáng ngày cuối quý (F15)
+    description: "Ngày làm việc cuối cùng của tháng 3, 6, 9: bán EURJPY 05:00 → 07:00 giờ London, đón dòng tiền hồi hương / phòng hộ cuối quý của Nhật."
+    market: EURJPY
+    round: R63
+    tier: cho-kiem
+    tier_reason: "Đạt số DEMO kể cả ở phí IC nhưng chỉ 3 sự kiện một năm, holdout có ~5 sự kiện (power 1,17); bản nháp, chưa mở holdout, chờ quyết định (round63_parallel/M/PREREG_DRAFT_M_eurjpy_quarter_end.md)."
+    research:
+      is: "2016–2021: n 18, +7,58 bp/lệnh ở phí IC, t 2,80, 6/6 năm"
+      val: "2022–2024: n 9, +8,47 bp, t 1,51, 3/3 năm"
+    forward: null
+    bot: null
+    prereg: research/results/portfolio/round63_parallel/M/PREREG_DRAFT_M_eurjpy_quarter_end.md
+    report: research/results/portfolio/round63_parallel/M/STREAM_M.md
+
+  # ---------------------------------------------------------------- đã loại
+  - id: p2-post-stamp-1s
+    name: Đứng phía trả funding 1 giây sau mốc funding cực đoan (P2)
+    description: "Sau mốc funding Binance có |funding| ≥ 30 bp, vào phía trả funding 1 giây sau mốc và thoát sau 60 giây."
+    market: crypto Binance (perp)
+    round: R62
+    tier: da-loai
+    tier_reason: "Test kỷ mới được người dùng duyệt, trượt holdout: 576 sự kiện, -5,7 bp, t -1,38 (round62_funding_capture/PREREG_P2_post_stamp_1s.md)."
+    research:
+      is: "2020–2021 (mẫu mới): +3,3 bp, t 0,15"
+      val: "2022–2024 (mẫu mới): +31,2 bp, t 4,87"
+      hold: "2025-01..2026-10: n 576, -5,7 bp, t -1,38; 2026 -15,9"
+    forward: null
+    bot: null
+    prereg: research/results/portfolio/round62_funding_capture/PREREG_P2_post_stamp_1s.md
+    report: research/results/portfolio/round62_funding_capture_2026-10-31.md
+
+  - id: b2-binance-hyperliquid
+    name: Chênh funding Binance vs Hyperliquid (B2)
+    description: "Khi funding 7 ngày của cùng một coin trên Binance và Hyperliquid chênh trên 15 %/năm, bán perp ở sàn đắt hơn và mua ở sàn rẻ hơn (30 coin)."
+    market: crypto Binance + Hyperliquid
+    round: R59
+    tier: da-loai
+    tier_reason: "Trượt holdout: +0,74 %/năm (t 1,27), vượt lãi cash -0,35 % (round59_cross_venue_funding/PREREG_B2_binance_hyperliquid.md)."
+    research:
+      is: "DISCOVERY 2023-06..2024-12: +16,3 %/năm, t 6,81"
+      hold: "2025-01..2026-10: +0,74 %/năm, t 1,27; phí x1,5 -1,36 %"
+    forward: null
+    bot: null
+    prereg: research/results/portfolio/round59_cross_venue_funding/PREREG_B2_binance_hyperliquid.md
+    report: research/results/portfolio/round59_cross_venue_funding_2026-10-31.md
+
+  - id: a3-funding-carry
+    name: Carry funding BTC + ETH (A3)
+    description: "Mua spot BTC, ETH và bán perp USDT-M khi funding 14 ngày trên 10 %/năm, thoát khi funding xuống dưới 0."
+    market: crypto Binance (BTC, ETH)
+    round: R58
+    tier: da-loai
+    tier_reason: "Qua ngưỡng đăng ký ở holdout (+1,91 %/năm, t 5,62) nhưng lãi vượt lãi suất cash trên vốn dùng chỉ +0,01 %/năm (t 0,02): funding từ 2025 chỉ bằng lãi cash (round58_unconstrained_carry_2026-10-31.md)."
+    research:
+      is: "2020–2021: +26,9 %/năm, t 7,30"
+      val: "2022–2024: +6,1 %/năm, t 6,97"
+      hold: "2025-01..2026-10: +1,91 %/năm, t 5,62; vượt lãi cash +0,01 % (t 0,02)"
+    forward: null
+    bot: null
+    prereg: research/results/portfolio/round58_unconstrained_carry/PREREG_A_funding_carry.md
+    report: research/results/portfolio/round58_unconstrained_carry_2026-10-31.md
+
+  - id: a2-funding-carry-top30
+    name: Carry funding 30 coin lớn (A2)
+    description: "Như A3 nhưng trên 30 coin lớn, giữ tối đa 10 mã, vào khi funding 7 ngày trên 10 %/năm, thoát khi dưới 0."
+    market: crypto Binance
+    round: R58
+    tier: da-loai
+    tier_reason: "Trượt holdout: +1,36 %/năm (t 1,73), vào trễ một ngày -0,21 % (round58_unconstrained_carry/PREREG_A_funding_carry.md)."
+    research:
+      is: "2020–2021: +29,3 %/năm, t 6,89"
+      val: "2022–2024: +8,8 %/năm, t 6,63"
+      hold: "2025-01..2026-10: +1,36 %/năm, t 1,73; trễ -0,21 %"
+    forward: null
+    bot: null
+    prereg: research/results/portfolio/round58_unconstrained_carry/PREREG_A_funding_carry.md
+    report: research/results/portfolio/round58_unconstrained_carry_2026-10-31.md
+
+  - id: c1-hk50-rebound
+    name: HK50 bật lại sau khi vay ký quỹ A-share giảm mạnh
+    description: "Ngày CSI 300 giảm và dư nợ vay ký quỹ SSE + SZSE giảm mạnh bất thường (z ≤ -1,5), mua HK50 lúc 01:45 UTC phiên sau, giữ một phiên."
+    market: HK50
+    round: R40
+    tier: da-loai
+    tier_reason: "Chiều lệnh chọn sau khi xem IS / VAL, người dùng cho mở holdout một lần: 24 lệnh, +19,0 bp, t 0,74 < 1,0 nên trượt (round40_news_leverage/PREREG_C1_hk50_rebound.md)."
+    research:
+      is: "2016–2021: +35,38 bp/lệnh, t 2,14"
+      val: "2022–2024: +41,11 bp, t 0,77"
+      hold: "2025-01..2026-09: n 24, +19,0 bp, t 0,74"
+    forward: null
+    bot: null
+    prereg: research/results/portfolio/round40_news_leverage/PREREG_C1_hk50_rebound.md
+    report: research/results/portfolio/round40_news_leverage_2026-10-30.md
+
+  - id: joint-d-k4
+    name: Fade BTC sau đáo hạn quyền chọn thứ Sáu (D-K4)
+    description: "Thứ Sáu có khối lượng quyền chọn Deribit đáo hạn lúc 08:00 UTC cao hơn trung vị, đánh ngược chiều BTC trong 1 giờ sau đó."
+    market: BTCUSD
+    round: R34
+    tier: da-loai
+    tier_reason: "Mạnh ở VAL nên vào holdout chung 2026-10-28 (ngưỡng t ≥ 2,241); trượt: 45 lệnh, -11,5 bp, t -1,12 (joint_prereg_2026-10/PREREG_JOINT.md)."
+    research:
+      is: "2016–2021: n 144, +6,07 bp, t 0,80"
+      val: "2022–2024: n 89, +16,68 bp, t 3,24"
+      hold: "n 45, -11,5 bp, t -1,12"
+    forward: null
+    bot: null
+    prereg: research/results/portfolio/joint_prereg_2026-10/PREREG_JOINT.md
+    report: research/results/portfolio/round34_china_etf_options/STREAM_D.md
+
+  - id: joint-e-ustec
+    name: Theo chiều USTEC cuối phiên ngày ETF đòn bẩy tái cân bằng lớn (E-USTEC)
+    description: "Ngày liều tái cân bằng của ETF đòn bẩy thuộc top 10 %, theo chiều của ngày ở USTEC từ 15:30 tới 16:00 giờ New York."
+    market: USTEC
+    round: R34
+    tier: da-loai
+    tier_reason: "Mạnh ở VAL nên vào holdout chung 2026-10-28; trượt: 42 lệnh, -2,2 bp, t -0,35 (joint_prereg_2026-10/PREREG_JOINT.md)."
+    research:
+      is: "2016–2021: n 150, +10,26 bp, t 1,38"
+      val: "2022–2024: n 93, +11,49 bp, t 2,78"
+      hold: "n 42, -2,2 bp, t -0,35"
+    forward: null
+    bot: null
+    prereg: research/results/portfolio/joint_prereg_2026-10/PREREG_JOINT.md
+    report: research/results/portfolio/round34_china_etf_options/STREAM_E.md
+
+  - id: joint-a5-hn
+    name: Mua US500 sau khi Hacker News nói nhiều về suy thoái (A5-HN)
+    description: "Khi số bài có chữ recession trên Hacker News vọt lên top 5 %, mua US500 và giữ 3 ngày."
+    market: US500
+    round: R32
+    tier: da-loai
+    tier_reason: "Mạnh ở VAL nên vào holdout chung 2026-10-28; trượt: 15 lệnh, -24,4 bp, t -0,25 (joint_prereg_2026-10/PREREG_JOINT.md)."
+    research:
+      is: "2016–2021: n 79, +32,87 bp, t 2,51"
+      val: "2022–2024: n 28, +100,41 bp, t 2,70"
+      hold: "n 15, -24,4 bp, t -0,25"
+    forward: null
+    bot: null
+    prereg: research/results/portfolio/joint_prereg_2026-10/PREREG_JOINT.md
+    report: research/results/portfolio/round32_liquidity_vol_attention/STREAM_A.md
+
+  - id: joint-u3-btc
+    name: Mua BTC sau bất ngờ tiền Kho bạc Mỹ trả hộ gia đình (U3-BTC)
+    description: "Khi tiền Kho bạc Mỹ trả cho hộ gia đình (hoàn thuế, an sinh, EIP) cao bất ngờ, mua BTC và giữ 3 mốc."
+    market: BTCUSD
+    round: R36
+    tier: da-loai
+    tier_reason: "Mạnh ở VAL nên vào holdout chung 2026-10-28; trượt: 58 lệnh, -43,3 bp, t -0,69 (joint_prereg_2026-10/PREREG_JOINT.md)."
+    research:
+      is: "2016–2021: n 108, +96,44 bp, t 1,06"
+      val: "2022–2024: n 92, +159,37 bp, t 2,27"
+      hold: "n 58, -43,3 bp, t -0,69"
+    forward: null
+    bot: null
+    prereg: research/results/portfolio/joint_prereg_2026-10/PREREG_JOINT.md
+    report: research/results/portfolio/round36_asia_liquidity_household_cash/STREAM_U.md
+
+  - id: a4-fomc-dollar-short
+    name: Bán USD ngày FOMC (A4)
+    description: "Ngày Fed công bố quyết định lãi suất theo lịch, bán USD so với 7 đồng tiền lớn (Mueller, Tahbaz-Salehi & Vedolin 2017)."
+    market: EURUSD, GBPUSD, AUDUSD, NZDUSD, USDJPY, USDCAD, USDCHF
+    round: R24
+    tier: da-loai
+    tier_reason: "Tìm ở R20, bền qua 3 kỷ nhưng chỉ 8 sự kiện/năm; mở holdout bậc RELAXED một lần: 10 lệnh, -34,63 bp, t -2,36 (round24_relaxed/PREREG_R24_relaxed_hold.md)."
+    research:
+      is: "2016–2021: +21,6 bp/sự kiện, t 1,90"
+      val: "2022–2024: +31,6 bp, t 2,40"
+      hold: "2025-01..2026-09: n 10, -34,63 bp, t -2,36"
+    forward: null
+    bot: null
+    prereg: research/results/portfolio/round24_relaxed/PREREG_R24_relaxed_hold.md
+    report: research/results/portfolio/round20_declared2_2026-10-06.md
+
+  - id: i-month-end-post-fix-usd
+    name: USD sau fix WM/R cuối tháng theo chiều chứng khoán Mỹ
+    description: "Ngày cuối tháng, khi S&P 500 trong tháng tăng hoặc giảm mạnh, đánh USD sau fix WM/R theo chiều đăng ký (tháng tăng thì mua USD) trên EURUSD, USDJPY, GBPUSD."
+    market: EURUSD, USDJPY, GBPUSD
+    round: R12
+    tier: da-loai
+    tier_reason: "Trượt holdout đăng ký: -0,23 bp/lệnh, t -0,08 (round12_flows_execution/PREREG_I_month_end_post_fix_usd.md)."
+    research:
+      is: "2016–2021: +6,77 bp/lệnh, t 3,79"
+      val: "2022–2024: +1,68 bp, t 0,84"
+      hold: "2025-01..2026-09: -0,23 bp, t -0,08"
+    forward: null
+    bot: null
+    prereg: research/results/portfolio/round12_flows_execution/PREREG_I_month_end_post_fix_usd.md
+    report: research/results/portfolio/round12_flows_execution_2026-10-06.md
+
+  - id: j-sydney-aud-offroll
+    name: Bán AUDUSD trước 10:00 Sydney ngoài giờ rollover
+    description: "Mùa hè nước Mỹ (10:00 Sydney rơi sau giờ rollover IC), bán AUDUSD 09:45 → 10:00 giờ Sydney để bắt nhịp giảm trước giờ mở."
+    market: AUDUSD
+    round: R12
+    tier: da-loai
+    tier_reason: "Chọn sau khi xem dữ liệu; trượt holdout đăng ký: -0,25 bp/lệnh, t -0,99 (round12_flows_execution/PREREG_J_sydney_aud_offroll.md)."
+    research:
+      is: "2016–2021: +0,44 bp/lệnh, t 2,54"
+      val: "2022–2024: +0,76 bp, t 3,77"
+      hold: "2025-01..2026-09: -0,25 bp, t -0,99"
+    forward: null
+    bot: null
+    prereg: research/results/portfolio/round12_flows_execution/PREREG_J_sydney_aud_offroll.md
+    report: research/results/portfolio/round12_flows_execution_2026-10-06.md
+
+  - id: m1-month-end-usd
+    name: Mua USD ngày thứ ba từ cuối tháng (M1)
+    description: "Ngày làm việc thứ ba tính từ cuối tháng, mua USD so với JPY, CHF, EUR từ 10:00 tới 13:00 UTC."
+    market: USDJPY, USDCHF, EURUSD
+    round: R3
+    tier: da-loai
+    tier_reason: "Trượt holdout (R +0,044, t 0,7, chỉ thắng 79 % ngày ngẫu nhiên) và lại trượt ở kỷ 2004–2015 (R +0,020, t 0,64) (prereg_month_end_usd_2026-09-27.md, round7_new_data_2026-10-05.md)."
+    research:
+      is: "2016–2021: R +0,123/lệnh"
+      val: "2022–2024: R +0,228"
+      hold: "2025-01..2026-09: R +0,044, t 0,7"
+    forward: null
+    bot: null
+    prereg: research/results/portfolio/prereg_month_end_usd_2026-09-27.md
+    report: research/results/portfolio/flow_search_2026-09-27.md
+
+  - id: c1-crypto-donchian
+    name: Crypto Donchian H4 (C1)
+    description: "Mua / bán BTCUSD, ETHUSD khi nến H4 đóng vượt đỉnh / đáy 55 nến; stop 3 x ATR, thoát theo kênh 20 nến hoặc sau 5 ngày."
+    market: BTCUSD, ETHUSD
+    round: Swing v2
+    tier: da-loai
+    tier_reason: "Trượt holdout (R -0,025; lãi +$2.859 chỉ nhờ lot lớn ở lệnh thắng); từng chạy forward demo, gỡ khỏi VPS 2026-10-03 (prereg_swing_v2.md, research/PROMPT.md)."
+    research:
+      is: "2018–2021: n 553, R +0,276, t 4,3"
+      val: "2022–2024: n 413, R +0,227, t 3,3"
+      hold: "2025-01..2026-09: n 302, R -0,025, t -0,3"
+    forward: null
+    bot: null
+    prereg: research/results/portfolio/prereg_swing_v2.md
+    report: research/results/portfolio/swing_lab_v2_2026-09-27.md
+
+  - id: c4-gotobi-day-lots
+    name: Gotobi USDJPY lot theo loại ngày (C4)
+    description: "Luật gotobi USDJPY như C3 nhưng lot gấp đôi ngày 20 và 25, một nửa ngày 5, 10 và cuối tháng."
+    market: USDJPY
+    round: Swing v2
+    tier: da-loai
+    tier_reason: "Qua ngưỡng holdout nhưng lot theo ngày làm lãi ít hơn lot đều (+$757 so với +$940); không dùng, luật gốc nằm trong C3 (prereg_swing_v2.md)."
+    research:
+      hold: "2025-01..2026-09: n 246, R +0,038, t 1,3, 1/2 năm dương"
+    forward: null
+    bot: null
+    prereg: research/results/portfolio/prereg_swing_v2.md
+    report: research/results/portfolio/swing_lab_v2_2026-09-27.md
+
+  - id: flowrsi
+    name: Bot FlowRSI
+    description: "Bot cũ: vào lệnh theo RSI trên khung M15, có bộ lọc xu hướng H1 và SMC, chạy 15 mã trên demo."
+    market: 15 mã FX, chỉ số, vàng, crypto
+    round: Lab
+    tier: da-loai
+    tier_reason: "Lab tick 2023–2026 lỗ -$167.130, 0/22 mã dương; 15 bot demo dừng 2026-09-25 và bị gỡ khỏi repo 2026-09-27 (research/results/lab/main/report.md, research/JOURNAL.md)."
+    research: {}
+    forward: null
+    bot: null
+    prereg: null
+    report: research/results/lab/main/report.md
+
+  - id: tms-orb
+    name: Bot TMS + ORB
+    description: "Bot cũ: tín hiệu Trading Made Simple (TDI, Heiken Ashi, Stochastic) kết hợp phá vùng giá đầu phiên (ORB)."
+    market: FX, chỉ số, vàng, crypto
+    round: Lab
+    tier: da-loai
+    tier_reason: "Lab tick 2023–2026 lỗ -$17.957, 2/22 mã dương; bản dựng lại theo định nghĩa gốc cũng trượt; bot gỡ khỏi repo 2026-09-27 (research/results/lab/main/report.md, research/results/lab/v2/verdict.md)."
+    research:
+      hold: "2025-01..2026-09 (bản dựng lại T2): n 5.685, R -0,071, t -2,65"
+    forward: null
+    bot: null
+    prereg: null
+    report: research/results/lab/v2/verdict.md
+
+  - id: judas-sweep
+    name: Bot Judas Sweep (ICT)
+    description: "Bot cũ: chờ giá quét đỉnh / đáy vùng phiên Á trong giờ London rồi vào ngược lại, cắt lỗ sau điểm quét."
+    market: FX, chỉ số, vàng
+    round: Lab
+    tier: da-loai
+    tier_reason: "Lab tick 2023–2026 lỗ -$12.091, 4/22 mã dương; bản ICT dựng lại cũng trượt; bot gỡ khỏi repo 2026-09-27 (research/results/lab/main/report.md, research/results/lab/v2/verdict.md)."
+    research:
+      hold: "2025-01..2026-09 (bản dựng lại J1): n 2.355, R -0,131, t -2,69"
+    forward: null
+    bot: null
+    prereg: null
+    report: research/results/lab/v2/verdict.md
+
+tried:
+  # R63 (2026-10-31), chạy song song nhiều nhánh
+  - {round: R63, name: "S: cổ phiếu lớn Mỹ, qua đêm / trong phiên (MOO, MOC)", reason: "Hiệu ứng qua đêm có thật trước phí (IS t 3,31) nhưng chỉ hoà vốn khi phí 1,4 bp mỗi chiều, phí giả định 2,5 bp.", report: research/results/portfolio/round63_parallel/S/STREAM_S.md}
+  - {round: R63, name: "V: bán biến động crypto (straddle Deribit có phòng hộ delta)", reason: "IS t tốt nhất 1,50; vol khớp thật chỉ 0,85–0,90 lần DVOL, phần còn lại mất vào spread, phí, phòng hộ; có tuần ETH lỗ 42 % vốn.", report: research/results/portfolio/round63_parallel/V/STREAM_V.md}
+  - {round: R63, name: "M: chấm lại 33 hiệu ứng cũ ở phí ECN / hợp đồng tương lai", reason: "Không cái nào lên LIVE: sàn rẻ chỉ tiết kiệm 0,1–0,2 bp; riêng F15 thành bản nháp (xem Chờ kiểm).", report: research/results/portfolio/round63_parallel/M/STREAM_M.md}
+  - {round: R63, name: "C: cross-section trong ngày 40 perp Binance (đảo chiều / đà)", reason: "54/54 ô âm sau phí taker; đảo chiều 1 giờ từ +10 bp (2021) còn ~0 (2024) so với phí ~23 bp.", report: research/results/portfolio/round63_parallel/C/STREAM_C.md}
+  - {round: R63, name: "D: tin thông báo Binance (huỷ niêm yết, Monitoring Tag, niêm yết spot)", reason: "Không test được: robots.txt của binance.com cấm /bapi/; dù có giờ thì IS chỉ ~3–6 sự kiện (cần ~44).", report: research/results/portfolio/round63_parallel/D/STREAM_D.md}
+  - {round: R63, name: "R: nhượng giá theo chu kỳ đấu giá trái phiếu (UST, JGB, Bund)", reason: "Có thật ở mid (IS t 3,98) nhưng đã suy giảm: net IS +0,88 bp (t 1,73), VAL -1,21.", report: research/results/portfolio/round63_parallel/R/STREAM_R.md}
+  - {round: R63, name: "U: bán coin quanh ngày mở khoá token", reason: "IS 2020–21 mọi ô lỗ (bị squeeze 2021); VAL dương nhưng t tốt nhất 1,68, power ~1,6.", report: research/results/portfolio/round63_parallel/U/STREAM_U.md}
+  - {round: R63, name: "O: chỉ số futures Binance (OI, long/short, taker) trên altcoin", reason: "Không ô nào đạt t 2,0 ở đoạn khám phá (tốt nhất 0,87); mất cân bằng taker ~0 trước phí ~30 bp.", report: research/results/portfolio/round63_parallel/O/STREAM_O.md}
+  - {round: R63, name: "P: Polymarket, cửa trên / cửa dưới và trễ lúc chốt", reason: "Ô tốt nhất IS +2,37 % / VAL +0,61 % mỗi $ nhưng z 1,87 / 1,25; người khớp ngay trả 0,6–1,0c trên mid.", report: research/results/portfolio/round63_parallel/P/STREAM_P.md}
+  - {round: R63, name: "X: roll hợp đồng VIX do quỹ ETP biến động", reason: "A1 IS t 2,03 dưới ngưỡng ngẫu nhiên 2,27, thực chất là carry bán vol kỳ gần; A2 có thật trước phí nhưng nhỏ hơn phí 3–8 lần.", report: research/results/portfolio/round63_parallel/X/STREAM_X.md}
+  - {round: R63, name: "W: Kalshi, khung nhiệt độ cao nhất ngày", reason: "Mọi ô âm mọi năm; sổ lệnh mỏng (spread trung vị 10c tối hôm trước); Kalshi chỉ cho người cư trú Mỹ.", report: research/results/portfolio/round63_parallel/W/STREAM_W.md}
+  - {round: R63, name: "A: cổ phiếu A-share sau phiên đóng trần lần đầu (chỉ mua)", reason: "Mọi ô âm ở VAL, không ô nào IS t trên 0,3; giá nhảy +216 bp lúc mở rồi giảm, chỉ mua thì không ăn được.", report: research/results/portfolio/round63_parallel/A/STREAM_A.md}
+  - {round: R63, name: "BX: luật B nhưng phòng hộ bằng perp Bybit thay bán khống spot", reason: "VAL -34,2 bp (t -6,18): lợi của B đến từ spot đuổi xuống, bỏ chân spot là mất.", report: research/results/portfolio/round63_parallel/BX/STREAM_BX.md}
+  - {round: R63, name: "BY: luật B trên Bybit (spot và perp Bybit)", reason: "Nến 1 giờ Bybit mở bằng giá đóng trước nên giá vào ăn theo tín hiệu; trễ 1 giờ IS -15,4 bp, edge mất trong vài phút.", report: research/results/portfolio/round63_parallel/BY/STREAM_BY.md}
+  # R62–R54
+  - {round: R62, name: "R / P1: hứng mốc funding cực đoan, đứng phía trả trong giờ sau mốc", reason: "R: IS -111 bp; P1 lợi nằm ở lệnh đầu tiên, vào sau 1 phút VAL -11,6 bp. P2 xem phần đã loại.", report: research/results/portfolio/round62_funding_capture_2026-10-31.md}
+  - {round: R61, name: "X1 đà 28 ngày, X2 carry funding (đứng riêng)", reason: "Riêng lẻ không đạt cổng t: X1 VAL t 1,28; X2 VAL t 1,29, HOLD t -0,72. Chỉ X3 (gộp) qua.", report: research/results/portfolio/round61_crypto_factors_2026-10-31.md}
+  - {round: R60, name: "N1: bán perp mới niêm yết Binance, phòng hộ BTC, giữ 30 ngày", reason: "Trung vị +18–21 %/lần nhưng trung bình IS +9,6 % (t 1,11), VAL +6,6 % (t 1,30); có lần bị squeeze -345 %.", report: research/results/portfolio/round60_new_listings_2026-10-31.md}
+  - {round: R59, name: "B1: chênh funding Binance vs Bybit", reason: "IS +10,5 %/năm (t 4,65) nhưng VAL -0,14 % (t -0,20): lãi gộp VAL 4,1 %/năm bằng phí taker ~4,3 %.", report: research/results/portfolio/round59_cross_venue_funding_2026-10-31.md}
+  - {round: R57, name: "G: cổ phiếu có gap lợi nhuận lớn, vào sau phiên đấu giá mở cửa", reason: "Đi theo -3,2 bp (t -0,32) / -5,7 (t -0,56); đánh ngược -35 / -38 bp.", report: research/results/portfolio/round57_earnings_gaps/STREAM_G.md}
+  - {round: R56, name: "R: cross-section ngắn hạn 207 cổ phiếu lớn Mỹ (đảo chiều / theo tin)", reason: "Mọi ô net âm ở VAL; đảo chiều +3 đến +22 bp ở mid trong khi phí khớp lúc đóng cửa ~20–24 bp.", report: research/results/portfolio/round56_stock_cross_section/STREAM_R.md}
+  - {round: R55, name: "M: drift ngày 1 sau khi người nội bộ mua, vào trong phiên", reason: "Ô chính -14,0 bp (t -1,97) / -21,4 (t -2,54), 0/8 năm dương; sau 09:45 chỉ còn +6,4 bp so với phí ~24 bp.", report: research/results/portfolio/round55_insider_intraday/STREAM_M.md}
+  - {round: R54, name: "E: bán sau blackout lợi nhuận (Hartzmark-Solomon), drift sau công bố", reason: "Bán sai dấu ngay ở mid (-29 bp IS và VAL); drift +10–17 bp nhỏ hơn phí 27–33 bp.", report: research/results/portfolio/round54_single_stocks/STREAM_E.md}
+  - {round: R54, name: "I: cổ phiếu được người nội bộ mua (Cohen-Malloy-Pomorski)", reason: "Có thật ở mid phiên ngày 1 (+17,6 / +19,7 bp) nhưng một vòng lệnh lúc mở cửa tốn 95–137 bp.", report: research/results/portfolio/round54_single_stocks/STREAM_I.md}
+  - {round: R54, name: "B: cửa sổ mua lại cổ phiếu theo từng mã", reason: "Mọi ô net âm; phần lãi gộp chính là drift ngày 2 sau công bố lợi nhuận.", report: research/results/portfolio/round54_single_stocks/STREAM_B.md}
+  # R53–R46
+  - {round: R53, name: "M: USDT mint / burn → BTC trong vài phút", reason: "IS t net tốt nhất 0,72 (ngưỡng ngẫu nhiên 1,29); mọi ô mua âm ở VAL; mint đi sau khi BTC đã tăng.", report: research/results/portfolio/round53_usdt_mints/STREAM_M.md}
+  - {round: R52, name: "Z: rà 48.633 bài 2018–24 tìm cơ chế chưa test", reason: "Không mục nào qua cổng chấm; cơ chế còn lại duy nhất (USDT mint → BTC) đã test ở R53.", report: research/results/portfolio/round52_lit_census/CENSUS_Z.md}
+  - {round: R51, name: "L: khối lượng / số vòng đấu giá vàng LBMA", reason: "Không test được: dữ liệu chỉ có trong báo cáo IBA cần tài khoản đăng ký.", report: research/results/portfolio/round51_gold_auction_volume/STREAM_L.md}
+  - {round: R50, name: "F: tài sản quỹ thị trường tiền tệ (Fed H.6) → chỉ số Mỹ", reason: "IS t net tốt nhất 0,26; đối chứng EURUSD có số DEMO nhưng nằm trong phân phối ngẫu nhiên, PRE âm.", report: research/results/portfolio/round50_fund_flows/STREAM_F.md}
+  - {round: R49, name: "T: giọng diều hâu / bồ câu trong bài phát biểu Fed, ECB", reason: "IS t net tốt nhất 1,59 so với ngưỡng ngẫu nhiên 2,71; giá đã phản ánh sau 15 phút.", report: research/results/portfolio/round49_cb_speech_tone/STREAM_T.md}
+  - {round: R48, name: "N: dữ liệu mạng Bitcoin (hashrate, độ khó, phí, mempool)", reason: "|IS t| tốt nhất 1,88 (sai dấu) so với ngưỡng ngẫu nhiên 2,40; chiều quanh mốc điều chỉnh độ khó đổi giữa các kỷ.", report: research/results/portfolio/round48_btc_network/STREAM_N.md}
+  - {round: R47, name: "B: sức mua lại cổ phiếu (XBRL) theo mùa công bố → chỉ số Mỹ", reason: "IS t tốt nhất 1,47 so với ngưỡng 2,37; hiệu ứng mùa có cả ở US2000 nên không phải lực mua lại.", report: research/results/portfolio/round47_buyback_capacity/STREAM_B.md}
+  - {round: R46, name: "P: tái cân bằng 60/40 và risk parity có chân trái phiếu", reason: "Ô chính IS -2,1 bp (t -0,68), VAL +6,1 (t 1,35, toàn bộ ở 2022); chân trái phiếu thêm ~0.", report: research/results/portfolio/round46_rebalancing_bond_leg/STREAM_P.md}
+  # R45–R37: dữ liệu công khai không phải giá
+  - {round: R45, name: "X: mô hình ridge gộp 86 chuỗi không phải giá của R37–44", reason: "Net IS -0,0336 R (t -2,30), VAL -0,0026 R (t -0,14); nằm trong phân phối xáo ngày.", report: research/results/portfolio/round45_combined_jpx_short/STREAM_X.md}
+  - {round: R45, name: "S: tỉ lệ bán khống ngày TSE, vị thế bán khống lớn → JP225", reason: "IS t net tốt nhất 0,99; tỉ lệ chỉ phản ánh lợi suất cùng ngày, phiên sau không còn gì.", report: research/results/portfolio/round45_combined_jpx_short/STREAM_S.md}
+  - {round: R44, name: "I: giao dịch nội bộ gộp toàn thị trường (Form 4) → chỉ số Mỹ", reason: "Ô large-cap value có số DEMO (IS t 2,23) nhưng chỉ ở mức ngẫu nhiên (p 0,68); bỏ 3–4/2020 còn t 1,88.", report: research/results/portfolio/round44_insiders_tff/STREAM_I.md}
+  - {round: R44, name: "T: vị thế CFTC TFF trên FX, chỉ số, VIX", reason: "Book tốt nhất IS t net 0,76 (p 0,34); theo vị thế asset manager thì sai dấu.", report: research/results/portfolio/round44_insiders_tff/STREAM_T.md}
+  - {round: R43, name: "M: tâm lý nhà đầu tư (nắng, khói bụi, thua bóng đá)", reason: "Nắng IS t net -3,46; thua bóng đá thì chỉ số lại tăng (sai chiều); gió lặng +2,17 bp dưới phí 2,7 bp.", report: research/results/portfolio/round43_mood_ratings/STREAM_M.md}
+  - {round: R43, name: "R: xếp hạng tín nhiệm quốc gia (Moody's, S&P)", reason: "IS t tốt nhất 1,85 nhưng âm ở PRE và VAL; chỉ ~8 sự kiện trong holdout.", report: research/results/portfolio/round43_mood_ratings/STREAM_R.md}
+  - {round: R42, name: "E: công bố lợi nhuận của các mã nặng ký trong chỉ số Mỹ", reason: "0 ô đạt IS t 2 (tốt nhất 1,69 trên 25 lệnh, ngưỡng ngẫu nhiên 3,05).", report: research/results/portfolio/round42_megacap_boj_ops/STREAM_E.md}
+  - {round: R42, name: "J: nghiệp vụ mua JGB của BoJ → USDJPY, EURJPY, JP225", reason: "IS t tốt nhất 1,65 (7 sự kiện); kết quả nghiệp vụ không làm giá động.", report: research/results/portfolio/round42_megacap_boj_ops/STREAM_J.md}
+  - {round: R41, name: "A: chu kỳ đấu giá trái phiếu (UST, JGB, Bund) → FX, vàng, chỉ số", reason: "Ô chính IS t net -2,90; ô bán EURUSD sáng Mỹ IS t 2,51 nhưng VAL t 0,25, PRE t -2,20.", report: research/results/portfolio/round41_supply_cycles/STREAM_A.md}
+  - {round: R41, name: "B: phát hành cổ phiếu Mỹ (EDGAR: IPO, chào bán, mua lại)", reason: "Chỉ số tăng sau đợt phát hành dày (thị trường nóng); ô tốt nhất VAL t 0,82, p 0,35.", report: research/results/portfolio/round41_supply_cycles/STREAM_B.md}
+  - {round: R40, name: "G: tin tức và giọng điệu GDELT", reason: "Theo giọng điệu thì sai dấu (book chỉ số IS t -2,45, FX -2,06); ô dương tốt nhất VAL -13,8 bp.", report: research/results/portfolio/round40_news_leverage/STREAM_G.md}
+  - {round: R40, name: "C: vay ký quỹ / bán khống SSE + SZSE → HK50, CNH, AUD, vàng", reason: "Ô bán khống → vàng có số DEMO (IS t 2,73) nhưng ở trung vị ngẫu nhiên, PRE âm; HK50 bật lại xem phần đã loại.", report: research/results/portfolio/round40_news_leverage/STREAM_C.md}
+  - {round: R39, name: "R: roll hợp đồng GSCI / BCOM / USO → dầu, khí", reason: "12 cửa sổ một năm nên không thể lên DEMO; ô tốt nhất XBR IS t 0,44, VAL -106,7 bp.", report: research/results/portfolio/round39_rolls_positioning/STREAM_R.md}
+  - {round: R39, name: "D: vị thế nhỏ lẻ (COT small trader, JPX theo loại nhà đầu tư)", reason: "Book COT tốt nhất IS t 2,06 nhưng VAL -15,7 bp, nằm trong phân phối ngẫu nhiên.", report: research/results/portfolio/round39_rolls_positioning/STREAM_D.md}
+  - {round: R38, name: "S: khối lượng bán khống FINRA, dòng tạo / huỷ chứng chỉ ETF", reason: "Ô tốt nhất IS t 2,13 / VAL -5,0 bp; không họ nào thắng phân phối ngẫu nhiên (p 0,33–0,97).", report: research/results/portfolio/round38_short_volume_storms/STREAM_S.md}
+  - {round: R38, name: "H: bão Đại Tây Dương, đứt gãy nguồn cung → dầu, khí", reason: "~2–3 cơn bão mỗi năm nên không thể lên LIVE; ô tốt nhất IS t 1,53, VAL -52,8 bp.", report: research/results/portfolio/round38_short_volume_storms/STREAM_H.md}
+  - {round: R37, name: "M: thay đổi ký quỹ / biên độ SHFE, SGE → vàng, bạc", reason: "~4,7 lần tăng mỗi năm; IS t tốt nhất 1,31 dưới trung vị ngẫu nhiên 1,74.", report: research/results/portfolio/round37_forced_flows/STREAM_M.md}
+  - {round: R37, name: "F: mốc funding perp theo mức funding dự báo → BTC", reason: "BTC giảm vào mốc funding lớn đúng bằng funding trả (IS mid t 1,91); sau phí 7,7 bp chỉ còn t 0,27.", report: research/results/portfolio/round37_forced_flows/STREAM_F.md}
+  - {round: R37, name: "A: lệnh stop qua đỉnh / đáy kỷ lục và cực trị tuần, tháng, năm", reason: "Có thật ở mid (đỉnh tuần trước mid t 4,02) nhưng +1–7 bp so với phí 1–4 bp; book tốt nhất IS t 1,97.", report: research/results/portfolio/round37_forced_flows/STREAM_A.md}
+  - {round: R37, name: "N: dòng tiền Stock Connect → HK50, CNH, AUD", reason: "Chỉ cùng chiều trong cùng cửa sổ, cửa sổ sau |corr| ≤ 0,06; IS t tốt nhất 1,72.", report: research/results/portfolio/round37_forced_flows/STREAM_N.md}
+  # R36–R31
+  - {round: R36, name: "A: thanh khoản châu Á (HKMA, HIBOR / SHIBOR, RRR) → HK50, CNH, AUD", reason: "HIBOR nhảy → HK50 IS t 1,99 nhưng VAL t 0,25; thực chất là tín hiệu lãi suất Mỹ.", report: research/results/portfolio/round36_asia_liquidity_household_cash/STREAM_A.md}
+  - {round: R36, name: "U: tiền Kho bạc Mỹ trả hộ gia đình → BTC, ETH, chỉ số Mỹ", reason: "Ô tốt nhất IS t 1,90 ngang trung vị ngẫu nhiên 1,94; U3-BTC sau đó trượt holdout chung.", report: research/results/portfolio/round36_asia_liquidity_household_cash/STREAM_U.md}
+  - {round: R35, name: "O: tỉ lệ put/call CBOE theo lớp, khối lượng OCC", reason: "IS t tốt nhất 1,64 dưới trung vị ngẫu nhiên 1,89.", report: research/results/portfolio/round35_options_volume_asia_positioning/STREAM_O.md}
+  - {round: R35, name: "T: vị thế tổ chức TAIFEX, dòng tiền TWSE → HK50, JP225, chỉ số Mỹ", reason: "IS t tốt nhất 1,76, VAL âm; sang ngày hôm sau |rho| ≤ 0,09.", report: research/results/portfolio/round35_options_volume_asia_positioning/STREAM_T.md}
+  - {round: R34, name: "H: xếp hạng thành viên SHFE (COT ngày của Trung Quốc) → vàng, bạc, dầu", reason: "IS t tốt nhất 1,46 (VAL t -2,28); ô commercials đổi dấu từ IS sang VAL.", report: research/results/portfolio/round34_china_etf_options/STREAM_H.md}
+  - {round: R34, name: "E: liều tái cân bằng ETF đòn bẩy (ProShares) vào giờ đóng cửa", reason: "Bạc IS t 4,01 đảo dấu ở VAL (t -3,02); ô USTEC mạnh ở VAL sau đó trượt holdout chung.", report: research/results/portfolio/round34_china_etf_options/STREAM_E.md}
+  - {round: R34, name: "D: dòng lệnh quyền chọn BTC Deribit (skew, VRP, gamma)", reason: "IS t tốt nhất 1,49 (ngưỡng ngẫu nhiên 2,54); fade đáo hạn thứ Sáu chỉ đúng ở VAL rồi trượt holdout chung.", report: research/results/portfolio/round34_china_etf_options/STREAM_D.md}
+  - {round: R33, name: "K: premium Coinbase, kimchi, funding Bitfinex → BTC, ETH", reason: "Coinbase đắt → BTC tăng có dấu ổn định nhưng IS t 1,4–1,7, power 0,9–1,7.", report: research/results/portfolio/round33_cross_venue/STREAM_K.md}
+  - {round: R33, name: "S: premium vàng SGE, tiền gửi SNB → vàng, USDCHF", reason: "IS t tốt nhất 0,53; hiệu ứng SNB chỉ có 2009–15, mất từ 2016.", report: research/results/portfolio/round33_cross_venue/STREAM_S.md}
+  - {round: R32, name: "L: thanh khoản Mỹ (TGA, RRP, H.4.1) → chỉ số, vàng, FX", reason: "Ô tốt nhất IS +9,3 bp (t 1,43), VAL +6,7 (t 0,73); tài sản Fed đứng riêng chỉ sai chiều.", report: research/results/portfolio/round32_liquidity_vol_attention/STREAM_L.md}
+  - {round: R32, name: "V: vol ngầm định CBOE của từng tài sản (GVZ, OVX, VXN…)", reason: "IS t net tốt nhất 1,57 so với trung vị ngẫu nhiên 3,20; VRP từng tài sản đổi dấu từ IS sang VAL.", report: research/results/portfolio/round32_liquidity_vol_attention/STREAM_V.md}
+  - {round: R32, name: "A: độ chú ý (Wikipedia, Hacker News)", reason: "HN recession → mua US500 có IS t 2,51 / VAL t 2,70 nhưng đối chứng ngẫu nhiên IS 87,9 % (< 90 %); sau đó trượt holdout chung.", report: research/results/portfolio/round32_liquidity_vol_attention/STREAM_A.md}
+  - {round: R31, name: "J: dòng tiền / vị thế Nhật (TFX Click 365, MoF, JPX, can thiệp)", reason: "IS t tốt nhất 1,14 (VAL -1,30); OI TFX chỉ cho biết phía nhỏ lẻ, không báo chiều.", report: research/results/portfolio/round31_new_sources/STREAM_J.md}
+  - {round: R31, name: "P: rà ~1.550 chiến lược thực chiến; stop vàng ngoài cực trị ngày / tuần", reason: "P1 net -1,6 đến -3,2 bp ở IS (đã suy giảm từ 2004–15); đóng vị thế thứ Sáu sai dấu.", report: research/results/portfolio/round31_new_sources/STREAM_P.md}
+  - {round: R31, name: "C: dòng tiền on-chain, vị thế Bitfinex / Binance, thanh lý → BTC, ETH", reason: "Ô tốt nhất IS t 2,64 (ngưỡng ngẫu nhiên 2,7), VAL t 0,33; dữ liệu không đúng thời điểm.", report: research/results/portfolio/round31_new_sources/STREAM_C.md}
+  - {round: R31, name: "G: lượng vàng ETF nắm giữ; dự báo nhiệt độ NOAA → khí", reason: "IS t tốt nhất 1,05; dòng GLD chỉ là đà 1 ngày, dự báo CPC đã vào giá 24 giờ trước.", report: research/results/portfolio/round31_new_sources/STREAM_G.md}
+  # R30–R23
+  - {round: R30, name: "H-EMFIX: mua USDMXN vào fix Banxico, USDSGD vào VWAP ABS", reason: "MX-1 PRE dương nhưng IS / VAL net -2,69 (t -2,64) / -4,28 (t -3,37), 0/9 năm.", report: research/results/portfolio/round30_fix_flows/STREAM_E.md}
+  - {round: R30, name: "H-CNH: mua USDCNH vào giờ đóng CFETS ở spread thật IC", reason: "Có thật ở mid (IS t 4,61) nhưng net +0,08 (t 0,30) / +0,65 (t 1,58); phí IC 1,15 bp, cần ≤ 0,70.", report: research/results/portfolio/round30_fix_flows/STREAM_E.md}
+  - {round: R30, name: "H-NOK: EURNOK theo chiều Norges Bank công bố", reason: "Net IS +2,33 (t 1,65), VAL -4,99 (t -2,24); thông báo vào giá ngay phút đầu.", report: research/results/portfolio/round30_fix_flows/STREAM_N.md}
+  - {round: R29, name: "F: fade khi phá mốc tròn nhỏ ở ES35, F40, IT40, STOXX50", reason: "Book IS -3,60 bp (t -4,96), VAL -3,25 (t -3,86), 0/9 năm; giá chỉ quay lại +1,2 bp so với phí 3,9–4,8 bp.", report: research/results/portfolio/round29_fades_opens/STREAM_F.md}
+  - {round: R29, name: "O: chiều vài giây đầu ở giờ mở cửa châu Á (ASX, TSE, A-share, HKEX, SGE)", reason: "IS t net tốt nhất 2,01 dưới trung vị ngẫu nhiên 2,12 (p 0,63).", report: research/results/portfolio/round29_fades_opens/STREAM_O.md}
+  - {round: R28, name: "Luật mốc tròn của vàng áp cho 21 mã khác", reason: "Book IS t -6,55, VAL t -1,85, 0/6 năm IS dương: hiệu ứng chỉ có ở vàng.", report: research/results/portfolio/round28_round_levels_2026-10-17.md}
+  - {round: R27, name: "V: theo / fade cú nhảy vài giây đầu ở 8 giờ mở sàn", reason: "Có thông tin ở mid nhưng net tốt nhất t 2,23 dưới trung vị ngẫu nhiên 2,31; fade chỉ số giờ mở châu Âu chỉ nhờ 3–4/2020.", report: research/results/portfolio/round27_levels_opens/STREAM_V.md}
+  - {round: R26, name: "S: straddle lệnh stop quanh giờ ra tin, fade cú vọt", reason: "Sau khi stop khớp giá chỉ đi tiếp +0,2–1,6 bp, dưới phí 1,1–3,0 bp; IS t net tốt nhất 0,59.", report: research/results/portfolio/round26_tick_events/STREAM_S.md}
+  - {round: R26, name: "J: cú nhảy giá ngoài lịch tin (theo / fade)", reason: "Đi theo thua mọi nơi; fade có thật ở mid (+0,6–3,5 bp) nhưng dưới phí 1,6–1,9 bp; bản nháp kim loại nằm trong ngẫu nhiên.", report: research/results/portfolio/round26_tick_events/STREAM_J.md}
+  - {round: R25, name: "B: đoán trước độ lệch tin vĩ mô so với consensus", reason: "Consensus đoán được nhưng FX đã phản ánh trước giờ ra tin; lãi gộp ≤ ~1 bp so với phí 0,8–1,9 bp.", report: research/results/portfolio/round25_surprises/STREAM_B.md}
+  - {round: R25, name: "C: tài liệu 2000–17, kinh nghiệm Nhật / Trung / Hàn / Đức (thứ Hai, mốc $10 vàng…)", reason: "Hiệu ứng thứ Hai đã mất; mốc $10 của vàng là rào thật (PRE t 4,86) nhưng net chỉ khoảng nửa phí IC.", report: research/results/portfolio/round25_surprises/STREAM_C.md}
+  - {round: R25, name: "A: định giá các quyết định đang chờ (EM fix, cổ phiếu CFD, sàn rẻ…)", reason: "Không quyết định nào có kỳ vọng ra LIVE; cao nhất là cổ phiếu CFD ~3–5 %.", report: research/results/portfolio/round25_surprises/STREAM_A.md}
+  - {round: R24, name: "A: cơ chế từ 2024 (dòng ETF BTC, NISA, T+1 Mỹ, BTC 10 giờ)", reason: "Mọi ô trượt ở DISCOVERY; B3 và A1 chỉ còn log forward, chưa đủ lệnh để đọc (B3 n 2, A1 n 12).", report: research/results/portfolio/round24_relaxed/STREAM_A.md}
+  - {round: R24, name: "B: Dukascopy 2004–15 cho AUD, NZD, vàng, bạc (V Sydney, fix vàng, cuối năm)", reason: "V Sydney chỉ có từ ~2011 (PRE net âm); luật cuối năm B4 IS +99,8 bp (t 4,08) nhưng PRE t 0,69, VAL +3,7.", report: research/results/portfolio/round24_relaxed/STREAM_B.md}
+  - {round: R23, name: "N: tài liệu mới 2025–26 (gap mở lại, vàng Giáng sinh, BTC quanh ngày nghỉ NYSE…)", reason: "Chỉ vàng Giáng sinh có số DEMO ở IS (+81,8 bp, t 3,61, n 6) nhưng 1 lệnh/năm, đối chứng VAL 82 %: bản nháp, không mở holdout.", report: research/results/portfolio/round23_recent/STREAM_N.md}
+  - {round: R23, name: "P: dòng tiền sell-side 2023–26 (vol control, CTA, blackout mua lại…)", reason: "Không thấy trong lợi suất chỉ số 1–5 ngày.", report: research/results/portfolio/round23_recent/STREAM_P.md}
+  # R22–R13
+  - {round: R22, name: "R: phân loại ~190 ý tưởng còn lại của R3–21, test 4", reason: "Không có; danh sách không cần người dùng quyết đã cạn.", report: research/results/portfolio/round22_residual/TRIAGE_R.md}
+  - {round: R21, name: "U: luật USD ngày FOMC cho biên bản, điều trần, Jackson Hole, refunding", reason: "Gộp các sự kiện không phải FOMC: -3,0 / +6,9 / -11,6 bp (PRE / IS / VAL); phần bù chỉ thuộc ngày FOMC.", report: research/results/portfolio/round21_fed_events_2026-10-06.md}
+  - {round: R20, name: "F: carry ngày quyết định của 8 ngân hàng trung ương", reason: "USD giảm ngày FOMC bền nhưng IS t 1,90 chưa đạt DEMO (A4, sau trượt holdout); carry và các ngân hàng khác không có gì.", report: research/results/portfolio/round20_declared2_2026-10-06.md}
+  - {round: R20, name: "G: đấu giá tất toán đáo hạn chỉ số DAX, FTSE, STOXX, CAC, HSI", reason: "Bốn ô quý có số DEMO nhưng là một hiệu ứng, trượt đối chứng ngẫu nhiên (dồn vào 2020–23).", report: research/results/portfolio/round20_declared2_2026-10-06.md}
+  - {round: R19, name: "H: cơ chế E1 cho CAD, AUD, NZD, GBP, CHF, CNH", reason: "Không lan sang đồng khác; USDCNH vào đóng CFETS có thật (IS t 4,57) nhưng net +0,19 / +0,66 bp ở phí IC.", report: research/results/portfolio/round19_declared_2026-10-06.md}
+  - {round: R19, name: "T: tài liệu lượt hai, 34 bài (drift trước công bố, thứ Hai, gap cuối tuần…)", reason: "Không họ nào thắng ngẫu nhiên; fade gap cuối tuần có ở 2004–15 rồi mất sau khi được công bố.", report: research/results/portfolio/round19_declared_2026-10-06.md}
+  - {round: R18, name: "B: ngày trong tháng × khung giờ (631.915 ô)", reason: "Ô theo ngày lịch là nhiễu như ô theo ngày làm việc.", report: research/results/portfolio/round18_decay_dom_2026-10-06.md}
+  - {round: R17, name: "Y: dòng lệnh suy từ giá chào IC", reason: "Phần không trùng lợi suất chỉ tiếp diễn 0,01–0,06 bp mỗi z, bằng 1/20 phí.", report: research/results/portfolio/round17_microstructure_2026-10-06.md}
+  - {round: R17, name: "Z: đà trong ngày ở ngày biến động lớn, chỉ số châu Âu", reason: "Mid +1–2 bp so với phí ~3,7 bp; continuation ở Mỹ là 3–4/2020.", report: research/results/portfolio/round17_microstructure_2026-10-06.md}
+  - {round: R16, name: "W: dòng chuyển đổi thu nhập (cổ tức, coupon, đáo hạn trái phiếu)", reason: "IS t net tốt nhất 1,52; dòng tiền công bố chỉ vài bp trong khối 60–450 bp.", report: research/results/portfolio/round16_income_flows_2026-10-06.md}
+  - {round: R15, name: "S: cửa sổ 1–10 phút quanh 8 mốc giờ FX (85.225 ô)", reason: "Chọn trên PRE tệ hơn ngẫu nhiên vì V của ECB dịch ~16 phút cuối 2015; mid tốt nhất 0,88 bp dưới mức LIVE.", report: research/results/portfolio/round15_short_windows_2026-10-06.md}
+  - {round: R15, name: "V: kim loại, AUD / NZD, chỉ số, dầu quanh 24 mốc giờ", reason: "141 ô xác nhận ở VAL (ngẫu nhiên 23) nhưng tất cả chỉ 0,3–2,7 bp so với phí 1–7 bp.", report: research/results/portfolio/round15_short_windows_2026-10-06.md}
+  - {round: R14, name: "Q: ghép các chân giờ ổn định thành một book", reason: "Book tốt nhất VAL power 2,01; 5/9 chân giữ dưới 20 % lãi IS ở VAL.", report: research/results/portfolio/round14_books_2026-10-06.md}
+  - {round: R14, name: "R: điều kiện làm E1 và 4 hiệu ứng giờ khác lớn lên", reason: "Nhân E1 1,5–1,7 lần nhưng cắt số lệnh nên power vẫn ~2.", report: research/results/portfolio/round14_books_2026-10-06.md}
+  - {round: R13, name: "N: lịch cấu trúc (ngày thuế Mỹ, thanh toán trái phiếu, cuối năm tài chính)", reason: "Ô tốt nhất (US30 sau thanh toán coupon, IS t 2,68) âm ở VAL; không có quan hệ liều.", report: research/results/portfolio/round13_structural_2026-10-06.md}
+  - {round: R13, name: "P: luật ngày lớn của vàng áp cho dầu và 10 chỉ số", reason: "Phần tăng ở IS là 3–4/2020; ở VAL chỉ số Mỹ đảo chiều vào giờ đóng ngày lớn.", report: research/results/portfolio/round13_structural_2026-10-06.md}
+  # R12–R3
+  - {round: R12, name: "J: cách thực thi khác cho hiệu ứng dưới phí (limit, gộp dòng, lot theo dự báo)", reason: "Không cái nào qua LIVE: SGE, V Sydney, ECB cần phí dưới commission 0,6 bp; lệnh limit bị khớp ngược.", report: research/results/portfolio/round12_flows_execution_2026-10-06.md}
+  - {round: R12, name: "K: tài liệu 2018–26 (đà FX vào giờ đóng, 0DTE, đáo hạn BTC, đà dầu / kim loại)", reason: "Không họ nào thắng ngẫu nhiên đúng chiều đăng ký; fade BTC ngày đáo hạn Deribit chết vì phí BTC 2018–21.", report: research/results/portfolio/round12_flows_execution_2026-10-06.md}
+  - {round: R11, name: "F: drift 1–5 ngày sau quyết định NHTW và tin vĩ mô", reason: "IS t net tốt nhất 0,64; drift 1 ngày có ở 2004–15 (t 3,04) rồi mất từ 2016.", report: research/results/portfolio/round11_multiday_cross_section_index_scan_2026-10-06.md}
+  - {round: R11, name: "G: cross-section 1–5 ngày (8 đồng tiền, 8 chỉ số, 6 hàng hoá)", reason: "Không dự báo được ngay cả ở mid; book FX |t| ≤ 1,51.", report: research/results/portfolio/round11_multiday_cross_section_index_scan_2026-10-06.md}
+  - {round: R11, name: "H: quét mọi khung 15 / 60 phút của CFD chỉ số (15.913 ô)", reason: "0 ô qua ngưỡng; |t| IS tối đa 4,94 so với p95 ngẫu nhiên 4,51, net âm.", report: research/results/portfolio/round11_multiday_cross_section_index_scan_2026-10-06.md}
+  - {round: R10, name: "A: mốc giá châu Á (đấu giá SGE, SHFE, Platts, fix châu Á, SQ Nikkei)", reason: "0 ô net dương ở cả IS và VAL đúng chiều; A7 bán vàng ngày lễ Trung Quốc trượt kiểm 2004–15 (t -3,3).", report: research/results/portfolio/round10_new_directions_2026-10-06.md}
+  - {round: R10, name: "B: quyết định NHTW (1.877 sự kiện) và ngày lễ sân nhà", reason: "Không drift trước quyết định ngoài Fed, không tiếp diễn sau (net +0,4 / +0,0 bp).", report: research/results/portfolio/round10_new_directions_2026-10-06.md}
+  - {round: R10, name: "C: một book FX có cổng phí ghép các hiệu ứng có thật ở mid", reason: "IS t tốt nhất 1,65; dự báo cộng lại vẫn dưới commission 0,6 bp.", report: research/results/portfolio/round10_new_directions_2026-10-06.md}
+  - {round: R10, name: "D: lead-lag dưới phút, pinning quyền chọn, drift qua đêm giờ mở châu Âu", reason: "Lead-lag tick +0,1–0,4 bp; không có pinning (|t| ≤ 1,9); drift mất sau 2019.", report: research/results/portfolio/round10_new_directions_2026-10-06.md}
+  - {round: R10, name: "E: dòng fix ngày biến động; theo đà sau 16 loại tin ngoài Mỹ", reason: "Dòng tiền lớn 1,5 lần nhưng spread cũng lớn; sau tin ngoài Mỹ IS t tốt nhất 1,32 so với ngưỡng 2,61.", report: research/results/portfolio/round10_new_directions_2026-10-06.md}
+  - {round: R9, name: "I-B: vốn $100k: giá trị hợp lý vĩ mô, COT ngược, mua S&P sau sụt / VIX > 30, carry swap", reason: "~237 ô, |t| tối đa 2,84 bằng mức ngẫu nhiên; gần nhất là VIX > 30 (NW t ≤ 1,91, DD 47 %).", report: research/results/portfolio/round9_capital_100k_2026-10-05.md}
+  - {round: R9, name: "O: bán quyền chọn S&P 500 (phần bù biến động)", reason: "Phần bù có thật nhưng alpha của PUT so với SPX chỉ +1,5 %/năm (t 1,3), -3,3 %/năm ở 2016–21.", report: research/results/portfolio/round9_capital_100k_2026-10-05.md}
+  - {round: R8, name: "L: lead-lag trong ngày giữa 26 mã", reason: "Có thật nhưng nằm trong phút đầu: trễ 1 phút chỉ còn 0,01–0,2 bp mỗi sd so với phí 0,7–7 bp.", report: research/results/portfolio/round8_inter_symbol_2026-10-05.md}
+  - {round: R8, name: "S: lan truyền cú sốc sang thị trường liên quan", reason: "Cú sốc lan chậm vào JP225 / HK50 / BTC / ETH nhưng chỉ 1–7 bp so với phí 2,5–8 bp.", report: research/results/portfolio/round8_inter_symbol_2026-10-05.md}
+  - {round: R8, name: "R: giá trị tương đối (cặp, phần dư PCA, sức mạnh đồng tiền)", reason: "Đảo chiều phần dư FX có thật (+1,2 đến +2,7 bp) nhưng ngang phí 1,2–1,5 bp; cặp ngoài FX trả phí hai chân.", report: research/results/portfolio/round8_inter_symbol_2026-10-05.md}
+  - {round: R8, name: "X: tài liệu 38 bài, lan truyền giữa phiên, dầu tuần → US500", reason: "US30 sau tin 08:30 New York power 2,6 / 1,4 (cần 3); dầu → US500 IS t -2,8 là do bỏ tuần thiếu giá.", report: research/results/portfolio/round8_inter_symbol_2026-10-05.md}
+  - {round: R7, name: "B: 7 mã IC mới (ES35, F40, IT40, STOXX50, US2000, USDCNH)", reason: "Power gộp tốt nhất 1,9 (cần ~3); CFD đi theo hợp đồng tương lai, bất ngờ fix PBOC vào giá trong 6 phút.", report: research/results/portfolio/round7_new_data_2026-10-05.md}
+  - {round: R7, name: "C: tài liệu 2010–26 (chu kỳ cùng khung giờ, mở mỗi 15 phút, pinning, stablecoin…)", reason: "Power tốt nhất 1,3; chu kỳ cùng khung giờ chỉ 0,02–0,3 bp mỗi khung so với phí 0,3–3 bp.", report: research/results/portfolio/round7_new_data_2026-10-05.md}
+  - {round: R7, name: "D: giữ lệnh tới ~3 tháng: 24 luật nhiều tuần (carry, đà, value, TSMOM)", reason: "Phí qua đêm IC ăn 1,4–4,5 %/năm (TSMOM Sharpe 0,60 → 0,16); sau 2015 phần bù ~0 cả trước phí.", report: research/results/portfolio/round7_new_data_2026-10-05.md}
+  - {round: R6, name: "S1: đà vào settlement hàng hoá (quỹ ETF đòn bẩy)", reason: "Có thật nơi có ETF đòn bẩy (vàng slope t +6,8) nhưng chỉ 0,3–2,4 bp so với phí 1–4 bp.", report: research/results/portfolio/round6_commodity_flows_2026-10-04.md}
+  - {round: R6, name: "S2 / S3: theo đà sau báo cáo tồn kho EIA, API", reason: "Đúng chiều ở cả 3 loại năng lượng nhưng t ≤ 1,3 với ~50 sự kiện/năm; hiệu ứng API có cả ngày không có báo cáo.", report: research/results/portfolio/round6_commodity_flows_2026-10-04.md}
+  - {round: R6, name: "S4: mua dip 10:00 Sydney bằng lệnh limit", reason: "Khớp 85–93 % số ngày nhưng 0/48 ô net dương.", report: research/results/portfolio/round6_commodity_flows_2026-10-04.md}
+  - {round: R6, name: "S5: fade cú sốc 5 phút ở US30 / USTEC theo chế độ VIX", reason: "Không nhịp đảo chiều nào lặp lại ở VAL.", report: research/results/portfolio/round6_commodity_flows_2026-10-04.md}
+  - {round: R5, name: "Phần bù cổ phiếu không swap, phơi nhiễm theo vol và vốn", reason: "Chỉ là beta: định thời vol thắng đòn bẩy xáo 20–53 % ở IS, Sharpe VAL 0,2–0,3.", report: research/results/portfolio/sizing_round5_2026-09-27.md}
+  - {round: R5, name: "Martingale gấp lệnh 1-2-4 trên 26 mã", reason: "Thắng 73–85 % lệnh nhưng t ≤ 1,4, có chu kỳ lỗ 18–47 ATR.", report: research/results/portfolio/sizing_round5_2026-09-27.md}
+  - {round: R4, name: "V-shape AUD / NZD quanh 10:00 Sydney", reason: "Có thật (NZDUSD -1,7 bp 15 phút trước, IS t -13) nhưng nhỏ hơn phí ở giá khớp được.", report: research/results/portfolio/flow_search_round4_2026-09-27.md}
+  - {round: R4, name: "Dữ liệu ngoài (COT, funding Binance, gamma / DIX, cấu trúc VIX, đấu giá Treasury, 42 chuỗi FRED)", reason: "Không thêm edge nào giữ được từ IS sang VAL.", report: research/results/portfolio/flow_search_round4_2026-09-27.md}
+  - {round: R3, name: "~40 giả thuyết dòng tiền, fix, settlement, phần bù và quét 90.168 ô lịch × giờ", reason: "Không qua; ứng viên duy nhất M1 trượt holdout (xem phần đã loại).", report: research/results/portfolio/flow_search_2026-09-27.md}
+  # Trước khi đánh số vòng, và các nghiên cứu riêng của C3 / C1
+  - {round: Swing v2, name: "Connors RSI(2), turn of the month, TSMOM, Donchian ngoài crypto, pairs, carry FX, fix", reason: "Không cái nào đạt ở IS / VAL.", report: research/results/portfolio/swing_lab_v2_2026-09-27.md}
+  - {round: Swing v2, name: "Dãy R: chạy lại TOM, K2, VB1, LC1, GF1, MEF, OD1, N3-IMOM trên 2016–22", reason: "Chỉ N2-GOTOBI qua (thành C3); còn lại trượt, ví dụ LC1 R -0,060 (t -7,9).", report: research/results/portfolio/prereg_swing_v2.md}
+  - {round: Swing v2, name: "C1: lỗi holdout do crypto chuyển sang giao dịch 24/7?", reason: "Không phải: R gộp chỉ +0,042 → +0,053 (+0,011, ngưỡng +0,10).", report: research/results/portfolio/crypto_donchian_weekend_2026-09-27.md}
+  - {round: Swing v1, name: "Bot toàn danh mục, 9 họ, ~95 cấu hình, chỉ thoát SL / TP", reason: "Không chiến lược nào qua ngưỡng đăng ký trước.", report: research/results/portfolio/swing_lab_2026-09-27.md}
+  - {round: Lab, name: "Lab 22 mã tick 2023–26, 1.198 ô (BTC-S1, XAU-T1, TOM, bank 552 cấu hình…)", reason: "Không chiến lược nào bền: cộng 22 mã BTC-S1 -$32.259, XAU-T1 -$17.213; TOM +$5.651 nhưng 2024 âm.", report: research/results/lab/main/report.md}
+  - {round: Lab, name: "Làm mới TMS+ORB, Judas (ICT) theo định nghĩa gốc + 4 luật tài liệu (14 biến thể)", reason: "Không biến thể nào qua: 13/14 có R âm ở holdout 2025–26, ví dụ T1-ORB R -0,078 (t -3,84).", report: research/results/lab/v2/verdict.md}
+  - {round: Gotobi, name: "C3 vào lệnh mua sớm 17:00 thay vì 18:00 UTC", reason: "Kiểm 2015–2019: +0,06 pip/chân (t 0,11), không lặp lại mức 2020–26; giữ 18:00.", report: research/results/portfolio/gotobi_early_long_2014-2019_2026-10-15.md}
+  - {round: Gotobi, name: "C3 đóng lệnh sớm hơn giờ fix", reason: "Đóng sớm tệ hơn ở mọi kỷ, 00:50 -1,30 pip (t -5,4) trên 2004–2019; giữ giờ thoát.", report: research/results/portfolio/gotobi_early_exit_2026-10-15.md}
+  - {round: Gotobi, name: "C3 quản lý lệnh: gấp lệnh, nhồi lệnh thắng, giữ lệnh lỗ tới hoà vốn", reason: "Lệnh thêm có R trung bình ~0 (|t| ≤ 1,2); gấp lệnh đẩy DD lên 48–59 % ở 3 % lãi kép.", report: research/results/portfolio/c3_sizing_and_trade_management_2026-09-28.md}
+  - {round: Gotobi, name: "C3 lãi kép balance/3 mỗi chân, nạp lại về $1.000", reason: "Gấp nhiều lần Kelly: 8 ngày lỗ ≥ 3R xoá tài khoản, nạp $13.994 để lãi ròng $7.269.", report: research/results/portfolio/gotobi_compound_third_2026-10-09.md}

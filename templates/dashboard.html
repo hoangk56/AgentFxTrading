@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AgentFxTrading</title>
-    <link rel="stylesheet" href="/static/css/dashboard.css?v=20261030_strip2">
+    <link rel="stylesheet" href="/static/css/dashboard.css?v=20261101_rs1">
     <script src="/static/js/auth.js?v=20260927_login"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -12,7 +12,7 @@
     <script src="/static/js/ledger.js?v=20261029_vi1" defer></script>
     <script src="/static/js/overview_alerts.js?v=20261029_ov1" defer></script>
     <script src="/static/js/overview_upcoming.js?v=20261029_ov1" defer></script>
-    <script src="/static/js/forward_status.js?v=20261029_vi1" defer></script>
+    <script src="/static/js/research.js?v=20261101_rs1" defer></script>
     <script src="/static/js/paper_desk.js?v=20261029_vi1" defer></script>
     <script src="/static/js/gotobi_calendar.js?v=20261029_vi1" defer></script>
     <link rel="icon" type="image/png" href="/static/favicon.png">
@@ -112,9 +112,9 @@
                 <span class="nav-icon"><i data-lucide="flask-conical"></i></span>
                 <span class="nav-label">Backtest</span>
             </a>
-            <a href="#forward" class="nav-item" data-target="view-forward" title="Kiểm chứng: các chiến lược ứng viên so với quy tắc dừng / nâng hạng đã đăng ký">
-                <span class="nav-icon"><i data-lucide="radar"></i></span>
-                <span class="nav-label">Kiểm chứng</span>
+            <a href="#research" class="nav-item" data-target="view-research" title="Nghiên cứu: mọi thuật toán đã nghiên cứu theo bậc, kết quả kiểm chứng và các hướng đã thử">
+                <span class="nav-icon"><i data-lucide="microscope"></i></span>
+                <span class="nav-label">Nghiên cứu</span>
             </a>
             <a href="#paper-desk" class="nav-item" data-target="view-paper-desk" title="Dự đoán AI: các mô hình AI đoán hướng mỗi ngày, chấm điểm không dùng tiền">
                 <span class="nav-icon"><i data-lucide="bot"></i></span>
@@ -610,18 +610,26 @@
                 <div id="lg-body"><p class="td-dim">Đang tải…</p></div>
             </div>
 
-            <!-- Forward View: research candidates against their registered rules (static/js/forward_status.js) -->
-            <div id="view-forward" class="view-section">
+            <!-- Research View: research/registry.yaml by tier, forward trackers, pending and tried (static/js/research.js) -->
+            <div id="view-research" class="view-section">
                 <section class="panel">
                     <div class="panel-header">
-                        <span class="panel-title"><i data-lucide="flask-conical" class="panel-icon text-blue"></i> Kiểm chứng</span>
-                        <button id="fs-refresh-btn" class="log-btn" style="margin-left:auto;"><i data-lucide="refresh-cw" class="btn-icon"></i> Làm mới</button>
+                        <span class="panel-title"><i data-lucide="microscope" class="panel-icon text-blue"></i> Nghiên cứu</span>
+                        <span id="rs-meta" class="td-dim rs-meta"></span>
+                        <button id="rs-refresh-btn" class="log-btn"><i data-lucide="refresh-cw" class="btn-icon"></i> Làm mới</button>
                     </div>
-                    <div class="panel-body">
-                        <p class="td-dim lg-hint">Mỗi chiến lược ứng viên so với quy tắc dừng và nâng hạng nó đã đăng ký trước khi có dữ liệu thật (docs/forward-candidates.md). Ròng là biến động giá khớp thật trừ phí 0,6 bp, gộp với đợt kiểm tra giữ lại. "Đủ điều kiện xét" chưa phải là nâng hạng: các điều kiện ở mục "Chưa kiểm ở đây" vẫn cần người xem.</p>
-                        <div id="fs-body"><p class="td-dim">Đang tải…</p></div>
+                    <div class="panel-body rs-panel-body">
+                        <p class="td-dim lg-hint">Mọi thuật toán đã nghiên cứu, theo bậc: Đang live, Demo, Chờ kiểm, Đã loại (docs/research-screen.md). Bấm một dòng để xem số nghiên cứu (IS, VAL, HOLD) và kết quả kiểm chứng so với luật dừng và nâng hạng đã đăng ký trước. Số chỉ lấy từ sổ nghiên cứu và từ lệnh của bot kiểm chứng.</p>
+                        <div id="rs-warning"></div>
+                        <div class="rs-toolbar">
+                            <div id="rs-chips" class="rs-chips" role="group" aria-label="Lọc theo bậc"></div>
+                            <input type="search" id="rs-search" class="log-input rs-search" placeholder="Tìm theo tên, thị trường…" aria-label="Tìm thuật toán">
+                        </div>
                     </div>
                 </section>
+                <div id="rs-grid" class="rs-grid"><p class="td-dim">Đang tải…</p></div>
+                <div id="rs-pending"></div>
+                <div id="rs-tried"></div>
             </div>
 
             <!-- Paper desk View: LLM analyst calls and their score (static/js/paper_desk.js) -->
@@ -698,5 +706,5 @@
             leaderboard: {{ leaderboard | tojson }},
         };
     </script>
-    <script src="/static/js/dashboard.js?v=20261030_pos1"></script>
+    <script src="/static/js/dashboard.js?v=20261101_rs1"></script>
 </body></html>
