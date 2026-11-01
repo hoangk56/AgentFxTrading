@@ -232,6 +232,24 @@ def test_empty_inventory_is_unknown_not_unfillable(testdb):
     assert t["fillable"] is None and "maxBorrowable 0" in t["borrow_note"]
 
 
+def test_account_that_can_borrow_nothing_reads_unknown(testdb):
+    api = FakeBinance()
+    api.margin_assets = lambda: [{"assetName": "AAA", "isBorrowable": False}, {"assetName": "USDT", "isBorrowable": False}]
+    api.inventory = lambda: {"assets": {}, "updateTime": 0}
+    api.perp_close[NOW_MS - H] = 9.8
+    runner.tick(api, T0, log=lambda *_: None)
+    (t,) = store.load_trades("open")
+    assert t["fillable"] is None and t["borrowable"] is None and "không vay được coin nào" in t["borrow_note"]
+
+
+def test_one_unborrowable_asset_is_not_fillable(testdb):
+    api = FakeBinance()
+    api.margin_assets = lambda: [{"assetName": "AAA", "isBorrowable": False}, {"assetName": "USDT", "isBorrowable": True}]
+    api.perp_close[NOW_MS - H] = 9.8
+    runner.tick(api, T0, log=lambda *_: None)
+    assert store.load_trades("open")[0]["fillable"] == 0
+
+
 def test_signed_request_never_puts_secret_in_url():
     seen = []
 

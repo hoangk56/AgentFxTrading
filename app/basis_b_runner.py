@@ -211,12 +211,21 @@ class Borrow:
             return None
 
     def borrowable(self, spot: str, asset: str) -> Optional[bool]:
+        """False when the pair has no cross margin or the asset is not borrowable; None when unknown. If the key's
+        account can borrow no asset at all (seen 2026-11-01: all 494 false), that is the account's state, not the
+        coin's, so it reads as unknown with a note instead of counting every signal as not fillable."""
         if self.api.key and self._assets is None:
             rows = self._try("allAssets", self.api.margin_assets) or []
             self._assets = {r.get("assetName"): bool(r.get("isBorrowable")) for r in rows}
+            if self._assets and not any(self._assets.values()):
+                self.notes.append("tài khoản không vay được coin nào (isBorrowable false cho mọi coin): trạng thái "
+                                  "tài khoản, không tính là không vay được")
+                self._assets = {}
+        if not self.margin_pair.get(spot, False):
+            return False
         if self._assets and asset in self._assets:
-            return self._assets[asset] and self.margin_pair.get(spot, False)
-        return False if not self.margin_pair.get(spot, False) else None
+            return self._assets[asset]
+        return None
 
     def inventory(self, asset: str) -> Optional[float]:
         if not self.api.has_secret:
@@ -327,7 +336,7 @@ def _open_trade(api: Binance, borrow: Borrow, coin, h_ms: int, dev, perp_bars, s
     if not api.has_secret:
         note = ("chưa có BINANCE_API_SECRET: chưa đo lượng vay được và lãi vay" + (f"; {note}" if note else ""))
     elif fl is None and can is not False:
-        note = ("Binance không trả lượng coin cho vay và tài khoản margin chưa có tài sản thế chấp (maxBorrowable 0)"
+        note = ("Binance không trả lượng coin cho vay và tài khoản có maxBorrowable 0"
                 + (f"; {note}" if note else ""))
     b_h, m_h, d_h = dev
     store.insert_trade({
