@@ -738,7 +738,6 @@ body.app-shell{font-variant-numeric:tabular-nums;font-family:var(--font-ui);back
 .bt-form-toggle{display:flex;align-items:center;gap:8px;flex:1;min-width:0;padding:0;border:none;background:none;cursor:pointer;text-align:left;color:inherit;font:inherit}
 .bt-form-toggle:focus-visible{outline:1px solid var(--accent);outline-offset:3px;border-radius:4px}
 .bt-chevron{color:var(--text-muted);font-size:0.8rem;transition:transform .15s}
-.bt-collapsed .bt-chevron{transform:rotate(-90deg)}
 .bt-form-summary{display:none;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:0.72rem;color:var(--text-dim)}
 .bt-collapsed .bt-form-summary{display:block}
 #bt-form-panel.bt-collapsed .panel-header{border-bottom:none}
@@ -805,7 +804,6 @@ body.login-shell{display:flex;align-items:center;justify-content:center;padding:
 @media(min-width:960px){.rs-list{position:sticky;top:0;max-height:calc(100vh - 140px);overflow-y:auto}}
 .rs-group{display:flex;align-items:center;gap:8px;width:100%;padding:9px 14px;border:0;border-bottom:1px solid var(--border-subtle);background:var(--bg-elevated);color:var(--text-primary);font:inherit;font-size:0.78rem;font-weight:600;text-align:left;cursor:pointer}
 .rs-group .td-dim{font-weight:400}
-.rs-chev{margin-left:auto;color:var(--text-muted)}
 .rs-dot{width:8px;height:8px;border-radius:50%;background:var(--text-dim);flex:none}
 .rs-group--live .rs-dot{background:var(--live)}.rs-group--demo .rs-dot{background:var(--demo)}.rs-group--cho-kiem .rs-dot{background:var(--warn)}
 .rs-item{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:2px 10px;width:100%;padding:9px 14px 9px 11px;border:0;border-left:3px solid transparent;border-bottom:1px solid var(--border-subtle);background:transparent;color:var(--text-primary);font:inherit;text-align:left;cursor:pointer}
@@ -1372,3 +1370,15 @@ td.num .bot-sub{max-width:none}
 .bt-id:focus-visible{outline:2px solid var(--accent-bright);outline-offset:2px;border-radius:3px}
 .ov-real-head{flex-wrap:wrap;white-space:nowrap}
 .ov-real-head span{white-space:normal}
+
+/* ---------- Polish after the critique (2026-11-02) ---------- */
+.pd-raw{font-size:0.75rem}
+.rs-legend{margin:8px 0 0;font-size:0.8rem;color:var(--text-muted);max-width:80ch;text-wrap:pretty}
+.rs-dl dt{cursor:help}
+/* One fold sign everywhere: a › before the label that turns down when open (Demo blocks, research groups, the
+   rejected list, the backtest form, movements, help). The Demo row keeps its Mở / Thu gọn word on the right. */
+.fold-chev{display:inline-block;width:10px;flex:none;color:var(--text-muted);font-size:1rem;line-height:1;transition:transform .15s}
+details[open]>summary .fold-chev,[aria-expanded="true"]>.fold-chev{transform:rotate(90deg)}
+.bt-chevron{font-size:1rem;transform:rotate(90deg)}
+.bt-collapsed .bt-chevron{transform:none}
+@media (prefers-reduced-motion:reduce){.fold-chev{transition:none}}

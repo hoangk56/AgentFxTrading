@@ -86,7 +86,7 @@ function lgAccountHtml(a, tolerance) {
     const unexplainedHtml = `<h4 class="lg-subtitle">Số dư đổi mà không có lệnh nào giải thích <span class="td-dim">${unexplainedRows.length} dòng`
         + `${unexplainedRows.length ? ` · cộng lại ${lgMoney(unexplainedSum, true)}` : ''}${cancels.size ? ` · ${cancels.size} dòng bù trừ nhau` : ''}</span></h4>`
         + (unexplained
-            ? '<div class="table-wrap lg-unexp"><table class="data-table"><thead><tr><th>Lúc (GMT+7)</th><th class="num">Thay đổi</th>'
+            ? '<div class="table-wrap lg-unexp"><table class="data-table"><thead><tr><th>Lúc (giờ VN)</th><th class="num">Thay đổi</th>'
               + '<th>Số dư</th><th>Lệnh đóng gần đó</th><th><span class="sr-only">Ghi lại</span></th></tr></thead><tbody>' + unexplained + '</tbody></table></div>'
               + (more > 0 ? `<button type="button" class="log-btn lg-show-more" aria-expanded="false">Hiện thêm ${more} dòng</button>` : '')
               + '<p class="lg-note">Nếu là khoản nạp hoặc rút: bấm ghi lại. Nếu không, có thể một lệnh bị mất báo cáo: xem nhật ký của bot.</p>'
@@ -109,7 +109,7 @@ function lgAccountHtml(a, tolerance) {
     const movementsHtml = `<details class="lg-moves"><summary>Nạp và rút đã ghi <span class="td-dim">${movementRows.length} khoản`
         + ` · nạp ${lgMoney(a.deposits)} · rút ${lgMoney(a.withdrawals)}</span></summary>`
         + (movements
-            ? '<div class="table-wrap"><table class="data-table"><thead><tr><th>Lúc (GMT+7)</th><th class="num">Số tiền</th>'
+            ? '<div class="table-wrap"><table class="data-table"><thead><tr><th>Lúc (giờ VN)</th><th class="num">Số tiền</th>'
               + '<th>Ghi chú</th><th>Nguồn</th><th><span class="sr-only">Xoá</span></th></tr></thead><tbody>' + movements + '</tbody></table></div>'
             : '<p class="lg-note">Chưa ghi khoản nào.</p>')
         + form + '</details>';
@@ -138,7 +138,7 @@ function lgPageHtml(data) {
     const realHtml = real.length ? real.map(a => lgAccountHtml(a, data.tolerance)).join('')
         : '<p class="td-dim">Chưa có tài khoản thật nào.</p>';
     const demoOff = demo.filter(a => lgVerdict(a)[0] === 'warn').length;
-    const demoHtml = demo.length ? `<details class="ov-demo lg-demo"><summary class="ov-demo-row">`
+    const demoHtml = demo.length ? `<details class="ov-demo lg-demo"><summary class="ov-demo-row"><span class="fold-chev" aria-hidden="true">›</span>`
         + `<span class="mode-chip mode-chip--demo">Demo</span><span class="ov-demo-figs"><span><b>${escapeHtml(demo.length)}</b> tài khoản demo</span>`
         + `${demoOff ? `<span>${demoOff} lệch so với sàn</span>` : ''}</span>`
         + `<span class="ov-demo-toggle"><span class="when-closed">Mở</span><span class="when-open">Thu gọn</span></span></summary>`

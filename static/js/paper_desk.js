@@ -17,7 +17,7 @@ function pdPct(v) {
 function pdCoverageHtml(cov) {
     if (!cov || !cov.analysts || !cov.analysts.length) return '<p class="td-dim">Chưa có lượt dự đoán nào.</p>';
     const rows = cov.analysts.map(a => '<tr>'
-        + `<td>${escapeHtml(a.analyst)}</td><td class="num">${escapeHtml(a.calls)}</td>`
+        + `<td>${pdNameHtml(a.analyst)}</td><td class="num">${escapeHtml(a.calls)}</td>`
         + `<td class="num">${escapeHtml(a.traded)} <span class="td-dim">(${escapeHtml(a.long)} mua, ${escapeHtml(a.short)} bán)</span></td>`
         + `<td class="num">${pdPct(a.directional_rate)}</td>`
         + `<td class="num ${a.errors ? 'pnl-negative' : ''}">${escapeHtml(a.errors)}</td></tr>`).join('');
@@ -37,12 +37,24 @@ function pdCoverageHtml(cov) {
         + `<th class="num">Có chọn hướng</th><th class="num">Lỗi gọi AI</th></tr></thead><tbody>${days}</tbody></table></div></details>`;
 }
 
-/** "11:30 30/10/2026" in the browser's zone, or the raw value when it is not a date. */
+/** "11:30 30/10/2026" in Vietnam time (UTC+7, no DST) whatever the browser's zone, or the raw value when it is not a
+ *  date. */
 function pdWhen(iso) {
-    const at = iso ? new Date(iso) : null;
-    if (!at || Number.isNaN(at.getTime())) return escapeHtml(iso || '–');
+    const t = iso ? Date.parse(iso) : NaN;
+    if (Number.isNaN(t)) return escapeHtml(iso || '–');
+    const at = new Date(t + 7 * 3600 * 1000);
     const p = n => String(n).padStart(2, '0');
-    return `${p(at.getHours())}:${p(at.getMinutes())} ${p(at.getDate())}/${p(at.getMonth() + 1)}/${at.getFullYear()}`;
+    return `${p(at.getUTCHours())}:${p(at.getUTCMinutes())} ${p(at.getUTCDate())}/${p(at.getUTCMonth() + 1)}/${at.getUTCFullYear()}`;
+}
+
+// Plain names for the analysts (docs/paper-desk.md: trend, meanrev, risk and a chief who reads their answers) and the
+// two baselines; the raw id ("trend@deepseek-chat") stays as the second line, since it names the model too.
+const PD_NAMES = {trend: 'Theo xu hướng', meanrev: 'Bắt đảo chiều', risk: 'Soát rủi ro', chief: 'Trưởng nhóm (đọc 3 AI kia)',
+                  always_long: 'Mốc: luôn mua', prev_day_momentum: 'Mốc: theo hướng hôm qua'};
+function pdNameHtml(raw) {
+    const role = String(raw || '').split('@')[0];
+    const plain = PD_NAMES[role];
+    return plain ? `${escapeHtml(plain)}<div class="td-dim pd-raw">${escapeHtml(raw)}</div>` : escapeHtml(raw);
 }
 
 // Displayed label of each verdict code (the code itself stays in the tooltip)
@@ -53,19 +65,21 @@ function pdVerdictLabel(v) {
 function pdScoreHtml(score, minTraded) {
     if (!score) return '<p class="td-dim">Chưa có điểm: `python -m app.paper_desk_runner score` chưa chạy.</p>';
     const row = (name, s) => '<tr>'
-        + `<td>${escapeHtml(name)}</td><td class="num">${escapeHtml(s.n)}</td><td class="num">${pdPct(s.hit)}</td>`
+        + `<td>${pdNameHtml(name)}</td><td class="num">${escapeHtml(s.n)}</td><td class="num">${pdPct(s.hit)}</td>`
         + `<td class="num ${s.mean === null || s.mean === undefined ? '' : (Number(s.mean) >= 0 ? 'pnl-positive' : 'pnl-negative')}">${pdNum(s.mean, 2, true)}</td>`
         + `<td class="num">${pdNum(s.t, 2, true)}</td><td><span class="fs-verdict fs-verdict--${escapeHtml(s.verdict === 'PASS' ? 'PROMOTE_CHECK' : s.verdict === 'FAIL' ? 'STOP' : 'CONTINUE')}" title="${escapeHtml(s.verdict)}">${escapeHtml(pdVerdictLabel(s.verdict))}</span></td></tr>`;
     const stale = Date.now() - Date.parse(score.scored_at) > 36 * 3600 * 1000;
     const none = !Object.keys(score.analysts || {}).length;
     const rows = Object.entries(score.analysts).map(([n, s]) => row(n, s)).join('')
         + Object.entries(score.baselines).map(([n, s]) => row(n, s)).join('');
-    return `<h4 class="pd-h">Điểm</h4><p class="pd-note${stale ? ' pd-stale' : ''}">Chấm lúc ${pdWhen(score.scored_at)}`
+    return `<h4 class="pd-h">Điểm</h4><p class="pd-note${stale ? ' pd-stale' : ''}">Chấm lúc ${pdWhen(score.scored_at)} giờ VN`
         + `${stale ? ' (đã cũ: lần chấm sau chưa chạy)' : ''}. Cần ${escapeHtml(minTraded)} lượt `
         + 'dự đoán có chọn hướng mới có kết luận; trước đó cột Kết luận ghi "Chưa đủ".'
         + `${none ? ' Chưa có ô ngày × mã nào có giá ra nên chưa AI nào được chấm; bảng chỉ có hai mốc so sánh.' : ''}</p>`
         + '<div class="table-wrap"><table class="data-table"><thead><tr><th>Tên</th><th class="num">Số lệnh có hướng</th><th class="num">Tỷ lệ đúng</th>'
-        + `<th class="num">TB ròng (bp)</th><th class="num">t (gom cụm)</th><th>Kết luận</th></tr></thead><tbody>${rows}</tbody></table></div>`;
+        + '<th class="num" title="Lời/lỗ trung bình mỗi lệnh sau chi phí, tính bằng phần vạn giá (1 bp = 0,01 %)">TB ròng (bp)</th>'
+        + '<th class="num" title="Độ tin cậy của trung bình, đã gộp các lệnh cùng ngày; từ khoảng 2 trở lên mới khó là do may">t (gom cụm)</th>'
+        + `<th>Kết luận</th></tr></thead><tbody>${rows}</tbody></table></div>`;
 }
 
 /** Directional calls so far, against the count a verdict needs. */

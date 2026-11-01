@@ -4,19 +4,19 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AgentFxTrading</title>
-    <link rel="stylesheet" href="/static/css/dashboard.css?v=20261102_d5">
+    <link rel="stylesheet" href="/static/css/dashboard.css?v=20261102_d6">
     <script src="/static/js/auth.js?v=20260927_login"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="/static/js/backtest.js?v=20261102_d5" defer></script>
-    <script src="/static/js/ledger.js?v=20261102_d5" defer></script>
-    <script src="/static/js/confirm_dialog.js?v=20261102_d5" defer></script>
-    <script src="/static/js/overview_alerts.js?v=20261102_d5" defer></script>
-    <script src="/static/js/overview_demo.js?v=20261102_d5" defer></script>
-    <script src="/static/js/overview_upcoming.js?v=20261102_d5" defer></script>
+    <script src="/static/js/backtest.js?v=20261102_d6" defer></script>
+    <script src="/static/js/ledger.js?v=20261102_d6" defer></script>
+    <script src="/static/js/confirm_dialog.js?v=20261102_d6" defer></script>
+    <script src="/static/js/overview_alerts.js?v=20261102_d6" defer></script>
+    <script src="/static/js/overview_demo.js?v=20261102_d6" defer></script>
+    <script src="/static/js/overview_upcoming.js?v=20261102_d6" defer></script>
     <script src="/static/js/research.js?v=20261101_rs1" defer></script>
     <script src="/static/js/paper_desk.js?v=20261029_vi1" defer></script>
-    <script src="/static/js/gotobi_calendar.js?v=20261102_d5" defer></script>
+    <script src="/static/js/gotobi_calendar.js?v=20261102_d6" defer></script>
     <link rel="icon" type="image/png" href="/static/favicon.png">
 </head>
 {# Nghiên cứu (redesign D step 3, 2026-11-01): one menu item, three tabs. Each tab is still its own view (#research,
@@ -266,7 +266,7 @@
                 </section>
 
                 <details id="ov-demo" class="ov-demo">
-                    <summary class="ov-demo-row">
+                    <summary class="ov-demo-row"><span class="fold-chev" aria-hidden="true">›</span>
                         <span class="mode-chip mode-chip--demo">Demo</span>
                         <span id="ov-demo-figs" class="ov-demo-figs">Đang tải…</span>
                         <span class="ov-demo-toggle"><span class="when-closed">Mở</span><span class="when-open">Thu gọn</span></span>
@@ -305,7 +305,7 @@
                 <section class="panel" id="bt-form-panel">
                     <div class="panel-header">
                         <button type="button" id="bt-form-toggle" class="bt-form-toggle" aria-expanded="true" aria-controls="bt-form-body">
-                            <span class="bt-chevron" aria-hidden="true">▾</span>
+                            <span class="bt-chevron" aria-hidden="true">›</span>
                             <span class="panel-title"><i data-lucide="flask-conical" class="panel-icon text-blue"></i> Backtest mới</span>
                             <span id="bt-form-summary" class="bt-form-summary"></span>
                         </button>
@@ -502,7 +502,7 @@
                 </section>
 
                 <details id="bots-demo" class="ov-demo">
-                    <summary class="ov-demo-row">
+                    <summary class="ov-demo-row"><span class="fold-chev" aria-hidden="true">›</span>
                         <span class="mode-chip mode-chip--demo">Demo</span>
                         <span id="bots-demo-figs" class="ov-demo-figs">Đang tải…</span>
                         <span class="ov-demo-toggle"><span class="when-closed">Mở</span><span class="when-open">Thu gọn</span></span>
@@ -684,5 +684,5 @@
             positions: {{ positions | tojson }},
         };
     </script>
-    <script src="/static/js/dashboard.js?v=20261102_d5"></script>
+    <script src="/static/js/dashboard.js?v=20261102_d6"></script>
 </body></html>

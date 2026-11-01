@@ -65,6 +65,23 @@ function ovStatus(alerts) {
     return {cls: demo ? 'warn' : 'ok', text: `Tiền thật: mọi bot chạy bình thường${demoNote}`};
 }
 
+/** The topbar pill: what is waiting, named when it is one real-money problem ("Tiền thật: GBPJPY đã dừng"), counted
+ *  otherwise; title lists every alert. {crit, text, title}, or null when nothing waits. */
+function ovPillText(alerts) {
+    if (!alerts || !alerts.length) return null;
+    const realCrit = alerts.filter(a => a.mode !== 'demo' && a.level === 'crit');
+    const words = {bot_stopped: 'đã dừng', restart_failed: 'khởi động lại không được', stale_price: 'không nhận giá',
+                   docker_down: 'không chạy'};
+    const who = a => a.kind === 'docker_down' ? 'Docker' : confirmWordFor(a.container || a.bot || '');
+    let text;
+    if (realCrit.length === 1) text = `Tiền thật: ${who(realCrit[0])} ${words[realCrit[0].kind] || 'cần xử lý'}`;
+    else if (realCrit.length) text = `${realCrit.length} việc tiền thật cần làm`;
+    else text = `${alerts.length} việc cần làm`;
+    const title = ovSortAlerts(alerts).map(a => `${a.mode === 'demo' ? 'Demo' : 'Thật'} · ${a.bot}: ${a.message}`).join('\n')
+        + '\nBấm để mở Cần làm ở Tổng quan';
+    return {crit: realCrit.length > 0, text, title};
+}
+
 /** Where "Nhật ký" goes: the log view (all modes by default), filtered to the bot. */
 function ovLogsUrl(mode, bot) {
     return `#logs?q=${encodeURIComponent(bot)}`;
@@ -96,10 +113,13 @@ function ovLogsUrl(mode, bot) {
         section.hidden = !alerts.length;
         if (count) count.textContent = alerts.length ? `${alerts.length} việc · cả Thật và Demo` : '';
         if (pill) {
-            const realCrit = alerts.filter(a => a.mode !== 'demo' && a.level === 'crit').length;
-            pill.hidden = !alerts.length;
-            pill.className = `todo-pill${realCrit ? ' todo-pill--crit' : ''}`;
-            pill.textContent = realCrit ? `${realCrit} việc tiền thật cần làm` : `${alerts.length} việc cần làm`;
+            const p = ovPillText(alerts);
+            pill.hidden = !p;
+            if (p) {
+                pill.className = `todo-pill${p.crit ? ' todo-pill--crit' : ''}`;
+                pill.textContent = p.text;
+                pill.title = p.title;
+            }
         }
         // Only rewrite on a change, so the polite live region is not read out again every 30 s.
         const html = ovTodoHtml(alerts, pending);

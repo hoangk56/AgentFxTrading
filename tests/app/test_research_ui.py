@@ -92,7 +92,7 @@ def test_research_renderers_escape_external_strings():
     assert "Tất cả <b>4</b>" in out["chips"] and "Demo <b>1</b>" in out["chips"]
     # the title line counts the tiers and names the tracker that hit its stop rule
     assert out["status"] == ["crit", "1 đang live · 1 chạy demo · 1 chờ kiểm · 1 chạm luật dừng"]
-    assert "Thu gọn" in out["triedOpen"] and "<table" not in out["triedShut"] and "1 hướng" in out["triedShut"]
+    assert 'aria-expanded="true"' in out["triedOpen"] and "<table" not in out["triedShut"] and "1 hướng" in out["triedShut"]
     assert "Không có thuật toán nào khớp bộ lọc" in out["none"]
     assert "Chưa có dữ liệu" in out["basisOff"] and "API secret" not in out["basisOff"]
     assert "Không có bot kiểm chứng" in out["noTracker"] and "Lỗi lần chạy đó" in out["basis"]
