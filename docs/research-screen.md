@@ -1,8 +1,10 @@
 # Research screen ("Nghiên cứu")
 
-Dashboard view `#research` (old links `#forward` still open it). It lists every researched algorithm by tier, shows
-the selected one's research numbers and forward tracker, then the "Chờ kiểm" cards and the collapsed
-"Đã thử, không đạt" table. Layout follows the research page of the sibling project 106.dnse-stock.
+Dashboard view `#research` (old links `#forward` still open it), the "Ứng viên" tab of Nghiên cứu. A status line counts
+the tiers and names any forward tracker that hit its stop or promotion rule; below it the list by tier, the selected
+algorithm's research numbers and forward tracker, and the folded "Đã thử, không đạt" table. Layout follows the research
+page of the sibling project 106.dnse-stock. The separate "Chờ kiểm" cards were dropped on 2026-11-02: they repeated the
+list group and its detail.
 
 | Part | File |
 |---|---|
@@ -48,7 +50,7 @@ trackers' output.
 |---|---|---|
 | `live` | Đang live | list group |
 | `demo` | Demo | list group |
-| `cho-kiem` | Chờ kiểm | list group and a card in the "Chờ kiểm" section |
+| `cho-kiem` | Chờ kiểm | list group |
 | `da-loai` | Đã loại | list group, collapsed when the page opens |
 
 `tried` rows are hypotheses that never became an algorithm; they fill the collapsed "Đã thử, không đạt" table.

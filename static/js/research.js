@@ -1,5 +1,5 @@
 /* Research view ("Nghiên cứu"): every researched algorithm from research/registry.yaml grouped by tier, the selected
- * one's detail with its forward tracker, the "Chờ kiểm" cards and the collapsed "Đã thử, không đạt" table
+ * one's detail with its forward tracker, and the collapsed "Đã thử, không đạt" table
  * (app/research_api.py, GET /api/research; docs/research-screen.md). Modelled on 106.dnse-stock's research page.
  *
  * Loaded with `defer`, after the dashboard script whose escapeHtml it uses. The functions above the DOM part are pure
@@ -263,7 +263,13 @@ function rsBasisHtml(tr) {
 
 function rsTrackerHtml(entry, data) {
     const tr = entry.tracker;
-    if (!entry.forward || !tr) return '<p class="td-dim">Không có bot kiểm chứng.</p>';
+    if (!entry.forward || !tr) {
+        // A live algorithm's forward check is its own real bots: send the reader to their results instead of
+        // leaving the backtest numbers above as the only figures on screen.
+        if (rsTierOf(entry) === 'live') return '<p class="rs-live-note">Không có bot kiểm chứng riêng: kết quả tiền thật '
+            + 'của thuật toán này là kết quả các bot của nó. <a href="#docker" class="rs-link">Xem ở màn Bot (Theo rủi ro để so với R ở trên)</a></p>';
+        return '<p class="td-dim">Không có bot kiểm chứng.</p>';
+    }
     if (tr.kind === 'basis_b') return rsBasisHtml(tr);
     if (!tr.available || !tr.data) return `<p class="td-dim">${escapeHtml(tr.message || 'Chưa có dữ liệu.')}</p>`;
     return rsRulesTrackerHtml(tr, data && data.gold_calendar);
@@ -287,24 +293,7 @@ function rsDetailHtml(entry, data) {
         + '</section>';
 }
 
-function rsPendingHtml(entries) {
-    const rows = (entries || []).filter(e => rsTierOf(e) === 'cho-kiem');
-    if (!rows.length) return '';
-    return '<section class="panel rs-section"><div class="panel-header"><span class="panel-title">'
-        + `Chờ kiểm <span class="td-dim">${rows.length}</span></span></div><div class="panel-body rs-panel-body">`
-        + '<p class="td-dim lg-hint">Đã đăng ký trước, đang chờ lần kiểm của mình (bot demo, dữ liệu mới hoặc quyết định của người dùng). '
-        + 'Chưa chạy tiền thật.</p><div class="rs-cards">'
-        + rows.map(e => '<article class="rs-card">'
-            + `<div class="rs-card-head"><b>${escapeHtml(e.name)}</b><span class="td-dim">${escapeHtml([e.id, e.market, e.round ? 'vòng ' + e.round : null].filter(Boolean).join(' · '))}</span></div>`
-            + (e.description ? `<p class="rs-desc">${escapeHtml(e.description)}</p>` : '')
-            + (e.tier_reason ? `<p class="rs-line td-dim">${escapeHtml(e.tier_reason)}</p>` : '')
-            + rsResearchHtml(e.research)
-            + `<div class="rs-card-foot">${e.prereg ? rsCode(e.prereg) : ''}${e.report ? rsCode(e.report) : ''}`
-            + `<button type="button" class="log-btn" data-rs-id="${escapeHtml(e.id)}" data-rs-reveal="1">Xem chi tiết</button></div>`
-            + '</article>').join('')
-        + '</div></div></section>';
-}
-
+/** The rounds that did not pass, folded: one line until opened (the list and its detail above are the screen). */
 function rsTriedHtml(tried, open) {
     if (!tried || !tried.length) return '';
     const body = open
@@ -313,11 +302,11 @@ function rsTriedHtml(tried, open) {
             + tried.map(t => `<tr><td>${escapeHtml(t.round || '')}</td><td>${escapeHtml(t.name || '')}</td>`
                 + `<td>${escapeHtml(t.reason || '')}</td><td>${t.report ? rsCode(t.report) : ''}</td></tr>`).join('')
             + '</tbody></table></div>'
-        : `<p class="td-dim lg-hint">${tried.length} hướng đã kiểm và không qua cổng. Chi tiết trong research/JOURNAL.md.</p>`;
-    return '<section class="panel rs-section"><div class="panel-header"><span class="panel-title">'
-        + `Đã thử, không đạt <span class="td-dim">${tried.length}</span></span>`
-        + `<button type="button" class="log-btn" data-rs-tried="1" aria-expanded="${open}">${open ? 'Thu gọn' : 'Xem'}</button></div>`
-        + `<div class="panel-body${open ? '' : ' rs-panel-body'}">${body}</div></section>`;
+        : '';
+    return `<section class="rs-fold"><button type="button" class="rs-fold-head" data-rs-tried="1" aria-expanded="${open}">`
+        + `<span class="rs-fold-title">Đã thử, không đạt <span class="td-dim">${tried.length}</span></span>`
+        + `<span class="td-dim">${tried.length} hướng đã kiểm và không qua cổng · chi tiết trong research/JOURNAL.md</span>`
+        + `<span class="rs-fold-act">${open ? 'Thu gọn' : 'Xem'}</span></button>${body}</section>`;
 }
 
 /** "Sổ research/registry.yaml · đọc lúc 14:05 01/11" in the browser's zone. */
@@ -328,6 +317,20 @@ function rsMetaText(data) {
           + `${String(at.getDate()).padStart(2, '0')}/${String(at.getMonth() + 1).padStart(2, '0')}`
         : '–';
     return `Sổ ${(data && data.registry) || 'research/registry.yaml'} · đọc lúc ${when}`;
+}
+
+/** The title line: how many algorithms sit in each tier, and the trackers that hit a pre-registered rule.
+ *  [css modifier, text]. */
+function rsStatusOf(data) {
+    const entries = (data && data.algorithms) || [];
+    if (!entries.length) return ['', 'Sổ nghiên cứu chưa có thuật toán nào'];
+    const c = rsCounts(entries);
+    const verdicts = entries.map(e => e.tracker && e.tracker.available && e.tracker.data && e.tracker.data.verdict);
+    const stop = verdicts.filter(v => v === 'STOP').length, promote = verdicts.filter(v => v === 'PROMOTE_CHECK').length;
+    const flags = [stop ? `${stop} chạm luật dừng` : '', promote ? `${promote} đủ điều kiện xét nâng hạng` : ''].filter(Boolean);
+    const text = `${c.live || 0} đang live · ${c.demo || 0} chạy demo · ${c['cho-kiem'] || 0} chờ kiểm`
+        + (flags.length ? ` · ${flags.join(', ')}` : '');
+    return [stop ? 'crit' : (promote ? 'warn' : 'ok'), text];
 }
 
 // ---------- DOM, fetch ----------
@@ -343,6 +346,10 @@ function rsRender() {
     const entries = rsData.algorithms || [];
     const {ordered, selected} = rsSelection(entries, rsState);
     document.getElementById('rs-meta').textContent = rsMetaText(rsData);
+    const [cls, text] = rsStatusOf(rsData);
+    const status = document.getElementById('rs-status');
+    status.textContent = text;
+    status.className = `ov-status${cls ? ` ov-status--${cls}` : ''}`;
     document.getElementById('rs-warning').innerHTML = rsData.warning
         ? `<p class="rs-warn">${escapeHtml(rsData.warning)}</p>` : '';
     document.getElementById('rs-chips').innerHTML = rsChipsHtml(rsCounts(rsFilter(entries, {q: rsState.q})), rsState);
@@ -350,7 +357,6 @@ function rsRender() {
         ? `<nav class="rs-list" aria-label="Danh sách thuật toán">${rsListHtml(ordered, selected, rsState, rsToggled)}</nav>`
           + rsDetailHtml(selected, rsData)
         : '<p class="td-dim">Sổ nghiên cứu chưa có thuật toán nào.</p>';
-    document.getElementById('rs-pending').innerHTML = rsPendingHtml(entries);
     document.getElementById('rs-tried').innerHTML = rsTriedHtml(rsData.tried, rsTriedOpen);
 }
 
@@ -372,6 +378,9 @@ async function rsLoad() {
     } catch (e) {
         document.getElementById('rs-grid').innerHTML =
             `<p class="pnl-negative">Không tải được trang nghiên cứu: ${escapeHtml(e.message)}</p>`;
+        const status = document.getElementById('rs-status');
+        status.textContent = 'Không đọc được sổ nghiên cứu';
+        status.className = 'ov-status ov-status--warn';
     } finally {
         rsLoading = false;
     }
@@ -415,6 +424,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 rsUpdate({id});
             }
             if (el.hasAttribute('data-rs-reveal')) document.getElementById('rs-grid').scrollIntoView({behavior: 'smooth', block: 'start'});
+            // One column below 960 px: the detail sits under the whole list, so take the reader to it.
+            else if (window.matchMedia('(max-width: 959px)').matches) {
+                const detail = view.querySelector('.rs-detail');
+                if (detail) detail.scrollIntoView({block: 'start'});
+            }
         }
     });
 });

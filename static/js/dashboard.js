@@ -25,8 +25,8 @@ const DASHBOARD_BOOTSTRAP = window.DASHBOARD_BOOTSTRAP || {};
             document.querySelectorAll('.view-section').forEach(view => view.classList.remove('active'));
 
             // Add active to matching nav item or topbar button. Views without their own menu item light their parent's:
-            // Dự đoán AI and Backtest are tabs of Nghiên cứu, the full ranking hangs off Bot (redesign D).
-            const NAV_PARENT = {'view-paper-desk': 'view-research', 'view-backtest': 'view-research', 'view-leaderboard': 'view-docker'};
+            // Dự đoán AI and Backtest are tabs of Nghiên cứu (redesign D).
+            const NAV_PARENT = {'view-paper-desk': 'view-research', 'view-backtest': 'view-research'};
             const activeNav = document.querySelector(`.nav-item[data-target="${NAV_PARENT[targetId] || targetId}"]`);
             if (activeNav) activeNav.classList.add('active');
             const activeTopbarBtn = document.querySelector(`.topbar-action-btn[data-target="${targetId}"]`);
@@ -43,8 +43,6 @@ const DASHBOARD_BOOTSTRAP = window.DASHBOARD_BOOTSTRAP || {};
                     fetchAgentLogs(logDateSelect.value);
                 } else if (targetId === 'view-docker') {
                     fetchBots();
-                } else if (targetId === 'view-leaderboard') {
-                    fetchLeaderboard();
                 } else if (targetId === 'view-backtest') {
                     btOnShow();
                 } else if (targetId === 'view-ledger') {
@@ -63,8 +61,9 @@ const DASHBOARD_BOOTSTRAP = window.DASHBOARD_BOOTSTRAP || {};
         // so F5 and Back/Forward stay on it. A view may keep its own state after "?" (#research?id=…).
         function viewFromHash(hash) {
             // #gotobi was the Calendar's hash before it took the ECB window trades too, #forward the Research
-            // view's before it became "Nghiên cứu"; old links still open them.
-            const aliases = {gotobi: 'calendar', forward: 'research'};
+            // view's before it became "Nghiên cứu", #leaderboard the ranking's before it joined Bot (2026-11-01);
+            // old links still open them.
+            const aliases = {gotobi: 'calendar', forward: 'research', leaderboard: 'docker'};
             const name = hash.slice(1).split('?')[0];
             const view = hash.length > 1 ? document.getElementById('view-' + (aliases[name] || name)) : null;
             return view && view.classList.contains('view-section') ? view.id : 'view-dashboard';
@@ -100,7 +99,9 @@ const DASHBOARD_BOOTSTRAP = window.DASHBOARD_BOOTSTRAP || {};
         // button by state, Sửa, the rest under ⋯. The pure functions below run in node in the XSS tests.
         let botsFetchInFlight = false;   // a slow poll must not stack up behind itself
         let botActionInFlight = false;  // a pending action owns the table until it finishes
-        let botResults = {};            // bot_id -> leaderboard row for the chosen period
+        let botResults = {};            // bot_id -> {usd, risk}: its leaderboard rows for the chosen period
+        let botBasis = 'usd';           // 'usd' or 'risk' (#bots-basis), remembered per browser
+        try { if (localStorage.getItem('bots-basis') === 'risk') botBasis = 'risk'; } catch (e) { /* default */ }
         let botsDemoIssues = 0;
         const BOT_SIZING = [['RiskPerTradeMoney', 'Rủi ro mỗi lệnh ($)'], ['MaxLotsPerTrade', 'Lot tối đa mỗi lệnh'], ['Lots', 'Lot mỗi lệnh']];
 
@@ -152,18 +153,72 @@ const DASHBOARD_BOOTSTRAP = window.DASHBOARD_BOOTSTRAP || {};
             if (b.paused) return 'không vào lệnh mới';
             return '';
         }
+/** "4 bot · 4 đang chạy · 30 ngày qua: −$3,632.70": the real block's result for the period next to its health, so a
+         *  green "chạy bình thường" is never the only word on a losing month. */
+        function botsGroupLine(group, results, basis, periodLabel) {
+            const running = group.filter(b => b.status === 'running').length;
+            let sum = 0, any = false;
+            group.forEach(b => {
+                const r = results[b.bot_id] && results[b.bot_id][basis === 'risk' ? 'risk' : 'usd'];
+                if (!r || !Number(r.total_trades)) return;
+                any = true;
+                sum += Number(basis === 'risk' ? r.net_units : r.total_pnl_usd) || 0;
+            });
+            const shown = basis === 'risk' ? `${sum > 0 ? '+' : sum < 0 ? '−' : ''}${Math.abs(sum).toFixed(1)} R` : signedMoney(sum);
+            const result = any ? ` · ${escapeHtml(periodLabel)}: <b class="${sum > 0 ? 'pnl-positive' : sum < 0 ? 'pnl-negative' : ''}">${shown}</b>` : '';
+            return `${group.length} bot · ${running} đang chạy${result}`;
+        }
+        function botPeriodLabel() {
+            const sel = document.getElementById('bots-period');
+            return sel && sel.selectedOptions && sel.selectedOptions[0] ? sel.selectedOptions[0].textContent : '';
+        }
         function botNeedsAction(b) { return botState(b)[0] === 'crit' || (b.status === 'running' && !b.polling); }
-        function botResultCells(r) {
-            if (!r || !Number(r.total_trades)) return '<td class="num td-dim" data-label="Lời/lỗ">—</td><td class="num td-dim" data-label="Số lệnh">0</td><td class="num td-dim" data-label="Hệ số lời">—</td>';
-            const pnl = Number(r.total_pnl_usd) || 0;
+        /** Calendar presets of the period select as Vietnam-time days ({from, to}), or null for a rolling window. */
+        function botPeriodRange(period, now) {
+            const vn = new Date((now === undefined ? Date.now() : now) + 7 * 3600 * 1000);   // VN has no DST
+            const day = (d, n) => { const x = new Date(d); x.setUTCDate(x.getUTCDate() + n); return x; };
+            const iso = d => d.toISOString().slice(0, 10);
+            const monday = day(vn, -((vn.getUTCDay() + 6) % 7));
+            const first = new Date(Date.UTC(vn.getUTCFullYear(), vn.getUTCMonth(), 1));
+            const ranges = {today: [vn, vn], thisweek: [monday, vn], thismonth: [first, vn],
+                            lastmonth: [new Date(Date.UTC(vn.getUTCFullYear(), vn.getUTCMonth() - 1, 1)), day(first, -1)]};
+            return ranges[period] ? {from: iso(ranges[period][0]), to: iso(ranges[period][1])} : null;
+        }
+        function botPeriodQuery(period, now) {
+            const range = botPeriodRange(period, now);
+            return range ? `period=custom&date_from=${range.from}&date_to=${range.to}` : `period=${encodeURIComponent(period)}`;
+        }
+        /** The three result cells of a bot row. basis 'usd': dollars of closed + open trades; 'risk': each closed trade
+         *  divided by the money it risked at entry (1 R = lost exactly the stop), so a bigger lot does not skew it. */
+        function botResultCells(res, basis) {
+            const r = res && res[basis === 'risk' ? 'risk' : 'usd'];
+            const empty = (why) => `<td class="num td-dim" data-label="Lời/lỗ"${why ? ` title="${why}"` : ''}>—</td>`
+                + '<td class="num td-dim" data-label="Thắng / lệnh">0</td><td class="num td-dim" data-label="Hệ số lời">—</td>';
+            if (!r || !Number(r.total_trades)) {
+                const otherHas = res && res.usd && Number(res.usd.total_trades);
+                return empty(basis === 'risk' && otherHas ? 'Lệnh của bot này không ghi khoảng stop, nên không tính được theo rủi ro' : '');
+            }
+            const n = Number(r.total_trades), wins = Number(r.total_wins) || 0;
             // A profit factor of one or two trades is noise (0.00 after one loss): shown from 5 closed trades.
-            const pf = Number(r.total_trades) < 5 ? '<span class="td-dim" title="Cần ít nhất 5 lệnh đã đóng">ít lệnh</span>'
+            const pf = n < 5 ? '<span class="td-dim" title="Cần ít nhất 5 lệnh đã đóng">ít lệnh</span>'
                 : (r.profit_factor === null || r.profit_factor === undefined || !Number.isFinite(Number(r.profit_factor))
                     ? '—' : Number(r.profit_factor).toFixed(2));
-            return `<td class="num ${pnl > 0 ? 'pnl-positive' : pnl < 0 ? 'pnl-negative' : ''}" data-label="Lời/lỗ">${signedMoney(pnl)}</td>`
-                + `<td class="num" data-label="Số lệnh">${escapeHtml(r.total_trades || 0)}</td><td class="num" data-label="Hệ số lời">${pf}</td>`;
+            let value, sub = '';
+            if (basis === 'risk') {
+                value = Number(r.net_units) || 0;
+                const shown = `${value > 0 ? '+' : value < 0 ? '−' : ''}${Math.abs(value).toFixed(1)} R`;
+                if (Number(r.max_dd_units) > 0) sub = `<span class="bot-sub">sụt tối đa ${Number(r.max_dd_units).toFixed(1)} R</span>`;
+                value = [value, shown];
+            } else {
+                const pnl = Number(r.total_pnl_usd) || 0, open = Number(r.floating_pnl_usd) || 0;
+                if (open) sub = `<span class="bot-sub">lệnh mở ${signedMoney(open)}</span>`;
+                value = [pnl, signedMoney(pnl)];
+            }
+            return `<td class="num ${value[0] > 0 ? 'pnl-positive' : value[0] < 0 ? 'pnl-negative' : ''}" data-label="Lời/lỗ">${value[1]}${sub}</td>`
+                + `<td class="num" data-label="Thắng / lệnh">${wins}/${n}<span class="bot-sub">${Math.round(wins / n * 100)}%</span></td>`
+                + `<td class="num" data-label="Hệ số lời">${pf}</td>`;
         }
-        function botRowHtml(b, r) {
+        function botRowHtml(b, r, basis) {
             const name = escapeHtml(b.name);
             const live = b.account_type === 'live' ? '1' : '0';
             const symbol = botParam(b.run_command, 'symbol') || '';
@@ -192,7 +247,7 @@ const DASHBOARD_BOOTSTRAP = window.DASHBOARD_BOOTSTRAP || {};
                     ? `<span class="bot-sub bot-reason">${escapeHtml(botReasonShort(b))}</span>` : ''}${stateTitle ? `<span class="sr-only">${escapeHtml(stateTitle)}</span>` : ''}</td>
                 <td class="num" data-label="Rủi ro / lệnh">${botSizingHtml(b.run_command)}</td>
                 <td class="num" data-label="Đang giữ">${escapeHtml(b.open_positions || 0)}</td>
-                ${botResultCells(r)}
+                ${botResultCells(r, basis)}
                 <td class="bot-actions">${primary}${edit}${menu}</td>
             </tr>`;
         }
@@ -223,15 +278,25 @@ const DASHBOARD_BOOTSTRAP = window.DASHBOARD_BOOTSTRAP || {};
             botsFetchInFlight = true;
             try {
                 const period = (document.getElementById('bots-period') || {}).value || '1m';
-                const lb = type => fetch(`/api/leaderboard?account_id=${type}&account_type=${type}&period=${encodeURIComponent(period)}`)
+                const lb = type => fetch(`/api/leaderboard?account_id=${type}&account_type=${type}&${botPeriodQuery(period)}`)
                     .then(r => r.ok ? r.json() : null).catch(() => null);
                 const [res, live, demo] = await Promise.all([fetch("/api/bots"), lb('live'), lb('demo')]);
                 const data = await res.json();
-                // Each call ranks every bot (zeros for the other mode's), so take a bot's row from its own mode only.
+                // Each call ranks every bot (zeros for the other mode's), so take a bot's rows from its own mode only;
+                // one response carries both the dollar ranking and the per-risk one (lot_neutral).
                 const isLive = id => /(^|[-_])live([-_]|$)/i.test(String(id || ''));
                 botResults = {};
-                ((live && live.rankings) || []).forEach(r => { if (isLive(r.bot_id)) botResults[r.bot_id] = r; });
-                ((demo && demo.rankings) || []).forEach(r => { if (!isLive(r.bot_id)) botResults[r.bot_id] = r; });
+                const take = (resp, wantLive) => {
+                    if (!resp) return;
+                    const put = (rows, key) => (rows || []).forEach(r => {
+                        if (isLive(r.bot_id) !== wantLive) return;
+                        (botResults[r.bot_id] = botResults[r.bot_id] || {})[key] = r;
+                    });
+                    put(resp.rankings, 'usd');
+                    put(resp.lot_neutral && resp.lot_neutral.rankings, 'risk');
+                };
+                take(live, true);
+                take(demo, false);
                 renderBots(data.bots, data.docker_available);
             } catch(e) {
                 const status = document.getElementById("bots-status");
@@ -256,14 +321,14 @@ const DASHBOARD_BOOTSTRAP = window.DASHBOARD_BOOTSTRAP || {};
             }
             const list = bots || [];
             const real = list.filter(b => b.account_type === 'live'), demo = list.filter(b => b.account_type !== 'live');
-            const rows = group => group.map(b => botRowHtml(b, botResults[b.bot_id])).join('');
+            const rows = group => group.map(b => botRowHtml(b, botResults[b.bot_id], botBasis)).join('');
             realBody.innerHTML = real.length ? rows(real)
                 : '<tr><td colspan="8" class="td-dim">Chưa có bot tiền thật nào. Bấm "Cài bot từ mẫu" hoặc "Thêm bot".</td></tr>';
             if (demoBody) demoBody.innerHTML = demo.length ? rows(demo) : '<tr><td colspan="8" class="td-dim">Chưa có bot demo nào.</td></tr>';
             const realIssues = real.filter(botNeedsAction).length;
             const demoIssues = demo.filter(botNeedsAction).length;
             const realCount = document.getElementById('bots-real-count');
-            if (realCount) realCount.textContent = `${real.length} bot · ${real.filter(b => b.status === 'running').length} đang chạy`;
+            if (realCount) realCount.innerHTML = botsGroupLine(real, botResults, botBasis, botPeriodLabel());
             const figs = document.getElementById('bots-demo-figs');
             if (figs) figs.innerHTML = `<span><b>${demo.length}</b> bot</span><span><b>${demo.filter(b => b.status === 'running').length}</b> đang chạy</span>`
                 + `<span><b>${demo.reduce((s, b) => s + (Number(b.open_positions) || 0), 0)}</b> lệnh đang giữ</span>`
@@ -305,6 +370,7 @@ const DASHBOARD_BOOTSTRAP = window.DASHBOARD_BOOTSTRAP || {};
             start: ['Chạy', 'Docker chạy container với lệnh đã lưu; bot đăng nhập lại cTrader trong khoảng một phút.'],
             restart: ['Khởi động lại', 'Docker dừng rồi chạy lại container; bot đăng nhập lại cTrader trong khoảng một phút. Lệnh đang mở vẫn nằm ở sàn cùng stop của nó.'],
             stop: ['Dừng', 'Container dừng: bot không vào lệnh mới và không quản lý lệnh đang mở nữa (stop ở sàn vẫn còn).'],
+            pause: ['Tạm dừng', 'Bot không vào lệnh mới cho tới khi bấm Tiếp tục; lệnh đang mở vẫn được bot quản lý. Ngày gotobi rơi vào lúc tạm dừng sẽ bị bỏ qua.'],
         };
         async function actionBot(name, action, btn) {
             const d = (btn && btn.dataset) || {};
@@ -313,8 +379,9 @@ const DASHBOARD_BOOTSTRAP = window.DASHBOARD_BOOTSTRAP || {};
                 const held = Number(d.open) || 0;
                 const body = held && action === 'stop'
                     ? `Bot đang giữ ${held} lệnh. ${base} Muốn đóng lệnh trước thì dùng Đóng & dừng.` : base;
-                const ok = await askConfirm({title: `${verb} ${name}?`, body, ok: verb,
-                                             live: d.live === '1', typeWord: confirmWordFor(name, d.symbol)});
+                // Pausing is the safe move: no typed pair, so it stays one step in a hurry.
+                const ok = await askConfirm({title: `${verb} ${name}?`, body, ok: verb, live: d.live === '1',
+                                             typeWord: action === 'pause' ? '' : confirmWordFor(name, d.symbol)});
                 if (!ok) return;
             }
             const unlock = lockBotRow(btn, action);
@@ -416,10 +483,16 @@ const DASHBOARD_BOOTSTRAP = window.DASHBOARD_BOOTSTRAP || {};
         document.addEventListener("click", e => {
             document.querySelectorAll('#view-docker details.row-menu[open]').forEach(m => { if (!m.contains(e.target)) m.open = false; });
         });
-        document.querySelectorAll('.bots-period-head').forEach(th => { th.textContent = `Lời/lỗ ${document.getElementById("bots-period").selectedOptions[0].textContent}`; });
-        document.getElementById("bots-period").addEventListener("change", () => {
-            const label = document.getElementById("bots-period").selectedOptions[0].textContent;
-            document.querySelectorAll('.bots-period-head').forEach(th => { th.textContent = `Lời/lỗ ${label}`; });
+        function botsResultHeads() {
+            document.querySelectorAll('.bots-period-head').forEach(th => { th.textContent = th.dataset[botBasis] || 'Lời/lỗ'; });
+            document.querySelectorAll('#bots-basis button[data-mode]').forEach(b => b.setAttribute('aria-pressed', b.dataset.mode === botBasis ? 'true' : 'false'));
+        }
+        botsResultHeads();
+        document.getElementById("bots-period").addEventListener("change", () => fetchBots());
+        bindModeSeg('bots-basis', mode => {
+            botBasis = mode;
+            try { localStorage.setItem('bots-basis', mode); } catch (e) { /* not persisted */ }
+            botsResultHeads();
             fetchBots();
         });
 
@@ -547,7 +620,7 @@ const DASHBOARD_BOOTSTRAP = window.DASHBOARD_BOOTSTRAP || {};
             document.querySelectorAll("#setup-grid .setup-cell-note").forEach(note => {
                 const rows = byCell[`${note.dataset.symbol}|${note.dataset.strategy}`] || [];
                 if (!rows.length) { note.textContent = ""; note.title = ""; return; }
-                note.textContent = "👤 " + rows.map(r => r.account_label).join(", ");
+                note.textContent = "Đã tạo cho " + rows.map(r => r.account_label).join(", ");
                 note.title = "Đã tạo cho:\n" + rows.map(r =>
                     `${r.name} · ${r.account_type === 'live' ? 'THẬT' : 'DEMO'} · ${r.account_label}`).join("\n");
             });
@@ -626,10 +699,10 @@ const DASHBOARD_BOOTSTRAP = window.DASHBOARD_BOOTSTRAP || {};
                     method: "POST", headers: {"Content-Type": "application/json"}, body: JSON.stringify(payload)
                 });
                 const data = await res.json();
-                if (!res.ok) { list.innerHTML = `<li style="color:var(--loss)">❌ ${setupEscape(data.message || `HTTP ${res.status}`)}</li>`; return; }
-                const icons = { started: "✅", saved: "💾", exists: "⏭", error: "❌" };
+                if (!res.ok) { list.innerHTML = `<li class="pnl-negative">Lỗi: ${setupEscape(data.message || `HTTP ${res.status}`)}</li>`; return; }
+                const words = { started: ["Đã chạy", "pnl-positive"], saved: ["Đã lưu", ""], exists: ["Đã có", "td-dim"], error: ["Lỗi", "pnl-negative"] };
                 list.innerHTML = (data.results || []).map(r =>
-                    `<li>${icons[r.status] || "•"} <strong>${setupEscape(r.name || r.symbol)}</strong> <span class="td-dim">${setupEscape(r.symbol)} · ${setupEscape(r.strategy)}</span> — ${setupEscape(r.message || r.status)}</li>`
+                    `<li><span class="${(words[r.status] || ["", ""])[1]}">${(words[r.status] || [setupEscape(r.status)])[0]}</span> <strong>${setupEscape(r.name || r.symbol)}</strong> <span class="td-dim">${setupEscape(r.symbol)} · ${setupEscape(r.strategy)}</span> — ${setupEscape(r.message || r.status)}</li>`
                 ).join("");
                 document.querySelectorAll("#setup-grid input[type=checkbox]:checked").forEach(cb => { cb.checked = false; });
                 fetchBots();
@@ -823,10 +896,10 @@ const DASHBOARD_BOOTSTRAP = window.DASHBOARD_BOOTSTRAP || {};
 
         let currentMode = DASHBOARD_BOOTSTRAP.currentMode || 'demo';
         // Redesign D (2026-11-01): no page-wide Demo / Thật switch any more. The Overview's Real block reads the live
-        // accounts (OV_ACCOUNT) and its Demo row is static/js/overview_demo.js; Bot shows both; Lịch, Xếp hạng chi tiết
-        // and Nhật ký each carry their own small switch (bindModeSeg). The URL's /demo or /real no longer matters.
+        // accounts (OV_ACCOUNT) and its Demo row is static/js/overview_demo.js; Bot shows both; Lịch and Nhật ký each
+        // carry their own small switch (bindModeSeg). The URL's /demo or /real no longer matters.
         const OV_ACCOUNT = 'live';
-        let lbMode = 'live', logMode = 'all';
+        let logMode = 'all';
         /** A .mode-seg group: marks the pressed button and hands its data-mode to onChange. */
         function bindModeSeg(id, onChange) {
             const group = document.getElementById(id);
@@ -870,7 +943,6 @@ const DASHBOARD_BOOTSTRAP = window.DASHBOARD_BOOTSTRAP || {};
             } catch(err) { console.error('Fetch error:', err); }
         }
 
-        bindModeSeg('lb-mode', mode => { lbMode = mode; fetchLeaderboard(); });
         bindModeSeg('log-mode', mode => { logMode = mode; fetchAgentLogs(logDateSelect.value); });
 
         let rawDailyHistory = DASHBOARD_BOOTSTRAP.pnlHistory;
@@ -1223,7 +1295,20 @@ const DASHBOARD_BOOTSTRAP = window.DASHBOARD_BOOTSTRAP || {};
             return `<div class="log-line">${formatted}</div>`;
         }
 
+        /** The Nhật ký title line: what the day's lines hold, errors first. [css modifier, text]. */
+        function logStatusOf(lines, day) {
+            const errors = lines.filter(l => /\[(?:ERROR|CRITICAL)\s*\]/.test(l)).length;
+            const warns = lines.filter(l => /\[WARN(?:ING)?\s*\]/.test(l)).length;
+            const text = `${day ? `Ngày ${day}` : 'Hôm nay'}: ${errors} lỗi · ${warns} cảnh báo · ${lines.length} dòng`;
+            return [errors ? 'crit' : (warns ? 'warn' : 'ok'), text];
+        }
         function renderLogs() {
+            const status = document.getElementById('log-status');
+            if (status) {
+                const [cls, text] = logStatusOf(rawLogLines, logDateSelect.value && logDateSelect.value !== currentLogDate ? logDateSelect.value : '');
+                status.textContent = text;
+                status.className = `ov-status ov-status--${cls}`;
+            }
             const filterText = (logFilterInput.value || '').toLowerCase();
             const filtered = filterText 
                 ? rawLogLines.filter(l => l.toLowerCase().includes(filterText))
@@ -1279,519 +1364,4 @@ const DASHBOARD_BOOTSTRAP = window.DASHBOARD_BOOTSTRAP || {};
                 fetchAgentLogs(currentLogDate);
             }
         }, 10000);
-        // --- Leaderboard Integration ---
-        // Two rankings (USD P&L / lot-neutral) arrive in one response; the tab only picks which
-        // table shows. The period, picked in a popover, is a rolling window, a calendar preset or a
-        // custom range; presets and custom ranges both go out as Vietnam-time days (period=custom).
-        const LB_TABS = ['usd', 'lot'];
-        const LB_ROLLING = {'1d': '24 giờ qua', '1w': '7 ngày qua', '1m': '30 ngày qua',
-                            '6m': '6 tháng qua', '1y': '12 tháng qua', 'all': 'Toàn bộ'};
-        const LB_CALENDAR = {today: 'Hôm nay', yesterday: 'Hôm qua', thisweek: 'Tuần này',
-                             lastweek: 'Tuần trước', thismonth: 'Tháng này', lastmonth: 'Tháng trước'};
-        const LB_DAY_RE = /^\d{4}-\d{2}-\d{2}$/;
-        const LB_WEIGHT_HINTS = {
-            usd: 'Điểm: 30% tỷ lệ thắng + 30% hệ số lời + 20% lời/lỗ ròng + 20% độ đều',
-            lot: 'Điểm: 30% tỷ lệ thắng + 30% hệ số lời + 20% lời/sụt giảm + 20% độ đều · mỗi lệnh tính trên rủi ro lúc vào',
-        };
-        let lbTab = 'usd';
-        let lbPeriod = '1w';  // default: a deleted bot's old trades drop out after a week
-        let lbDateFrom = '';  // custom range, 'YYYY-MM-DD' in Vietnam time; '' = open side
-        let lbDateTo = '';
-        try {
-            const savedTab = localStorage.getItem('lb-tab');
-            const savedPeriod = localStorage.getItem('lb-period');
-            const savedFrom = localStorage.getItem('lb-date-from') || '';
-            const savedTo = localStorage.getItem('lb-date-to') || '';
-            if (LB_TABS.includes(savedTab)) lbTab = savedTab;
-            if (LB_DAY_RE.test(savedFrom)) lbDateFrom = savedFrom;
-            if (LB_DAY_RE.test(savedTo)) lbDateTo = savedTo;
-            if (lbHas(LB_ROLLING, savedPeriod) || lbHas(LB_CALENDAR, savedPeriod)) lbPeriod = savedPeriod;
-            // A stored custom range must still be one the server takes
-            else if (savedPeriod === 'custom' && lbRangeOk(lbDateFrom, lbDateTo)) lbPeriod = 'custom';
-        } catch (e) { /* storage unavailable: keep the defaults */ }
-
-        function lbHas(obj, key) {
-            return Object.prototype.hasOwnProperty.call(obj, key);
-        }
-
-        // Today in Vietnam time (GMT+7, no DST) as a UTC-midnight Date, whatever the browser's zone
-        function lbVnToday() {
-            const now = new Date(Date.now() + 7 * 3600e3);
-            return new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()));
-        }
-
-        function lbAddDays(day, n) {
-            return new Date(day.getTime() + n * 86400e3);
-        }
-
-        function lbIsoDay(day) {
-            return day.toISOString().slice(0, 10);
-        }
-
-        // First and last day ('YYYY-MM-DD', both included) of a calendar preset or of the custom
-        // range; null for a rolling window. Presets are worked out afresh, so "Today" moves on at
-        // midnight Vietnam time.
-        function lbRangeFor(period) {
-            if (period === 'custom') return {from: lbDateFrom, to: lbDateTo};
-            if (!lbHas(LB_CALENDAR, period)) return null;
-            const today = lbVnToday();
-            const monday = lbAddDays(today, -((today.getUTCDay() + 6) % 7));  // weeks start on Monday
-            const y = today.getUTCFullYear(), m = today.getUTCMonth();
-            const [from, to] = {
-                today: [today, today],
-                yesterday: [lbAddDays(today, -1), lbAddDays(today, -1)],
-                thisweek: [monday, today],
-                lastweek: [lbAddDays(monday, -7), lbAddDays(monday, -1)],
-                thismonth: [new Date(Date.UTC(y, m, 1)), today],
-                lastmonth: [new Date(Date.UTC(y, m - 1, 1)), new Date(Date.UTC(y, m, 0))],
-            }[period];
-            return {from: lbIsoDay(from), to: lbIsoDay(to)};
-        }
-
-        // A custom range the server takes: at least one day, and never reversed
-        function lbRangeOk(from, to) {
-            return !!(from || to) && !(from && to && from > to);
-        }
-
-        // 'YYYY-MM-DD' as 'DD/MM', or 'DD/MM/YYYY'
-        function lbShortDay(day, withYear) {
-            const [y, m, d] = day.split('-');
-            return withYear ? `${d}/${m}/${y}` : `${d}/${m}`;
-        }
-
-        // A range for display; years only show when it leaves the current one
-        function lbRangeText(range) {
-            const year = String(lbVnToday().getUTCFullYear());
-            const withYear = [range.from, range.to].some(day => day && day.slice(0, 4) !== year);
-            const from = range.from && lbShortDay(range.from, withYear);
-            const to = range.to && lbShortDay(range.to, withYear);
-            if (!from) return `đến ${to}`;
-            if (!to) return `từ ${from}`;
-            return from === to ? from : `${from} – ${to}`;
-        }
-
-        // What the period button reads: the preset's name, and the days it covers when it has any
-        function lbPeriodLabel() {
-            if (lbHas(LB_ROLLING, lbPeriod)) return {label: LB_ROLLING[lbPeriod], dates: ''};
-            return {label: LB_CALENDAR[lbPeriod] || 'Tự chọn', dates: lbRangeText(lbRangeFor(lbPeriod))};
-        }
-        let lbData = null;       // the response on screen
-        let lbShownQuery = null; // the selection it was fetched for
-        // One request at a time: a burst of WS updates (one per account scope) collapses into a
-        // single follow-up request instead of one full recompute each.
-        let lbInFlight = false;
-        let lbQueued = false;
-
-        function lbViewActive() {
-            const view = document.getElementById('view-leaderboard');
-            return !!(view && view.classList.contains('active'));
-        }
-
-        // The current selection (account, mode, period) as the query string that fetches it
-        /** The API ranks every bot it knows (zeros for the other mode's); keep this mode's, numbered again. */
-        function lbOwnMode(data, mode) {
-            if (!data) return data;
-            const live = id => /(^|[-_])live([-_]|$)/i.test(String(id || ''));
-            const keep = list => (list || []).filter(b => live(b.bot_id) === (mode === 'live')).map((b, i) => ({...b, rank: i + 1}));
-            const rankings = keep(data.rankings);
-            const lot = data.lot_neutral ? {...data.lot_neutral, rankings: keep(data.lot_neutral.rankings)} : data.lot_neutral;
-            if (lot) lot.top_performer = lot.rankings[0] || null;
-            return {...data, rankings, lot_neutral: lot, top_performer: rankings[0] || null, total_bots: rankings.length};
-        }
-        function lbQuery() {
-            // Rank strictly inside one mode, the one this screen's Thật / Demo switch shows.
-            const query = `account_id=${lbMode}&account_type=${lbMode}`;
-            const range = lbRangeFor(lbPeriod);
-            if (!range) return `${query}&period=${lbPeriod}`;
-            return `${query}&period=custom&date_from=${encodeURIComponent(range.from)}&date_to=${encodeURIComponent(range.to)}`;
-        }
-
-        async function fetchLeaderboard() {
-            // Nothing to refresh while the view is hidden: opening it fetches
-            if (!lbViewActive()) return;
-            if (lbInFlight) { lbQueued = true; return; }
-            lbInFlight = true;
-            const query = lbQuery();
-            try {
-                const res = await fetch(`/api/leaderboard?${query}`);
-                if (!res.ok) throw new Error(`HTTP ${res.status}`);
-                const data = await res.json();
-                // The selection changed meanwhile: the queued request fetches the new one
-                if (query === lbQuery()) {
-                    lbShownQuery = query;
-                    renderLeaderboard(lbOwnMode(data, lbMode));
-                }
-            } catch (e) {
-                console.error("Error fetching leaderboard", e);
-                if (query === lbQuery()) lbShowFetchError(query);
-            } finally {
-                lbInFlight = false;
-                if (lbQueued) {
-                    lbQueued = false;
-                    fetchLeaderboard();
-                }
-            }
-        }
-
-        // Rows already on screen for this same selection stay (a failed poll is not news), but rows
-        // for the previous period or account must not sit under the new one.
-        function lbShowFetchError(query) {
-            if (lbShownQuery === query) return;
-            lbData = null;
-            lbShownQuery = null;
-            const note = document.getElementById('lb-range-note');
-            if (note) note.hidden = true;
-            const row = colspan => `<tr><td colspan="${colspan}" class="empty-state">Chưa tải được bảng xếp hạng, đang thử lại…</td></tr>`;
-            const tbody = document.getElementById('leaderboard-table-body');
-            const lotBody = document.getElementById('leaderboard-lot-table-body');
-            if (tbody) tbody.innerHTML = row(11);
-            if (lotBody) lotBody.innerHTML = row(10);
-            ['lb-top-performer', 'lb-fleet-winrate', 'lb-fleet-pnl', 'lb-total-bots'].forEach(id => {
-                const el = document.getElementById(id);
-                if (el) el.textContent = '--';
-            });
-        }
-
-        function applyLbControls() {
-            document.querySelectorAll('#lb-tab-group [data-lb-tab]').forEach(btn => {
-                const on = btn.dataset.lbTab === lbTab;
-                btn.classList.toggle('active', on);
-                btn.setAttribute('aria-pressed', on ? 'true' : 'false');
-            });
-            document.querySelectorAll('.lb-period-opt[data-lb-period]').forEach(btn => {
-                const on = btn.dataset.lbPeriod === lbPeriod;
-                btn.classList.toggle('active', on);
-                btn.setAttribute('aria-pressed', on ? 'true' : 'false');
-            });
-            const custom = document.getElementById('lb-period-custom');
-            if (custom) custom.classList.toggle('active', lbPeriod === 'custom');
-            const {label, dates} = lbPeriodLabel();
-            const labelEl = document.getElementById('lb-period-label');
-            if (labelEl) labelEl.textContent = label;
-            const datesEl = document.getElementById('lb-period-dates');
-            if (datesEl) {
-                datesEl.textContent = dates;
-                datesEl.hidden = !dates;
-            }
-            const usdPane = document.getElementById('lb-pane-usd');
-            const lotPane = document.getElementById('lb-pane-lot');
-            if (usdPane) usdPane.hidden = lbTab !== 'usd';
-            if (lotPane) lotPane.hidden = lbTab !== 'lot';
-            const hint = document.getElementById('lb-weight-hint');
-            if (hint) hint.textContent = LB_WEIGHT_HINTS[lbTab];
-        }
-
-        function lbRankCell(bot) {
-            if (bot.total_trades === 0) return `<span class="td-dim">${bot.rank}</span>`;
-            // Top three by colour and weight, not medal emoji (redesign D).
-            if (bot.rank === 1) return '<span class="rank-badge-1">1</span>';
-            if (bot.rank === 2) return '<span class="rank-badge-2">2</span>';
-            if (bot.rank === 3) return '<span class="rank-badge-3">3</span>';
-            return `<span class="td-dim">${bot.rank}</span>`;
-        }
-
-        // bot_id comes from the bot's own reports: escape it and everything derived from it
-        function lbBotCells(bot) {
-            return `<td class="rank-cell">${lbRankCell(bot)}</td>
-                    <td>
-                        <div class="bot-cell">
-                            <span class="font-bold" style="color: var(--text-primary);">${escapeHtml(bot.bot_name)}</span>
-                            <span class="bot-id-text">${escapeHtml(bot.bot_id)}</span>
-                        </div>
-                    </td>
-                    <td><span class="symbols-chip">${escapeHtml(bot.symbol_display)}</span></td>
-                    <td><span class="tier-badge tier-badge--${bot.tier_badge}">${bot.tier_label}</span></td>`;
-        }
-
-        function lbWinRateCell(bot) {
-            if (bot.total_trades === 0) return '<span class="td-dim">--</span>';
-            if (bot.total_wins === 0) {
-                return `<span class="font-mono font-bold pnl-negative">0.0%</span><div class="td-dim" style="font-size:0.69rem;">0 thắng / ${bot.total_losses} thua</div>`;
-            }
-            const color = bot.win_rate >= 60 ? 'var(--profit)' : (bot.win_rate >= 40 ? '#fbbf24' : 'var(--loss)');
-            return `<span class="font-mono font-bold" style="color: ${color};">${bot.win_rate.toFixed(1)}%</span><div class="td-dim" style="font-size:0.69rem;">${bot.total_wins} thắng / ${bot.total_losses} thua</div>`;
-        }
-
-        function lbProfitFactorCell(bot) {
-            if (bot.total_trades === 0) return '<span class="td-dim">--</span>';
-            if (bot.profit_factor === null) return '<span class="font-mono pnl-positive" title="Chưa có lệnh thua">∞</span>';
-            if (bot.profit_factor === 0) return '<span class="font-mono pnl-negative" title="Chưa có lệnh thắng">0.00</span>';
-            return `<span class="font-mono">${bot.profit_factor.toFixed(2)}</span>`;
-        }
-
-        function lbTradesCell(bot) {
-            const full = (lbData && lbData.full_sample_trades) || 10;
-            const small = bot.total_trades > 0 && bot.total_trades < full;
-            return `<td class="font-mono">${bot.total_trades}${small
-                ? `<div class="td-dim" style="font-size:0.69rem;" title="Ít hơn ${full} lệnh đã đóng: điểm bị kéo về 50 cho tới khi đủ mẫu">ít mẫu</div>`
-                : ''}</td>`;
-        }
-
-        function lbScoreCell(bot) {
-            if (bot.total_trades === 0) return '<td><span class="td-dim">--</span></td>';
-            return `<td>
-                        <div class="score-pill">
-                            <span style="color: ${bot.tier_color};">${bot.composite_score}</span>
-                            <span class="score-bar-bg">
-                                <span class="score-bar-fill" style="width: ${Math.min(100, Math.max(0, bot.composite_score))}%; background: ${bot.tier_color};"></span>
-                            </span>
-                        </div>
-                    </td>`;
-        }
-
-        function lbReturnDdCell(bot) {
-            if (bot.total_trades === 0) return '<span class="td-dim">--</span>';
-            const unit = bot.basis === 'risk' ? 'lời/lỗ mỗi lot mỗi pip stop' : 'lời/lỗ mỗi lot';
-            const title = `Ròng ${bot.net_units.toFixed(2)} · sụt giảm tối đa ${bot.max_dd_units.toFixed(2)} (${unit})`;
-            let cell;
-            if (bot.return_dd === null) {
-                cell = bot.net_units > 0
-                    ? `<span class="font-mono pnl-positive" title="Chưa có sụt giảm · ${title}">∞</span>`
-                    : `<span class="font-mono td-dim" title="${title}">0.00</span>`;
-            } else {
-                const cls = bot.return_dd > 0 ? 'pnl-positive' : (bot.return_dd < 0 ? 'pnl-negative' : 'td-dim');
-                cell = `<span class="font-mono ${cls}" title="${title}">${bot.return_dd.toFixed(2)}</span>`;
-            }
-            if (bot.basis === 'lot') {
-                cell += '<div class="td-dim" style="font-size:0.69rem;" title="Một số lệnh không lưu khoảng stop, nên mọi lệnh được tính theo lot">theo lot</div>';
-            }
-            return cell;
-        }
-
-        function lbEmptyRow(colspan) {
-            const msg = lbPeriod === 'all' ? 'Chưa có lịch sử giao dịch của bot' : 'Không có bot nào giao dịch trong khoảng này';
-            return `<tr><td colspan="${colspan}" class="empty-state">${msg}</td></tr>`;
-        }
-
-        function renderLeaderboard(data) {
-            if (!data) return;
-            lbData = data;
-            applyLbControls();
-            const rangeNote = document.getElementById('lb-range-note');
-            if (rangeNote) rangeNote.hidden = data.includes_open_positions !== false;
-            const lot = data.lot_neutral || { top_performer: null, rankings: [] };
-            const top = lbTab === 'lot' ? lot.top_performer : data.top_performer;
-            const topPerfEl = document.getElementById('lb-top-performer');
-            if (topPerfEl) {
-                topPerfEl.textContent = top ? `${top.bot_name} (${top.composite_score}/100)` : '—';
-            }
-            const fleetWinrateEl = document.getElementById('lb-fleet-winrate');
-            if (fleetWinrateEl) {
-                fleetWinrateEl.textContent = `${(data.fleet_win_rate || 0).toFixed(1)}%`;
-            }
-            const fleetPnlEl = document.getElementById('lb-fleet-pnl');
-            if (fleetPnlEl) {
-                const pnl = data.fleet_total_pnl_usd || 0;
-                fleetPnlEl.textContent = `$${pnl.toFixed(2)}`;
-                fleetPnlEl.className = `kpi-value font-bold kpi-value--mono ${pnl >= 0 ? 'kpi-value--profit' : 'kpi-value--loss'}`;
-            }
-            const totalBotsEl = document.getElementById('lb-total-bots');
-            if (totalBotsEl) {
-                totalBotsEl.textContent = data.total_bots || 0;
-            }
-
-            const tbody = document.getElementById('leaderboard-table-body');
-            if (tbody) {
-                if (!data.rankings || data.rankings.length === 0) {
-                    tbody.innerHTML = lbEmptyRow(11);
-                } else {
-                    tbody.innerHTML = data.rankings.map(bot => {
-                        const closedPnlClass = bot.closed_pnl_usd >= 0 ? 'pnl-positive' : 'pnl-negative';
-                        const floatingPnlClass = bot.floating_pnl_usd > 0 ? 'pnl-positive' : (bot.floating_pnl_usd < 0 ? 'pnl-negative' : 'td-dim');
-                        return `<tr>
-                            ${lbBotCells(bot)}
-                            <td>${lbWinRateCell(bot)}</td>
-                            <td>${lbProfitFactorCell(bot)}</td>
-                            ${lbTradesCell(bot)}
-                            <td>
-                                <span class="pnl-chip ${bot.total_pnl_usd > 0 ? 'pnl-chip--profit' : (bot.total_pnl_usd < 0 ? 'pnl-chip--loss' : 'td-dim')}">
-                                    ${bot.total_pnl_usd > 0 ? '+' : ''}$${bot.total_pnl_usd.toFixed(2)}
-                                </span>
-                            </td>
-                            <td class="font-mono ${closedPnlClass}">$${bot.closed_pnl_usd.toFixed(2)}</td>
-                            <td class="font-mono ${floatingPnlClass}">$${bot.floating_pnl_usd.toFixed(2)}</td>
-                            ${lbScoreCell(bot)}
-                        </tr>`;
-                    }).join('');
-                }
-            }
-
-            const lotBody = document.getElementById('leaderboard-lot-table-body');
-            if (lotBody) {
-                if (!lot.rankings || lot.rankings.length === 0) {
-                    lotBody.innerHTML = lbEmptyRow(10);
-                } else {
-                    lotBody.innerHTML = lot.rankings.map(bot => {
-                        const payoff = bot.total_trades === 0 ? '<span class="td-dim">--</span>'
-                            : bot.payoff_ratio === null ? '<span class="font-mono pnl-positive" title="Chưa có lệnh thua">∞</span>'
-                            : `<span class="font-mono">${bot.payoff_ratio.toFixed(2)}</span>`;
-                        return `<tr>
-                            ${lbBotCells(bot)}
-                            <td>${lbWinRateCell(bot)}</td>
-                            <td>${lbProfitFactorCell(bot)}</td>
-                            <td>${payoff}</td>
-                            <td>${lbReturnDdCell(bot)}</td>
-                            ${lbTradesCell(bot)}
-                            ${lbScoreCell(bot)}
-                        </tr>`;
-                    }).join('');
-                }
-            }
-        }
-
-        document.querySelectorAll('#lb-tab-group [data-lb-tab]').forEach(btn => {
-            btn.addEventListener('click', () => {
-                lbTab = btn.dataset.lbTab;
-                try { localStorage.setItem('lb-tab', lbTab); } catch (e) { /* not persisted */ }
-                // Both rankings are already loaded: switching tabs needs no request
-                if (lbData) renderLeaderboard(lbData); else applyLbControls();
-            });
-        });
-        function lbSetPeriod(period) {
-            lbPeriod = period;
-            try { localStorage.setItem('lb-period', lbPeriod); } catch (e) { /* not persisted */ }
-            applyLbControls();
-            fetchLeaderboard();
-        }
-
-        // --- Period picker popover ---
-        const lbPeriodBtn = document.getElementById('lb-period-btn');
-        const lbPeriodPop = document.getElementById('lb-period-pop');
-        const lbCustomForm = document.getElementById('lb-period-custom');
-        const lbFromInput = document.getElementById('lb-date-from');
-        const lbToInput = document.getElementById('lb-date-to');
-        const lbApplyBtn = document.getElementById('lb-date-apply');
-        const lbDateError = document.getElementById('lb-date-error');
-
-        function lbPopOpen() {
-            return !!(lbPeriodPop && !lbPeriodPop.hidden);
-        }
-
-        // Under the button with the right edges lined up, above it when there is no room below,
-        // and always inside the viewport, clear of the tab bar pinned to the bottom on phones
-        function lbPlacePeriodPop() {
-            if (!lbPopOpen()) return;
-            const btn = lbPeriodBtn.getBoundingClientRect();
-            const w = lbPeriodPop.offsetWidth, h = lbPeriodPop.offsetHeight;
-            const bar = document.querySelector('.sidebar');
-            const barTop = bar ? bar.getBoundingClientRect().top : window.innerHeight;
-            const floor = (barTop > window.innerHeight / 2 ? barTop : window.innerHeight) - 8;
-            const left = Math.max(8, Math.min(btn.right - w, window.innerWidth - w - 8));
-            let top = btn.bottom + 6;
-            if (top + h > floor) top = btn.top - h - 6 >= 8 ? btn.top - h - 6 : floor - h;
-            lbPeriodPop.style.left = `${left}px`;
-            lbPeriodPop.style.top = `${Math.max(8, top)}px`;
-        }
-
-        // The custom fields can only be applied as a range the server takes
-        function lbCheckCustom() {
-            const from = lbFromInput.value, to = lbToInput.value;
-            const reversed = !!(from && to && from > to);
-            lbFromInput.classList.toggle('lb-range-bad', reversed);
-            lbToInput.classList.toggle('lb-range-bad', reversed);
-            lbDateError.textContent = reversed ? 'Ngày đầu đang sau ngày cuối' : '';
-            lbDateError.hidden = !reversed;
-            lbApplyBtn.disabled = !lbRangeOk(from, to);
-        }
-
-        function lbOpenPeriodPop() {
-            // Calendar presets show the days they cover today
-            lbPeriodPop.querySelectorAll('.lb-period-opt[data-lb-period]').forEach(btn => {
-                const range = lbRangeFor(btn.dataset.lbPeriod);
-                const hint = btn.querySelector('.lb-period-hint');
-                if (!range || !hint) return;
-                hint.textContent = lbRangeText(range);
-                btn.title = `${lbShortDay(range.from, true)} – ${lbShortDay(range.to, true)}, giờ Việt Nam`;
-            });
-            // The custom fields start from the days on screen, else the last custom range, else
-            // the last 7 days
-            const today = lbVnToday();
-            const start = lbRangeFor(lbPeriod)
-                || (lbDateFrom || lbDateTo ? {from: lbDateFrom, to: lbDateTo}
-                                           : {from: lbIsoDay(lbAddDays(today, -6)), to: lbIsoDay(today)});
-            lbFromInput.value = start.from;
-            lbToInput.value = start.to;
-            lbCheckCustom();
-            lbPeriodPop.hidden = false;
-            lbPeriodBtn.setAttribute('aria-expanded', 'true');
-            lbPlacePeriodPop();
-            const focus = lbPeriod === 'custom' ? lbFromInput
-                : (lbPeriodPop.querySelector('.lb-period-opt.active') || lbPeriodPop.querySelector('.lb-period-opt'));
-            if (focus) focus.focus();
-        }
-
-        function lbClosePeriodPop(refocus) {
-            if (!lbPopOpen()) return;
-            lbPeriodPop.hidden = true;
-            lbPeriodBtn.setAttribute('aria-expanded', 'false');
-            if (refocus) lbPeriodBtn.focus();
-        }
-
-        if (lbPeriodBtn && lbPeriodPop && lbCustomForm) {
-            // Out from under the panel, whose overflow would clip it
-            document.body.appendChild(lbPeriodPop);
-            lbPeriodBtn.addEventListener('click', () => {
-                if (lbPopOpen()) lbClosePeriodPop(false); else lbOpenPeriodPop();
-            });
-            lbPeriodPop.querySelectorAll('.lb-period-opt[data-lb-period]').forEach(btn => {
-                btn.addEventListener('click', () => {
-                    lbSetPeriod(btn.dataset.lbPeriod);
-                    lbClosePeriodPop(true);
-                });
-            });
-            [lbFromInput, lbToInput].forEach(input => {
-                input.addEventListener('input', lbCheckCustom);
-                input.addEventListener('change', lbCheckCustom);
-            });
-            // Apply, or Enter in a date field
-            lbCustomForm.addEventListener('submit', e => {
-                e.preventDefault();
-                if (!lbRangeOk(lbFromInput.value, lbToInput.value)) return;
-                lbDateFrom = lbFromInput.value;
-                lbDateTo = lbToInput.value;
-                try {
-                    localStorage.setItem('lb-date-from', lbDateFrom);
-                    localStorage.setItem('lb-date-to', lbDateTo);
-                } catch (err) { /* not persisted */ }
-                lbSetPeriod('custom');
-                lbClosePeriodPop(true);
-            });
-            // A click or tap anywhere else, Escape, or tabbing out closes it
-            document.addEventListener('pointerdown', e => {
-                if (lbPopOpen() && !lbPeriodPop.contains(e.target) && !lbPeriodBtn.contains(e.target)) {
-                    lbClosePeriodPop(false);
-                }
-            });
-            document.addEventListener('keydown', e => {
-                if (e.key === 'Escape' && lbPopOpen()) lbClosePeriodPop(true);
-            });
-            lbPeriodPop.addEventListener('focusout', e => {
-                const next = e.relatedTarget;
-                if (next && !lbPeriodPop.contains(next) && next !== lbPeriodBtn) lbClosePeriodPop(false);
-            });
-            window.addEventListener('resize', lbPlacePeriodPop);
-            document.addEventListener('scroll', lbPlacePeriodPop, true);
-        }
-        applyLbControls();
-
-        // First paint from the page's own payload (last 7 days, the page's account scope) when the
-        // period is the default "1w"; otherwise the view's first fetch fills the tables.
-        const lbInitial = DASHBOARD_BOOTSTRAP.leaderboard;
-        if (lbInitial && lbInitial.period === lbPeriod) {
-            lbShownQuery = lbQuery();
-            renderLeaderboard(lbInitial);
-        }
-
-        const lbRefreshBtn = document.getElementById('lb-refresh-btn');
-        if (lbRefreshBtn) {
-            lbRefreshBtn.addEventListener('click', () => fetchLeaderboard());
-        }
-
-        // Periodic refresh for leaderboard if active
-        setInterval(() => {
-            if (lbViewActive() && !document.hidden) {
-                fetchLeaderboard();
-            }
-        }, 8000);
-
         if (window.lucide) { lucide.createIcons(); }

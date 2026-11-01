@@ -568,24 +568,18 @@ async def real_redirect(request: Request):
 async def dashboard_page(request: Request):
     """Render dashboard HTML page tailored to URL route (strictly demo or real)."""
     path = request.url.path
-    if path.startswith("/real") or path.startswith("/live"):
-        mode = "real"
-        filter_acc = "live"
-    else:
-        mode = "demo"
-        filter_acc = "demo"
+    mode = "real" if path.startswith("/real") or path.startswith("/live") else "demo"
         
     # Persist last used mode
     set_persisted_trade_mode(mode)
         
     # The Overview shows Real first and Demo folded below it whatever the URL says (redesign D, 2026-11-01):
-    # its first paint is the live accounts, the Demo row loads in the page. The URL's mode still scopes the
-    # screens not redone yet (Bot, Xếp hạng, Sổ tiền, Lịch, Nhật ký) through the scope bar.
+    # its first paint is the live accounts, the Demo row loads in the page. No other screen reads the URL's mode
+    # since step 4; the Bot screen fetches its own results (the former Xếp hạng, merged into it).
     summary = get_portfolio_summary("live")
     positions = get_active_positions("live")
     history = get_trade_history("live", page_size=5)   # the Overview's last closed trades (HISTORY_PAGE_SIZE)
     pnl_history = get_daily_pnl_history(30, "live")
-    leaderboard = compute_bot_leaderboard(filter_acc, period="1w")  # the leaderboard's default period
 
     registry = get_account_registry()
     all_accounts = registry.list_accounts(include_unconfigured=False)
@@ -603,7 +597,6 @@ async def dashboard_page(request: Request):
             "accounts": accounts,
             "current_mode": mode,
             "live_account_count": live_account_count,
-            "leaderboard": leaderboard,
         }
     )
     response.headers["Cache-Control"] = "no-cache, no-store, must-revalidate"

@@ -3,10 +3,7 @@ Tests for Bot Quantitative Performance Leaderboard & Ranking System.
 """
 
 import json
-import os
-import shutil
 import sqlite3
-import subprocess
 import pytest
 from datetime import datetime, timedelta, timezone
 from fastapi.testclient import TestClient
@@ -15,7 +12,6 @@ import app.leaderboard as leaderboard_module
 from app.leaderboard import (FULL_SAMPLE_TRADES, InvalidDateRange, calculate_quant_score,
                              compute_bot_leaderboard, date_range_bounds, period_start)
 from app.server import app
-from tests._paths import DASHBOARD_JS
 
 
 @pytest.fixture
@@ -224,18 +220,6 @@ def test_api_leaderboard_endpoints():
     resp_alias = client.get("/api/dashboard/leaderboard?account_id=demo")
     assert resp_alias.status_code == 200
     assert "rankings" in resp_alias.json()
-
-
-def test_dashboard_page_renders_leaderboard():
-    """Test that /demo/dashboard renders the leaderboard elements cleanly."""
-    client = TestClient(app)
-    resp = client.get("/demo/dashboard")
-    assert resp.status_code == 200
-    html = resp.text
-    assert "view-leaderboard" in html
-    assert "Xếp hạng bot" in html
-    assert "leaderboard-table-body" in html
-    assert "Tỷ lệ thắng chung" in html
 
 
 def _utc_ago(**delta) -> str:
@@ -513,112 +497,6 @@ def test_api_leaderboard_period_and_lot_neutral(temp_db, monkeypatch):
     assert lot["profit_factor"] is None and lot["payoff_ratio"] is None
     assert lot["basis"] == "risk"
     assert data["lot_neutral"]["top_performer"]["bot_id"] == "WinnerBot"
-
-
-def test_dashboard_page_embeds_leaderboard_escaped(temp_db, monkeypatch):
-    """The page hands its ranking to the table renderer as JSON; a bot_id from a bot's report
-    must not come out as markup."""
-    conn = sqlite3.connect(str(temp_db))
-    conn.execute("INSERT INTO accounts VALUES ('acc_demo_1', 'demo', 'Demo 1', 1)")
-    # Inside the page's default 7-day window
-    recent = (datetime.now(timezone.utc) - timedelta(days=1)).strftime("%Y-%m-%d %H:%M:%S")
-    _add_closed(conn, "<img src=x onerror=alert(1)>", 12.0, exit_time=recent)
-    conn.commit()
-    conn.close()
-    _use_leaderboard_db(monkeypatch, temp_db)
-
-    html = TestClient(app).get("/demo/dashboard").text
-    assert "leaderboard: {" in html        # window.DASHBOARD_BOOTSTRAP, read by lbInitial
-    assert '"period": "1w"' in html
-    assert "<img src=x onerror" not in html.lower()
-    assert "\\u003cimg src=x onerror" in html
-
-
-def test_dashboard_page_renders_leaderboard_tabs():
-    client = TestClient(app)
-    html = client.get("/demo/dashboard").text
-    assert 'id="lb-tab-group"' in html
-    assert 'data-lb-tab="lot"' in html
-    # The period picker: one button, its choices in a popover
-    assert 'id="lb-period-btn"' in html and 'aria-controls="lb-period-pop"' in html
-    assert 'id="lb-period-pop"' in html
-    for period in ("1d", "1w", "1m", "6m", "1y", "all",
-                   "today", "yesterday", "thisweek", "lastweek", "thismonth", "lastmonth"):
-        assert f'data-lb-period="{period}"' in html
-    assert 'id="lb-date-from" type="date"' in html
-    assert 'id="lb-date-to" type="date"' in html
-    assert 'id="lb-date-apply"' in html
-    assert 'id="leaderboard-lot-table-body"' in html
-
-
-# The period picker's presets, run in node on a pinned clock: the days each preset covers, in
-# Vietnam time whatever the zone node runs in
-PRESET_HARNESS = """
-const LB_CALENDAR = {today: 1, yesterday: 1, thisweek: 1, lastweek: 1, thismonth: 1, lastmonth: 1};
-let lbDateFrom = '2026-09-10', lbDateTo = '';
-%(functions)s
-const out = {};
-for (const [name, utc] of Object.entries(%(clocks)s)) {
-    Date.now = () => Date.parse(utc);
-    out[name] = {};
-    for (const p of [...Object.keys(LB_CALENDAR), 'custom', '1w']) {
-        const range = lbRangeFor(p);
-        out[name][p] = range && [range.from, range.to, lbRangeText(range)];
-    }
-}
-console.log(JSON.stringify(out));
-"""
-
-
-def _dashboard_function(src: str, name: str) -> str:
-    """Source of `function name(...) {...}` in the dashboard script, matched on braces."""
-    start = src.index(f"function {name}(")
-    depth = 0
-    for i in range(src.index("{", start), len(src)):
-        depth += {"{": 1, "}": -1}.get(src[i], 0)
-        if depth == 0:
-            return src[start:i + 1]
-    raise AssertionError(f"unbalanced braces in {name}")
-
-
-@pytest.mark.skipif(shutil.which("node") is None, reason="node is not installed")
-def test_period_picker_calendar_presets(tmp_path):
-    html = DASHBOARD_JS.read_text(encoding="utf-8")
-    functions = [_dashboard_function(html, name) for name in
-                 ("lbHas", "lbVnToday", "lbAddDays", "lbIsoDay", "lbRangeFor", "lbShortDay", "lbRangeText")]
-    clocks = {
-        "fri": "2026-09-25T03:00:00Z",       # Friday 25/09, 10:00 in Vietnam
-        "vn_oct": "2026-09-30T17:30:00Z",    # still 30/09 in UTC, already Thursday 01/10 in Vietnam
-        "new_year": "2027-01-03T02:00:00Z",  # Sunday 03/01/2027 in Vietnam
-    }
-    script = tmp_path / "presets.js"
-    script.write_text(PRESET_HARNESS % {"functions": "\n".join(functions), "clocks": json.dumps(clocks)},
-                      encoding="utf-8")
-    run = subprocess.run([shutil.which("node"), str(script)], capture_output=True, text=True, timeout=30,
-                         env={**os.environ, "TZ": "America/New_York"})
-    assert run.returncode == 0, run.stderr
-    out = json.loads(run.stdout)
-
-    fri = out["fri"]
-    assert fri["today"] == ["2026-09-25", "2026-09-25", "25/09"]
-    assert fri["yesterday"] == ["2026-09-24", "2026-09-24", "24/09"]
-    assert fri["thisweek"] == ["2026-09-21", "2026-09-25", "21/09 – 25/09"]  # weeks start on Monday
-    assert fri["lastweek"] == ["2026-09-14", "2026-09-20", "14/09 – 20/09"]
-    assert fri["thismonth"] == ["2026-09-01", "2026-09-25", "01/09 – 25/09"]
-    assert fri["lastmonth"] == ["2026-08-01", "2026-08-31", "01/08 – 31/08"]
-    assert fri["custom"] == ["2026-09-10", "", "từ 10/09"]
-    assert fri["1w"] is None  # a rolling window has no days
-
-    oct1 = out["vn_oct"]
-    assert oct1["today"][:2] == ["2026-10-01", "2026-10-01"]
-    assert oct1["thismonth"][:2] == ["2026-10-01", "2026-10-01"]
-    assert oct1["lastmonth"][:2] == ["2026-09-01", "2026-09-30"]
-    assert oct1["thisweek"][:2] == ["2026-09-28", "2026-10-01"]
-
-    ny = out["new_year"]
-    assert ny["thisweek"][:2] == ["2026-12-28", "2027-01-03"]  # Sunday closes the week
-    assert ny["lastmonth"] == ["2026-12-01", "2026-12-31", "01/12/2026 – 31/12/2026"]
-    assert ny["custom"][2] == "từ 10/09/2026"  # another year's day shows its year
 
 
 def test_small_sample_is_pulled_toward_neutral(temp_db):

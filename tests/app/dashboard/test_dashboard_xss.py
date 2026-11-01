@@ -49,10 +49,8 @@ RENDERERS = [
     "sltpLineHtml", "sltpCellHtml", "tradeTimesHtml", "closeReasonHtml", "botBadge", "closeButtonHtml",
     "strategyName", "riskLineHtml", "positionCardHtml", "closedRowHtml",
     "holdCountHtml", "updateDashboard", "updateTradeHistory",
-    "lbHas", "lbVnToday", "lbAddDays", "lbIsoDay", "lbRangeFor", "lbShortDay", "lbRangeText", "lbPeriodLabel",
-    "applyLbControls", "lbRankCell", "lbBotCells", "lbWinRateCell", "lbProfitFactorCell", "lbTradesCell",
-    "lbScoreCell", "lbReturnDdCell", "lbEmptyRow", "renderLeaderboard",
     "botParam", "setBotParam", "botSizingHtml", "botState", "botReasonShort", "botNeedsAction", "botResultCells", "botRowHtml",
+    "botsGroupLine", "botPeriodLabel",
     "focusBotFromHash", "renderBots",
 ]
 
@@ -67,13 +65,11 @@ const document = {
 const lucide = {createIcons() {}};
 const window = {lucide};
 let currentMode = 'demo';
-let botResults = {}, botsDemoIssues = 0, botsFocused = '';
+let botResults = {}, botsDemoIssues = 0, botsFocused = '', botBasis = 'risk';
 const location = {hash: ''};
 let selectedAccountId = 'demo', historyPage = 1;
 function fetchTradeHistory() {}
 const closingPositions = new Set(), openPositionCards = new Set();
-const LB_WEIGHT_HINTS = {usd: '', lot: ''}, LB_ROLLING = {all: 'All time'}, LB_CALENDAR = {};
-let lbTab = 'usd', lbPeriod = 'all', lbDateFrom = '', lbDateTo = '', lbData = null;
 %(functions)s
 const H = %(hostile)s;
 const out = {};
@@ -89,16 +85,9 @@ updateTradeHistory({page: 1, total_pages: 1, items: [
      exit_price: H, sl_price: H, tp_price: H, pnl: 1, close_reason: H, entry_time: H, exit_time: H, duration: H}]});
 out.history = els['history-table'].innerHTML;
 
-const lbBot = {rank: 4, bot_id: H, bot_name: H, symbol_display: H, tier_badge: 'TIER_C',
-    tier_label: 'Tier C', tier_color: '#fff', win_rate: 50, total_wins: 1, total_losses: 1, total_trades: 2,
-    profit_factor: 1, total_pnl_usd: 1, closed_pnl_usd: 1, floating_pnl_usd: 0, composite_score: 40,
-    payoff_ratio: 1.5, return_dd: 2, net_units: 3, max_dd_units: 1.5, basis: 'risk'};
-renderLeaderboard({rankings: [lbBot], lot_neutral: {top_performer: null, rankings: [lbBot]}});
-out.leaderboard = els['leaderboard-table-body'].innerHTML;
-out.leaderboard_lot = els['leaderboard-lot-table-body'].innerHTML;
-
 // A running, not-polling bot and a stuck, paused one, so both status branches and every button are drawn.
-botResults[H] = {bot_id: H, total_pnl_usd: 12.5, total_trades: 3, profit_factor: 1.4};
+botResults[H] = {usd: {bot_id: H, total_pnl_usd: 12.5, total_trades: 3, profit_factor: 1.4},
+                 risk: {bot_id: H, net_units: H, max_dd_units: H, total_trades: 3, total_wins: H, profit_factor: H}};
 renderBots([
     {name: H, bot_id: H, account_type: 'demo', status: 'running', polling: false, last_poll_age_s: 30,
      open_positions: 1, description: H, run_command: H, container_id: 'abcdef1234567890'},
@@ -129,7 +118,7 @@ def rendered(tmp_path_factory):
 
 @pytest.mark.skipif(NODE is None, reason="node is not installed")
 @pytest.mark.parametrize("table", [
-    "positions", "history", "leaderboard", "leaderboard_lot", "bots",
+    "positions", "history", "bots",
 ])
 def test_js_renderers_escape_external_strings(rendered, table):
     out = rendered[table].lower()

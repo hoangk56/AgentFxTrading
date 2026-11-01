@@ -56,9 +56,11 @@ def test_gotobi_renderers_escape_external_strings():
     dash = DASHBOARD_JS.read_text(encoding="utf-8")
     src = JS.read_text(encoding="utf-8")
     helpers = "\n".join(_function(dash, n) for n in ("escapeHtml", "formatMoney"))
-    plan_map = src[src.index("const GC_ECB_PLAN"):src.index("\n", src.index("const GC_ECB_PLAN"))]
-    renderers = plan_map + "\n" + "\n".join(_function(src, n) for n in (
-        "gcEcbPlanText", "gcMoney", "gcMonthLabel", "gcCellHtml", "gcMonthHtml", "gcDayHtml"))
+    consts = "\n".join(src[src.index(c):src.index("\n", src.index(c))]
+                       for c in ("const GC_ECB_PLAN", "const GC_WEEKDAY =", "const GC_WEEKDAY_LONG"))
+    renderers = consts + "\n" + "\n".join(_function(src, n) for n in (
+        "gcEcbPlanText", "gcMoney", "gcMonthLabel", "gcPnlClass", "gcNear", "gcDayIsEmpty", "gcCellHtml", "gcStatusText",
+        "gcMonthHtml", "gcTradeRow", "gcTradeTable", "gcDayHtml"))
     trade = {"id": 1, "bot_id": HOSTILE, "account_id": HOSTILE, "symbol": HOSTILE, "side": HOSTILE, "volume": 0.1,
              "strategy": "gotobi", "rule": None, "leg": "long", "decoy": False, "status": "closed", "pnl": 12.0,
              "entry_time_vn": HOSTILE, "exit_time_vn": HOSTILE}
@@ -79,7 +81,8 @@ def test_gotobi_renderers_escape_external_strings():
 const data = {json.dumps(data)};
 console.log(JSON.stringify({{month: gcMonthHtml(data, '2026-10-09'), day: gcDayHtml(data.days[2]),
                              empty: gcDayHtml(data.days[1]), label: gcMonthLabel('2026-10'),
-                             planned: gcDayHtml(data.days[3])}}));
+                             planned: gcDayHtml(data.days[3]), status: gcStatusText(data),
+                             quiet: gcStatusText({{...data, totals: {{}}, today: '2026-10-10'}})}}));
 """
     run = subprocess.run([NODE, "-e", script], capture_output=True, text=True, timeout=30)
     assert run.returncode == 0, run.stderr
@@ -93,9 +96,14 @@ console.log(JSON.stringify({{month: gcMonthHtml(data, '2026-10-09'), day: gcDayH
         assert cls in month, cls
     assert "+$8.50" in month and "1 đang mở" in month and "nguỵ trang" in month and "Nghỉ lễ Nhật" in month
     assert 'data-date="2026-10-09"' in month
-    assert "Nguỵ trang" in out["day"] and "Lệnh mua" in out["day"]
+    assert "Nguỵ trang" in out["day"] and "Lệnh mua" in out["day"] and "Thứ Sáu 09/10/2026 · ngày gotobi" in out["day"]
+    # the decoy legs fold under their own line, after the real ones
+    assert out["day"].index("gc-decoys") > out["day"].index("Lệnh mua") and "1 lệnh nguỵ trang" in out["day"]
     assert "ECB evil&lt;img" in out["day"] and "11-13 London" in out["day"] and "gc-row--ecb" in out["day"]
-    assert "ECB -$2.00 ·1" in month and "Lời/lỗ ECB (1 lệnh)" in month
+    assert "ECB <span class=\"pnl-negative\">-$2.00</span> · 1 lệnh" in month and "Lời/lỗ thật" in month
+    assert "gc-cell--gotobi" in month and "gc-cell--empty" not in month and 'aria-pressed="true"' in month
+    assert out["status"] == "Tháng 10 2026: lời $8.50 trên 2 lệnh thật, 1 ngày có lệnh"
+    assert out["quiet"] == "Tháng 10 2026: chưa có lệnh thật · ngày gotobi tới 15/10 · hôm nay thứ Bảy, không giao dịch"
     assert "không có lệnh Gotobi hay ECB" in out["empty"]
     assert "ECB E1 theo lịch · F3 nếu USD-TOP" in month and "<img" not in month.lower()
     assert "E1 theo lịch: bán EURUSD 11:00" in out["planned"] and "quyết định lúc 07:00 London" in out["planned"]
