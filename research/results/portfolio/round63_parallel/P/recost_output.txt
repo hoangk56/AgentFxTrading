@@ -1,0 +1,14 @@
+--- half spread = measured median ---
+P1-all-thr0.90-T1d   IS -0.85% t-0.46 n140 | VAL -0.64% t-0.80 n842
+P1-all-thr0.90-T7d   IS +2.26% t+1.86 n124 | VAL +0.65% t+0.94 n716
+P1-all-thr0.80-T7d   IS +1.05% t+0.56 n172 | VAL +0.63% t+0.65 n963
+P2a-L1h              IS +2.32% t+3.20 n165 | VAL +0.55% t+1.02 n1142
+P2a-L12h             IS +1.85% t+2.17 n151 | VAL +0.32% t+0.55 n820
+P2b-first95          IS -1.12% t-0.98 n330 | VAL +0.28% t+0.85 n2111
+--- half spread = measured p75 ---
+P1-all-thr0.90-T1d   IS -1.52% t-0.83 n140 | VAL -1.27% t-1.59 n842
+P1-all-thr0.90-T7d   IS +1.59% t+1.31 n124 | VAL +0.01% t+0.01 n716
+P1-all-thr0.80-T7d   IS +0.40% t+0.21 n172 | VAL -0.00% t-0.00 n963
+P2a-L1h              IS +1.64% t+2.27 n165 | VAL -0.10% t-0.18 n1142
+P2a-L12h             IS +1.16% t+1.36 n151 | VAL -0.33% t-0.57 n820
+P2b-first95          IS -1.81% t-1.58 n330 | VAL -0.41% t-1.29 n2111

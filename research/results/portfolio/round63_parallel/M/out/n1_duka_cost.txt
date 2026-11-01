@@ -1,0 +1,6 @@
+N1a IS: n 4263 mid +1.07 duka cost 2.46 net -1.39 (t -12.16) break-even cost 1.07; by pair net AUDUSD -1.29 EURUSD -0.53 GBPUSD -1.16 USDCAD -2.39 USDCHF -1.44 USDJPY -1.24
+N1a VAL: n 2598 mid +2.14 duka cost 2.44 net -0.30 (t -3.67) break-even cost 2.14; by pair net AUDUSD +0.35 EURUSD +0.48 GBPUSD +0.20 USDCAD -1.39 USDCHF +0.17 USDJPY -1.39
+N1b IS: n 4263 mid +0.71 duka cost 2.42 net -1.71 (t -15.38) break-even cost 0.71; by pair net AUDUSD -1.57 EURUSD -0.86 GBPUSD -1.46 USDCAD -2.49 USDCHF -2.10 USDJPY -1.51
+N1b VAL: n 2598 mid +1.31 duka cost 2.41 net -1.10 (t -14.37) break-even cost 1.31; by pair net AUDUSD -0.72 EURUSD -0.21 GBPUSD -0.53 USDCAD -1.92 USDCHF -1.31 USDJPY -1.71
+N1c IS: n 2470 mid +1.29 duka cost 2.50 net -1.21 (t -6.48) break-even cost 1.29; by pair net AUDUSD -0.69 EURUSD -0.25 GBPUSD -1.06 USDCAD -2.33 USDCHF -0.90 USDJPY -1.32
+N1c VAL: n 1797 mid +2.65 duka cost 2.48 net +0.17 (t +1.79) break-even cost 2.65; by pair net AUDUSD +1.39 EURUSD +0.88 GBPUSD +0.64 USDCAD -1.04 USDCHF +0.98 USDJPY -1.35

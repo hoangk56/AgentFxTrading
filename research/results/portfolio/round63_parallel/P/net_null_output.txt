@@ -1,0 +1,14 @@
+P1-all-thr0.90-T1d   IS  n_ev   141 trades   154 losers    7 (expected at net 0:    5.8)  obs -0.79%  p(net<=0) 0.6931  z -0.50
+P1-all-thr0.90-T1d   VAL n_ev   842 trades  1413 losers   69 (expected at net 0:   61.3)  obs -0.58%  p(net<=0) 0.8190  z -0.91
+P1-all-thr0.90-T7d   IS  n_ev   125 trades   140 losers    2 (expected at net 0:    5.3)  obs +2.32%  p(net<=0) 0.1066  z +1.24
+P1-all-thr0.90-T7d   VAL n_ev   716 trades  1089 losers   39 (expected at net 0:   43.2)  obs +0.71%  p(net<=0) 0.1542  z +1.02
+P1-N-thr0.90-T7d     IS  n_ev    98 trades   105 losers    1 (expected at net 0:    3.8)  obs +2.73%  p(net<=0) 0.0972  z +1.30
+P1-N-thr0.90-T7d     VAL n_ev   623 trades   924 losers   36 (expected at net 0:   36.6)  obs +0.47%  p(net<=0) 0.2802  z +0.58
+P1-Y-thr0.90-T7d     IS  n_ev    34 trades    35 losers    1 (expected at net 0:    1.5)  obs +1.35%  p(net<=0) 0.4724  z +0.07
+P1-Y-thr0.90-T7d     VAL n_ev   160 trades   165 losers    3 (expected at net 0:    6.6)  obs +2.22%  p(net<=0) 0.0906  z +1.34
+P2a-L1h              IS  n_ev   165 trades   182 losers    2 (expected at net 0:    5.8)  obs +2.37%  p(net<=0) 0.0304  z +1.87
+P2a-L1h              VAL n_ev  1142 trades  1889 losers   58 (expected at net 0:   69.4)  obs +0.61%  p(net<=0) 0.1065  z +1.25
+P2a-L12h             IS  n_ev   151 trades   170 losers    3 (expected at net 0:    5.4)  obs +1.92%  p(net<=0) 0.0850  z +1.37
+P2a-L12h             VAL n_ev   820 trades  1357 losers   36 (expected at net 0:   47.6)  obs +0.39%  p(net<=0) 0.2567  z +0.65
+P2b-first95          IS  n_ev   333 trades   403 losers   16 (expected at net 0:   10.6)  obs -1.06%  p(net<=0) 0.8873  z -1.21
+P2b-first95          VAL n_ev  2111 trades  4053 losers  100 (expected at net 0:  103.1)  obs +0.33%  p(net<=0) 0.1412  z +1.07

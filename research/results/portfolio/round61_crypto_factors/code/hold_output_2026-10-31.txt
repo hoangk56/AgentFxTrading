@@ -1,0 +1,6 @@
+HOLD weeks 94 (2025-01-05 .. 2026-10-18)
+X3 mean +1.141%/wk sd 12.01% SRwk 0.095 t_nw 1.16 | x1.5 +1.066 late +1.400 | random beaten 95.8%
+X3 per year (sum %%): {2025: np.float64(65.8), 2026: np.float64(41.4)}
+reported: X1 mom mean +3.287%/wk t_nw 2.47 ; X2 carry mean -1.005%/wk t_nw -0.72
+worst week -30.0%, max drawdown (sum) -57.0%
+DEMO bar (net > 0): PASS

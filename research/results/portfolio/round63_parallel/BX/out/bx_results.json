@@ -1,0 +1,739 @@
+{
+ "cells": {
+  "P": {
+   "IS": {
+    "n": 39,
+    "days": 14,
+    "coins": 21,
+    "net_bp": 66.220422315835,
+    "med_bp": 15.947144971748873,
+    "t": 2.581145936690227,
+    "sr": 0.37307963106708475,
+    "sr_day": 0.4057522343724359,
+    "win": 0.5897435897435898,
+    "price_bp": 62.04707843338566,
+    "fundF_bp": 83.82842564102559,
+    "fundY_bp": -40.08783846153845,
+    "cost_bp": 39.56410256410256,
+    "carry_bp": 0.0031407329352534825,
+    "B_same_bp": 219.29952398270973,
+    "B_price_bp": 184.2064718342494,
+    "spotminusY_bp": -122.15939340086375,
+    "x1.5_bp": 46.43837103378372,
+    "x1.5_t": 1.808718747942654,
+    "late_n": 44,
+    "late_bp": 61.72143300874921,
+    "late_med": -34.92731518316391,
+    "late_t": 0.8460392683869135,
+    "beats_random": 0.993,
+    "random_mean_bp": -25.435880507202388
+   },
+   "VAL": {
+    "n": 315,
+    "days": 140,
+    "coins": 93,
+    "net_bp": -34.209239846187124,
+    "med_bp": -36.174305310141776,
+    "t": -6.177748034320717,
+    "sr": -0.36285294113425154,
+    "sr_day": -0.3943611911466733,
+    "win": 0.15555555555555556,
+    "price_bp": -0.7545454966908575,
+    "fundF_bp": 49.06859936507938,
+    "fundY_bp": -42.24168285714287,
+    "cost_bp": 40.13650793650793,
+    "carry_bp": 0.14510292092483873,
+    "B_same_bp": 154.16001743010818,
+    "B_price_bp": 154.8866478251216,
+    "spotminusY_bp": -155.64119332181247,
+    "x1.5_bp": -54.27749381444109,
+    "x1.5_t": -9.796101079189558,
+    "late_n": 350,
+    "late_bp": -43.28868625926733,
+    "late_med": -40.968066014023044,
+    "late_t": -8.879904796858513,
+    "beats_random": 0.89,
+    "random_mean_bp": -40.65485414486575,
+    "power_trade": -4.98840320665519,
+    "power_day": -3.614380019165158
+   },
+   "years": {
+    "2021": [
+     39,
+     66.220422315835,
+     2.581145936690227
+    ],
+    "2022": [
+     95,
+     -45.192908772755096,
+     -3.4002229125343506
+    ],
+    "2023": [
+     145,
+     -23.160799621586172,
+     -2.9236164391970867
+    ],
+    "2024": [
+     75,
+     -41.65691030676289,
+     -7.044811011737618
+    ]
+   }
+  },
+  "V50": {
+   "IS": {
+    "n": 14,
+    "days": 4,
+    "coins": 14,
+    "net_bp": 195.395565477938,
+    "med_bp": 140.77083926581466,
+    "t": 3.6320524364814823,
+    "sr": 1.152052795507945,
+    "sr_day": 0.9623581286639011,
+    "win": 1.0,
+    "price_bp": 146.9266388634566,
+    "fundF_bp": 122.01933571428573,
+    "fundY_bp": -33.97712142857144,
+    "cost_bp": 39.57142857142857,
+    "carry_bp": 0.001859099804305284,
+    "B_same_bp": 434.3592398236901,
+    "B_price_bp": 360.4304781472387,
+    "spotminusY_bp": -213.50383928378213,
+    "x1.5_bp": 175.60985119222372,
+    "x1.5_t": 3.2742444352908375,
+    "late_n": 18,
+    "late_bp": 41.236104636463956,
+    "late_med": -34.92731518316391,
+    "late_t": 0.6093257664859857,
+    "beats_random": 1.0,
+    "random_mean_bp": -33.531094081859735
+   },
+   "VAL": {
+    "n": 50,
+    "days": 17,
+    "coins": 32,
+    "net_bp": -35.79966970060238,
+    "med_bp": -37.71085811056651,
+    "t": -1.7151865381535434,
+    "sr": -0.30208856663780237,
+    "sr_day": -0.3313240779167291,
+    "win": 0.22,
+    "price_bp": 16.817787705790344,
+    "fundF_bp": 59.10850600000001,
+    "fundY_bp": -71.86319400000005,
+    "cost_bp": 39.71999999999999,
+    "carry_bp": 0.14276940639269406,
+    "B_same_bp": 99.98191480692087,
+    "B_price_bp": 90.06348414938661,
+    "spotminusY_bp": -73.24569644359627,
+    "x1.5_bp": -55.65966970060239,
+    "x1.5_t": -2.6593444908485937,
+    "late_n": 62,
+    "late_bp": -61.77453642241759,
+    "late_med": -41.05513698630136,
+    "late_t": -4.015039739372618,
+    "beats_random": 0.726,
+    "random_mean_bp": -41.52943582092842,
+    "power_trade": -1.6546072231192692,
+    "power_day": -1.058164247645507
+   },
+   "years": {
+    "2021": [
+     14,
+     195.395565477938,
+     3.6320524364814823
+    ],
+    "2022": [
+     11,
+     -38.49055650786261,
+     -1.1018281810956336
+    ],
+    "2023": [
+     16,
+     -29.155295990841108,
+     -0.46126941976381847
+    ],
+    "2024": [
+     23,
+     -39.13489685174662,
+     -3144689926369205.5
+    ]
+   }
+  }
+ },
+ "coverage": {
+  "lag0_IS": {
+   "total": 303,
+   "not_listed": 138,
+   "no_entry": 126,
+   "no_exit": 0
+  },
+  "lag0_VAL": {
+   "total": 333,
+   "not_listed": 1,
+   "no_entry": 14,
+   "no_exit": 3
+  },
+  "lag1_IS": {
+   "total": 349,
+   "not_listed": 156,
+   "no_entry": 149,
+   "no_exit": 0
+  },
+  "lag1_VAL": {
+   "total": 369,
+   "not_listed": 1,
+   "no_entry": 15,
+   "no_exit": 3
+  }
+ },
+ "maxnull": {
+  "IS": {
+   "p50": -1.280206299187925,
+   "p95": 0.3955019981625476
+  },
+  "VAL": {
+   "p50": -4.800108989412907,
+   "p95": -0.4964929450821837
+  }
+ },
+ "spread_at_signal_bp_p10_50_90": {
+  "IS": [
+   -94.29025200020021,
+   32.420944520948375,
+   146.43219921345352
+  ],
+  "VAL": [
+   -56.505833124751774,
+   4.446915026033351,
+   134.00245855983664
+  ]
+ },
+ "share_V50": {
+  "IS": 0.358974358974359,
+  "VAL": 0.15873015873015872
+ },
+ "symbols": {
+  "1000BONKUSDT": [
+   "1000BONKUSDT",
+   1.0,
+   "funding"
+  ],
+  "1000FLOKIUSDT": [
+   "1000FLOKIUSDT",
+   1.0,
+   "funding"
+  ],
+  "1000SHIBUSDT": [
+   "SHIB1000USDT",
+   1.0,
+   "funding"
+  ],
+  "1000XECUSDT": [
+   "1000XECUSDT",
+   1.0,
+   "funding"
+  ],
+  "AAVEUSDT": [
+   "AAVEUSDT",
+   1.0,
+   "funding"
+  ],
+  "ADAUSDT": [
+   "ADAUSDT",
+   1.0,
+   "funding"
+  ],
+  "ANCUSDT": [
+   "ANCUSDT",
+   1.0,
+   "funding"
+  ],
+  "ANKRUSDT": [
+   "ANKRUSDT",
+   1.0,
+   "funding"
+  ],
+  "APEUSDT": [
+   "APEUSDT",
+   1.0,
+   "funding"
+  ],
+  "API3USDT": [
+   "API3USDT",
+   1.0,
+   "funding"
+  ],
+  "APTUSDT": [
+   "APTUSDT",
+   1.0,
+   "funding"
+  ],
+  "ARBUSDT": [
+   "ARBUSDT",
+   1.0,
+   "funding"
+  ],
+  "ARKUSDT": [
+   "ARKUSDT",
+   1.0,
+   "funding"
+  ],
+  "ARPAUSDT": [
+   "ARPAUSDT",
+   1.0,
+   "funding"
+  ],
+  "ATOMUSDT": [
+   "ATOMUSDT",
+   1.0,
+   "funding"
+  ],
+  "AUDIOUSDT": [
+   "AUDIOUSDT",
+   1.0,
+   "funding"
+  ],
+  "AXSUSDT": [
+   "AXSUSDT",
+   1.0,
+   "funding"
+  ],
+  "BAKEUSDT": [
+   "BAKEUSDT",
+   1.0,
+   "funding"
+  ],
+  "BCHUSDT": [
+   "BCHUSDT",
+   1.0,
+   "funding"
+  ],
+  "BELUSDT": [
+   "BELUSDT",
+   1.0,
+   "funding"
+  ],
+  "BLURUSDT": [
+   "BLURUSDT",
+   1.0,
+   "funding"
+  ],
+  "BNBUSDT": [
+   "BNBUSDT",
+   1.0,
+   "funding"
+  ],
+  "BNXUSDT": [
+   "BNXUSDT",
+   1.0,
+   "funding"
+  ],
+  "BOMEUSDT": [
+   "BOMEUSDT",
+   1.0,
+   "funding"
+  ],
+  "CKBUSDT": [
+   "CKBUSDT",
+   1.0,
+   "funding"
+  ],
+  "COMPUSDT": [
+   "COMPUSDT",
+   1.0,
+   "funding"
+  ],
+  "COTIUSDT": [
+   "COTIUSDT",
+   1.0,
+   "funding"
+  ],
+  "DASHUSDT": [
+   "DASHUSDT",
+   1.0,
+   "funding"
+  ],
+  "DOGEUSDT": [
+   "DOGEUSDT",
+   1.0,
+   "funding"
+  ],
+  "DOGSUSDT": [
+   "DOGSUSDT",
+   1.0,
+   "funding"
+  ],
+  "DOTUSDT": [
+   "DOTUSDT",
+   1.0,
+   "funding"
+  ],
+  "DUSKUSDT": [
+   "DUSKUSDT",
+   1.0,
+   "funding"
+  ],
+  "DYDXUSDT": [
+   "DYDXUSDT",
+   1.0,
+   "funding"
+  ],
+  "EGLDUSDT": [
+   "EGLDUSDT",
+   1.0,
+   "funding"
+  ],
+  "ENAUSDT": [
+   "ENAUSDT",
+   1.0,
+   "funding"
+  ],
+  "EOSUSDT": [
+   "EOSUSDT",
+   1.0,
+   "funding"
+  ],
+  "ETCUSDT": [
+   "ETCUSDT",
+   1.0,
+   "funding"
+  ],
+  "FETUSDT": [
+   "FETUSDT",
+   1.0,
+   "funding"
+  ],
+  "FILUSDT": [
+   "FILUSDT",
+   1.0,
+   "funding"
+  ],
+  "FRONTUSDT": [
+   "FRONTUSDT",
+   1.0,
+   "funding"
+  ],
+  "FTMUSDT": [
+   "FTMUSDT",
+   1.0,
+   "funding"
+  ],
+  "FTTUSDT": [
+   "FTTUSDT",
+   1.0,
+   "funding"
+  ],
+  "FXSUSDT": [
+   "FXSUSDT",
+   1.0,
+   "funding"
+  ],
+  "GALAUSDT": [
+   "GALAUSDT",
+   1.0,
+   "funding"
+  ],
+  "GALUSDT": [
+   "GALUSDT",
+   1.0,
+   "funding"
+  ],
+  "GLMUSDT": [
+   "GLMUSDT",
+   1.0,
+   "funding"
+  ],
+  "GMTUSDT": [
+   "GMTUSDT",
+   1.0,
+   "funding"
+  ],
+  "GTCUSDT": [
+   "GTCUSDT",
+   1.0,
+   "funding"
+  ],
+  "ICXUSDT": [
+   "ICXUSDT",
+   1.0,
+   "funding"
+  ],
+  "IDUSDT": [
+   "IDUSDT",
+   1.0,
+   "funding"
+  ],
+  "INJUSDT": [
+   "INJUSDT",
+   1.0,
+   "funding"
+  ],
+  "JASMYUSDT": [
+   "JASMYUSDT",
+   1.0,
+   "funding"
+  ],
+  "JUPUSDT": [
+   "JUPUSDT",
+   1.0,
+   "funding"
+  ],
+  "LDOUSDT": [
+   "LDOUSDT",
+   1.0,
+   "funding"
+  ],
+  "LINKUSDT": [
+   "LINKUSDT",
+   1.0,
+   "funding"
+  ],
+  "LRCUSDT": [
+   "LRCUSDT",
+   1.0,
+   "funding"
+  ],
+  "LTCUSDT": [
+   "LTCUSDT",
+   1.0,
+   "funding"
+  ],
+  "LUNAUSDT": [
+   "LUNAUSDT",
+   1.0,
+   "funding"
+  ],
+  "MANAUSDT": [
+   "MANAUSDT",
+   1.0,
+   "funding"
+  ],
+  "MASKUSDT": [
+   "MASKUSDT",
+   1.0,
+   "funding"
+  ],
+  "MATICUSDT": [
+   "MATICUSDT",
+   1.0,
+   "funding"
+  ],
+  "MINAUSDT": [
+   "MINAUSDT",
+   1.0,
+   "funding"
+  ],
+  "MTLUSDT": [
+   "MTLUSDT",
+   1.0,
+   "funding"
+  ],
+  "NEARUSDT": [
+   "NEARUSDT",
+   1.0,
+   "funding"
+  ],
+  "NOTUSDT": [
+   "NOTUSDT",
+   1.0,
+   "funding"
+  ],
+  "OCEANUSDT": [
+   "OCEANUSDT",
+   1.0,
+   "funding"
+  ],
+  "OGNUSDT": [
+   "OGNUSDT",
+   1.0,
+   "funding"
+  ],
+  "OMGUSDT": [
+   "OMGUSDT",
+   1.0,
+   "funding"
+  ],
+  "OMUSDT": [
+   "OMUSDT",
+   1.0,
+   "funding"
+  ],
+  "ONEUSDT": [
+   "ONEUSDT",
+   1.0,
+   "funding"
+  ],
+  "OPUSDT": [
+   "OPUSDT",
+   1.0,
+   "funding"
+  ],
+  "ORDIUSDT": [
+   "ORDIUSDT",
+   1.0,
+   "funding"
+  ],
+  "PENDLEUSDT": [
+   "PENDLEUSDT",
+   1.0,
+   "funding"
+  ],
+  "PEOPLEUSDT": [
+   "PEOPLEUSDT",
+   1.0,
+   "funding"
+  ],
+  "PERPUSDT": [
+   "PERPUSDT",
+   1.0,
+   "funding"
+  ],
+  "POWRUSDT": [
+   "POWRUSDT",
+   1.0,
+   "funding"
+  ],
+  "REEFUSDT": [
+   "REEFUSDT",
+   1.0,
+   "funding"
+  ],
+  "RENUSDT": [
+   "RENUSDT",
+   1.0,
+   "funding"
+  ],
+  "SAGAUSDT": [
+   "SAGAUSDT",
+   1.0,
+   "funding"
+  ],
+  "SANDUSDT": [
+   "SANDUSDT",
+   1.0,
+   "funding"
+  ],
+  "SEIUSDT": [
+   "SEIUSDT",
+   1.0,
+   "funding"
+  ],
+  "SFPUSDT": [
+   "SFPUSDT",
+   1.0,
+   "funding"
+  ],
+  "SOLUSDT": [
+   "SOLUSDT",
+   1.0,
+   "funding"
+  ],
+  "SRMUSDT": [
+   "SRMUSDT",
+   1.0,
+   "funding"
+  ],
+  "STGUSDT": [
+   "STGUSDT",
+   1.0,
+   "funding"
+  ],
+  "STORJUSDT": [
+   "STORJUSDT",
+   1.0,
+   "funding"
+  ],
+  "TAOUSDT": [
+   "TAOUSDT",
+   1.0,
+   "funding"
+  ],
+  "THETAUSDT": [
+   "THETAUSDT",
+   1.0,
+   "funding"
+  ],
+  "TIAUSDT": [
+   "TIAUSDT",
+   1.0,
+   "funding"
+  ],
+  "TRBUSDT": [
+   "TRBUSDT",
+   1.0,
+   "funding"
+  ],
+  "TRXUSDT": [
+   "TRXUSDT",
+   1.0,
+   "funding"
+  ],
+  "UMAUSDT": [
+   "UMAUSDT",
+   1.0,
+   "funding"
+  ],
+  "UNFIUSDT": [
+   "UNFIUSDT",
+   1.0,
+   "funding"
+  ],
+  "UNIUSDT": [
+   "UNIUSDT",
+   1.0,
+   "funding"
+  ],
+  "WAVESUSDT": [
+   "WAVESUSDT",
+   1.0,
+   "funding"
+  ],
+  "WIFUSDT": [
+   "WIFUSDT",
+   1.0,
+   "funding"
+  ],
+  "WLDUSDT": [
+   "WLDUSDT",
+   1.0,
+   "funding"
+  ],
+  "WUSDT": [
+   "WUSDT",
+   1.0,
+   "funding"
+  ],
+  "XRPUSDT": [
+   "XRPUSDT",
+   1.0,
+   "funding"
+  ],
+  "XTZUSDT": [
+   "XTZUSDT",
+   1.0,
+   "funding"
+  ],
+  "XVGUSDT": [
+   "XVGUSDT",
+   1.0,
+   "funding"
+  ],
+  "YFIUSDT": [
+   "YFIUSDT",
+   1.0,
+   "funding"
+  ],
+  "ZILUSDT": [
+   "ZILUSDT",
+   1.0,
+   "funding"
+  ],
+  "ZROUSDT": [
+   "ZROUSDT",
+   1.0,
+   "funding"
+  ]
+ },
+ "coins_with_bybit_funding_missing": []
+}

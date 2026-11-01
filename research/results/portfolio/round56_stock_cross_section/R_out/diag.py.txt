@@ -1,0 +1,66 @@
+"""Diagnostics for the primary cell and the best cells (imports grade.py's state by exec with NREP=0)."""
+import os, sys, json, csv
+os.environ["NREP"] = "1"
+SPR = "/private/tmp/claude-501/-Users-hoangbk-00-code-base-105-AgentFxTrading/a4a9bef6-96f0-4934-8440-9b5af3c564e7/scratchpad/r56/R"
+src = open(SPR + "/grade.py").read().split("# ------------------------------------------------------------------ random control")[0]
+src = src.replace('LOG = open(OUT + "/grade.log", "w")', 'LOG = open(OUT + "/diag_inner.log", "w")')
+exec(src)
+D_OUT = {}
+def summ(I, D, SD, h, var="base", key="net_bp"):
+    x = vals(I, D, SD, h, var, key); isp = ISP[D]
+    return dict(IS=st(x[isp], D[isp]), VAL=st(x[~isp], D[~isp]))
+def hedged_long(I, D, SD, h):
+    k = SD > 0
+    I, D = I[k], D[k]
+    r_ = S.trade(I, D, np.ones(len(I)), D + h, entry_at="close", exit_at="close", hedge="SPY", beta=np.nan_to_num(BETA[I, D], nan=1.0))
+    x = np.where(r_["ok"] & ~r_["jump"], r_["net_bp"], np.nan); g = np.where(r_["ok"] & ~r_["jump"], r_["gross_bp"], np.nan)
+    isp = ISP[D]
+    return dict(net_IS=st(x[isp], D[isp]), net_VAL=st(x[~isp], D[~isp]), gross_IS=st(g[isp], D[isp]), gross_VAL=st(g[~isp], D[~isp]))
+for L, h, k in ((5, 5, 9), (1, 3, 9), (5, 5, 3), (1, 1, 9)):
+    nm = f"F1_L{L}_h{h}_k{k}"; o = {}
+    o["base_net"] = summ(*f1_positions(L, h, k), h)
+    o["base_gross"] = summ(*f1_positions(L, h, k), h, key="gross_bp")
+    o["sector_net"] = summ(*f1_positions(L, h, k, sig="sect"), h)
+    o["sector_gross"] = summ(*f1_positions(L, h, k, sig="sect"), h, key="gross_bp")
+    o["nofilter_net"] = summ(*f1_positions(L, h, k, newsfilter=False), h)
+    o["nofilter_gross"] = summ(*f1_positions(L, h, k, newsfilter=False), h, key="gross_bp")
+    o["offsets_gross"] = {off: summ(*f1_positions(L, h, k, offset=off), h, key="gross_bp") for off in range(h)}
+    o["offsets_net"] = {off: summ(*f1_positions(L, h, k, offset=off), h) for off in range(h)}
+    o["long_leg_SPYhedged"] = hedged_long(*f1_positions(L, h, k), h)
+    I, D, SD = f1_positions(L, h, k)
+    x = vals(I, D, SD, h)
+    o["years_net"] = {int(y): [n, round(m, 1), round(t_, 2)] for y, n, m, t_ in sl.by_year(x[np.isfinite(x)], YEAR[D][np.isfinite(x)], D[np.isfinite(x)])}
+    g = vals(I, D, SD, h, key="gross_bp")
+    o["years_gross"] = {int(y): [n, round(m, 1), round(t_, 2)] for y, n, m, t_ in sl.by_year(g[np.isfinite(g)], YEAR[D][np.isfinite(g)], D[np.isfinite(g)])}
+    # top trades share
+    xs = np.sort(x[np.isfinite(x) & ISP[D]])
+    o["IS_sum"] = round(float(xs.sum()), 0); o["IS_top5_sum"] = round(float(xs[-5:].sum()), 0); o["IS_bottom5_sum"] = round(float(xs[:5].sum()), 0)
+    # C3 correlation: book P&L by exit date vs C3 daily R
+    ex = S.dates[np.minimum(D + h, T - 1)]
+    u, bs = bookdate_series(x, np.searchsorted(S.dates, ex))
+    c3 = {}
+    for row in csv.DictReader(open("/Users/hoangbk/00.code_base/105.AgentFxTrading/research/results/portfolio/trades_C3_gotobi_jpy_basket.csv")):
+        d = row["t_out_utc"][:10]
+        if d < "2025-01-01":
+            c3[d] = c3.get(d, 0.0) + float(row["r"])
+    dd = [str(S.dates[j]) for j in u]
+    a = np.array(bs); b = np.array([c3.get(d, 0.0) for d in dd])
+    o["c3_corr_daily"] = round(float(np.corrcoef(a, b)[0, 1]), 3)
+    D_OUT[nm] = o
+    print(nm, json.dumps({k_: v for k_, v in o.items() if k_ not in ("offsets_gross", "offsets_net")}, default=float))
+    print("  offsets gross", {k_: (v["IS"]["mean"], v["VAL"]["mean"]) for k_, v in o["offsets_gross"].items()})
+    print("  offsets net", {k_: (v["IS"]["mean"], v["IS"]["t"], v["VAL"]["mean"]) for k_, v in o["offsets_net"].items()})
+# news-firm reversal diagnostic: same rank construction but only names WITH news in the window (reversal side)
+for L, h in ((1, 1), (5, 5)):
+    pool = ELIG[L] & NEWSW[L]
+    s = SIG[("beta", L)]; I, Dd, SD = [], [], []
+    for t in range(first_day(L, 3), T, h):
+        idx = np.where(pool[:, t] & np.isfinite(s[:, t]))[0]
+        if len(idx) < 6: continue
+        o_ = idx[np.argsort(s[idx, t])]
+        I += list(o_[:3]) + list(o_[-3:]); Dd += [t] * 6; SD += [1] * 3 + [-1] * 3
+    I, Dd, SD = map(np.array, (I, Dd, SD))
+    r_ = summ(I, Dd, SD, h, key="gross_bp")
+    D_OUT[f"newsonly_reversal_L{L}_h{h}_k3_gross"] = r_
+    print(f"news-only reversal L{L} h{h} k3 gross", r_)
+json.dump(D_OUT, open(OUT + "/diag.json", "w"), indent=1, default=float)

@@ -1,0 +1,41 @@
+
+== conn: per-date excess over the same-date pool mean (same exits, same costs), gross t
+cell       exIS      t   exVAL      t  grossIS  tG_IS  grossV   tG_V
+X1_ALL    -28.1  -5.81   -37.3  -5.98   -27.2  -4.40   -38.2  -4.30
+X1_S      -53.4  -8.06   -56.9  -6.34   -53.8  -7.18   -58.3  -5.46
+X1_T       24.7   4.09    -3.8  -0.47    26.4   3.59    -3.6  -0.34
+X2_ALL     -7.4  -1.18   -23.3  -3.09     4.8   0.54   -19.2  -1.48
+X2_S      -22.2  -2.70   -42.8  -4.21   -12.5  -1.24   -39.1  -2.75
+X2_T       27.9   3.56    -0.3  -0.03    40.8   3.91     5.2   0.35
+X3_ALL    -23.4  -2.94   -36.7  -3.78   -10.9  -0.88   -32.9  -1.77
+X3_S      -52.7  -4.98   -69.0  -5.51   -41.5  -2.94   -65.7  -3.38
+X3_T       34.7   3.55     4.5   0.35    47.8   3.48     9.3   0.43
+CV1a      -93.4 -27.02   -83.8 -21.12  -108.6 -29.70   -95.1 -20.61
+CV1b      -46.7  -7.38   -66.2  -7.89   -49.4  -6.54   -71.5  -6.69
+CV2       -87.0  -5.55  -110.5  -4.89   -75.4  -4.29  -104.6  -4.12
+X0_T       45.8   8.28    16.6   2.18    58.4   8.97    22.6   2.36
+max-t null on GROSS returns over the 12 cells, IS: p95 2.62
+max-t null on GROSS returns over the 12 cells, VAL: p95 1.80
+
+== all: per-date excess over the same-date pool mean (same exits, same costs), gross t
+cell       exIS      t   exVAL      t  grossIS  tG_IS  grossV   tG_V
+X1_ALL    -38.8  -9.25   -47.5  -9.38   -36.8  -6.52   -45.5  -5.65
+X1_S      -67.6 -11.47   -76.8 -11.21   -66.6  -9.81   -75.4  -8.29
+X1_T        8.5   1.78    -2.4  -0.35    11.4   1.80     0.7   0.08
+X2_ALL    -23.9  -4.33   -38.8  -6.10   -10.4  -1.25   -31.9  -2.61
+X2_S      -45.2  -6.07   -70.1  -8.30   -32.6  -3.51   -63.8  -4.84
+X2_T       10.7   1.75     3.1   0.39    25.4   2.75    11.7   0.86
+X3_ALL    -45.7  -6.15   -57.8  -6.74   -29.9  -2.56   -48.3  -2.66
+X3_S      -87.7  -9.12  -105.4  -9.62   -72.1  -5.57   -96.5  -5.03
+X3_T       15.9   2.13     2.2   0.20    33.2   2.71    12.9   0.65
+CV1a     -103.4 -38.30   -94.9 -29.12  -116.7 -38.97  -101.8 -25.51
+CV1b      -67.8 -13.83   -72.8 -10.60   -68.4 -10.56   -74.4  -7.85
+CV2      -102.0  -6.89  -152.1  -8.17   -88.7  -5.46  -145.2  -6.66
+X0_T       35.2   8.38    22.0   3.56    47.6   8.75    27.7   3.33
+max-t null on GROSS returns over the 12 cells, IS: p95 2.98
+max-t null on GROSS returns over the 12 cells, VAL: p95 1.66
+IS: first sealed limit-ups 23430, mean open gap C_t->O_t+1 216 bp, median 151 bp; one-price limit-up open (unfillable) 6.9%
+IS: first touched-only 12640, mean open gap -111 bp
+VAL: first sealed limit-ups 15536, mean open gap C_t->O_t+1 239 bp, median 159 bp; one-price limit-up open (unfillable) 9.1%
+VAL: first touched-only 9077, mean open gap -76 bp
+limit-down exit shifts 416842 over 6375266 stock-days x 11 variants

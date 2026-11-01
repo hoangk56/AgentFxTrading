@@ -1,0 +1,8 @@
+HOLD days 667 net ann 0.74% vol 0.79% t_nw 1.27 | excess over cash ann -0.35% t_nw -0.64 | episodes 180
+per year % {2025: 0.99, 2026: 0.36}
+x1.5 ann -1.36%  late ann 0.18%  random beaten 100.0%  worst days [-0.228 -0.136 -0.136 -0.134]
+   FAIL 1 net > 0, t_nw >= 2.5, excess over cash > 0
+   FAIL 2 x1.5 > 0 and late > 0
+   PASS 3 every HOLD year > 0
+   PASS 4 beats >= 80 % random
+VERDICT: FAIL

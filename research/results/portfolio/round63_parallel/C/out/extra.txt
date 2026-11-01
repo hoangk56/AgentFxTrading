@@ -1,0 +1,14 @@
+REV|raw|1|1    gross per rebalance and break-even cost per side per trade: 2020: g   4.97bp be  2.30bp; 2021: g  10.00bp be  3.21bp; 2022: g   2.11bp be  0.68bp; 2023: g   2.06bp be  0.67bp; 2024: g  -0.04bp be -0.01bp
+   rank 0-19 q=4 IS: gross   9.57bp t 10.72 turn 0.71
+   rank 0-19 q=4 VAL: gross   1.18bp t  2.15 turn 0.77
+   rank 20-39 q=4 IS: gross   5.20bp t  5.15 turn 0.52
+   rank 20-39 q=4 VAL: gross   1.58bp t  2.46 turn 0.77
+REV|raw|1|4    gross per rebalance and break-even cost per side per trade: 2020: g  12.50bp be  6.00bp; 2021: g  13.58bp be  4.46bp; 2022: g  -0.15bp be -0.05bp; 2023: g   2.36bp be  0.78bp; 2024: g   2.94bp be  0.96bp
+REV|raw|1|24   gross per rebalance and break-even cost per side per trade: 2020: g  20.12bp be  9.67bp; 2021: g  32.31bp be 10.31bp; 2022: g  26.81bp be  8.59bp; 2023: g  14.41bp be  4.70bp; 2024: g   9.08bp be  2.94bp
+   rank 0-19 q=4 IS: gross   5.03bp t  0.29 turn 0.70
+   rank 0-19 q=4 VAL: gross  22.87bp t  1.78 turn 0.78
+   rank 20-39 q=4 IS: gross  47.91bp t  3.22 turn 0.54
+   rank 20-39 q=4 VAL: gross   8.88bp t  0.68 turn 0.79
+REV|raw|4|1    gross per rebalance and break-even cost per side per trade: 2020: g   3.55bp be  3.21bp; 2021: g   5.45bp be  3.32bp; 2022: g   1.71bp be  1.05bp; 2023: g   0.48bp be  0.30bp; 2024: g   0.04bp be  0.02bp
+VLO|raw|1|1    gross per rebalance and break-even cost per side per trade: 2020: g   3.54bp be  1.47bp; 2021: g   9.53bp be  2.78bp; 2022: g   2.93bp be  0.86bp; 2023: g   2.18bp be  0.65bp; 2024: g  -0.71bp be -0.21bp
+VLO|raw|24|24  gross per rebalance and break-even cost per side per trade: 2020: g  12.75bp be  5.35bp; 2021: g -37.23bp be -11.05bp; 2022: g  14.97bp be  4.43bp; 2023: g  25.85bp be  7.72bp; 2024: g  22.23bp be  6.54bp
