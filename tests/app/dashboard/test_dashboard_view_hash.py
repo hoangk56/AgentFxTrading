@@ -72,3 +72,14 @@ console.log(JSON.stringify({{read, pushed, switched}}));
                            "#leaderboard": "view-docker"}
     assert got["pushed"] == ["#ledger", "/demo/dashboard?x=1"]
     assert got["switched"] == ["view-ledger", "view-ledger", "view-dashboard"]
+
+
+def test_every_local_asset_carries_the_same_release_stamp():
+    """One ?v= for every /static file the page loads. A file left on an old stamp stays cached in the browser while the
+    template around it changes: on 2026-11-02 research.js kept ?v=20261101_rs1, the browser ran the old copy and it
+    wrote into a block the page no longer had ("Cannot set properties of null")."""
+    import re
+    page = dashboard_page(client)
+    stamps = dict(re.findall(r'(/static/[\w/.-]+\.(?:js|css))\?v=([\w.-]+)', page))
+    assert len(stamps) >= 10, stamps
+    assert len(set(stamps.values())) == 1, stamps
