@@ -1,0 +1,53 @@
+# Test fixture for app/research_api.py (not the real research/registry.yaml).
+algorithms:
+  - id: F3
+    name: ECB F3
+    description: Sell EURUSD in the ECB window on USD-TOP days.
+    market: EURUSD
+    round: 24
+    tier: live
+    tier_reason: Passed HOLD.
+    research: {is: "IS line", val: "VAL line", hold: "HOLD line"}
+    forward: ecb_f3
+    bot: cbot-live-x-eurusd-ecb-f3
+    prereg: research/results/x/PREREG_F3.md
+    report: research/results/x/REPORT.md
+  - id: G1
+    name: Gold $50
+    market: XAUUSD
+    round: 27
+    tier: demo
+    research: {hold: "HOLD only"}
+    forward: gold_levels
+    report: research/results/g/REPORT.md
+  - id: BB
+    name: Basis B
+    market: Binance
+    round: 63
+    tier: demo
+    forward: basis_b
+    report: research/results/b/REPORT.md
+  - id: P1
+    name: Pending one
+    round: 58
+    tier: cho-kiem
+    forward: null
+    prereg: research/results/p/PREREG.md
+    report: research/results/p/REPORT.md
+  - id: D1
+    name: Dropped one
+    round: 30
+    tier: da-loai
+    report: research/results/d/REPORT.md
+  - id: W1
+    name: Weird tier
+    tier: maybe
+    forward: no_such_tracker
+    report: r.md
+  - name: no id here
+  - id: F3
+    name: duplicate
+    tier: live
+tried:
+  - {round: 31, name: Storms, reason: No edge after costs, report: research/results/r31/REPORT.md}
+  - {round: 32, name: Rolls, reason: Within chance}

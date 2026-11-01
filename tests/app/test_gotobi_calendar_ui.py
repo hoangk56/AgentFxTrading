@@ -37,7 +37,7 @@ def test_dashboard_has_the_gotobi_nav_view_and_script():
     assert '<script src="/static/js/gotobi_calendar.js' in html
     page = dashboard_page(client)
     assert "targetId === 'view-calendar'" in page and "gotobiOnShow();" in page
-    assert "const aliases = {gotobi: 'calendar'};" in page      # old #gotobi links still open the Calendar
+    assert "gotobi: 'calendar'" in page      # old #gotobi links still open the Calendar
     assert "gotobiRefreshIfShown()" in page       # the account selector refreshes it
 
 

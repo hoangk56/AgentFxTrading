@@ -169,7 +169,7 @@ def calendar_guard(today: Optional[datetime.date] = None, path: Path = GOLD_CALE
 
 
 ALERT_VERDICTS = {"STOP": "🔴", "PROMOTE_CHECK": "🟢"}
-ALERT_VERDICTS_VI = {"STOP": "DỪNG", "PROMOTE_CHECK": "ĐỦ ĐIỀU KIỆN XÉT"}   # as the Kiểm chứng screen words them
+ALERT_VERDICTS_VI = {"STOP": "DỪNG", "PROMOTE_CHECK": "ĐỦ ĐIỀU KIỆN XÉT"}   # as the Research view's trackers word them
 CHECK_INTERVAL_SECONDS = 3600
 
 

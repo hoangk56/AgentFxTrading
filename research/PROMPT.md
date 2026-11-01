@@ -366,7 +366,8 @@ Những họ đã cạn, đừng quét lại kiểu cũ (chỉ làm lại nếu 
   trong ngày perp (không có), D thông báo Binance (robots cấm /bapi/), M hiệu ứng cũ theo phí CME (không có), B hồi quy basis
   perp-spot: phía perp rẻ hơn spot >100 bp (long perp / short spot vay margin) là ứng viên DEMO đã qua holdout (+213.5 bp, t 14.4);
   vào trễ 5 phút trên nến 1m holdout vẫn +222.8 bp t 13.9 (BM); lên live chỉ còn phụ thuộc vay được coin để short spot: cần demo trên tài
-  khoản Binance margin (tôi quyết). Không có gì ở R (đấu giá trái phiếu), U (mở khoá token), O (metrics Binance), P (Polymarket), X (roll VIX),
+  khoản Binance margin. 2026-11-01 tôi duyệt: bot demo giấy app/basis_b_runner.py (docs/basis-b-demo.md, không đặt lệnh) ghi tín hiệu,
+  sổ lệnh, lượng coin vay được và lãi vay mỗi giờ; trạng thái dừng / nâng hạng ở màn Nghiên cứu (research/registry.yaml). Không có gì ở R (đấu giá trái phiếu), U (mở khoá token), O (metrics Binance), P (Polymarket), X (roll VIX),
   W (Kalshi thời tiết), A (A-share chạm trần), BX (hedge B bằng perp Bybit: spot mới là bên dịch chuyển), BY (B trên Bybit: nến 1h Bybit mở = đóng trước).
   Nguồn cần tôi duyệt trước khi dùng lại: defillama-datasets.llama.fi (U), OHLCVault (A). Ý tưởng còn lại: round63_parallel/I/IDEAS_I.md.
 

@@ -46,8 +46,8 @@ const DASHBOARD_BOOTSTRAP = window.DASHBOARD_BOOTSTRAP || {};
                     ledgerOnShow();
                 } else if (targetId === 'view-calendar') {
                     gotobiOnShow();
-                } else if (targetId === 'view-forward') {
-                    fsOnShow();
+                } else if (targetId === 'view-research') {
+                    rsOnShow();
                 } else if (targetId === 'view-paper-desk') {
                     pdOnShow();
                 }
@@ -55,11 +55,12 @@ const DASHBOARD_BOOTSTRAP = window.DASHBOARD_BOOTSTRAP || {};
         }
 
         // The open view lives in the URL hash (#backtest, #ledger, …; Overview has none),
-        // so F5 and Back/Forward stay on it.
+        // so F5 and Back/Forward stay on it. A view may keep its own state after "?" (#research?id=…).
         function viewFromHash(hash) {
-            // #gotobi was the Calendar's hash before it took the ECB window trades too; old links still open it.
-            const aliases = {gotobi: 'calendar'};
-            const name = hash.slice(1);
+            // #gotobi was the Calendar's hash before it took the ECB window trades too, #forward the Research
+            // view's before it became "Nghiên cứu"; old links still open them.
+            const aliases = {gotobi: 'calendar', forward: 'research'};
+            const name = hash.slice(1).split('?')[0];
             const view = hash.length > 1 ? document.getElementById('view-' + (aliases[name] || name)) : null;
             return view && view.classList.contains('view-section') ? view.id : 'view-dashboard';
         }
