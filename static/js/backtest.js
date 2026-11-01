@@ -305,7 +305,7 @@ function btCompareHtml(jobs) {
         ? diff.map(k => `<tr><td>${escapeHtml(k)}</td>${jobs.map(j => `<td>${escapeHtml(btReportParams(j)[k] ?? '—')}</td>`).join('')}</tr>`).join('')
         : `<tr><td colspan="${jobs.length + 1}" class="td-dim">Không có tham số nào khác</td></tr>`;
     const warnings = btCompareWarnings(jobs);
-    return `${warnings.length ? `<div class="bt-warning">⚠ Không so sánh trực tiếp được: ${warnings.join(', ')}</div>` : ''}
+    return `${warnings.length ? `<div class="bt-warning">Không so sánh trực tiếp được: ${warnings.join(', ')}</div>` : ''}
         <div class="bt-chart bt-chart--wide"><canvas id="bt-compare-chart"></canvas></div>
         <div class="table-wrap"><table class="data-table"><thead><tr><th>Chỉ số</th>${head}</tr></thead><tbody>${rows}</tbody></table></div>
         <h4 class="bt-subtitle">Tham số khác nhau</h4>

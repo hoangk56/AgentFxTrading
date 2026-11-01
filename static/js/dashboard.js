@@ -24,8 +24,10 @@ const DASHBOARD_BOOTSTRAP = window.DASHBOARD_BOOTSTRAP || {};
             document.querySelectorAll('.topbar-action-btn').forEach(btn => btn.classList.remove('active'));
             document.querySelectorAll('.view-section').forEach(view => view.classList.remove('active'));
 
-            // Add active to matching nav item or topbar button
-            const activeNav = document.querySelector(`.nav-item[data-target="${targetId}"]`);
+            // Add active to matching nav item or topbar button. Views without their own menu item light their parent's:
+            // Dự đoán AI and Backtest are tabs of Nghiên cứu, the full ranking hangs off Bot (redesign D).
+            const NAV_PARENT = {'view-paper-desk': 'view-research', 'view-backtest': 'view-research', 'view-leaderboard': 'view-docker'};
+            const activeNav = document.querySelector(`.nav-item[data-target="${NAV_PARENT[targetId] || targetId}"]`);
             if (activeNav) activeNav.classList.add('active');
             const activeTopbarBtn = document.querySelector(`.topbar-action-btn[data-target="${targetId}"]`);
             if (activeTopbarBtn) activeTopbarBtn.classList.add('active');
@@ -35,6 +37,9 @@ const DASHBOARD_BOOTSTRAP = window.DASHBOARD_BOOTSTRAP || {};
             if (targetView) {
                 targetView.classList.add('active');
                 if (targetId === 'view-logs') {
+                    // "Nhật ký" on an Overview alert lands on #logs?q=<bot>: filter to that bot.
+                    const q = new URLSearchParams(location.hash.split('?')[1] || '').get('q');
+                    if (q) logFilterInput.value = q;
                     fetchAgentLogs(logDateSelect.value);
                 } else if (targetId === 'view-docker') {
                     fetchBots();
@@ -74,7 +79,8 @@ const DASHBOARD_BOOTSTRAP = window.DASHBOARD_BOOTSTRAP || {};
             switchView(targetId);
         }
 
-        document.querySelectorAll('.nav-item').forEach(item => {
+        // Menu items and the Nghiên cứu tabs open views the same way.
+        document.querySelectorAll('.nav-item[data-target], .rs-tab[data-target]').forEach(item => {
             item.addEventListener('click', (e) => {
                 e.preventDefault();
                 openView(item.getAttribute('data-target'));
@@ -88,118 +94,203 @@ const DASHBOARD_BOOTSTRAP = window.DASHBOARD_BOOTSTRAP || {};
             const initialView = viewFromHash(location.hash);
             if (initialView !== 'view-dashboard') switchView(initialView);
         });
-        // --- Docker Bot Management ---
+        // --- Bot screen (redesign D step 2, 2026-11-01) ---
+        // Real bots first, Demo folded; each row: what it trades, its state in words, its size per trade, what it
+        // holds and its result for the chosen period (GET /api/leaderboard, the former Xếp hạng screen). One main
+        // button by state, Sửa, the rest under ⋯. The pure functions below run in node in the XSS tests.
         let botsFetchInFlight = false;   // a slow poll must not stack up behind itself
-        let botActionInFlight = false;   // a poll must not re-render over a row that says "Stopping…"
+        let botActionInFlight = false;  // a pending action owns the table until it finishes
+        let botResults = {};            // bot_id -> leaderboard row for the chosen period
+        let botsDemoIssues = 0;
+        const BOT_SIZING = [['RiskPerTradeMoney', 'Rủi ro mỗi lệnh ($)'], ['MaxLotsPerTrade', 'Lot tối đa mỗi lệnh'], ['Lots', 'Lot mỗi lệnh']];
+
+        /** --Key=value of a docker run command (quotes dropped), or null. */
+        function botParam(cmd, key) {
+            const m = String(cmd || '').match(new RegExp(`--${key}=("?)([^"\\s\\\\]*)\\1`));
+            return m ? m[2] : null;
+        }
+        /** The command with --Key set to value: replaced where it is, appended when missing. */
+        function setBotParam(cmd, key, value) {
+            const s = String(cmd || '');
+            const re = new RegExp(`(--${key}=)("?)[^"\\s\\\\]*\\2`);
+            return re.test(s) ? s.replace(re, (all, flag, q) => `${flag}${q}${value}${q}`) : `${s.replace(/\s+$/, '')} --${key}=${value}`;
+        }
+        function botSizingHtml(cmd) {
+            const risk = botParam(cmd, 'RiskPerTradeMoney'), maxLots = botParam(cmd, 'MaxLotsPerTrade'), lots = botParam(cmd, 'Lots');
+            if (risk !== null && risk !== '') {
+                const n = Number(risk);
+                const money = Number.isFinite(n) ? `$${n.toLocaleString('en-US', {maximumFractionDigits: 2})}` : escapeHtml(risk);
+                return money + (maxLots ? `<span class="bot-sub">tối đa ${escapeHtml(maxLots)} lot</span>` : '');
+            }
+            if (lots !== null && lots !== '') return `${escapeHtml(lots)} lot`;
+            return '<span class="td-dim">—</span>';
+        }
+        /** State in words (never colour alone): [css modifier, text, tooltip]. */
+        function botState(b) {
+            const running = b.status === 'running';
+            if (b.stuck) return ['crit', 'Bị treo', b.health_reason || ''];
+            if (b.status === 'error') return ['crit', 'Lỗi Docker', b.health_reason || ''];
+            if (!running) return b.stopped_on_purpose
+                ? ['off', 'Đã dừng', `Container ở trạng thái ${b.status || 'không rõ'}, dừng từ dashboard`]
+                : ['crit', 'Dừng bất thường', `Container ở trạng thái ${b.status || 'không rõ'} mà không ai bấm Dừng`];
+            if (!b.polling) {
+                const age = (b.last_poll_age_s === null || b.last_poll_age_s === undefined)
+                    ? 'từ lúc server khởi động' : `trong ${b.last_poll_age_s} giây`;
+                return ['warn', 'Không nhận lệnh', `Bot "${b.bot_id || b.name}" không hỏi lệnh ${age}. Nút Đóng và Đóng & dừng không tới được bot này, Tạm dừng có thể không chặn được lệnh mới. Nguyên nhân thường gặp: bot còn đang đăng nhập, file .algo build trước khi có tính năng hỏi lệnh, CommandPollMs=0, hoặc bot báo BotId khác với --BotId của container.`];
+            }
+            if (b.paused) return ['warn', 'Tạm dừng', 'Đã chặn vào lệnh mới từ dashboard; lệnh đang mở vẫn được bot quản lý'];
+            return ['ok', 'Đang chạy', ''];
+        }
+        // Stuck, a Docker error, or running but deaf to commands. A stopped bot may be stopped on purpose (the
+        // Overview's Cần làm flags the ones nobody stopped); a paused one is the owner's choice.
+        /** The one line under a warning state, readable by touch and keyboard (the long text was a tooltip only). */
+        function botReasonShort(b) {
+            if (b.stuck) return b.health_reason || 'watchdog thấy bot không chạy tiếp';
+            if (b.status === 'error') return 'không đọc được trạng thái container';
+            if (b.status !== 'running') return b.stopped_on_purpose ? '' : `container ${b.status || 'không rõ'}, chưa ai bấm Dừng`;
+            if (!b.polling) return b.last_poll_age_s == null ? 'chưa hỏi lệnh từ lúc server chạy' : `không hỏi lệnh ${b.last_poll_age_s} giây`;
+            if (b.paused) return 'không vào lệnh mới';
+            return '';
+        }
+        function botNeedsAction(b) { return botState(b)[0] === 'crit' || (b.status === 'running' && !b.polling); }
+        function botResultCells(r) {
+            if (!r || !Number(r.total_trades)) return '<td class="num td-dim" data-label="Lời/lỗ">—</td><td class="num td-dim" data-label="Số lệnh">0</td><td class="num td-dim" data-label="Hệ số lời">—</td>';
+            const pnl = Number(r.total_pnl_usd) || 0;
+            // A profit factor of one or two trades is noise (0.00 after one loss): shown from 5 closed trades.
+            const pf = Number(r.total_trades) < 5 ? '<span class="td-dim" title="Cần ít nhất 5 lệnh đã đóng">ít lệnh</span>'
+                : (r.profit_factor === null || r.profit_factor === undefined || !Number.isFinite(Number(r.profit_factor))
+                    ? '—' : Number(r.profit_factor).toFixed(2));
+            return `<td class="num ${pnl > 0 ? 'pnl-positive' : pnl < 0 ? 'pnl-negative' : ''}" data-label="Lời/lỗ">${signedMoney(pnl)}</td>`
+                + `<td class="num" data-label="Số lệnh">${escapeHtml(r.total_trades || 0)}</td><td class="num" data-label="Hệ số lời">${pf}</td>`;
+        }
+        function botRowHtml(b, r) {
+            const name = escapeHtml(b.name);
+            const live = b.account_type === 'live' ? '1' : '0';
+            const symbol = botParam(b.run_command, 'symbol') || '';
+            const data = `data-name="${name}" data-live="${live}" data-symbol="${escapeHtml(symbol)}" data-open="${escapeHtml(b.open_positions || 0)}"`;
+            const [stateCls, stateText, stateTitle] = botState(b);
+            const running = b.status === 'running';
+            const btn = (cls, label, extra = '') => `<button type="button" class="log-btn ${cls}" ${data}${extra}>${label}</button>`;
+            let primary;
+            if (b.stuck || (running && !b.polling)) primary = btn('action-restart bot-btn-primary', 'Khởi động lại');
+            else if (!running) primary = btn('action-start bot-btn-primary', 'Chạy');
+            else if (b.paused) primary = btn('action-resume', 'Tiếp tục');
+            else primary = btn('action-pause', 'Tạm dừng');
+            const edit = `<button type="button" class="log-btn action-edit" ${data} data-desc="${escapeHtml(b.description || '')}" data-cmd="${escapeHtml(b.run_command || '')}">Sửa</button>`;
+            const more = [];
+            if (running && !primary.includes('action-restart')) more.push(btn('action-restart', 'Khởi động lại'));
+            if (running) more.push(btn('action-close-stop', 'Đóng &amp; dừng'));
+            if (running) more.push(btn('action-stop', 'Dừng'));
+            more.push(btn('action-delete bot-btn-danger', 'Xoá bot'));
+            const containerLine = b.container_id ? `<span class="row-menu-note">Container ${escapeHtml(String(b.container_id).substring(0, 12))}</span>` : '';
+            const menu = `<details class="row-menu"><summary class="log-btn" aria-label="Thao tác khác với ${name}">Khác</summary>`
+                + `<div class="row-menu-list">${more.join('')}${containerLine}</div></details>`;
+            return `<tr data-row-name="${name}">
+                <td><div class="bot-main">${escapeHtml(strategyName(b.bot_id || b.name))} ${escapeHtml(symbol.toUpperCase())}</div>
+                    <div class="bot-sub" title="${escapeHtml(b.description || '')}">${name}</div></td>
+                <td><span class="bot-state bot-state--${stateCls}">${stateText}</span>${stateCls === 'crit' || stateCls === 'warn'
+                    ? `<span class="bot-sub bot-reason">${escapeHtml(botReasonShort(b))}</span>` : ''}${stateTitle ? `<span class="sr-only">${escapeHtml(stateTitle)}</span>` : ''}</td>
+                <td class="num" data-label="Rủi ro / lệnh">${botSizingHtml(b.run_command)}</td>
+                <td class="num" data-label="Đang giữ">${escapeHtml(b.open_positions || 0)}</td>
+                ${botResultCells(r)}
+                <td class="bot-actions">${primary}${edit}${menu}</td>
+            </tr>`;
+        }
+        /** Sizing flags that differ between two commands: [{text: 'Rủi ro mỗi lệnh $2,000 → $1,500', ratio}]. */
+        function botSizingChanges(before, after) {
+            const word = {RiskPerTradeMoney: 'Rủi ro mỗi lệnh', MaxLotsPerTrade: 'Lot tối đa', Lots: 'Lot mỗi lệnh'};
+            const show = (key, v) => key === 'RiskPerTradeMoney' ? `$${Number(v).toLocaleString('en-US', {maximumFractionDigits: 2})}` : `${v}`;
+            return Object.keys(word).map(key => [key, botParam(before, key), botParam(after, key)])
+                .filter(([, a, b]) => b !== null && Number(a) !== Number(b))
+                .map(([key, a, b]) => ({ratio: a === null || !Number(a) ? Infinity : Number(b) / Number(a),
+                                        text: `${word[key]} ${a === null ? 'chưa đặt' : show(key, a)} → ${show(key, b)}`}));
+        }
+        function botSizingFieldsHtml(cmd) {
+            return BOT_SIZING.filter(([key]) => botParam(cmd, key) !== null).map(([key, label]) =>
+                `<label class="bot-field" for="bot-size-${key}">${label}
+                    <input type="number" step="any" min="0" id="bot-size-${key}" class="log-input" data-param="${key}" value="${escapeHtml(botParam(cmd, key))}">
+                </label>`).join('');
+        }
+        function botsSay(text, bad) {
+            const el = document.getElementById('bots-msg');
+            if (!el) return;
+            el.textContent = text || '';
+            el.className = `bots-msg${bad ? ' bots-msg--bad' : ''}`;
+        }
+
         async function fetchBots() {
             if (botsFetchInFlight || botActionInFlight) return;
             botsFetchInFlight = true;
             try {
-                const res = await fetch("/api/bots");
+                const period = (document.getElementById('bots-period') || {}).value || '1m';
+                const lb = type => fetch(`/api/leaderboard?account_id=${type}&account_type=${type}&period=${encodeURIComponent(period)}`)
+                    .then(r => r.ok ? r.json() : null).catch(() => null);
+                const [res, live, demo] = await Promise.all([fetch("/api/bots"), lb('live'), lb('demo')]);
                 const data = await res.json();
+                // Each call ranks every bot (zeros for the other mode's), so take a bot's row from its own mode only.
+                const isLive = id => /(^|[-_])live([-_]|$)/i.test(String(id || ''));
+                botResults = {};
+                ((live && live.rankings) || []).forEach(r => { if (isLive(r.bot_id)) botResults[r.bot_id] = r; });
+                ((demo && demo.rankings) || []).forEach(r => { if (!isLive(r.bot_id)) botResults[r.bot_id] = r; });
                 renderBots(data.bots, data.docker_available);
-            } catch(e) { console.error("Error fetching bots", e); }
+            } catch(e) {
+                const status = document.getElementById("bots-status");
+                if (status) {
+                    status.textContent = `Không tải được danh sách bot lúc ${new Date().toLocaleTimeString('vi-VN', {hour: '2-digit', minute: '2-digit'})}, sẽ thử lại sau 10 giây`;
+                    status.className = 'ov-status ov-status--warn';
+                }
+            }
             finally { botsFetchInFlight = false; }
         }
         function renderBots(bots, dockerOk) {
-            const tbody = document.getElementById("bots-tbody");
+            const realBody = document.getElementById("bots-tbody");
+            const demoBody = document.getElementById("bots-tbody-demo");
+            const status = document.getElementById("bots-status");
+            const say = (cls, text) => { if (status) { status.textContent = text; status.className = `ov-status ov-status--${cls}`; } };
             if(!dockerOk) {
-                tbody.innerHTML = `<tr><td colspan="7" class="td-dim" style="color:var(--color-loss)">Server không có Docker. Hãy kiểm tra Docker daemon đang chạy.</td></tr>`;
+                const msg = `<tr><td colspan="8" class="pnl-negative">Server không có Docker. Hãy kiểm tra Docker daemon đang chạy.</td></tr>`;
+                realBody.innerHTML = msg;
+                if (demoBody) demoBody.innerHTML = msg;
+                say('crit', 'Không có Docker: không kiểm tra, chạy hay khởi động lại bot được');
                 return;
             }
-            if(!bots || bots.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="7" class="td-dim">Chưa có bot nào.</td></tr>`;
-                return;
-            }
-            
-            const targetType = (currentMode === 'real' || currentMode === 'live') ? 'live' : 'demo';
-            const filteredBots = bots.filter(b => (b.account_type || 'demo') === targetType);
-                
-            if(!filteredBots.length) {
-                tbody.innerHTML = `<tr><td colspan="7" class="td-dim">Chưa có bot ${targetType === 'live' ? 'tiền thật' : 'demo'} nào. Bấm "Thêm bot" để tạo.</td></tr>`;
-                return;
-            }
-            let html = "";
-            filteredBots.forEach(b => {
-                const isRunning = b.status === "running";
-                let statusHtml = `<span style="color:var(--color-dim)">${escapeHtml(b.status)}</span>`;
-                if (b.stuck) {
-                    statusHtml = `<span style="color:var(--color-loss); font-weight:bold;" title="${escapeHtml(b.health_reason || 'Bot bị treo')}">⚠️ BỊ TREO</span>`;
-                } else if (isRunning) {
-                    statusHtml = `<span style="color:var(--color-profit)">● đang chạy</span>`;
-                } else if (b.status === "error") {
-                    statusHtml = `<span style="color:var(--color-loss)">● lỗi</span>`;
-                }
-                // Escaped once for text and attributes alike; dataset hands the Edit form the decoded values.
-                const escapedName = escapeHtml(b.name);
-                const escapedCmd = escapeHtml(b.run_command || '');
-                const escapedDesc = escapeHtml(b.description || '');
-                const modeBadge = (b.account_type === 'live')
-                    ? '<span class="badge badge--live"><span class="badge-dot"></span>THẬT</span>'
-                    : '<span class="badge badge--demo"><span class="badge-dot"></span>DEMO</span>';
-                // Pause blocks new entries only; the container keeps managing its open positions.
-                const pausedHtml = b.paused
-                    ? ' <span class="badge" style="background:rgba(245,158,11,0.15); color:#f59e0b;" title="Đã chặn vào lệnh mới từ dashboard; lệnh đang mở vẫn được bot quản lý">TẠM DỪNG</span>'
-                    : '';
-                // A running bot asks /api/cbot/commands every 2 s. One that doesn't can't be reached
-                // by Close / Close & Stop (they expire), and its own pause guard never hears of a Pause.
-                const lastPoll = (b.last_poll_age_s === null || b.last_poll_age_s === undefined)
-                    ? 'từ lúc server khởi động' : `trong ${b.last_poll_age_s} giây`;
-                const notPollingTitle = `Bot "${b.bot_id}" không hỏi lệnh ${lastPoll}. Nút Đóng và Đóng & dừng không tới được bot này, Tạm dừng có thể không chặn được lệnh mới. Nguyên nhân thường gặp: bot còn đang đăng nhập, file .algo build trước khi có tính năng hỏi lệnh, CommandPollMs=0, hoặc bot báo BotId khác với --BotId của container.`;
-                const notPollingHtml = (isRunning && !b.polling)
-                    ? ` <span class="badge" style="background:rgba(248,113,113,0.12); color:var(--loss);" title="${escapeHtml(notPollingTitle)}">KHÔNG NHẬN LỆNH</span>`
-                    : '';
-                const pauseBtn = b.paused
-                    ? `<button class="log-btn action-resume" data-name="${escapedName}" style="background:rgba(52,211,153,0.15); color:var(--profit); margin-right:4px;">Tiếp tục</button>`
-                    : `<button class="log-btn action-pause" data-name="${escapedName}" style="background:rgba(255,193,7,0.15); color:#f59e0b; margin-right:4px;">Tạm dừng</button>`;
-                const closeStopBtn = isRunning
-                    ? `<button class="log-btn action-close-stop" data-name="${escapedName}" data-open="${b.open_positions || 0}" data-live="${b.account_type === 'live' ? '1' : '0'}" style="background:var(--loss); color:#fff; margin-right:4px;">Đóng &amp; dừng</button>`
-                    : '';
-                
-                html += `<tr>
-                    <td><strong>${escapedName}</strong></td>
-                    <td>${modeBadge}</td>
-                    <td>${statusHtml}${pausedHtml}${notPollingHtml}</td>
-                    <td class="td-dim">${b.container_id ? b.container_id.substring(0,12) : "-"}</td>
-                    <td class="td-dim">${escapedDesc || "-"}</td>
-                    <td class="td-dim" style="font-family:monospace; max-width:240px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis" title="${escapedCmd}">${escapedCmd}</td>
-                    <td style="text-align:right; white-space:nowrap;">
-                        ${pauseBtn}${closeStopBtn}${isRunning
-                            ? `<button class="log-btn action-restart" data-name="${escapedName}" style="background:rgba(255,193,7,0.15); color:#f59e0b; margin-right:4px;">Khởi động lại</button><button class="log-btn action-stop" data-name="${escapedName}" style="background:rgba(248,113,113,0.15); color:var(--loss);">Dừng</button>`
-                            : `<button class="log-btn action-start" data-name="${escapedName}" style="background:rgba(52,211,153,0.15); color:var(--profit);">Chạy</button>`
-                        }
-                        <button class="log-btn action-edit" data-name="${escapedName}" data-desc="${escapedDesc}" data-cmd="${escapedCmd}" style="background:var(--bg-elevated); margin:0 4px;">Sửa</button>
-                        <button class="log-btn action-delete" data-name="${escapedName}">Xoá</button>
-                    </td>
-                </tr>`;
-            });
-            tbody.innerHTML = html;
-            
-            document.querySelectorAll(".action-start").forEach(btn => btn.addEventListener("click", e => actionBot(e.currentTarget.dataset.name, "start", e.currentTarget)));
-            document.querySelectorAll(".action-stop").forEach(btn => btn.addEventListener("click", e => actionBot(e.currentTarget.dataset.name, "stop", e.currentTarget)));
-            document.querySelectorAll(".action-delete").forEach(btn => btn.addEventListener("click", e => deleteBot(e.currentTarget.dataset.name, e.currentTarget)));
-            document.querySelectorAll(".action-restart").forEach(btn => btn.addEventListener("click", e => actionBot(e.currentTarget.dataset.name, "restart", e.currentTarget)));
-            document.querySelectorAll(".action-pause").forEach(btn => btn.addEventListener("click", e => actionBot(e.currentTarget.dataset.name, "pause", e.currentTarget)));
-            document.querySelectorAll(".action-resume").forEach(btn => btn.addEventListener("click", e => actionBot(e.currentTarget.dataset.name, "resume", e.currentTarget)));
-            document.querySelectorAll(".action-close-stop").forEach(btn => btn.addEventListener("click", e => closeAndStopBot(e.currentTarget)));
-            document.querySelectorAll(".action-edit").forEach(btn => btn.addEventListener("click", e => {
-                const bName = btn.dataset.name;
-                const bDesc = btn.dataset.desc;
-                const bCmd = btn.dataset.cmd;
-                
-                document.getElementById("bot-form-mode").value = "edit";
-                document.getElementById("bot-form-title").textContent = `Sửa cấu hình bot: ${bName}`;
-                const nameInput = document.getElementById("bot-name");
-                nameInput.value = bName;
-                nameInput.disabled = true; // Bot name is key, don't change in-place
-                document.getElementById("bot-desc").value = bDesc;
-                document.getElementById("bot-cmd").value = bCmd;
-                
-                document.getElementById("bot-form-container").style.display = "block";
-                document.getElementById("save-restart-bot-btn").style.display = "inline-flex";
-                document.getElementById("bot-cmd").focus();
-            }));
+            const list = bots || [];
+            const real = list.filter(b => b.account_type === 'live'), demo = list.filter(b => b.account_type !== 'live');
+            const rows = group => group.map(b => botRowHtml(b, botResults[b.bot_id])).join('');
+            realBody.innerHTML = real.length ? rows(real)
+                : '<tr><td colspan="8" class="td-dim">Chưa có bot tiền thật nào. Bấm "Cài bot từ mẫu" hoặc "Thêm bot".</td></tr>';
+            if (demoBody) demoBody.innerHTML = demo.length ? rows(demo) : '<tr><td colspan="8" class="td-dim">Chưa có bot demo nào.</td></tr>';
+            const realIssues = real.filter(botNeedsAction).length;
+            const demoIssues = demo.filter(botNeedsAction).length;
+            const realCount = document.getElementById('bots-real-count');
+            if (realCount) realCount.textContent = `${real.length} bot · ${real.filter(b => b.status === 'running').length} đang chạy`;
+            const figs = document.getElementById('bots-demo-figs');
+            if (figs) figs.innerHTML = `<span><b>${demo.length}</b> bot</span><span><b>${demo.filter(b => b.status === 'running').length}</b> đang chạy</span>`
+                + `<span><b>${demo.reduce((s, b) => s + (Number(b.open_positions) || 0), 0)}</b> lệnh đang giữ</span>`
+                + (demoIssues ? `<span class="pnl-negative">${demoIssues} cần xử lý</span>` : '');
+            say(realIssues ? 'crit' : (demoIssues ? 'warn' : 'ok'),
+                (realIssues ? `${realIssues} bot tiền thật cần xử lý` : 'Bot tiền thật chạy bình thường')
+                + (demoIssues ? ` · Demo có ${demoIssues} bot cần xử lý` : ''));
+            const demoBox = document.getElementById('bots-demo');
+            if (demoBox && demoIssues > botsDemoIssues) demoBox.open = true;   // a new Demo problem opens the fold once
+            botsDemoIssues = demoIssues;
+            if (window.lucide) window.lucide.createIcons();
+            focusBotFromHash();
         }
+        // #docker?bot=<name> (Overview alert, Telegram link): open its fold and mark the row once.
+        let botsFocused = '';
+        function focusBotFromHash() {
+            const want = new URLSearchParams(location.hash.split('?')[1] || '').get('bot');
+            if (!want || want === botsFocused || !location.hash.startsWith('#docker')) return;
+            const row = Array.from(document.querySelectorAll('#view-docker tr[data-row-name]')).find(r => r.dataset.rowName === want);
+            if (!row) return;
+            botsFocused = want;
+            const fold = row.closest('details');
+            if (fold) fold.open = true;
+            row.classList.add('bot-row--focus');
+            row.scrollIntoView({block: 'center'});
+        }
+
         const BOT_ACTION_PENDING = { start: "Đang chạy…", stop: "Đang dừng…", restart: "Đang khởi động lại…", delete: "Đang xoá…",
                                      pause: "Đang tạm dừng…", resume: "Đang tiếp tục…", "close-and-stop": "Đang đóng và dừng…" };
         // Docker stop/restart wait up to 10 s for the cBot to exit; lock the row and say so meanwhile.
@@ -210,53 +301,155 @@ const DASHBOARD_BOOTSTRAP = window.DASHBOARD_BOOTSTRAP || {};
             botActionInFlight = true;
             return () => { botActionInFlight = false; buttons.forEach(b => { b.disabled = false; }); fetchBots(); };
         }
+        const BOT_CONFIRM = {
+            start: ['Chạy', 'Docker chạy container với lệnh đã lưu; bot đăng nhập lại cTrader trong khoảng một phút.'],
+            restart: ['Khởi động lại', 'Docker dừng rồi chạy lại container; bot đăng nhập lại cTrader trong khoảng một phút. Lệnh đang mở vẫn nằm ở sàn cùng stop của nó.'],
+            stop: ['Dừng', 'Container dừng: bot không vào lệnh mới và không quản lý lệnh đang mở nữa (stop ở sàn vẫn còn).'],
+        };
         async function actionBot(name, action, btn) {
+            const d = (btn && btn.dataset) || {};
+            if (BOT_CONFIRM[action]) {
+                const [verb, base] = BOT_CONFIRM[action];
+                const held = Number(d.open) || 0;
+                const body = held && action === 'stop'
+                    ? `Bot đang giữ ${held} lệnh. ${base} Muốn đóng lệnh trước thì dùng Đóng & dừng.` : base;
+                const ok = await askConfirm({title: `${verb} ${name}?`, body, ok: verb,
+                                             live: d.live === '1', typeWord: confirmWordFor(name, d.symbol)});
+                if (!ok) return;
+            }
             const unlock = lockBotRow(btn, action);
             try {
-                const res = await fetch(`/api/bots/${name}/${action}`, { method: "POST" });
+                const res = await fetch(`/api/bots/${encodeURIComponent(name)}/${action}`, { method: "POST" });
                 const data = await res.json();
-                if(!data.success) alert(data.message || "Error");
-            } catch(e) { alert("Error: " + e); }
+                const done = `${BOT_ACTION_PENDING[action].replace('Đang ', 'Đã ').replace('…', '')}: ${name}`
+                    + (action === 'start' || action === 'restart' ? ', bot đang đăng nhập lại cTrader (khoảng một phút)' : '');
+                botsSay(data.success ? done : `Không được: ${data.message || 'lỗi'}`, !data.success);
+            } catch(e) { botsSay(`Không được: ${e}`, true); }
             finally { unlock(); }
         }
         // Kill switch: pause, close every position the bot holds, then stop the container. The server
         // stops it only when the bot confirms every close; otherwise it keeps running, paused.
         async function closeAndStopBot(btn) {
-            const name = btn.dataset.name;
-            const n = btn.dataset.open || '0';
-            const prefix = btn.dataset.live === '1' ? '[TIỀN THẬT] ' : '';
-            if (!confirm(`${prefix}Đóng ${n} lệnh đang mở của ${name} theo giá thị trường, rồi dừng container?\n\nBot được tạm dừng trước. Nếu có lệnh không đóng được, container vẫn chạy (đang tạm dừng) để còn quản lý stop.`)) return;
+            const d = btn.dataset;
+            const name = d.name;
+            const ok = await askConfirm({
+                title: `Đóng ${d.open || 0} lệnh của ${name} rồi dừng?`,
+                body: 'Bot được tạm dừng trước, các lệnh đang mở đóng theo giá thị trường. Nếu có lệnh không đóng được, container vẫn chạy (đang tạm dừng) để còn quản lý stop.',
+                ok: 'Đóng & dừng', live: d.live === '1', typeWord: confirmWordFor(name, d.symbol),
+            });
+            if (!ok) return;
             const unlock = lockBotRow(btn, "close-and-stop");
             try {
-                const res = await fetch(`/api/bots/${name}/close-and-stop`, { method: "POST" });
+                const res = await fetch(`/api/bots/${encodeURIComponent(name)}/close-and-stop`, { method: "POST" });
                 const data = await res.json();
-                alert(data.message || (data.success ? "Xong" : "Lỗi"));
-            } catch(e) { alert("Error: " + e); }
+                botsSay(data.message || (data.success ? "Xong" : "Lỗi"), !data.success);
+            } catch(e) { botsSay(`Không được: ${e}`, true); }
             finally { unlock(); }
         }
         async function deleteBot(name, btn) {
-            if(!confirm(`Xoá bot ${name}? Container của bot sẽ bị dừng và xoá.`)) return;
+            const d = (btn && btn.dataset) || {};
+            const held = Number(d.open) || 0;
+            const ok = await askConfirm({title: `Xoá bot ${name}?`, body: (held ? `Bot đang giữ ${held} lệnh. ` : '') + 'Container của bot bị dừng và xoá, cấu hình của nó bị bỏ. Lệnh đang mở vẫn nằm ở sàn nhưng không còn bot quản lý.',
+                                         ok: 'Xoá bot', live: d.live === '1', typeWord: confirmWordFor(name, d.symbol)});
+            if (!ok) return;
             const unlock = lockBotRow(btn, "delete");
             try {
-                const res = await fetch(`/api/bots/${name}`, { method: "DELETE" });
+                const res = await fetch(`/api/bots/${encodeURIComponent(name)}`, { method: "DELETE" });
                 const data = await res.json();
-                if(!data.success) alert(data.message || "Lỗi khi xoá bot");
-            } catch(e) { alert("Error: " + e); }
+                botsSay(data.success ? `Đã xoá ${name}` : (data.message || "Lỗi khi xoá bot"), !data.success);
+            } catch(e) { botsSay(`Không được: ${e}`, true); }
             finally { unlock(); }
         }
-        
+        function openBotEditor(btn) {
+            const d = btn.dataset;
+            document.getElementById("setup-panel").style.display = "none";
+            document.getElementById("bot-form-mode").value = "edit";
+            document.getElementById("bot-form-title").textContent = `Sửa ${strategyName(d.name)} ${String(d.symbol || '').toUpperCase()}`.trim();
+            const nameInput = document.getElementById("bot-name");
+            nameInput.value = d.name;
+            nameInput.disabled = true; // Bot name is key, don't change in-place
+            document.getElementById("bot-desc").value = d.desc;
+            document.getElementById("bot-cmd").value = d.cmd;
+            document.getElementById("bot-form-container").dataset.live = d.live;
+            document.getElementById("bot-form-container").dataset.symbol = d.symbol;
+            document.getElementById("bot-form-container").dataset.origCmd = d.cmd;
+            // A live bot reads its flags at start: a saved-only change would show a size it does not trade.
+            document.getElementById("save-bot-btn").style.display = d.live === '1' ? 'none' : '';
+            document.querySelectorAll('.bot-row--editing').forEach(r => r.classList.remove('bot-row--editing'));
+            const editedRow = btn.closest('tr');
+            if (editedRow) editedRow.classList.add('bot-row--editing');
+            const sizing = document.getElementById("bot-sizing");
+            sizing.innerHTML = botSizingFieldsHtml(d.cmd);
+            document.getElementById("bot-cmd-advanced").open = !sizing.innerHTML;
+            document.getElementById("bot-form-msg").textContent = "";
+            document.getElementById("save-restart-bot-btn").style.display = "inline-flex";
+            const form = document.getElementById("bot-form-container");
+            form.style.display = "flex";
+            form.scrollIntoView({block: 'start'});
+            (sizing.querySelector('input') || document.getElementById("bot-cmd")).focus();
+        }
+        // The sizing fields write straight into the command, so what is saved is what the advanced box shows.
+        document.getElementById("bot-sizing").addEventListener("input", e => {
+            const input = e.target.closest('input[data-param]');
+            if (!input || input.value === '') return;
+            const cmd = document.getElementById("bot-cmd");
+            cmd.value = setBotParam(cmd.value, input.dataset.param, input.value);
+        });
+        document.getElementById("view-docker").addEventListener("click", e => {
+            const btn = e.target.closest("button[data-name]");
+            if (!btn || btn.disabled) return;
+            const name = btn.dataset.name;
+            const menu = btn.closest('details.row-menu');
+            if (menu) { menu.open = false; menu.querySelector('summary').focus(); }   // the dialog returns focus here
+            if (btn.classList.contains("action-edit")) return openBotEditor(btn);
+            if (btn.classList.contains("action-close-stop")) return closeAndStopBot(btn);
+            if (btn.classList.contains("action-delete")) return deleteBot(name, btn);
+            for (const action of ["start", "stop", "restart", "pause", "resume"]) {
+                if (btn.classList.contains(`action-${action}`)) return actionBot(name, action, btn);
+            }
+        });
+        document.addEventListener("keydown", e => {
+            if (e.key !== 'Escape') return;
+            document.querySelectorAll('#view-docker details.row-menu[open]').forEach(m => { m.open = false; m.querySelector('summary').focus(); });
+        });
+        // One ⋯ menu open at a time; a click elsewhere closes it.
+        document.addEventListener("click", e => {
+            document.querySelectorAll('#view-docker details.row-menu[open]').forEach(m => { if (!m.contains(e.target)) m.open = false; });
+        });
+        document.querySelectorAll('.bots-period-head').forEach(th => { th.textContent = `Lời/lỗ ${document.getElementById("bots-period").selectedOptions[0].textContent}`; });
+        document.getElementById("bots-period").addEventListener("change", () => {
+            const label = document.getElementById("bots-period").selectedOptions[0].textContent;
+            document.querySelectorAll('.bots-period-head').forEach(th => { th.textContent = `Lời/lỗ ${label}`; });
+            fetchBots();
+        });
+
         async function submitBotForm(restart = false) {
             const mode = document.getElementById("bot-form-mode").value;
             const name = document.getElementById("bot-name").value.trim();
             const desc = document.getElementById("bot-desc").value.trim();
             const cmd = document.getElementById("bot-cmd").value.trim();
-            
-            if (!name || !cmd) return alert("Cần nhập tên bot và lệnh chạy.");
-            
+            const msg = document.getElementById("bot-form-msg");
+            const form = document.getElementById("bot-form-container");
+            msg.textContent = "";
+            if (!name || !cmd) { msg.textContent = "Cần nhập tên bot và lệnh chạy."; return; }
+            const bad = Array.from(document.querySelectorAll('#bot-sizing input')).find(i => !(Number(i.value) > 0));
+            if (bad) { msg.textContent = `${bad.closest('label').firstChild.textContent.trim()} phải lớn hơn 0.`; bad.focus(); return; }
+            if (mode === "edit" && restart) {
+                const changes = botSizingChanges(form.dataset.origCmd || '', cmd);
+                const big = changes.some(c => c.ratio >= 2 || c.ratio <= 0.5);
+                const ok = await askConfirm({
+                    title: changes.length ? changes.map(c => c.text).join(' · ') : `Lưu và khởi động lại ${name}?`,
+                    body: (big ? 'Mức mới gấp đôi hoặc chỉ còn một nửa mức cũ: kiểm lại số trước khi xác nhận. ' : '')
+                        + `${name}: container được tạo lại với lệnh mới (dừng, xoá, chạy lại); bot đăng nhập lại cTrader trong khoảng một phút. Lệnh đang mở vẫn nằm ở sàn cùng stop của nó.`,
+                    ok: 'Lưu và khởi động lại', live: form.dataset.live === '1', typeWord: confirmWordFor(name, form.dataset.symbol)});
+                if (!ok) return;
+            }
+            const formButtons = form.querySelectorAll('.bot-form-actions button');
+            formButtons.forEach(b => { b.disabled = true; });
             try {
                 let res, data;
                 if (mode === "edit") {
-                    res = await fetch(`/api/bots/${name}/update`, {
+                    res = await fetch(`/api/bots/${encodeURIComponent(name)}/update`, {
                         method: "POST",
                         headers: {"Content-Type": "application/json"},
                         body: JSON.stringify({ description: desc, run_command: cmd, restart: restart })
@@ -269,13 +462,15 @@ const DASHBOARD_BOOTSTRAP = window.DASHBOARD_BOOTSTRAP || {};
                     });
                 }
                 data = await res.json();
-                if (!data.success) {
-                    return alert(data.message || "Lỗi khi lưu bot");
-                }
-                document.getElementById("bot-form-container").style.display = "none";
+                if (!data.success) { msg.textContent = data.message || "Lỗi khi lưu bot"; return; }
+                form.style.display = "none";
+                document.querySelectorAll('.bot-row--editing').forEach(r => r.classList.remove('bot-row--editing'));
+                botsSay(restart ? `Đã lưu và khởi động lại ${name}` : `Đã lưu ${name}${mode === 'edit' ? ' (có hiệu lực khi khởi động lại)' : ''}`);
                 fetchBots();
             } catch(e) {
-                alert("Lỗi khi lưu bot: " + e);
+                msg.textContent = "Lỗi khi lưu bot: " + e;
+            } finally {
+                formButtons.forEach(b => { b.disabled = false; });
             }
         }
 
@@ -370,7 +565,7 @@ const DASHBOARD_BOOTSTRAP = window.DASHBOARD_BOOTSTRAP || {};
 
         async function openSetupPanel() {
             setupEl("bot-form-container").style.display = "none";
-            setupEl("setup-panel").style.display = "block";
+            setupEl("setup-panel").style.display = "flex";
             setupEl("setup-results").innerHTML = "";
             try {
                 renderSetupGrid(await fetchSetupPresets());
@@ -460,8 +655,13 @@ const DASHBOARD_BOOTSTRAP = window.DASHBOARD_BOOTSTRAP || {};
                 nameInput.disabled = false;
                 document.getElementById("bot-desc").value = "";
                 document.getElementById("bot-cmd").value = "";
+                document.getElementById("bot-sizing").innerHTML = "";
+                document.getElementById("bot-cmd-advanced").open = true;
+                document.getElementById("bot-form-msg").textContent = "";
+                formContainer.dataset.live = ""; formContainer.dataset.symbol = "";
                 document.getElementById("save-restart-bot-btn").style.display = "none";
-                formContainer.style.display = "block";
+                document.getElementById("save-bot-btn").style.display = "";
+                formContainer.style.display = "flex";
             });
             document.getElementById("cancel-bot-btn").addEventListener("click", () => formContainer.style.display = "none");
 
@@ -622,20 +822,34 @@ const DASHBOARD_BOOTSTRAP = window.DASHBOARD_BOOTSTRAP || {};
         }
 
         let currentMode = DASHBOARD_BOOTSTRAP.currentMode || 'demo';
-        let selectedAccountId = (currentMode === 'real' || currentMode === 'live') ? 'live' : 'demo';
-        const accountSelector = document.getElementById('account-selector');
+        // Redesign D (2026-11-01): no page-wide Demo / Thật switch any more. The Overview's Real block reads the live
+        // accounts (OV_ACCOUNT) and its Demo row is static/js/overview_demo.js; Bot shows both; Lịch, Xếp hạng chi tiết
+        // and Nhật ký each carry their own small switch (bindModeSeg). The URL's /demo or /real no longer matters.
+        const OV_ACCOUNT = 'live';
+        let lbMode = 'live', logMode = 'all';
+        /** A .mode-seg group: marks the pressed button and hands its data-mode to onChange. */
+        function bindModeSeg(id, onChange) {
+            const group = document.getElementById(id);
+            if (!group) return;
+            group.addEventListener('click', e => {
+                const b = e.target.closest('button[data-mode]');
+                if (!b || b.getAttribute('aria-pressed') === 'true') return;
+                group.querySelectorAll('button[data-mode]').forEach(x => x.setAttribute('aria-pressed', x === b ? 'true' : 'false'));
+                onChange(b.dataset.mode);
+            });
+        }
 
         const HISTORY_PAGE_SIZE = 5;   // the Overview shows the last few; matches dashboard_page()
         let historyPage = 1;
         function historyUrl() {
-            return `/api/dashboard/history?account_id=${selectedAccountId}&page=${historyPage}&page_size=${HISTORY_PAGE_SIZE}`;
+            return `/api/dashboard/history?account_id=${OV_ACCOUNT}&page=${historyPage}&page_size=${HISTORY_PAGE_SIZE}`;
         }
 
         async function fetchTradeHistory() {
             try {
                 const [hR, cR] = await Promise.all([
                     fetch(historyUrl()),
-                    fetch(`/api/dashboard/pnl-history?account_id=${selectedAccountId}`)
+                    fetch(`/api/dashboard/pnl-history?account_id=${OV_ACCOUNT}`)
                 ]);
                 updateTradeHistory(await hR.json());
                 updatePnlChart(await cR.json());
@@ -645,10 +859,10 @@ const DASHBOARD_BOOTSTRAP = window.DASHBOARD_BOOTSTRAP || {};
         async function refreshDashboardData() {
             try {
                 const [sR, pR, hR, cR] = await Promise.all([
-                    fetch(`/api/dashboard/summary?account_id=${selectedAccountId}`),
-                    fetch(`/api/dashboard/positions?account_id=${selectedAccountId}`),
+                    fetch(`/api/dashboard/summary?account_id=${OV_ACCOUNT}`),
+                    fetch(`/api/dashboard/positions?account_id=${OV_ACCOUNT}`),
                     fetch(historyUrl()),
-                    fetch(`/api/dashboard/pnl-history?account_id=${selectedAccountId}`)
+                    fetch(`/api/dashboard/pnl-history?account_id=${OV_ACCOUNT}`)
                 ]);
                 updateDashboard(await sR.json(), await pR.json());
                 updateTradeHistory(await hR.json());
@@ -656,31 +870,8 @@ const DASHBOARD_BOOTSTRAP = window.DASHBOARD_BOOTSTRAP || {};
             } catch(err) { console.error('Fetch error:', err); }
         }
 
-        // Mode switcher buttons navigate cleanly to respective URL routes, keeping the open view (hash)
-        document.querySelectorAll('.trade-mode-btn').forEach(btn => {
-            btn.addEventListener('click', (e) => {
-                e.preventDefault();
-                const targetMode = btn.dataset.mode;
-                if (targetMode === 'real' || targetMode === 'live') {
-                    window.location.href = '/real/dashboard' + location.hash;
-                } else {
-                    window.location.href = '/demo/dashboard' + location.hash;
-                }
-            });
-        });
-
-        // Attach account selector change listener
-        accountSelector.addEventListener('change', async (e) => {
-            selectedAccountId = e.target.value;
-            historyPage = 1;
-            if (ws && ws.readyState === WebSocket.OPEN) {
-                ws.send(JSON.stringify({type: 'subscribe', account_id: selectedAccountId, mode: currentMode}));
-            }
-            refreshDashboardData();
-            fetchLeaderboard();
-            if (typeof ledgerRefreshIfShown === 'function') ledgerRefreshIfShown();
-            if (typeof gotobiRefreshIfShown === 'function') gotobiRefreshIfShown();
-        });
+        bindModeSeg('lb-mode', mode => { lbMode = mode; fetchLeaderboard(); });
+        bindModeSeg('log-mode', mode => { logMode = mode; fetchAgentLogs(logDateSelect.value); });
 
         let rawDailyHistory = DASHBOARD_BOOTSTRAP.pnlHistory;
 
@@ -729,25 +920,22 @@ const DASHBOARD_BOOTSTRAP = window.DASHBOARD_BOOTSTRAP || {};
             ws.onopen=()=>{
                 setConn(true);
                 if (ws.readyState === WebSocket.OPEN) {
-                    ws.send(JSON.stringify({type:'subscribe',account_id:selectedAccountId,mode:currentMode}));
+                    ws.send(JSON.stringify({type:'subscribe',account_id:OV_ACCOUNT,mode:'real'}));
                 }
                 refreshDashboardData();
                 if (typeof fetchLeaderboard === 'function') fetchLeaderboard();
                 if (pingInterval) clearInterval(pingInterval);
                 pingInterval=setInterval(()=>{
                     if(ws.readyState===WebSocket.OPEN)
-                        ws.send(JSON.stringify({type:'ping',account_id:selectedAccountId,mode:currentMode}))
+                        ws.send(JSON.stringify({type:'ping',account_id:OV_ACCOUNT,mode:'real'}))
                 },15000);
             };
             ws.onmessage=(e)=>{
                 try {
                     const d=JSON.parse(e.data);
                     if(d.type==='update') {
-                        const isAllForMode = (selectedAccountId === 'demo' || selectedAccountId === 'live');
-                        const matchesAccount = (!d.account_id) || 
-                                               (d.account_id === selectedAccountId) || 
-                                               (selectedAccountId === 'all') || 
-                                               (isAllForMode && (d.account_id === currentMode || d.account_id === selectedAccountId));
+                        // Updates for the live scope ('live', or 'real' from older senders) redraw the Real block.
+                        const matchesAccount = (!d.account_id) || d.account_id === OV_ACCOUNT || d.account_id === 'real';
                         if (matchesAccount) {
                             if (d.summary && d.positions) {
                                 updateDashboard(d.summary, d.positions);
@@ -758,11 +946,6 @@ const DASHBOARD_BOOTSTRAP = window.DASHBOARD_BOOTSTRAP || {};
                             }
                             if (typeof fetchLeaderboard === 'function') {
                                 fetchLeaderboard();
-                            }
-                        } else if (selectedAccountId !== 'demo' && selectedAccountId !== 'live' && selectedAccountId !== 'all') {
-                            if (d.account_id === currentMode || d.account_id === 'all') {
-                                refreshDashboardData();
-                                if (typeof fetchLeaderboard === 'function') fetchLeaderboard();
                             }
                         }
                     } else if(d.type==='log') {
@@ -858,6 +1041,12 @@ const DASHBOARD_BOOTSTRAP = window.DASHBOARD_BOOTSTRAP || {};
                 }
             }
         }
+        // "2 lệnh · nếu tất cả chạm stop -$3,975.50": the worst case of what is open, from each stop's P&L.
+        function holdCountHtml(positions){
+            const worst = positions.reduce((s, p) => s + (Number(p.sl_pnl) < 0 ? Number(p.sl_pnl) : 0), 0);
+            return `${positions.length} lệnh` + (worst < 0
+                ? ` · nếu tất cả chạm stop <b class="pnl-negative">${signedMoney(Math.round(worst * 100) / 100)}</b>` : '');
+        }
         function updateDashboard(summary,positions){
             const money=(id, v, signed)=>{
                 const el=document.getElementById(id); if(!el) return;
@@ -877,7 +1066,7 @@ const DASHBOARD_BOOTSTRAP = window.DASHBOARD_BOOTSTRAP || {};
             document.getElementById('last-updated').textContent=new Date().toLocaleTimeString('vi-VN');
 
             const posCountEl = document.getElementById('active-pos-count');
-            if (posCountEl) posCountEl.textContent = `${positions.length} lệnh`;
+            if (posCountEl) posCountEl.innerHTML = holdCountHtml(positions);
             const box=document.getElementById('positions-table');
             box.innerHTML = positions.length ? positions.map(positionCardHtml).join('') : '<p class="ov-empty">Không giữ lệnh nào.</p>';
         }
@@ -921,8 +1110,12 @@ const DASHBOARD_BOOTSTRAP = window.DASHBOARD_BOOTSTRAP || {};
             const card = btn.closest('.pos-card');
             const pnlCell = card ? card.querySelector('.td-pnl-live') : null;
             const pnlText = pnlCell ? pnlCell.textContent.trim() : '';
-            const prefix = d.live === '1' ? '[TIỀN THẬT] ' : '';
-            if (!confirm(`${prefix}Đóng lệnh ${d.side === 'BUY' ? 'mua' : 'bán'} ${d.symbol} ${d.volume} lot của ${d.bot} theo giá thị trường?\nLời/lỗ hiện tại: ${pnlText || 'chưa có'}`)) return;
+            const ok = await askConfirm({
+                title: `Đóng lệnh ${d.side === 'BUY' ? 'mua' : 'bán'} ${d.symbol} ${d.volume} lot?`,
+                body: `Bot ${d.bot} đóng lệnh theo giá thị trường. Lời/lỗ hiện tại: ${pnlText || 'chưa có'}.`,
+                ok: 'Đóng lệnh', live: d.live === '1', typeWord: confirmWordFor(d.bot, d.symbol),
+            });
+            if (!ok) return;
             closingPositions.add(String(d.id));
             btn.disabled = true;
             btn.textContent = 'Đang đóng…';
@@ -937,9 +1130,16 @@ const DASHBOARD_BOOTSTRAP = window.DASHBOARD_BOOTSTRAP || {};
                 closingPositions.delete(String(d.id));
                 // updateDashboard() may have re-rendered the cards while this waited, so `btn` can be
                 // a detached copy: re-enable whichever button shows this row now.
-                document.querySelectorAll(`#positions-table .action-close-pos[data-id="${d.id}"]`)
-                    .forEach(b => { b.disabled = false; b.textContent = 'Đóng lệnh'; });
-                alert(String((err && err.message) || err));
+                document.querySelectorAll(`.action-close-pos[data-id="${d.id}"]`)
+                    .forEach(b => {
+                        b.disabled = false; b.textContent = 'Đóng lệnh';
+                        // The reason sits next to the button it is about (the viewer never shows alert()).
+                        const actions = b.closest('.pos-actions');
+                        if (!actions) return;
+                        let note = actions.querySelector('.pos-close-error');
+                        if (!note) { note = document.createElement('p'); note.className = 'pos-close-error'; note.setAttribute('role', 'alert'); actions.appendChild(note); }
+                        note.textContent = String((err && err.message) || err);
+                    });
             } finally {
                 closingPositions.delete(String(d.id));
             }
@@ -1030,9 +1230,10 @@ const DASHBOARD_BOOTSTRAP = window.DASHBOARD_BOOTSTRAP || {};
                 : rawLogLines;
 
             if (!filtered.length) {
-                const msg = (currentMode === 'real' || currentMode === 'live')
-                    ? 'Không có nhật ký tiền thật cho ngày này (bot có thể đang ngoài giờ giao dịch; thử xem bên Demo).'
-                    : 'Không có nhật ký demo cho ngày này (thử xem bên Thật hoặc chọn ngày khác).';
+                const msg = logMode === 'live'
+                    ? 'Không có nhật ký tiền thật cho ngày này (bot có thể đang ngoài giờ giao dịch; thử Tất cả hoặc Demo).'
+                    : logMode === 'demo' ? 'Không có nhật ký demo cho ngày này (thử Tất cả, Thật hoặc chọn ngày khác).'
+                    : 'Không có nhật ký cho ngày này (chọn ngày khác).';
                 logBox.innerHTML = `<div class="log-line td-dim">${msg}</div>`;
                 return;
             }
@@ -1045,7 +1246,7 @@ const DASHBOARD_BOOTSTRAP = window.DASHBOARD_BOOTSTRAP || {};
 
         async function fetchAgentLogs(dateParam = '') {
             try {
-                const base = `/api/dashboard/logs?lines=150&mode=${currentMode}&account_id=${selectedAccountId}`;
+                const base = `/api/dashboard/logs?lines=150&mode=${logMode}&account_id=${logMode}`;
                 const url = dateParam ? `${base}&date_str=${dateParam}` : base;
                 const res = await fetch(url);
                 const data = await res.json();
@@ -1187,14 +1388,19 @@ const DASHBOARD_BOOTSTRAP = window.DASHBOARD_BOOTSTRAP || {};
         }
 
         // The current selection (account, mode, period) as the query string that fetches it
+        /** The API ranks every bot it knows (zeros for the other mode's); keep this mode's, numbered again. */
+        function lbOwnMode(data, mode) {
+            if (!data) return data;
+            const live = id => /(^|[-_])live([-_]|$)/i.test(String(id || ''));
+            const keep = list => (list || []).filter(b => live(b.bot_id) === (mode === 'live')).map((b, i) => ({...b, rank: i + 1}));
+            const rankings = keep(data.rankings);
+            const lot = data.lot_neutral ? {...data.lot_neutral, rankings: keep(data.lot_neutral.rankings)} : data.lot_neutral;
+            if (lot) lot.top_performer = lot.rankings[0] || null;
+            return {...data, rankings, lot_neutral: lot, top_performer: rankings[0] || null, total_bots: rankings.length};
+        }
         function lbQuery() {
-            const accId = typeof selectedAccountId !== 'undefined' ? selectedAccountId : 'all';
-            // Rank strictly inside the active mode: take the type from the selected
-            // option (data-type) and fall back to the page mode itself.
-            const accSel = document.getElementById('account-selector');
-            const accType = (accSel && accSel.selectedOptions[0] && accSel.selectedOptions[0].dataset.type)
-                || ((currentMode === 'real' || currentMode === 'live') ? 'live' : 'demo');
-            const query = `account_id=${encodeURIComponent(accId)}&account_type=${accType}`;
+            // Rank strictly inside one mode, the one this screen's Thật / Demo switch shows.
+            const query = `account_id=${lbMode}&account_type=${lbMode}`;
             const range = lbRangeFor(lbPeriod);
             if (!range) return `${query}&period=${lbPeriod}`;
             return `${query}&period=custom&date_from=${encodeURIComponent(range.from)}&date_to=${encodeURIComponent(range.to)}`;
@@ -1213,7 +1419,7 @@ const DASHBOARD_BOOTSTRAP = window.DASHBOARD_BOOTSTRAP || {};
                 // The selection changed meanwhile: the queued request fetches the new one
                 if (query === lbQuery()) {
                     lbShownQuery = query;
-                    renderLeaderboard(data);
+                    renderLeaderboard(lbOwnMode(data, lbMode));
                 }
             } catch (e) {
                 console.error("Error fetching leaderboard", e);
@@ -1277,9 +1483,10 @@ const DASHBOARD_BOOTSTRAP = window.DASHBOARD_BOOTSTRAP || {};
 
         function lbRankCell(bot) {
             if (bot.total_trades === 0) return `<span class="td-dim">${bot.rank}</span>`;
-            if (bot.rank === 1) return '<span class="rank-badge-1">🥇 1</span>';
-            if (bot.rank === 2) return '<span class="rank-badge-2">🥈 2</span>';
-            if (bot.rank === 3) return '<span class="rank-badge-3">🥉 3</span>';
+            // Top three by colour and weight, not medal emoji (redesign D).
+            if (bot.rank === 1) return '<span class="rank-badge-1">1</span>';
+            if (bot.rank === 2) return '<span class="rank-badge-2">2</span>';
+            if (bot.rank === 3) return '<span class="rank-badge-3">3</span>';
             return `<span class="td-dim">${bot.rank}</span>`;
         }
 
@@ -1299,10 +1506,10 @@ const DASHBOARD_BOOTSTRAP = window.DASHBOARD_BOOTSTRAP || {};
         function lbWinRateCell(bot) {
             if (bot.total_trades === 0) return '<span class="td-dim">--</span>';
             if (bot.total_wins === 0) {
-                return `<span class="font-mono font-bold pnl-negative">0.0%</span><div class="td-dim" style="font-size:0.65rem;">0 thắng / ${bot.total_losses} thua</div>`;
+                return `<span class="font-mono font-bold pnl-negative">0.0%</span><div class="td-dim" style="font-size:0.69rem;">0 thắng / ${bot.total_losses} thua</div>`;
             }
             const color = bot.win_rate >= 60 ? 'var(--profit)' : (bot.win_rate >= 40 ? '#fbbf24' : 'var(--loss)');
-            return `<span class="font-mono font-bold" style="color: ${color};">${bot.win_rate.toFixed(1)}%</span><div class="td-dim" style="font-size:0.65rem;">${bot.total_wins} thắng / ${bot.total_losses} thua</div>`;
+            return `<span class="font-mono font-bold" style="color: ${color};">${bot.win_rate.toFixed(1)}%</span><div class="td-dim" style="font-size:0.69rem;">${bot.total_wins} thắng / ${bot.total_losses} thua</div>`;
         }
 
         function lbProfitFactorCell(bot) {
@@ -1316,7 +1523,7 @@ const DASHBOARD_BOOTSTRAP = window.DASHBOARD_BOOTSTRAP || {};
             const full = (lbData && lbData.full_sample_trades) || 10;
             const small = bot.total_trades > 0 && bot.total_trades < full;
             return `<td class="font-mono">${bot.total_trades}${small
-                ? `<div class="td-dim" style="font-size:0.65rem;" title="Ít hơn ${full} lệnh đã đóng: điểm bị kéo về 50 cho tới khi đủ mẫu">ít mẫu</div>`
+                ? `<div class="td-dim" style="font-size:0.69rem;" title="Ít hơn ${full} lệnh đã đóng: điểm bị kéo về 50 cho tới khi đủ mẫu">ít mẫu</div>`
                 : ''}</td>`;
         }
 
@@ -1346,7 +1553,7 @@ const DASHBOARD_BOOTSTRAP = window.DASHBOARD_BOOTSTRAP || {};
                 cell = `<span class="font-mono ${cls}" title="${title}">${bot.return_dd.toFixed(2)}</span>`;
             }
             if (bot.basis === 'lot') {
-                cell += '<div class="td-dim" style="font-size:0.65rem;" title="Một số lệnh không lưu khoảng stop, nên mọi lệnh được tính theo lot">theo lot</div>';
+                cell += '<div class="td-dim" style="font-size:0.69rem;" title="Một số lệnh không lưu khoảng stop, nên mọi lệnh được tính theo lot">theo lot</div>';
             }
             return cell;
         }

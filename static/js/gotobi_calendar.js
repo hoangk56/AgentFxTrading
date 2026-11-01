@@ -2,7 +2,7 @@
  * of its decoys and of the EcbWindowBot's trades (F3, E1) (app/gotobi_calendar.py, /api/gotobi/calendar). Clicking a
  * day lists its positions.
  *
- * Loaded with `defer`, after the dashboard script whose escapeHtml, formatMoney and selectedAccountId it uses.
+ * Loaded with `defer`, after the dashboard script whose escapeHtml, formatMoney (and bindModeSeg) it uses.
  * The gc*Html functions are pure (data in, HTML out) so tests/app/test_gotobi_calendar_ui.py can render them in node
  * with hostile strings; everything that touches the DOM or fetch lives below them. */
 
@@ -111,8 +111,11 @@ let gcSelected = null;     // 'YYYY-MM-DD'
 let gcData = null;
 let gcLoading = false;
 
+// The calendar's own Thật / Demo switch (#gc-mode): the two modes trade different ECB rules (F3 live, E1 demo),
+// so their days are not added together.
+let gcMode = 'live';
 function gcScope() {
-    return typeof selectedAccountId !== 'undefined' && selectedAccountId ? selectedAccountId : 'all';
+    return gcMode;
 }
 
 function gcShown() {
@@ -175,4 +178,8 @@ document.addEventListener('DOMContentLoaded', () => {
         gcLoad();
     });
     setInterval(() => { if (gcShown() && !document.hidden) gcLoad(); }, 60000);
+});
+
+document.addEventListener('DOMContentLoaded', () => {
+    if (typeof bindModeSeg === 'function') bindModeSeg('gc-mode', mode => { gcMode = mode; gcLoad(); });
 });

@@ -136,3 +136,24 @@ def test_summary_month_pnl_counts_this_month_only(tmp_path, monkeypatch):
     conn.close()
     monkeypatch.setattr(dashboard_module, "get_db", lambda: sqlite3.connect(db))
     assert dashboard_module.get_portfolio_summary("a1")["month_pnl"] == 6.5
+
+
+def test_tag_modes_labels_each_alert_and_names_the_container_its_buttons_act_on():
+    """The Overview lists Real and Demo alerts together (redesign D, 2026-11-01), so each one says which it is."""
+    from app.dashboard_alerts import tag_modes
+    alerts = tag_modes([{"kind": "bot_stopped", "bot": "cbot-live-live-x", "container": "cbot-live-live-x"},
+                        {"kind": "stale_price", "bot": "cbot-demo-demo-y"},
+                        {"kind": "docker_down", "bot": "docker"}])
+    assert [(a["mode"], a.get("container")) for a in alerts] == [
+        ("live", "cbot-live-live-x"), ("demo", "cbot-demo-demo-y"), ("all", None)]
+
+
+def test_a_stopped_bot_alert_carries_its_container_name():
+    alerts = build_alerts([], {"recent_events": [], "bar_telemetry": {}}, False, NOW,
+                          [{"bot_id": "cbot-live-gold", "status": "exited", "container": "cbot-live-gold-c"}])
+    assert alerts[0]["container"] == "cbot-live-gold-c"
+
+
+def test_alerts_endpoint_without_a_mode_returns_both_modes_tagged():
+    data = client.get("/api/dashboard/alerts").json()
+    assert all("mode" in a for a in data["alerts"])

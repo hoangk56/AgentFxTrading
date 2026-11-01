@@ -196,19 +196,21 @@ def test_a_failed_close_re_enables_the_button_on_screen():
     html = dashboard_page(client)
     failure = html[html.index("async function closePosition(btn)"):]
     failure = failure[failure.index("} catch (err) {"):failure.index("} finally {")]
-    assert "document.querySelectorAll(`#positions-table .action-close-pos[data-id=\"${d.id}\"]`)" in failure
+    # Any copy of the row's button: the Real list or the folded Demo block (redesign D)
+    assert "document.querySelectorAll(`.action-close-pos[data-id=\"${d.id}\"]`)" in failure
     assert failure.index("closingPositions.delete(String(d.id));") < failure.index("querySelectorAll")
 
 
 def test_bots_tab_has_pause_resume_and_close_and_stop():
     html = dashboard_page(client)
     for snippet in ("action-pause", "action-resume", "action-close-stop", "Đóng &amp; dừng",
-                    "Đang tạm dừng…", "Đang tiếp tục…", "Đang đóng và dừng…", "/close-and-stop", ">TẠM DỪNG</span>"):
+                    "Đang tạm dừng…", "Đang tiếp tục…", "Đang đóng và dừng…", "/close-and-stop", "'Tạm dừng', 'Đã chặn vào lệnh mới"):
         assert snippet in html, snippet
 
 
 def test_bots_tab_flags_running_containers_that_do_not_poll():
     html = dashboard_page(client)
-    assert "(isRunning && !b.polling)" in html
-    assert ">KHÔNG NHẬN LỆNH</span>" in html
-    assert "${statusHtml}${pausedHtml}${notPollingHtml}" in html
+    assert "if (!b.polling) {" in html
+    assert "'Không nhận lệnh'" in html
+    # One state per row, in words (redesign D step 2); a deaf running bot gets Khởi động lại as its main button
+    assert "if (b.stuck || (running && !b.polling)) primary = btn('action-restart bot-btn-primary', 'Khởi động lại');" in html

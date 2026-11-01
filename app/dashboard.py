@@ -17,7 +17,7 @@ from typing import Dict, List, Optional, Any
 from app.accounts import get_account_registry
 from app.auth import login_enabled
 from app.close_reasons import close_reason_vi
-from app.dashboard_alerts import build_alerts, filter_by_mode
+from app.dashboard_alerts import build_alerts, filter_by_mode, tag_modes
 from app.leaderboard import InvalidDateRange, compute_bot_leaderboard, compute_profit_factor
 import logging
 
@@ -578,15 +578,19 @@ async def dashboard_page(request: Request):
     # Persist last used mode
     set_persisted_trade_mode(mode)
         
-    summary = get_portfolio_summary(filter_acc)
-    positions = get_active_positions(filter_acc)
-    history = get_trade_history(filter_acc, page_size=5)   # the Overview's last closed trades (HISTORY_PAGE_SIZE)
-    pnl_history = get_daily_pnl_history(30, filter_acc)
+    # The Overview shows Real first and Demo folded below it whatever the URL says (redesign D, 2026-11-01):
+    # its first paint is the live accounts, the Demo row loads in the page. The URL's mode still scopes the
+    # screens not redone yet (Bot, Xếp hạng, Sổ tiền, Lịch, Nhật ký) through the scope bar.
+    summary = get_portfolio_summary("live")
+    positions = get_active_positions("live")
+    history = get_trade_history("live", page_size=5)   # the Overview's last closed trades (HISTORY_PAGE_SIZE)
+    pnl_history = get_daily_pnl_history(30, "live")
     leaderboard = compute_bot_leaderboard(filter_acc, period="1w")  # the leaderboard's default period
-    
+
     registry = get_account_registry()
     all_accounts = registry.list_accounts(include_unconfigured=False)
     accounts = [acc for acc in all_accounts if acc.get("account_type") == ("live" if mode == "real" else "demo")]
+    live_account_count = sum(1 for acc in all_accounts if acc.get("account_type") == "live")
     
     response = templates.TemplateResponse(
         request=request,
@@ -598,6 +602,7 @@ async def dashboard_page(request: Request):
             "pnl_history": pnl_history,
             "accounts": accounts,
             "current_mode": mode,
+            "live_account_count": live_account_count,
             "leaderboard": leaderboard,
         }
     )
@@ -665,14 +670,15 @@ def api_dashboard_alerts(account_id: str = "all", mode: Optional[str] = None):
         health = cbot_watchdog.last_health(cfg["name"])
         bot_id = bot_id_for_config(cfg)
         if health is not None and health.get("status") != "running" and not pm.is_bot_stopped_on_purpose(bot_id):
-            down_bots.append({"bot_id": bot_id, "status": health.get("status") or "not running"})
+            down_bots.append({"bot_id": bot_id, "status": health.get("status") or "not running",
+                              "container": cfg["name"]})
     now_gmt7 = (datetime.now(timezone.utc) + timedelta(hours=7)).replace(tzinfo=None)
     alerts = build_alerts(get_active_positions(account_id), cbot_watchdog.get_status(),
                           get_market_sessions_info()["is_forex_weekend"], now_gmt7, down_bots,
                           docker_missing=not docker_manager.is_available and bool(pm.get_cbot_configs()))
-    if mode in ("live", "demo"):   # the Demo / Real page shows its own bots only
+    if mode in ("live", "demo"):   # one mode only; without it the Overview gets both, each tagged
         alerts = filter_by_mode(alerts, mode)
-    return {"alerts": alerts}
+    return {"alerts": tag_modes(alerts)}
 
 
 @router.get("/api/dashboard/exposure")
@@ -1000,6 +1006,9 @@ def api_get_bots():
     for cfg in configs:
         cfg["bot_id"] = bot_id_for_config(cfg)
         cfg["paused"] = pm.is_bot_paused(cfg["bot_id"])
+        # Stopped from the dashboard on purpose, as opposed to a container that died (the Bot screen shows the latter
+        # as "Dừng bất thường", like the Overview's Cần làm).
+        cfg["stopped_on_purpose"] = pm.is_bot_stopped_on_purpose(cfg["bot_id"])
         cfg["open_positions"] = open_counts.get(cfg["bot_id"], 0)
         # A running bot polls /api/cbot/commands every 2 s; without that, Close and Close & Stop
         # can't reach it (NOT POLLING badge in the Bots tab).

@@ -1,15 +1,14 @@
 // Overview "Sắp tới": the next scheduled Gotobi / ECB entries of the installed bots (GET /api/overview/upcoming),
 // shown in Vietnam time. The server works out the days; this file only words them.
+// Each list names its scope in data-upcoming-account (the Real block "live", the folded Demo block "demo").
 (function () {
     const POLL_MS = 5 * 60 * 1000;
-    const list = document.getElementById('ov-upcoming');
-    const selector = document.getElementById('account-selector');
-    if (!list) return;
+    const lists = Array.from(document.querySelectorAll('ul[data-upcoming-account]'));
+    if (!lists.length) return;
     const TZ = 'Asia/Ho_Chi_Minh';
     const hm = new Intl.DateTimeFormat('vi-VN', {timeZone: TZ, hour: '2-digit', minute: '2-digit', hour12: false});
     const ymd = new Intl.DateTimeFormat('en-CA', {timeZone: TZ, year: 'numeric', month: '2-digit', day: '2-digit'});
     const WEEKDAYS = ['CN', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7'];
-    let loaded = false;
 
     function escapeHtml(value) {
         return String(value == null ? '' : value).replace(/[&<>"']/g, ch => (
@@ -41,7 +40,7 @@
         </li>`;
     }
 
-    function render(data) {
+    function render(list, data) {
         const events = data.events || [];
         const now = data.now ? new Date(data.now) : new Date();
         list.innerHTML = events.length
@@ -49,20 +48,19 @@
             : '<li class="ov-empty">Không có lệnh nào theo lịch trong 2 tuần tới.</li>';
     }
 
-    async function refresh() {
+    async function refreshOne(list) {
         try {
-            const account = selector ? selector.value : 'all';
-            const res = await fetch(`/api/overview/upcoming?account_id=${encodeURIComponent(account)}`);
+            const res = await fetch(`/api/overview/upcoming?account_id=${encodeURIComponent(list.dataset.upcomingAccount)}`);
             if (!res.ok) throw new Error(String(res.status));
-            render(await res.json());
-            loaded = true;
+            render(list, await res.json());
+            list.dataset.loaded = '1';
         } catch (e) {
             // Keep the last list; say so only when there is none to keep.
-            if (!loaded) list.innerHTML = '<li class="ov-empty">Chưa tải được lịch, sẽ thử lại sau 5 phút.</li>';
+            if (!list.dataset.loaded) list.innerHTML = '<li class="ov-empty">Chưa tải được lịch, sẽ thử lại sau 5 phút.</li>';
         }
     }
 
-    if (selector) selector.addEventListener('change', refresh);
+    const refresh = () => lists.forEach(refreshOne);
     document.addEventListener('DOMContentLoaded', refresh);
     setInterval(refresh, POLL_MS);
 })();
