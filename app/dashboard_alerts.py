@@ -27,6 +27,21 @@ def filter_by_mode(alerts: List[Dict[str, str]], mode: str) -> List[Dict[str, st
     return [a for a in alerts if a.get("kind") == "docker_down" or bot_mode(a.get("bot", "")) == mode]
 
 
+def tag_modes(alerts: List[Dict[str, str]]) -> List[Dict[str, str]]:
+    """Label each alert with its trading mode ('all' for Docker itself) and the container its buttons act on.
+
+    The Overview lists Real and Demo alerts together since the 2026-11-01 redesign. Containers are named after
+    their --BotId, so the bot id stands in where the caller did not give the container name.
+    """
+    for alert in alerts:
+        if alert.get("kind") == "docker_down":
+            alert["mode"] = "all"
+            continue
+        alert["mode"] = bot_mode(alert.get("bot", ""))
+        alert.setdefault("container", alert.get("bot", ""))
+    return alerts
+
+
 def _minutes(seconds: float) -> int:
     return max(1, round(seconds / 60))
 
@@ -56,9 +71,13 @@ def build_alerts(positions: List[Dict[str, Any]], watchdog: Dict[str, Any], fore
         if bot.get("status") == "error":
             message = "không đọc được trạng thái container (lỗi Docker): kiểm tra Docker daemon, bot có thể đã dừng"
         else:
-            message = (f"container đang ở trạng thái {bot.get('status', 'not running')} mà không ai dừng: "
-                       "bấm Chạy ở màn Bot, hoặc bấm Dừng ở đó nếu muốn để tắt")
-        alerts.append({"level": "crit", "kind": "bot_stopped", "bot": bot["bot_id"], "message": message})
+            # The Overview row carries the Chạy button; Dừng (to keep it off on purpose) is on the Bot screen.
+            message = (f"container đang ở trạng thái {bot.get('status', 'not running')} mà không ai dừng; "
+                       "muốn để tắt thì bấm Dừng ở màn Bot")
+        alert = {"level": "crit", "kind": "bot_stopped", "bot": bot["bot_id"], "message": message}
+        if bot.get("container"):
+            alert["container"] = bot["container"]
+        alerts.append(alert)
 
     # A restart the watchdog could not complete is real even with the market closed.
     seen_bots = set()

@@ -48,11 +48,12 @@ RENDERERS = [
     "escapeHtml", "formatMoney", "pnlClass", "accountBadge", "sideChip", "signedMoney", "pnlCellHtml",
     "sltpLineHtml", "sltpCellHtml", "tradeTimesHtml", "closeReasonHtml", "botBadge", "closeButtonHtml",
     "strategyName", "riskLineHtml", "positionCardHtml", "closedRowHtml",
-    "updateDashboard", "updateTradeHistory",
+    "holdCountHtml", "updateDashboard", "updateTradeHistory",
     "lbHas", "lbVnToday", "lbAddDays", "lbIsoDay", "lbRangeFor", "lbShortDay", "lbRangeText", "lbPeriodLabel",
     "applyLbControls", "lbRankCell", "lbBotCells", "lbWinRateCell", "lbProfitFactorCell", "lbTradesCell",
     "lbScoreCell", "lbReturnDdCell", "lbEmptyRow", "renderLeaderboard",
-    "renderBots",
+    "botParam", "setBotParam", "botSizingHtml", "botState", "botReasonShort", "botNeedsAction", "botResultCells", "botRowHtml",
+    "focusBotFromHash", "renderBots",
 ]
 
 # A minimal DOM: every id resolves to a plain object whose innerHTML the test reads back.
@@ -66,6 +67,8 @@ const document = {
 const lucide = {createIcons() {}};
 const window = {lucide};
 let currentMode = 'demo';
+let botResults = {}, botsDemoIssues = 0, botsFocused = '';
+const location = {hash: ''};
 let selectedAccountId = 'demo', historyPage = 1;
 function fetchTradeHistory() {}
 const closingPositions = new Set(), openPositionCards = new Set();
@@ -95,12 +98,15 @@ out.leaderboard = els['leaderboard-table-body'].innerHTML;
 out.leaderboard_lot = els['leaderboard-lot-table-body'].innerHTML;
 
 // A running, not-polling bot and a stuck, paused one, so both status branches and every button are drawn.
+botResults[H] = {bot_id: H, total_pnl_usd: 12.5, total_trades: 3, profit_factor: 1.4};
 renderBots([
     {name: H, bot_id: H, account_type: 'demo', status: 'running', polling: false, last_poll_age_s: 30,
      open_positions: 1, description: H, run_command: H, container_id: 'abcdef1234567890'},
+    {name: H, bot_id: H, account_type: 'live', status: 'running', polling: true, open_positions: 0, description: H,
+     run_command: H, container_id: H},
     {name: H, account_type: 'demo', status: H, stuck: true, paused: true, health_reason: H, description: H, run_command: H},
 ], true);
-out.bots = els['bots-tbody'].innerHTML;
+out.bots = els['bots-tbody'].innerHTML + els['bots-tbody-demo'].innerHTML;
 
 console.log(JSON.stringify(out));
 })().catch(e => { console.error(e); process.exit(1); });

@@ -26,13 +26,21 @@ def _function(src: str, name: str) -> str:
 
 def test_nav_links_carry_the_view_hash_and_the_page_restores_it():
     page = dashboard_page(client)
-    for name in ("leaderboard", "backtest", "ledger", "logs"):
+    for name in ("ledger", "logs"):
         assert f'href="#{name}" class="nav-item" data-target="view-{name}"' in page
+    # Redesign D step 3: six menu items; Backtest and Dự đoán AI are tabs of Nghiên cứu, still at their own hashes
+    assert 'href="#research" class="nav-item" data-target="view-research"' in page
+    assert page.count('class="nav-item') == 6 and "nav-item--more" not in page and "nav-more-btn" not in page
+    for name in ("research", "paper-desk", "backtest"):
+        assert page.count(f'<a href="#{name}" data-target="view-{name}" class="rs-tab') == 3, name
+    assert "'view-paper-desk': 'view-research', 'view-backtest': 'view-research'" in page
+    # Xếp hạng left the menu (redesign D step 2): the Bot screen carries the results and links the full ranking
+    assert 'data-target="view-leaderboard"' not in page and 'id="view-leaderboard"' in page
+    assert '<a href="#leaderboard" id="bots-more-link">' in page
     assert 'href="#docker" class="nav-item" data-target="view-docker"' in page   # Bots lives in the sidebar
     assert "openView(item.getAttribute('data-target'))" in page and "topbar-docker-btn" not in page
     assert "window.addEventListener('popstate', () => switchView(viewFromHash(location.hash)))" in page
     assert "const initialView = viewFromHash(location.hash);" in page
-    assert "'/real/dashboard' + location.hash" in page and "'/demo/dashboard' + location.hash" in page
 
 
 @pytest.mark.skipif(NODE is None, reason="node is not installed")

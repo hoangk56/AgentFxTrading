@@ -34,7 +34,8 @@ def test_dashboard_has_the_ledger_nav_view_and_script():
     assert '<script src="/static/js/ledger.js' in html
     page = dashboard_page(client)
     assert "targetId === 'view-ledger'" in page and "ledgerOnShow();" in page
-    assert "ledgerRefreshIfShown()" in page       # the account selector refreshes it
+    # Redesign D step 4: no account selector; the ledger lists every account, Real first and Demo folded
+    assert "return 'all';" in (REPO_ROOT / "static" / "js" / "ledger.js").read_text(encoding="utf-8")
 
 
 @pytest.mark.skipif(NODE is None, reason="node is not installed")

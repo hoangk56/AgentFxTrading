@@ -149,6 +149,16 @@ def setup_alerts(env: Mapping[str, str] = os.environ, root: Optional[logging.Log
     return _alerter
 
 
+def bot_link(name: Optional[str] = None, env: Mapping[str, str] = os.environ) -> str:
+    """A second line with the dashboard link that opens the Bot screen (on this bot's row when a name is given),
+    or "" when DASHBOARD_PUBLIC_URL is not set. The Bot screen lists Real and Demo together, so one URL serves both."""
+    base = (env.get("DASHBOARD_PUBLIC_URL") or "").strip().rstrip("/")
+    if not base:
+        return ""
+    row = f"?bot={urllib.parse.quote(name, safe='')}" if name else ""
+    return f"\n{base}/real/dashboard#docker{row}"
+
+
 def notify(text: str, key: Optional[Hashable] = None) -> bool:
     """Send an event (not a log line) to Telegram; a no-op while alerts are off."""
     return _alerter.notify(text, key=key) if _alerter is not None else False

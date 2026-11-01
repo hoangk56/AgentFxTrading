@@ -38,7 +38,9 @@ def test_dashboard_has_the_gotobi_nav_view_and_script():
     page = dashboard_page(client)
     assert "targetId === 'view-calendar'" in page and "gotobiOnShow();" in page
     assert "gotobi: 'calendar'" in page      # old #gotobi links still open the Calendar
-    assert "gotobiRefreshIfShown()" in page       # the account selector refreshes it
+    # Redesign D step 4: the calendar's own Thật / Demo switch reloads it (the page-wide selector is gone)
+    assert 'id="gc-mode"' in page
+    assert "bindModeSeg('gc-mode'" in (REPO_ROOT / "static" / "js" / "gotobi_calendar.js").read_text(encoding="utf-8")
 
 
 def _day(date, weekday, status, trades=(), real=(0, 0.0, 0), decoy=(0, 0.0, 0), other=(0, 0.0, 0), ecb=(0, 0.0, 0),

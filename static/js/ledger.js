@@ -1,7 +1,7 @@
 /* Ledger view: per account, the balance its closed trades and the recorded deposits / withdrawals explain (starting
  * from 0), against the broker's, and the balance changes nothing explains yet (app/ledger.py, /api/ledger).
  *
- * Loaded with `defer`, after the dashboard script whose escapeHtml, formatMoney and selectedAccountId it uses.
+ * Loaded with `defer`, after the dashboard script whose escapeHtml, formatMoney (and bindModeSeg) it uses.
  * The lg*Html functions are pure (data in, HTML out) so tests/app/test_ledger_ui.py can render them in node with
  * hostile strings; everything that touches the DOM or fetch lives below them. */
 
@@ -88,10 +88,18 @@ function lgAccountHtml(a, tolerance) {
     return `<section class="panel lg-account">${head}<div class="panel-body">${stats}${unexplainedHtml}${movementsHtml}${form}</div></section>`;
 }
 
+/** Every account (redesign D): the live ones in full, the demo ones folded under one row. */
 function lgPageHtml(data) {
     const accounts = (data && data.accounts) || [];
-    if (!accounts.length) return '<p class="td-dim">Chưa có tài khoản nào trong mục này. Tạo ở màn Bot → Cài bot từ mẫu.</p>';
-    return accounts.map(a => lgAccountHtml(a, data.tolerance)).join('');
+    if (!accounts.length) return '<p class="td-dim">Chưa có tài khoản nào. Tạo ở màn Bot → Cài bot từ mẫu.</p>';
+    const real = accounts.filter(a => a.account_type === 'live'), demo = accounts.filter(a => a.account_type !== 'live');
+    const realHtml = real.length ? real.map(a => lgAccountHtml(a, data.tolerance)).join('')
+        : '<p class="td-dim">Chưa có tài khoản thật nào.</p>';
+    const demoHtml = demo.length ? `<details class="ov-demo lg-demo"><summary class="ov-demo-row">`
+        + `<span class="mode-chip mode-chip--demo">Demo</span><span class="ov-demo-figs"><span><b>${escapeHtml(demo.length)}</b> tài khoản demo</span></span>`
+        + `<span class="ov-demo-toggle"><span class="when-closed">Mở</span><span class="when-open">Thu gọn</span></span></summary>`
+        + `<div class="ov-demo-body">${demo.map(a => lgAccountHtml(a, data.tolerance)).join('')}</div></details>` : '';
+    return `<section class="ov-real lg-real" aria-label="Tiền thật"><h2 class="ov-real-head">Tiền thật <span>${escapeHtml(real.length)} tài khoản</span></h2>${realHtml}</section>${demoHtml}`;
 }
 
 // ---------- DOM, fetch ----------
@@ -99,7 +107,7 @@ function lgPageHtml(data) {
 let lgLoading = false;
 
 function lgScope() {
-    return typeof selectedAccountId !== 'undefined' && selectedAccountId ? selectedAccountId : 'all';
+    return 'all';   // every account; lgPageHtml puts the live ones first
 }
 
 function lgShown() {
