@@ -1299,7 +1299,7 @@ const DASHBOARD_BOOTSTRAP = window.DASHBOARD_BOOTSTRAP || {};
         function logStatusOf(lines, day) {
             const errors = lines.filter(l => /\[(?:ERROR|CRITICAL)\s*\]/.test(l)).length;
             const warns = lines.filter(l => /\[WARN(?:ING)?\s*\]/.test(l)).length;
-            const text = `${day ? `Ngày ${day}` : 'Hôm nay'}: ${errors} lỗi · ${warns} cảnh báo · ${lines.length} dòng`;
+            const text = `${day ? `Ngày ${day}` : 'Hôm nay'}: ${errors} lỗi · ${warns} cảnh báo · ${lines.length} dòng · giờ VN`;
             return [errors ? 'crit' : (warns ? 'warn' : 'ok'), text];
         }
         function renderLogs() {

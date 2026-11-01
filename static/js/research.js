@@ -122,9 +122,8 @@ function rsListHtml(ordered, selected, state, toggled) {
         const open = toggled[t.tier] !== undefined ? toggled[t.tier]
             : (t.tier !== RS_COLLAPSED_TIER || state.tier === t.tier || (selected && rsTierOf(selected) === t.tier));
         const head = `<button type="button" class="rs-group rs-group--${t.tier}" data-rs-group="${t.tier}" aria-expanded="${open}">`
-            + `<span class="rs-dot"></span>${escapeHtml(t.label)} <span class="td-dim">${rows.length}</span>`
-            + `${t.tier === RS_COLLAPSED_TIER ? '<span class="td-dim">· thu gọn sẵn</span>' : ''}`
-            + `<span class="rs-chev">${open ? '▾' : '▸'}</span></button>`;
+            + `<span class="fold-chev" aria-hidden="true">›</span><span class="rs-dot"></span>${escapeHtml(t.label)} <span class="td-dim">${rows.length}</span>`
+            + `${t.tier === RS_COLLAPSED_TIER ? '<span class="td-dim">· thu gọn sẵn</span>' : ''}</button>`;
         if (!open) return head;
         const body = rows.length ? rows.map(e => {
             const chosen = selected && e.id === selected.id;
@@ -139,10 +138,16 @@ function rsListHtml(ordered, selected, state, toggled) {
 }
 
 function rsResearchHtml(r) {
-    const lines = [['is', 'IS (trong mẫu)'], ['val', 'VAL (kiểm định)'], ['hold', 'HOLD (giữ lại)']]
+    // The three stages of a study, in the order they were run; the registry's own words stay as written.
+    const lines = [['is', 'Dữ liệu tìm luật', 'IS: những năm dùng để dò ra quy tắc'],
+                   ['val', 'Dữ liệu kiểm lại', 'VAL: những năm chỉ dùng để kiểm, sau khi đã chốt quy tắc'],
+                   ['hold', 'Dữ liệu để dành', 'HOLD: những năm cất riêng, chỉ mở một lần ở cuối']]
         .filter(([k]) => r && r[k]);
     if (!lines.length) return '<p class="td-dim">Sổ chưa ghi số nghiên cứu.</p>';
-    return `<dl class="rs-dl">${lines.map(([k, label]) => `<dt>${label}</dt><dd>${escapeHtml(r[k])}</dd>`).join('')}</dl>`;
+    return `<dl class="rs-dl">${lines.map(([k, label, title]) => `<dt title="${title}">${label} <span class="td-dim">${k.toUpperCase()}</span></dt>`
+        + `<dd>${escapeHtml(r[k])}</dd>`).join('')}</dl>`
+        + '<p class="rs-legend">R: lời/lỗ trung bình mỗi lệnh tính bằng số lần rủi ro (1 R = mất đúng khoảng stop). '
+        + 't: độ tin cậy của con số đó, từ khoảng 2 trở lên mới khó là do may. Số viết theo sổ nghiên cứu (dấu phẩy là phần thập phân).</p>';
 }
 
 function rsStatsHtml(pairs) {
@@ -304,18 +309,17 @@ function rsTriedHtml(tried, open) {
             + '</tbody></table></div>'
         : '';
     return `<section class="rs-fold"><button type="button" class="rs-fold-head" data-rs-tried="1" aria-expanded="${open}">`
+        + `<span class="fold-chev" aria-hidden="true">›</span>`
         + `<span class="rs-fold-title">Đã thử, không đạt <span class="td-dim">${tried.length}</span></span>`
-        + `<span class="td-dim">${tried.length} hướng đã kiểm và không qua cổng · chi tiết trong research/JOURNAL.md</span>`
-        + `<span class="rs-fold-act">${open ? 'Thu gọn' : 'Xem'}</span></button>${body}</section>`;
+        + `<span class="td-dim">${tried.length} hướng đã kiểm và không qua cổng · chi tiết trong research/JOURNAL.md</span></button>${body}</section>`;
 }
 
-/** "Sổ research/registry.yaml · đọc lúc 14:05 01/11" in the browser's zone. */
+/** "Sổ research/registry.yaml · đọc lúc 14:05 01/11 giờ VN" (UTC+7 whatever the browser's zone). */
 function rsMetaText(data) {
-    const at = data && data.generated_at ? new Date(data.generated_at) : null;
-    const when = at && !Number.isNaN(at.getTime())
-        ? `${String(at.getHours()).padStart(2, '0')}:${String(at.getMinutes()).padStart(2, '0')} `
-          + `${String(at.getDate()).padStart(2, '0')}/${String(at.getMonth() + 1).padStart(2, '0')}`
-        : '–';
+    const t = data && data.generated_at ? Date.parse(data.generated_at) : NaN;
+    const at = Number.isNaN(t) ? null : new Date(t + 7 * 3600 * 1000);
+    const p = n => String(n).padStart(2, '0');
+    const when = at ? `${p(at.getUTCHours())}:${p(at.getUTCMinutes())} ${p(at.getUTCDate())}/${p(at.getUTCMonth() + 1)} giờ VN` : '–';
     return `Sổ ${(data && data.registry) || 'research/registry.yaml'} · đọc lúc ${when}`;
 }
 

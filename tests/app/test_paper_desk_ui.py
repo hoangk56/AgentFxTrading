@@ -26,7 +26,8 @@ def test_paper_desk_renderer_escapes_external_strings():
     dash = DASHBOARD_JS.read_text(encoding="utf-8")
     src = JS.read_text(encoding="utf-8")
     helpers = _function(dash, "escapeHtml")
-    renderers = "\n".join(_function(src, n) for n in ("pdNum", "pdPct", "pdCoverageHtml", "pdWhen", "pdVerdictLabel",
+    names = src[src.index("const PD_NAMES"):src.index("};", src.index("const PD_NAMES")) + 2]
+    renderers = names + "\n" + "\n".join(_function(src, n) for n in ("pdNum", "pdPct", "pdNameHtml", "pdCoverageHtml", "pdWhen", "pdVerdictLabel",
                                                          "pdScoreHtml", "pdProgress", "pdStatusOf", "pdSummaryHtml", "pdHtml"))
     cov = {"analysts": [{"analyst": HOSTILE, "calls": 10, "traded": 4, "long": 3, "short": 1, "errors": 2,
                          "directional_rate": 0.4}],
@@ -48,4 +49,5 @@ def test_paper_desk_renderer_escapes_external_strings():
                         "30 tuần làm việc · thiếu 1 ngày làm việc"]
     assert out["t"].index("pd-stats") < out["t"].index(">Điểm<") < out["t"].index(">Từng AI<")
     assert out["es"] == ["", "Chưa có lượt dự đoán nào"]
+    assert "Mốc: luôn mua" in out["t"] and "always_long" in out["t"]   # plain name first, the raw id below
     assert "Chưa có lượt dự đoán nào" in out["e"] and "Chưa có điểm" in out["e"]

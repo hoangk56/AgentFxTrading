@@ -135,7 +135,7 @@ function gcTradeRow(tr) {
 
 function gcTradeTable(trades) {
     return '<div class="table-wrap"><table class="data-table gc-trades"><thead><tr><th>Loại</th><th>Chân lệnh</th><th>Cặp</th>'
-        + '<th>Chiều</th><th class="num">Lot</th><th>Giờ vào (GMT+7)</th><th>Giờ ra (GMT+7)</th><th class="num">Lời/lỗ</th><th>Bot</th>'
+        + '<th>Chiều</th><th class="num">Lot</th><th>Giờ vào (giờ VN)</th><th>Giờ ra (giờ VN)</th><th class="num">Lời/lỗ</th><th>Bot</th>'
         + `</tr></thead><tbody>${trades.map(gcTradeRow).join('')}</tbody></table></div>`;
 }
 

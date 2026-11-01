@@ -29,7 +29,7 @@ def _alert_functions():
     confirm = (JS / "confirm_dialog.js").read_text(encoding="utf-8")
     return "\n".join([_function(dash, "escapeHtml")]
                      + [_function(alerts, n) for n in ("ovAlertActions", "ovModeChip", "ovSortAlerts", "ovTodoHtml",
-                                                         "ovStatus", "ovLogsUrl")]
+                                                         "ovStatus", "ovLogsUrl", "ovPillText")]
                      + [_function(confirm, "confirmWordFor")])
 
 
@@ -120,3 +120,17 @@ def test_overview_script_reads_the_live_scope_not_the_scope_bar():
     assert "bindModeSeg('log-mode'" in js and "lb-mode" not in js
     close = js[js.index("async function closePosition(btn)"):js.index("closingPositions.add(String(d.id));")]
     assert "askConfirm(" in close and "confirm(`" not in close
+
+
+@pytest.mark.skipif(NODE is None, reason="node is not installed")
+def test_the_topbar_pill_names_a_single_real_money_problem():
+    one = [{"level": "crit", "kind": "bot_stopped", "mode": "live", "bot": "cbot-live-live-gbpjpy-fix-gotobi",
+            "container": "cbot-live-live-gbpjpy-fix-gotobi", "message": "m"},
+           {"level": "warn", "kind": "restarted", "mode": "demo", "bot": "cbot-demo-demo-xauusd-levels-gold50", "message": HOSTILE}]
+    out = _run(_alert_functions(), f"const a = {json.dumps(one)};"
+               "console.log(JSON.stringify({one: ovPillText(a), two: ovPillText([a[0], {...a[0], kind: 'stale_price'}]),"
+               " demo: ovPillText([a[1]]), none: ovPillText([])}));")
+    assert out["one"]["text"] == "Tiền thật: GBPJPY đã dừng" and out["one"]["crit"] is True
+    assert out["one"]["title"].startswith("Thật · cbot-live-live-gbpjpy-fix-gotobi: m")
+    assert out["two"]["text"] == "2 việc tiền thật cần làm"
+    assert out["demo"] == {"crit": False, "text": "1 việc cần làm", "title": out["demo"]["title"]} and out["none"] is None
