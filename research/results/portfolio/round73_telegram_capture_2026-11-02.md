@@ -48,6 +48,22 @@ model in `TG/e2e.txt`.
 - @upbit_news posts ~4 notices a day, so a 6 h run gives ~1-2 samples of the preview delay. A2's registered gate
   stays on live KRW-listing notices (~4 a month).
 
+## Push route on a Telegram account (approved by the user 2026-11-02, waiting for the account)
+- `TG/coord/tg_push.py` (Telethon 1.45.0, venv `/home/forge/tg_capture_a2/venv-push` on agentFx) listens to
+  @upbit_news on a Telegram user account over MTProto. It logs each post's Telegram time and local receive time
+  (`push_log.csv`), so it measures A2's capture gate directly, without a poll term.
+- On a KRW-listing post it finds each coin's Binance USDT-M perp (also 1000x contracts), checks the 7-day age, and
+  snapshots the public bookTicker of the alt and BTCUSDT at receive time and at max(N + 5 s, receive) = the paper
+  entry (`push_paper.csv`). No order, and nothing read from Upbit. The exit at L and the registered net come from
+  `fwd_a2.py` (run from the Mac).
+- Smoke test 2026-11-02 on agentFx (fake post, NIL): perp found, detect snapshot 0.8 s after receive (first
+  exchangeInfo load included), entry snapshot 0.26 s after N + 5 s. The title parser matches all 124 KRW-listing
+  posts of the channel's history (`research/tests/test_tg_push.py`).
+- Needs from the user: a Telegram account, its api_id / api_hash from my.telegram.org (`push.env`, chmod 600), and
+  the login code (`login-start` / `login-finish`). After login: cron line `# tg-push-a2`, every minute under `flock`,
+  until 2027-01-01. Remove with `crontab -l | grep -v tg-push-a2 | crontab -`.
+- Read: `ssh agentFx 'cd /home/forge/tg_capture_a2 && venv-push/bin/python -I tg_push.py report'`.
+
 ## Standing after round 73
 - C3 is the only LIVE algorithm. DEMO that passed HOLD: B, X3, K2, Q1, A2-D5L. Forward-registered: F0.
 - A2's promotion path is now: the t.me/s poller (if the forward logger confirms the preview delay and allowance) or

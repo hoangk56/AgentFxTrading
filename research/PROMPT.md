@@ -615,6 +615,11 @@ có từ ~2011.
   forge, mỗi phút + flock, tự dừng 2026-11-09T00:00Z; gỡ bằng `crontab -l | grep -v tg-capture-a2 | crontab -`. Đọc kết
   quả: `ssh agentFx 'cd /home/forge/tg_capture_a2 && python3 -I tg_capture.py report; tail heartbeat.log'`. Mẫu đầu
   (bài 2050, không phải niêm yết) hiện trên t.me/s trễ 17,7 giây: phải đo đủ trước khi kết luận độ tươi của trang xem trước.
+  Tôi duyệt 2026-11-02 đường tài khoản Telegram (MTProto): round73_telegram_capture/TG/coord/tg_push.py (Telethon, venv
+  /home/forge/tg_capture_a2/venv-push) nghe @upbit_news, ghi độ trễ nhận từng bài và chụp sổ lệnh Binance lúc nhận và lúc
+  N + 5 s cho lệnh giấy (không đặt lệnh, không đọc Upbit); sau khi đăng nhập chạy cron `# tg-push-a2` tới 2027-01-01.
+  Đọc: `ssh agentFx 'cd /home/forge/tg_capture_a2 && venv-push/bin/python -I tg_push.py report'`. Lệnh thật cần key
+  Binance USDT-M có quyền giao dịch (tôi quyết, sau khi cổng 3 giây đạt).
 - F0 (round66_fast_execution/F0/PREREG_F0_bar_close_fade.md): luật F vào ngay khi nến sự kiện đóng; đạt LIVE ở IS / VAL, chỉ test
   forward từ 2026-10-30 (holdout của F đã biết), đánh giá một lần khi đủ 333 sự kiện (~2027-02); viết runner forward trước đó.
 - K2 Upbit listing fade (round64_parallel/K/PREREG_K2_upbit_listing_fade.md): DEMO đã qua holdout, chưa có bot (tôi quyết);
