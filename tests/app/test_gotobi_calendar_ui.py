@@ -29,7 +29,7 @@ def _function(src: str, name: str) -> str:
 
 
 def test_dashboard_has_the_gotobi_nav_view_and_script():
-    html = client.get("/demo/dashboard").text
+    html = client.get("/").text
     assert 'data-target="view-calendar"' in html and 'id="view-calendar"' in html and 'id="gc-body"' in html
     assert 'href="#calendar"' in html and "view-gotobi" not in html
     nav = html[html.index('data-target="view-calendar"'):]
@@ -37,7 +37,6 @@ def test_dashboard_has_the_gotobi_nav_view_and_script():
     assert '<script src="/static/js/gotobi_calendar.js' in html
     page = dashboard_page(client)
     assert "targetId === 'view-calendar'" in page and "gotobiOnShow();" in page
-    assert "gotobi: 'calendar'" in page      # old #gotobi links still open the Calendar
     # Redesign D step 4: the calendar's own Thật / Demo switch reloads it (the page-wide selector is gone)
     assert 'id="gc-mode"' in page
     assert "bindModeSeg('gc-mode'" in (REPO_ROOT / "static" / "js" / "gotobi_calendar.js").read_text(encoding="utf-8")

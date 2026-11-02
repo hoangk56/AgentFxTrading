@@ -4,7 +4,7 @@
  *
  * Loaded with `defer`, after the dashboard script whose escapeHtml it uses. The functions above the DOM part are pure
  * (data in, HTML or values out) so tests/app/test_research_ui.py can run them in node with hostile strings.
- * Filter, search and the selected algorithm live in the hash: #research?tier=demo&q=ecb&id=F3 (#forward is an alias). */
+ * Filter, search and the selected algorithm live in the hash: #research?tier=demo&q=ecb&id=F3. */
 
 const RS_TIERS = [
     {tier: 'live', label: 'Đang live'},
@@ -272,7 +272,7 @@ function rsTrackerHtml(entry, data) {
         // A live algorithm's forward check is its own real bots: send the reader to their results instead of
         // leaving the backtest numbers above as the only figures on screen.
         if (rsTierOf(entry) === 'live') return '<p class="rs-live-note">Không có bot kiểm chứng riêng: kết quả tiền thật '
-            + 'của thuật toán này là kết quả các bot của nó. <a href="#docker" class="rs-link">Xem ở màn Bot (Theo rủi ro để so với R ở trên)</a></p>';
+            + 'của thuật toán này là kết quả các bot của nó. <a href="#bot" class="rs-link">Xem ở màn Bot (Theo rủi ro để so với R ở trên)</a></p>';
         return '<p class="td-dim">Không có bot kiểm chứng.</p>';
     }
     if (tr.kind === 'basis_b') return rsBasisHtml(tr);

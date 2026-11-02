@@ -4,7 +4,7 @@ Provides real-time visualization of positions, P&L, and bot status.
 """
 
 from fastapi import APIRouter, HTTPException, Request, WebSocket, WebSocketDisconnect
-from fastapi.responses import HTMLResponse, RedirectResponse
+from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from pathlib import Path
@@ -471,119 +471,19 @@ def get_market_sessions_info() -> Dict:
         },
     }
 
-def get_asset_exposure(account_id: str = "all") -> Dict:
-    """Compute asset exposure distribution by volume and count for active positions."""
-    positions = get_active_positions(account_id)
-    total_volume = sum(float(p.get("volume", 0) or 0) for p in positions)
-    by_symbol: Dict[str, float] = {}
-    by_asset_class: Dict[str, float] = {"Forex": 0.0, "Gold/Metals": 0.0, "Crypto": 0.0, "Indices": 0.0}
-
-    for p in positions:
-        sym = (p.get("symbol") or "UNKNOWN").upper()
-        vol = float(p.get("volume", 0) or 0)
-        by_symbol[sym] = round(by_symbol.get(sym, 0.0) + vol, 2)
-
-        if "BTC" in sym or "ETH" in sym or "SOL" in sym or "XRP" in sym:
-            by_asset_class["Crypto"] += vol
-        elif "XAU" in sym or "GOLD" in sym:
-            by_asset_class["Gold/Metals"] += vol
-        elif any(idx in sym for idx in ["US30", "USTEC", "DE40", "NAS", "UK100", "JP225", "NIKKEI", "HK50", "US500"]):
-            by_asset_class["Indices"] += vol
-        else:
-            by_asset_class["Forex"] += vol
-
-    by_asset_class = {k: round(v, 2) for k, v in by_asset_class.items() if v > 0}
-    return {
-        "total_volume": round(total_volume, 2),
-        "total_positions": len(positions),
-        "by_symbol": by_symbol,
-        "by_asset_class": by_asset_class
-    }
-
-def get_cumulative_equity_curve(days: int = 30, account_id: str = "all") -> List[Dict]:
-    """Compute cumulative PnL curve for high-precision growth visualization."""
-    daily = get_daily_pnl_history(days, account_id)
-    cumulative = 0.0
-    curve = []
-    for d in daily:
-        cumulative += float(d.get("pnl", 0.0) or 0.0)
-        curve.append({
-            "date": d["date"],
-            "pnl": d["pnl"],
-            "cum_pnl": round(cumulative, 2),
-            "trades": d.get("trades", 0)
-        })
-    return curve
-TRADE_MODE_FILE = PROJECT_ROOT / "webui_data" / "trade_mode.json"
-DEFAULT_TRADE_MODE = "demo"
-
-def get_persisted_trade_mode(request: Optional[Request] = None) -> str:
-    """Read persisted trade mode from cookie, file, or default to demo."""
-    if request:
-        cookie_mode = request.cookies.get("agentfx_trade_mode")
-        if cookie_mode in ("demo", "real", "live"):
-            return "real" if cookie_mode in ("real", "live") else "demo"
-            
-    if not TRADE_MODE_FILE.is_file():
-        return DEFAULT_TRADE_MODE
-    try:
-        with open(TRADE_MODE_FILE, "r", encoding="utf-8") as f:
-            data = json.load(f)
-        mode = str(data.get("mode", DEFAULT_TRADE_MODE)).strip().lower()
-        return "real" if mode in ("real", "live") else "demo"
-    except Exception:
-        return DEFAULT_TRADE_MODE
-
-def set_persisted_trade_mode(mode: str) -> str:
-    """Persist trade mode to file."""
-    m = "real" if mode in ("real", "live") else "demo"
-    try:
-        TRADE_MODE_FILE.parent.mkdir(parents=True, exist_ok=True)
-        with open(TRADE_MODE_FILE, "w", encoding="utf-8") as f:
-            json.dump({"mode": m}, f, indent=2)
-    except Exception as e:
-        logger.warning(f"Failed to persist trade mode: {e}")
-    return m
-
+# One page since redesign D (2026-11-01): the Overview shows Real first and Demo folded, and every other screen carries
+# its own Thật / Demo switch, so the URL no longer picks a mode. The old /demo, /real and /live addresses were dropped
+# 2026-11-02 without redirects (owner's call).
 @router.get("/", response_class=HTMLResponse)
-@router.get("/dashboard", response_class=HTMLResponse)
-async def root_redirect(request: Request):
-    """Redirect to the last visited trade mode (/real/dashboard or /demo/dashboard)."""
-    mode = get_persisted_trade_mode(request)
-    dest = "/real/dashboard" if mode == "real" else "/demo/dashboard"
-    return RedirectResponse(url=dest)
-
-@router.get("/demo", response_class=HTMLResponse)
-async def demo_redirect(request: Request):
-    return RedirectResponse(url="/demo/dashboard")
-
-@router.get("/real", response_class=HTMLResponse)
-@router.get("/live", response_class=HTMLResponse)
-async def real_redirect(request: Request):
-    return RedirectResponse(url="/real/dashboard")
-
-@router.get("/demo/dashboard", response_class=HTMLResponse)
-@router.get("/real/dashboard", response_class=HTMLResponse)
-@router.get("/live/dashboard", response_class=HTMLResponse)
 async def dashboard_page(request: Request):
-    """Render dashboard HTML page tailored to URL route (strictly demo or real)."""
-    path = request.url.path
-    mode = "real" if path.startswith("/real") or path.startswith("/live") else "demo"
-        
-    # Persist last used mode
-    set_persisted_trade_mode(mode)
-        
-    # The Overview shows Real first and Demo folded below it whatever the URL says (redesign D, 2026-11-01):
-    # its first paint is the live accounts, the Demo row loads in the page. No other screen reads the URL's mode
-    # since step 4; the Bot screen fetches its own results (the former Xếp hạng, merged into it).
+    """The dashboard: Overview first, the other screens behind the menu (#bot, #calendar, …)."""
+    # First paint: the live accounts; the Demo row loads in the page.
     summary = get_portfolio_summary("live")
     positions = get_active_positions("live")
     history = get_trade_history("live", page_size=5)   # the Overview's last closed trades (HISTORY_PAGE_SIZE)
     pnl_history = get_daily_pnl_history(30, "live")
 
-    registry = get_account_registry()
-    all_accounts = registry.list_accounts(include_unconfigured=False)
-    accounts = [acc for acc in all_accounts if acc.get("account_type") == ("live" if mode == "real" else "demo")]
+    all_accounts = get_account_registry().list_accounts(include_unconfigured=False)
     live_account_count = sum(1 for acc in all_accounts if acc.get("account_type") == "live")
     
     response = templates.TemplateResponse(
@@ -594,8 +494,6 @@ async def dashboard_page(request: Request):
             "positions": positions,
             "history": history,
             "pnl_history": pnl_history,
-            "accounts": accounts,
-            "current_mode": mode,
             "live_account_count": live_account_count,
         }
     )
@@ -629,7 +527,6 @@ async def api_dashboard_pnl_history(days: int = 30, account_id: str = "all"):
 
 
 @router.get("/api/leaderboard")
-@router.get("/api/dashboard/leaderboard")
 async def api_dashboard_leaderboard(account_id: str = "all", account_type: Optional[str] = None,
                                     period: str = "1w", date_from: Optional[str] = None,
                                     date_to: Optional[str] = None):
@@ -645,11 +542,6 @@ async def api_dashboard_leaderboard(account_id: str = "all", account_type: Optio
                                        date_from=date_from, date_to=date_to)
     except InvalidDateRange as e:
         raise HTTPException(status_code=400, detail=str(e))
-@router.get("/api/dashboard/sessions")
-async def api_dashboard_sessions():
-    """API endpoint for trading sessions and market status."""
-    return get_market_sessions_info()
-
 @router.get("/api/dashboard/alerts")
 def api_dashboard_alerts(account_id: str = "all", mode: Optional[str] = None):
     """Overview alert strip: dead / unpriced bots and recent watchdog restarts, critical first.
@@ -673,16 +565,6 @@ def api_dashboard_alerts(account_id: str = "all", mode: Optional[str] = None):
         alerts = filter_by_mode(alerts, mode)
     return {"alerts": tag_modes(alerts)}
 
-
-@router.get("/api/dashboard/exposure")
-async def api_dashboard_exposure(account_id: str = "all"):
-    """API endpoint for active asset volume exposure distribution."""
-    return get_asset_exposure(account_id)
-
-@router.get("/api/dashboard/cumulative-pnl")
-async def api_dashboard_cumulative_pnl(days: int = 30, account_id: str = "all"):
-    """API endpoint for cumulative equity curve."""
-    return get_cumulative_equity_curve(days, account_id)
 
 @router.get("/api/dashboard/logs")
 async def api_dashboard_logs(
@@ -1091,13 +973,6 @@ def api_start_bot(name: str):
 @router.post("/api/bots/{name}/stop")
 def api_stop_bot(name: str):
     result = docker_manager.stop_container(name)
-    if result.get("success"):
-        _set_bot_stopped(name, True)
-    return result
-
-@router.post("/api/bots/{name}/remove")
-def api_remove_bot(name: str):
-    result = docker_manager.remove_container(name)
     if result.get("success"):
         _set_bot_stopped(name, True)
     return result

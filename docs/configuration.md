@@ -42,7 +42,7 @@ with a random secret the server creates in `webui_data/session_secret`.
 | :--- | :--- |
 | `TELEGRAM_BOT_TOKEN` | Token of the Telegram bot that sends the alerts (from @BotFather) |
 | `TELEGRAM_CHAT_ID` | Chat that receives them: your user id, or a group id (`-100…`) |
-| `DASHBOARD_PUBLIC_URL` | Optional. The dashboard's public address (e.g. `https://agentfx.hoangbk.com`). When set, watchdog messages end with a link that opens the Bot screen on that bot's row (`#docker?bot=<name>`) |
+| `DASHBOARD_PUBLIC_URL` | Optional. The dashboard's public address (e.g. `https://agentfx.hoangbk.com`). When set, watchdog messages end with a link that opens the Bot screen on that bot's row (`#bot?bot=<name>`) |
 
 With both set, `app/alerts.py` sends to the chat:
 

@@ -87,13 +87,13 @@ def test_sizing_fields_escape_and_only_show_the_flags_the_command_has():
 
 
 def test_bot_screen_has_both_blocks_no_scope_bar_and_the_result_switches():
-    html = client.get("/real/dashboard").text
-    view = html[html.index('id="view-docker"'):html.index("<!-- Ledger View")]
+    html = client.get("/").text
+    view = html[html.index('id="view-bot"'):html.index("<!-- Ledger View")]
     for part in ("<h1>Bot</h1>", 'id="bots-status"', 'class="ov-real"', 'id="bots-tbody"', 'id="bots-demo"',
                  'id="bots-tbody-demo"', 'id="bots-period"', 'id="bot-sizing"', 'id="bot-cmd-advanced"',
                  'id="bots-basis"', 'value="thismonth"'):
         assert part in view, part
-    assert 'id="view-docker" class="view-section">' in html   # not data-scoped any more
+    assert 'id="view-bot" class="view-section">' in html   # not data-scoped any more
     # The ranking screen joined Bot (2026-11-01): no view of its own, no link to it
     assert 'id="view-leaderboard"' not in html and 'href="#leaderboard"' not in html
     js = DASHBOARD_JS.read_text(encoding="utf-8")

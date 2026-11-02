@@ -24,26 +24,26 @@ def _client(**kw):
     return TestClient(app, follow_redirects=False, **kw)
 
 
-def _login(client, username=CREDS[0], password=CREDS[1], next_path="/demo/dashboard"):
+def _login(client, username=CREDS[0], password=CREDS[1], next_path="/"):
     return client.post("/login", data={"username": username, "password": password, "next": next_path})
 
 
 def test_without_credentials_there_is_no_login():
     client = _client()
     assert client.get("/api/watchdog/status").status_code == 200
-    assert client.get("/login?next=/demo/dashboard").headers["location"] == "/demo/dashboard"
-    assert "Logout" not in client.get("/demo/dashboard").text
+    assert client.get("/login?next=/static/js/auth.js").headers["location"] == "/static/js/auth.js"
+    assert "Logout" not in client.get("/").text
 
 
 def test_a_page_redirects_to_the_login_and_the_api_answers_401(login_on):
     client = _client()
-    res = client.get("/demo/dashboard?x=1")
-    assert res.status_code == 303 and res.headers["location"] == "/login?next=%2Fdemo%2Fdashboard%3Fx%3D1"
+    res = client.get("/?x=1")
+    assert res.status_code == 303 and res.headers["location"] == "/login?next=%2F%3Fx%3D1"
     res = client.get("/api/dashboard/summary")
     assert res.status_code == 401 and res.headers["X-Login-Required"] == "1"
     assert client.post("/api/ledger/movements", json={}).status_code == 401
-    page = client.get("/login?next=/demo/dashboard")
-    assert page.status_code == 200 and 'name="password"' in page.text and 'value="/demo/dashboard"' in page.text
+    page = client.get("/login?next=/%3Fx%3D1")
+    assert page.status_code == 200 and 'name="password"' in page.text and 'value="/?x=1"' in page.text
     assert client.get("/static/js/auth.js").status_code == 200
 
 
@@ -53,13 +53,13 @@ def test_the_right_password_opens_a_session(login_on):
     assert res.status_code == 401 and "Sai tên đăng nhập hoặc mật khẩu" in res.text
     assert 'value="adm&#34;in&lt;"' in res.text                  # kept for the next try, escaped
     res = _login(client)
-    assert res.status_code == 303 and res.headers["location"] == "/demo/dashboard"
+    assert res.status_code == 303 and res.headers["location"] == "/"
     cookie = res.headers["set-cookie"].lower()
     assert "httponly" in cookie and "samesite=lax" in cookie and "secure" in cookie and "max-age=2592000" in cookie
     assert client.get("/api/dashboard/summary").status_code == 200
-    page = client.get("/demo/dashboard")
+    page = client.get("/")
     assert page.status_code == 200 and 'action="/logout"' in page.text
-    assert client.get("/login?next=/real/dashboard").headers["location"] == "/real/dashboard"
+    assert client.get("/login?next=/%3Fx%3D1").headers["location"] == "/?x=1"
 
     res = client.post("/logout")
     assert res.status_code == 303 and res.headers["location"] == "/login"
@@ -97,7 +97,7 @@ def test_the_dashboard_websocket_needs_the_session(login_on):
     ("https://evil.example/", "/"),
     ("/\\evil.example", "/"),
     ("/login?next=/login", "/"),
-    ("/real/dashboard#ledger", "/real/dashboard#ledger"),
+    ("/#ledger", "/#ledger"),
 ])
 def test_the_login_only_returns_to_this_site(login_on, target, landing):
     assert _login(_client(), next_path=target).headers["location"] == landing

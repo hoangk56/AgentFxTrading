@@ -44,14 +44,14 @@ def test_a_running_bot_and_an_unchecked_bot_are_not_reported(pm, monkeypatch):
 
 def test_stop_start_and_restart_endpoints_remember_the_intent(pm, monkeypatch):
     ok = {"success": True, "message": "ok"}
-    for method in ("stop_container", "start_container", "restart_container", "remove_container"):
+    for method in ("stop_container", "start_container", "restart_container"):
         monkeypatch.setattr(dashboard_module.docker_manager, method, lambda *a, **k: ok)
     bot_id = "cbot-demo-eurusd"
     client.post("/api/bots/bot-a/stop")
     assert pm.is_bot_stopped_on_purpose(bot_id)
     client.post("/api/bots/bot-a/start")
     assert not pm.is_bot_stopped_on_purpose(bot_id)
-    client.post("/api/bots/bot-a/remove")
+    client.post("/api/bots/bot-a/stop")
     assert pm.is_bot_stopped_on_purpose(bot_id)
     client.post("/api/bots/bot-a/restart")
     assert not pm.is_bot_stopped_on_purpose(bot_id)

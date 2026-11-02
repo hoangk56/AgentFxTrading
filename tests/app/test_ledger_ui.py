@@ -29,7 +29,7 @@ def _function(src: str, name: str) -> str:
 
 
 def test_dashboard_has_the_ledger_nav_view_and_script():
-    html = client.get("/demo/dashboard").text
+    html = client.get("/").text
     assert 'data-target="view-ledger"' in html and 'id="view-ledger"' in html and 'id="lg-body"' in html
     assert '<script src="/static/js/ledger.js' in html
     page = dashboard_page(client)

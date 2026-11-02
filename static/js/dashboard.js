@@ -41,7 +41,7 @@ const DASHBOARD_BOOTSTRAP = window.DASHBOARD_BOOTSTRAP || {};
                     const q = new URLSearchParams(location.hash.split('?')[1] || '').get('q');
                     if (q) logFilterInput.value = q;
                     fetchAgentLogs(logDateSelect.value);
-                } else if (targetId === 'view-docker') {
+                } else if (targetId === 'view-bot') {
                     fetchBots();
                 } else if (targetId === 'view-backtest') {
                     btOnShow();
@@ -60,12 +60,8 @@ const DASHBOARD_BOOTSTRAP = window.DASHBOARD_BOOTSTRAP || {};
         // The open view lives in the URL hash (#backtest, #ledger, …; Overview has none),
         // so F5 and Back/Forward stay on it. A view may keep its own state after "?" (#research?id=…).
         function viewFromHash(hash) {
-            // #gotobi was the Calendar's hash before it took the ECB window trades too, #forward the Research
-            // view's before it became "Nghiên cứu", #leaderboard the ranking's before it joined Bot (2026-11-01);
-            // old links still open them.
-            const aliases = {gotobi: 'calendar', forward: 'research', leaderboard: 'docker'};
             const name = hash.slice(1).split('?')[0];
-            const view = hash.length > 1 ? document.getElementById('view-' + (aliases[name] || name)) : null;
+            const view = hash.length > 1 ? document.getElementById('view-' + name) : null;
             return view && view.classList.contains('view-section') ? view.id : 'view-dashboard';
         }
 
@@ -342,12 +338,12 @@ const DASHBOARD_BOOTSTRAP = window.DASHBOARD_BOOTSTRAP || {};
             if (window.lucide) window.lucide.createIcons();
             focusBotFromHash();
         }
-        // #docker?bot=<name> (Overview alert, Telegram link): open its fold and mark the row once.
+        // #bot?bot=<name> (Overview alert, Telegram link): open its fold and mark the row once.
         let botsFocused = '';
         function focusBotFromHash() {
             const want = new URLSearchParams(location.hash.split('?')[1] || '').get('bot');
-            if (!want || want === botsFocused || !location.hash.startsWith('#docker')) return;
-            const row = Array.from(document.querySelectorAll('#view-docker tr[data-row-name]')).find(r => r.dataset.rowName === want);
+            if (!want || want === botsFocused || !/^#bot\b/.test(location.hash)) return;
+            const row = Array.from(document.querySelectorAll('#view-bot tr[data-row-name]')).find(r => r.dataset.rowName === want);
             if (!row) return;
             botsFocused = want;
             const fold = row.closest('details');
@@ -462,7 +458,7 @@ const DASHBOARD_BOOTSTRAP = window.DASHBOARD_BOOTSTRAP || {};
             const cmd = document.getElementById("bot-cmd");
             cmd.value = setBotParam(cmd.value, input.dataset.param, input.value);
         });
-        document.getElementById("view-docker").addEventListener("click", e => {
+        document.getElementById("view-bot").addEventListener("click", e => {
             const btn = e.target.closest("button[data-name]");
             if (!btn || btn.disabled) return;
             const name = btn.dataset.name;
@@ -477,11 +473,11 @@ const DASHBOARD_BOOTSTRAP = window.DASHBOARD_BOOTSTRAP || {};
         });
         document.addEventListener("keydown", e => {
             if (e.key !== 'Escape') return;
-            document.querySelectorAll('#view-docker details.row-menu[open]').forEach(m => { m.open = false; m.querySelector('summary').focus(); });
+            document.querySelectorAll('#view-bot details.row-menu[open]').forEach(m => { m.open = false; m.querySelector('summary').focus(); });
         });
         // One ⋯ menu open at a time; a click elsewhere closes it.
         document.addEventListener("click", e => {
-            document.querySelectorAll('#view-docker details.row-menu[open]').forEach(m => { if (!m.contains(e.target)) m.open = false; });
+            document.querySelectorAll('#view-bot details.row-menu[open]').forEach(m => { if (!m.contains(e.target)) m.open = false; });
         });
         function botsResultHeads() {
             document.querySelectorAll('.bots-period-head').forEach(th => { th.textContent = th.dataset[botBasis] || 'Lời/lỗ'; });
@@ -894,8 +890,7 @@ const DASHBOARD_BOOTSTRAP = window.DASHBOARD_BOOTSTRAP || {};
             </div>`;
         }
 
-        let currentMode = DASHBOARD_BOOTSTRAP.currentMode || 'demo';
-        // Redesign D (2026-11-01): no page-wide Demo / Thật switch any more. The Overview's Real block reads the live
+                // Redesign D (2026-11-01): no page-wide Demo / Thật switch any more. The Overview's Real block reads the live
         // accounts (OV_ACCOUNT) and its Demo row is static/js/overview_demo.js; Bot shows both; Lịch and Nhật ký each
         // carry their own small switch (bindModeSeg). The URL's /demo or /real no longer matters.
         const OV_ACCOUNT = 'live';

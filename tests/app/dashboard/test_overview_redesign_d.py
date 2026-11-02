@@ -89,7 +89,7 @@ def test_demo_row_figures():
 
 
 def test_overview_has_no_mode_switch_in_the_topbar_and_both_blocks():
-    html = client.get("/demo/dashboard").text
+    html = client.get("/").text
     topbar = html[html.index('<header class="topbar">'):html.index("</header>")]
     assert "trade-mode-switch" not in html and "account-selector" not in html and 'id="todo-pill"' in topbar
     # Step 4: no page-wide scope at all; Lịch and Nhật ký carry their own switch, Bot shows both modes
@@ -102,14 +102,13 @@ def test_overview_has_no_mode_switch_in_the_topbar_and_both_blocks():
         assert part in html, part
 
 
-def test_overview_first_paint_is_the_live_accounts_on_either_url(monkeypatch):
+def test_overview_first_paint_is_the_live_accounts(monkeypatch):
     import app.dashboard as dashboard
     seen = []
     real = dashboard.get_portfolio_summary
     monkeypatch.setattr(dashboard, "get_portfolio_summary", lambda acc="all": seen.append(acc) or real(acc))
-    for url in ("/demo/dashboard", "/real/dashboard"):
-        assert client.get(url).status_code == 200
-    assert seen == ["live", "live"]
+    assert client.get("/").status_code == 200
+    assert seen == ["live"]
 
 
 def test_overview_script_reads_the_live_scope_not_the_scope_bar():

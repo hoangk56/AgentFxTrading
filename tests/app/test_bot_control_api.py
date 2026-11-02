@@ -75,7 +75,7 @@ def test_bot_control_endpoints_run_off_the_event_loop():
     # /api/tick and /portfolio/report for every running cBot. Same rule api_setup_instances already follows.
     for handler in (dashboard_module.api_get_bots, dashboard_module.api_start_bot,
                     dashboard_module.api_stop_bot, dashboard_module.api_restart_bot,
-                    dashboard_module.api_remove_bot, dashboard_module.api_update_bot,
+                    dashboard_module.api_update_bot,
                     dashboard_module.api_delete_bot):
         assert not inspect.iscoroutinefunction(handler), handler.__name__
 

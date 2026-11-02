@@ -13,7 +13,7 @@ DASHBOARD_HTML = REPO_ROOT / "templates" / "dashboard.html"
 DASHBOARD_JS = REPO_ROOT / "static" / "js" / "dashboard.js"   # the dashboard's page script
 
 
-def dashboard_page(client, path: str = "/demo/dashboard") -> str:
+def dashboard_page(client, path: str = "/") -> str:
     """What the browser gets for the dashboard: the rendered template followed by its page script."""
     html = client.get(path).text
     assert '<script src="/static/js/dashboard.js' in html

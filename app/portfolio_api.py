@@ -46,7 +46,6 @@ def _broadcast_failed(kind: str, e: Exception) -> None:
 
 
 @router.post("/api/tick")
-@router.post("/api/telemetry_tick")
 async def handle_telemetry_tick(request: dict):
     """
     Direct tick telemetry endpoint from cBots (Gotobi).
@@ -251,24 +250,3 @@ async def report_position(request: dict):
     except Exception as e:
         logger.error(f"Portfolio report error: {e}")
         return {"status": "error", "message": str(e)}
-
-
-@router.get("/portfolio/status")
-async def get_portfolio_status(account_id: Optional[str] = None):
-    """Get current portfolio status."""
-    try:
-        status = get_portfolio_manager().get_portfolio_status(account_id=account_id)
-        return status
-    except Exception as e:
-        logger.error(f"Portfolio status error: {e}")
-        return {"error": str(e)}
-
-@router.get("/api/dashboard/accounts")
-async def api_dashboard_accounts():
-    """List all accounts for dashboard selector."""
-    try:
-        registry = get_account_registry()
-        return {"accounts": registry.list_accounts()}
-    except Exception as e:
-        logger.error(f"Dashboard accounts error: {e}")
-        return {"error": str(e)}

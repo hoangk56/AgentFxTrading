@@ -7,28 +7,6 @@ from tests._paths import dashboard_page
 client = TestClient(app)
 
 def test_ui_endpoints():
-    # Test Sessions API
-    resp_sess = client.get("/api/dashboard/sessions")
-    assert resp_sess.status_code == 200
-    data_sess = resp_sess.json()
-    assert "sessions" in data_sess
-    assert "sydney" in data_sess["sessions"]
-    assert "killzone" not in data_sess
-    assert "forex_status" in data_sess
-
-    # Test Exposure API
-    resp_exp = client.get("/api/dashboard/exposure?account_id=all")
-    assert resp_exp.status_code == 200
-    data_exp = resp_exp.json()
-    assert "by_asset_class" in data_exp
-    assert "total_volume" in data_exp
-
-    # Test Cumulative PnL API
-    resp_cum = client.get("/api/dashboard/cumulative-pnl?days=30&account_id=all")
-    assert resp_cum.status_code == 200
-    data_cum = resp_cum.json()
-    assert isinstance(data_cum, list)
-
     # Test Summary API
     resp_summary = client.get("/api/dashboard/summary")
     assert resp_summary.status_code == 200
@@ -37,18 +15,21 @@ def test_ui_endpoints():
     assert "win_rate" in data_sum
     assert "total_trades" in data_sum
 
-    # Test Demo and Real Dashboard HTML renders cleanly with new widgets
-    resp_demo = client.get("/demo/dashboard")
+    # One page at "/" since 2026-11-02; the old mode addresses and the APIs nothing called are gone
+    resp_demo = client.get("/")
     assert resp_demo.status_code == 200
     html_demo = resp_demo.text
     # The compact Overview (2026-10-29): today, this month, the balance, open positions, coming up, 30 days, closed
     for widget in ('id="daily-pnl"', 'id="month-pnl"', 'id="account-balance"', 'id="positions-table"',
                    'id="ov-upcoming"', 'id="equity-chart"', 'id="history-table"', 'id="ov-status"'):
         assert widget in html_demo, widget
-    resp_real = client.get("/real/dashboard")
-    assert resp_real.status_code == 200
-    html_real = resp_real.text
-    assert 'id="month-pnl"' in html_real
+    for old in ("/dashboard", "/demo", "/real", "/live", "/demo/dashboard", "/real/dashboard", "/live/dashboard"):
+        assert client.get(old, follow_redirects=False).status_code == 404, old
+    for gone in ("/api/dashboard/sessions", "/api/dashboard/exposure", "/api/dashboard/cumulative-pnl",
+                 "/api/dashboard/accounts", "/api/forward/status", "/portfolio/status"):
+        assert client.get(gone).status_code == 404, gone
+    assert client.post("/api/telemetry_tick", json={}).status_code == 404
+    assert client.post("/api/bots/x/remove").status_code == 404
     # The track-record tiles, session bar and the bar / doughnut charts left the Overview
     for gone in ("market-session-bar", "pnl-chart", "exposure-chart", 'id="profit-factor"', 'id="win-rate"'):
         assert gone not in html_demo, gone
@@ -145,7 +126,7 @@ def test_tick_metrics_merge_into_the_cached_position_report():
 
 def test_setup_instances_panel_is_in_docker_view():
     html = dashboard_page(client)
-    docker_idx = html.find('id="view-docker"')
+    docker_idx = html.find('id="view-bot"')
     logs_idx = html.find('id="view-logs"')
     panel_idx = html.find('id="setup-panel"')
     button_idx = html.find('id="setup-instances-btn"')

@@ -11,7 +11,7 @@ from tests._paths import DASHBOARD_JS, dashboard_page
 
 client = TestClient(app)
 NODE = shutil.which("node")
-VIEWS = ("dashboard", "backtest", "docker", "ledger", "calendar", "logs")
+VIEWS = ("dashboard", "backtest", "bot", "ledger", "calendar", "logs")
 
 
 def _function(src: str, name: str) -> str:
@@ -34,9 +34,9 @@ def test_nav_links_carry_the_view_hash_and_the_page_restores_it():
     for name in ("research", "paper-desk", "backtest"):
         assert page.count(f'<a href="#{name}" data-target="view-{name}" class="rs-tab') == 3, name
     assert "'view-paper-desk': 'view-research', 'view-backtest': 'view-research'" in page
-    # Xếp hạng joined Bot (2026-11-01): no view of its own; its old hash opens Bot (see viewFromHash's aliases)
-    assert 'view-leaderboard' not in page and "leaderboard: 'docker'" in page
-    assert 'href="#docker" class="nav-item" data-target="view-docker"' in page   # Bots lives in the sidebar
+    # Xếp hạng joined Bot (2026-11-01): no view of its own; old hashes have no aliases
+    assert 'view-leaderboard' not in page and "aliases" not in _function(DASHBOARD_JS.read_text(encoding="utf-8"), "viewFromHash")
+    assert 'href="#bot" class="nav-item" data-target="view-bot"' in page   # Bots lives in the sidebar
     assert "openView(item.getAttribute('data-target'))" in page and "topbar-docker-btn" not in page
     assert "window.addEventListener('popstate', () => switchView(viewFromHash(location.hash)))" in page
     assert "const initialView = viewFromHash(location.hash);" in page
@@ -51,12 +51,12 @@ const els = {{}};
 for (const v of {json.dumps(VIEWS)}) els['view-' + v] = {{id: 'view-' + v, classList: {{contains: c => c === 'view-section'}}}};
 els['view-other'] = {{id: 'view-other', classList: {{contains: () => false}}}};   // an element that is not a view
 const document = {{getElementById: id => els[id] || null}};
-const location = {{pathname: '/demo/dashboard', search: '?x=1', hash: ''}};
+const location = {{pathname: '/', search: '?x=1', hash: ''}};
 const pushed = [], switched = [];
 const history = {{pushState: (s, t, url) => {{ pushed.push(url); location.hash = url.startsWith('#') ? url : ''; }}}};
 function switchView(id) {{ switched.push(id); }}
 {functions}
-const read = Object.fromEntries(['', '#', '#backtest', '#docker', '#dashboard', '#nope', '#other', '#"]', '#calendar', '#gotobi', '#leaderboard']
+const read = Object.fromEntries(['', '#', '#backtest', '#bot', '#dashboard', '#nope', '#other', '#"]', '#calendar', '#gotobi', '#leaderboard', '#docker']
     .map(h => [h, viewFromHash(h)]));
 openView('view-ledger');      // pushes #ledger
 openView('view-ledger');      // already there: no new history entry
@@ -66,11 +66,11 @@ console.log(JSON.stringify({{read, pushed, switched}}));
     out = subprocess.run([NODE, "-e", script], capture_output=True, text=True, check=True).stdout
     got = json.loads(out)
     assert got["read"] == {"": "view-dashboard", "#": "view-dashboard", "#backtest": "view-backtest",
-                           "#docker": "view-docker", "#dashboard": "view-dashboard", "#nope": "view-dashboard",
+                           "#bot": "view-bot", "#dashboard": "view-dashboard", "#nope": "view-dashboard",
                            "#other": "view-dashboard", '#"]': "view-dashboard",
-                           "#calendar": "view-calendar", "#gotobi": "view-calendar",
-                           "#leaderboard": "view-docker"}
-    assert got["pushed"] == ["#ledger", "/demo/dashboard?x=1"]
+                           "#calendar": "view-calendar", "#gotobi": "view-dashboard",
+                           "#leaderboard": "view-dashboard", "#docker": "view-dashboard"}
+    assert got["pushed"] == ["#ledger", "/?x=1"]
     assert got["switched"] == ["view-ledger", "view-ledger", "view-dashboard"]
 
 

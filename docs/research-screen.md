@@ -1,6 +1,6 @@
 # Research screen ("Nghiên cứu")
 
-Dashboard view `#research` (old links `#forward` still open it), the "Ứng viên" tab of Nghiên cứu. A status line counts
+Dashboard view `#research`, the "Ứng viên" tab of Nghiên cứu. A status line counts
 the tiers and names any forward tracker that hit its stop or promotion rule; below it the list by tier, the selected
 algorithm's research numbers and forward tracker, and the folded "Đã thử, không đạt" table. Layout follows the research
 page of the sibling project 106.dnse-stock. The separate "Chờ kiểm" cards were dropped on 2026-11-02: they repeated the
@@ -9,7 +9,7 @@ list group and its detail.
 | Part | File |
 |---|---|
 | API `GET /api/research` | `app/research_api.py` |
-| Rules trackers (F3, E1, gold) | `app/forward_status.py` (also served alone at `GET /api/forward/status`) |
+| Rules trackers (F3, E1, gold) | `app/forward_status.py` |
 | Basis B tracker | `app/basis_b_status.py` |
 | Page script / CSS | `static/js/research.js`, `static/css/dashboard.css` (`rs-*` classes) |
 | Markup | `templates/dashboard.html`, `#view-research` |

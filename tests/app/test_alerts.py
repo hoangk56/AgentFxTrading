@@ -262,12 +262,12 @@ def test_the_server_says_when_it_starts_and_when_it_stops(monkeypatch):
 
 
 def test_bot_link_points_at_the_bots_row_only_when_the_public_url_is_set():
-    """Redesign D: a watchdog message opens the Bot screen on that bot's row (#docker?bot=…)."""
+    """Redesign D: a watchdog message opens the Bot screen on that bot's row (#bot?bot=…)."""
     assert alerts.bot_link("cbot-live-live-gbpjpy-fix-gotobi", env={}) == ""
     env = {"DASHBOARD_PUBLIC_URL": "https://agentfx.example.com/"}
     assert alerts.bot_link("cbot-live-live-gbpjpy-fix-gotobi", env=env) == \
-        "\nhttps://agentfx.example.com/real/dashboard#docker?bot=cbot-live-live-gbpjpy-fix-gotobi"
-    assert alerts.bot_link("a b&c", env=env).endswith("#docker?bot=a%20b%26c")
+        "\nhttps://agentfx.example.com/#bot?bot=cbot-live-live-gbpjpy-fix-gotobi"
+    assert alerts.bot_link("a b&c", env=env).endswith("#bot?bot=a%20b%26c")
 
 
 def test_watchdog_restart_message_carries_the_bot_link(monkeypatch):
@@ -276,4 +276,4 @@ def test_watchdog_restart_message_carries_the_bot_link(monkeypatch):
     monkeypatch.setattr(cbot_watchdog.alerts, "notify", lambda text, key=None: sent.append(text))
     monkeypatch.setenv("DASHBOARD_PUBLIC_URL", "https://agentfx.example.com")
     cbot_watchdog.CbotWatchdog._alert_restarts([{"name": "cbot-x", "reason": "stale feed", "success": True}])
-    assert sent and sent[0].endswith("/real/dashboard#docker?bot=cbot-x")
+    assert sent and sent[0].endswith("/#bot?bot=cbot-x")

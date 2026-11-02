@@ -82,7 +82,7 @@ def test_summary_floating_pnl_is_equity_minus_balance(tmp_path, monkeypatch):
 
 
 def test_overview_has_the_alert_strip_the_floating_tile_and_the_script():
-    html = client.get("/demo/dashboard").text
+    html = client.get("/").text
     assert 'id="health-alerts"' in html and 'id="floating-pnl"' in html
     assert '/static/js/overview_alerts.js' in html
     assert "getElementById('floating-pnl')" in dashboard_page(client)

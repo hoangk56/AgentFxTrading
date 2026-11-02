@@ -15,7 +15,7 @@ JS = REPO_ROOT / "static" / "js" / "paper_desk.js"
 
 
 def test_dashboard_has_the_paper_desk_nav_view_and_script():
-    html = client.get("/demo/dashboard").text
+    html = client.get("/").text
     assert 'data-target="view-paper-desk"' in html and 'id="view-paper-desk"' in html and 'id="pd-body"' in html
     assert 'href="#paper-desk"' in html and '<script src="/static/js/paper_desk.js' in html
     assert "targetId === 'view-paper-desk'" in dashboard_page(client) and "pdOnShow();" in dashboard_page(client)
