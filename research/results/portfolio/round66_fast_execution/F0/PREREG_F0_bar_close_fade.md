@@ -48,5 +48,40 @@ Fail = dropped; no re-registration of E1, E3, H15 or crash-only on the same forw
 - `research/results/portfolio/round64_parallel/F/coord/hold/hold_univ.py` 84ca87404734aec6
 - `research/results/portfolio/round64_parallel/F/coord/hold/rule.py` 3811202d28136b95
 
+## Forward runner (written 2026-11-02)
+- File: `research/results/portfolio/round66_fast_execution/F0/coord/forward/fwd_f0.py` (`python -I fwd_f0.py pull |
+  progress | check | eval`). Data: `research/data/f0_forward/` (request logs `requests.log` for data.binance.vision
+  1m klines, `requests_net.log` for aggTrades and fapi; REST fills in `fills.csv`).
+- Hashes (`python -m research.tools.prereg_hashes`, 2026-11-02 06:40 UTC):
+  - `research/results/portfolio/round66_fast_execution/F0/coord/forward/fwd_f0.py` 4d603298cde843d0
+  - `research/results/portfolio/round64_parallel/F/coord/hold/hold_pull.py` f5f8c60987059ed1 (executed, not in the
+    list above; pinned too)
+- Reuse, no logic copied into the runner: `rule.trades` (events + F's costs) and `rule.load_sym / px_at / fund /
+  funding_hours`; F0 `pull.jobs_for / fetch` + `net.open_url` (aggTrades windows, streaming, pacing); F0 `analyze.
+  first_at / vwap_at / spread_w / clt` (entry, $10k fills, spread, day-clustered t). `hold_univ.py` and `hold_pull.py`
+  run at import, so the runner executes their hashed source with literal replacements only: perp_1d / output / exinfo
+  folders -> `data/f0_forward`, `END` / `END_MIN` -> the data end, pull-list start 2025-01-01 -> 2026-10-30
+  (`research/tests/test_f0_forward.py` checks that only string folder and integer date literals change). Module
+  folders redirected: `net.DATA`, `net.LOG`, `pull.NPZ`, `rule.FUND_DIRS`.
+- Beyond folders / dates (plumbing, not rule logic): (1) `events_only`, a return-free copy of the selection lines of
+  `rule.trades` (same guard, de-duplication and exit-availability drop, no price ratio of the trade), used only by
+  `progress` and the eval date gate so the event count can be read blind; `eval` itself grades `rule.trades` and refuses
+  if the two event sets differ. (2) Fetchers for fapi exchangeInfo (fresh each pull, for F's non-COIN filter), 1d klines
+  (perp_1d rows < 2026-10-30 from `research/data/binance/perp_1d`, later complete days from fapi), fundingRate, and fapi
+  REST fills for daily files data.binance.vision still lacks 2 days later (1m klines; aggTrades windows). (3) 1m files
+  per (coin, day) for universe coins plus the day before / after (HOLD pulled whole months; the event set is the same
+  as long as bars e-1..e+62 are present). (4) A manifest that re-streams an aggTrades day file when a later event needs
+  a window the file lacks. (5) URL-quoting of non-ASCII symbols (e.g. 币安人生USDT). (6) With T0 = 2026-10-30 00:00 the
+  first minute cannot be an event (no previous bar), as HOLD's last 62 minutes were not.
+- `check` (graded periods only): `events_only` = the registered HOLD run's 2,080 trades (sym, minute) exactly; = F0's
+  1,150 IS / VAL events exactly (`--full`); forward universe = HOLD universe on all 667 HOLD days; first-aggTrade entry
+  prices at 0 / 1 s = F0's sample rows on 60 events.
+- `eval` refuses (exit non-zero) unless: every hashed file matches, this runner's hash is in this file, this section's
+  "Forward result" is empty, and today is past the first month end with >= 3 full calendar months and n >= 333 with data
+  complete through it (earliest 2027-01-31), or the cap (2027-10-29). It appends its output below once.
+- First `progress` (2026-11-02 06:40 UTC; data complete through 2026-10-31, the 2026-11-01 1m files were not yet on
+  data.binance.vision): 13 events, 2 event days, 0 full months; pace ~198 / month -> n >= 333 projected 2026-12-21,
+  so the projected evaluation is the 2027-01-31 month end. Two days only: the pace is not informative yet.
+
 ## Forward result
 (appended at the evaluation date)
