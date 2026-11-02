@@ -4,19 +4,19 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AgentFxTrading</title>
-    <link rel="stylesheet" href="/static/css/dashboard.css?v=20261102_d8">
-    <script src="/static/js/auth.js?v=20261102_d8"></script>
+    <link rel="stylesheet" href="/static/css/dashboard.css?v=20261102_d9">
+    <script src="/static/js/auth.js?v=20261102_d9"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="/static/js/backtest.js?v=20261102_d8" defer></script>
-    <script src="/static/js/ledger.js?v=20261102_d8" defer></script>
-    <script src="/static/js/confirm_dialog.js?v=20261102_d8" defer></script>
-    <script src="/static/js/overview_alerts.js?v=20261102_d8" defer></script>
-    <script src="/static/js/overview_demo.js?v=20261102_d8" defer></script>
-    <script src="/static/js/overview_upcoming.js?v=20261102_d8" defer></script>
-    <script src="/static/js/research.js?v=20261102_d8" defer></script>
-    <script src="/static/js/paper_desk.js?v=20261102_d8" defer></script>
-    <script src="/static/js/gotobi_calendar.js?v=20261102_d8" defer></script>
+    <script src="/static/js/backtest.js?v=20261102_d9" defer></script>
+    <script src="/static/js/ledger.js?v=20261102_d9" defer></script>
+    <script src="/static/js/confirm_dialog.js?v=20261102_d9" defer></script>
+    <script src="/static/js/overview_alerts.js?v=20261102_d9" defer></script>
+    <script src="/static/js/overview_demo.js?v=20261102_d9" defer></script>
+    <script src="/static/js/overview_upcoming.js?v=20261102_d9" defer></script>
+    <script src="/static/js/research.js?v=20261102_d9" defer></script>
+    <script src="/static/js/paper_desk.js?v=20261102_d9" defer></script>
+    <script src="/static/js/gotobi_calendar.js?v=20261102_d9" defer></script>
     <link rel="icon" type="image/png" href="/static/favicon.png">
 </head>
 {# Nghiên cứu (redesign D step 3, 2026-11-01): one menu item, three tabs. Each tab is still its own view (#research,
@@ -570,9 +570,10 @@
                 <details class="page-help">
                     <summary>Cách đọc màn Ứng viên</summary>
                     <ul>
-                        <li>Mọi thuật toán đã nghiên cứu, theo bậc: <b>Đang live</b>, <b>Demo</b>, <b>Chờ kiểm</b>, <b>Đã loại</b> (docs/research-screen.md).</li>
-                        <li>Bấm một dòng để xem số nghiên cứu (IS, VAL, HOLD) và kết quả kiểm chứng so với luật dừng và nâng hạng đã đăng ký trước.</li>
-                        <li>Số chỉ lấy từ sổ nghiên cứu và từ lệnh của bot kiểm chứng.</li>
+                        <li>Mọi thuật toán đã nghiên cứu, theo chặng: <b>Tiền thật</b>, <b>Demo</b>, <b>Chờ anh quyết</b>, <b>Đã loại</b>.</li>
+                        <li>Mũi tên cho biết đang <b>mạnh lên</b>, <b>giữ vững</b> hay <b>yếu đi</b>; 4 cột nhỏ là lãi mỗi lệnh lúc tìm ra, hai lần kiểm và khi chạy (xanh lãi, đỏ lỗ).</li>
+                        <li>Bấm một dòng để xem thuật toán làm gì, lãi qua từng giai đoạn và hành trình có ngày. Số kỹ thuật (t, bp, luật dừng) nằm trong mục gập "Số kỹ thuật".</li>
+                        <li>Số chỉ lấy từ sổ nghiên cứu (research/registry.yaml, research/plain.yaml) và từ lệnh của bot (docs/research-screen.md).</li>
                     </ul>
                 </details>
             </div>
@@ -683,5 +684,5 @@
             positions: {{ positions | tojson }},
         };
     </script>
-    <script src="/static/js/dashboard.js?v=20261102_d8"></script>
+    <script src="/static/js/dashboard.js?v=20261102_d9"></script>
 </body></html>

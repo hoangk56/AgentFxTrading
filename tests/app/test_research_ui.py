@@ -15,7 +15,9 @@ PURE = ("rsNum", "rsTierOf", "rsTierLabel", "rsFold", "rsMatches", "rsFilter", "
         "rsSelection", "rsVerdictLabel", "rsVerdictHtml", "rsListItemsHtml", "rsCode", "rsChipsHtml",
         "rsItemStateHtml", "rsListHtml", "rsResearchHtml", "rsStatsHtml", "rsTone", "rsRulesWords", "rsCalendarHtml",
         "rsRulesTrackerHtml", "rsFillable", "rsBasisHtml", "rsTrackerHtml", "rsDetailHtml",
-        "rsTriedHtml", "rsStatusOf")
+        "rsTriedHtml", "rsStatusOf", "rsFlagOf", "rsTechHtml", "rsLiveRHtml", "rsPlainName", "rsUnitInfo", "rsVi",
+        "rsSure", "rsSureHtml", "rsRunLabel", "rsRealRun", "rsBarValues", "rsTrend", "rsTrendSentence", "rsTrendHtml",
+        "rsMiniBarsHtml", "rsPeriodChartHtml", "rsSureLineHtml", "rsJourneyHtml", "rsRealVerdict", "rsTrackerCount")
 
 
 def test_dashboard_has_the_research_nav_view_and_script():
@@ -30,7 +32,7 @@ def test_dashboard_has_the_research_nav_view_and_script():
 def _run(body: str) -> dict:
     dash = DASHBOARD_JS.read_text(encoding="utf-8")
     src = JS.read_text(encoding="utf-8")
-    consts = src[src.index("const RS_TIERS"):src.index("function rsNum(")]
+    consts = src[src.index("const RS_TIERS"):src.index("function rsNum(")]   # RS_TIERS, RS_UNITS, RS_PERIODS…
     script = "\n".join([_function(dash, "escapeHtml"), consts] + [_function(src, n) for n in PURE] + [body])
     run = subprocess.run([NODE, "-e", script], capture_output=True, text=True, timeout=30)
     assert run.returncode == 0, run.stderr
@@ -90,7 +92,7 @@ def test_research_renderers_escape_external_strings():
     assert 'data-rs-id="d"' not in out["list"] and "is-selected" in out["list"]
     assert "Tất cả <b>4</b>" in out["chips"] and "Demo <b>1</b>" in out["chips"]
     # the title line counts the tiers and names the tracker that hit its stop rule
-    assert out["status"] == ["crit", "1 đang live · 1 chạy demo · 1 chờ kiểm · 1 chạm luật dừng"]
+    assert out["status"] == ["crit", "1 tiền thật · 1 demo · 1 chờ anh quyết · 1 chạm luật dừng"]
     assert 'aria-expanded="true"' in out["triedOpen"] and "<table" not in out["triedShut"] and "1 hướng" in out["triedShut"]
     assert "Không có thuật toán nào khớp bộ lọc" in out["none"]
     assert "Chưa có dữ liệu" in out["basisOff"] and "API secret" not in out["basisOff"]
@@ -111,9 +113,144 @@ def test_research_filter_search_hash_and_selection():
                "picked: rsSelection(e, {tier: null, q: '', id: 'X'}).selected.id,"
                "hidden: rsSelection(e, {tier: 'live', q: '', id: 'G1'}).selected.id}));")
     assert out["vang"] == ["G1"] and out["dung"] == ["X"] and out["demo"] == ["G1"]
-    assert out["counts"] == {"all": 4, "live": 1, "demo": 1, "cho-kiem": 1, "da-loai": 1}    # unknown tier -> Chờ kiểm
+    assert out["counts"] == {"all": 4, "live": 1, "demo": 1, "cho-kiem": 1, "da-loai": 1}    # unknown tier -> Chờ anh quyết
     assert out["hash"] == {"tier": "demo", "q": "vàng", "id": "G1"}
     assert out["bad"] == {"tier": None, "q": "", "id": None}
     assert out["back"].startswith("#research?") and "tier=demo" in out["back"] and "id=G1" in out["back"]
     assert out["bare"] == "#research"
     assert out["first"] == "F3" and out["picked"] == "X" and out["hidden"] == "F3"
+
+
+def _plain(unit="bp", is_=None, hold=None, hold_t=None, **kw):
+    periods = {}
+    if is_ is not None:
+        periods["is"] = {"years": "2016–2021", "n": 100, "mean": is_, "t": 3.0}
+    if hold is not None:
+        periods["hold"] = {"years": "2025–2026", "n": 80, "mean": hold, "t": hold_t}
+    return {"name": "Tên dễ hiểu", "what": "Làm việc này.", "why": "Vì thế này.", "unit": unit, "periods": periods,
+            "history": [], "note": None, **kw}
+
+
+def _rules_tracker(n, mean, t, verdict="CONTINUE"):
+    return {"key": "ecb_f3", "kind": "rules", "available": True,
+            "data": {"verdict": verdict, "n": n, "mean": mean, "cum": n * (mean or 0), "pooled_t": 2.0, "forward_t": t,
+                     "hold_n": 117, "reasons": [], "manual": []},
+            "rules": {"stop_t_after": 60, "stop_t": -1.0, "stop_cum_after": None, "floor_after": None,
+                      "promote_after": 100, "promote_t": 2.5}}
+
+
+TREND_CASES = [  # (tier, is, hold, hold_t, real run {n, mean, t} or None) -> key, word
+    ("da-loai", 2, 2, 3, None, "out", "Đã loại"),
+    ("live", 0.043, 0.042, 2.9, None, "flat", "Giữ vững"),
+    ("demo", 5.99, 2.87, 1.43, None, "down", "Yếu dần"),
+    ("demo", 1.0, 1.3, 2.5, None, "up", "Mạnh lên"),
+    ("demo", 1.0, -0.1, -1, None, "down", "Yếu đi"),
+    ("demo", 1.0, 0.3, 1, None, "down", "Yếu đi"),
+    ("live", 2.0, 2.0, 2, {"n": 40, "mean": -0.5, "t": -1}, "down", "Yếu đi"),
+    ("live", 2.0, 2.0, 2, {"n": 40, "mean": 2.5, "t": 2.4}, "up", "Mạnh lên"),
+    ("live", 2.0, 2.0, 2, {"n": 40, "mean": 1.2, "t": 1.0}, "flat", "Giữ vững"),
+    ("live", 2.0, 2.0, 2, {"n": 40, "mean": 0.5, "t": 0.5}, "down", "Yếu dần"),     # 1,5 se under lúc tìm ra
+    ("live", 2.0, 2.0, 2, {"n": 40, "mean": 0.9, "t": 0.3}, "flat", "Giữ vững"),    # too noisy: research decides
+    ("live", 0.043, 0.042, 2.9, {"n": 42, "mean": -0.0202, "t": -0.25}, "flat", "Giữ vững"),   # Gotobi on ship day
+    ("live", 2.0, 2.0, 2, {"n": 40, "mean": -0.5, "t": None}, "flat", "Giữ vững"),  # no t: research decides
+    ("live", 2.0, 2.0, 2, {"n": 10, "mean": -9, "t": -3}, "flat", "Giữ vững"),   # under 30: research decides
+    ("demo", -1.0, 2.0, 2, None, "unk", "Chưa rõ"),
+    ("demo", -1.0, -2.0, 2, None, "down", "Yếu đi"),
+    ("demo", None, 2.0, 2, None, "unk", "Chưa rõ"),
+]
+
+
+@pytest.mark.skipif(NODE is None, reason="node is not installed")
+def test_trend_rule_table():
+    entries = []
+    for tier, is_, hold, hold_t, run, _, _ in TREND_CASES:
+        tracker = _rules_tracker(run["n"], run["mean"], run["t"]) if run else None
+        entries.append(_entry(tier=tier, plain=_plain("bp", is_, hold, hold_t), tracker=tracker, forward="ecb_f3"))
+    out = _run(f"const e = {json.dumps(entries)};\n"
+               "console.log(JSON.stringify(e.map(x => { const t = rsTrend(x); return [t.key, t.word]; })));")
+    assert out == [[key, word] for *_, key, word in TREND_CASES]
+
+
+@pytest.mark.skipif(NODE is None, reason="node is not installed")
+def test_certainty_words_units_and_numbers():
+    out = _run("console.log(JSON.stringify({"
+               "sure: [3, 2, 1, -0.99, -1, null].map(t => rsSure(t).word), few: rsSure(null, 3).word,"
+               "many: rsSure(2.1, 40).word, r: rsUnitInfo('R').scale, none: rsUnitInfo('usd'),"
+               "vi: [rsVi(2.39, true), rsVi(-2.18), rsVi(286.5), rsVi(4.3, true), rsVi(0.04), rsVi(null)]}));")
+    assert out["sure"] == ["Rất chắc", "Khá chắc", "Chưa chắc", "Như may rủi", "Lỗ khá rõ", "chưa có số"]
+    assert out["few"] == "mới 3 lệnh, chưa đủ" and out["many"] == "Khá chắc"
+    assert out["r"] == 100 and out["none"] is None
+    assert out["vi"] == ["+2,39", "−2,18", "287", "+4,3", "0,04", "–"]
+
+
+@pytest.mark.skipif(NODE is None, reason="node is not installed")
+def test_plain_detail_list_and_journey_escape_and_render():
+    plain = _plain("bp", 2.39, 2.0, 2.16, name=HOSTILE, what=HOSTILE, why=HOSTILE, note=HOSTILE,
+                   history=[{"date": "2026-10-15", "kind": "find", "text": HOSTILE},
+                            {"date": "2026-10-16", "kind": "live", "text": "Tiền thật"}])
+    live = _entry(plain=plain, forward="ecb_f3", tracker=_rules_tracker(3, -2.18, None))
+    demo = _entry(id="d", tier="demo", plain=plain, forward="ecb_f3", tracker=_rules_tracker(3, 1.0, None))
+    stop = _entry(id="s", tier="demo", plain=plain, forward="ecb_f3", tracker=_rules_tracker(60, -3, -1.5, "STOP"))
+    out = _run(f"const a = {json.dumps([live, demo, stop])};\n"
+               "const st = {tier: null, q: '', id: null}; const sel = rsSelection(a, st);\n"
+               "console.log(JSON.stringify({live: rsDetailHtml(a[0], {}), demo: rsDetailHtml(a[1], {}),"
+               "stop: rsDetailHtml(a[2], {}), list: rsListHtml(sel.ordered, sel.selected, st, {}),"
+               "run: rsRealRun(a[1]), found: rsFilter(a, {q: 'img'}).length}));")
+    for key in ("live", "demo", "stop", "list"):
+        assert "<img" not in out[key].lower() and "evil&lt;img" in out[key], key
+        assert "undefined" not in out[key] and "NaN" not in out[key], key
+    live_html = out["live"]
+    assert "Làm gì" in live_html and "Vì sao có lãi" in live_html and "Hành trình" in live_html
+    assert "Kiểm cuối lãi bằng 84% lúc tìm ra." in live_html and "Chạy thật: 3/100 lệnh, chưa đủ để kết luận." in live_html
+    assert "15/10/2026" in live_html and "rs-ev--live" in live_html and '<details class="rs-tech">' in live_html
+    assert "rs-chart" in live_html and "−2,18" in live_html and "mới 3 lệnh, chưa đủ" in live_html
+    assert "Chạy demo" in out["demo"] and "Chạy thật" not in out["demo"]
+    assert out["run"]["label"] == "Chạy demo" and out["run"]["n"] == 3
+    assert "Đã chạm luật dừng đăng ký trước." in out["stop"]
+    assert out["list"].count("rs-mini") == 3 and "fs-verdict--STOP" in out["list"] and "CONTINUE" not in out["list"]
+    assert out["found"] == 3                                         # search reaches the plain name
+
+
+@pytest.mark.skipif(NODE is None, reason="node is not installed")
+def test_fallback_without_plain_and_unit_mismatch_and_chart_edges():
+    bare = _entry(plain=None, description="Mô tả cũ")
+    mismatch = _entry(plain=_plain("R", 0.043, 0.042, 2.9), forward="ecb_f3", tracker=_rules_tracker(40, 2, 3))
+    edges = _entry(tier="demo", plain=_plain("bp", -2, 3, 1, periods={
+        "is": {"years": "a", "n": None, "mean": -2, "t": None}, "val": {"years": "b", "n": 5, "mean": 0, "t": 0},
+        "hold": {"years": "c", "n": 9, "mean": 3, "t": 1}}))
+    out = _run(f"const a = {json.dumps([bare, mismatch, edges])};\n"
+               "console.log(JSON.stringify({bare: rsDetailHtml(a[0], {}), bareRow: rsMiniBarsHtml(a[0]),"
+               "bareTrend: rsTrend(a[0]).word, run: rsRealRun(a[1]), mis: rsPeriodChartHtml(a[1]),"
+               "edges: rsPeriodChartHtml(a[2]), mini: rsMiniBarsHtml(a[2])}));")
+    assert "Mô tả cũ" in out["bare"] and "Sổ chưa có số của từng giai đoạn." in out["bare"]
+    assert "Sổ chưa ghi mốc thời gian." in out["bare"] and "undefined" not in out["bare"]
+    assert out["bareRow"] == "" and out["bareTrend"] == "Chưa rõ"
+    assert out["run"] is None and "chưa có" in out["mis"]
+    for svg in (out["edges"], out["mini"], out["mis"]):
+        assert "NaN" not in svg and "Infinity" not in svg
+    assert out["edges"].count("<line") == 1 and "−2" in out["edges"] and ">0<" in out["edges"]
+
+
+@pytest.mark.skipif(NODE is None, reason="node is not installed")
+def test_run_sentence_never_invents_an_empty_run():
+    zero = _rules_tracker(0, None, None)
+    zero["data"]["verdict"] = "NO_DATA"
+    off = {"key": "ecb_f3", "kind": "rules", "available": False, "message": "chưa có dữ liệu"}
+    cases = {
+        "zero": _entry(tier="demo", plain=_plain("bp", 2, 2, 2), forward="ecb_f3", tracker=zero),
+        "off": _entry(tier="demo", plain=_plain("bp", 2, 2, 2), forward="ecb_f3", tracker=off),
+        "mismatch": _entry(plain=_plain("R", 0.04, 0.04, 2), forward="ecb_f3", tracker=_rules_tracker(25, 1, 1)),
+        "noplain": _entry(tier="demo", plain=None, forward="ecb_f3", tracker=_rules_tracker(25, 1, 1)),
+        "noisy": _entry(plain=_plain("R", 0.043, 0.042, 2.9), forward=None, tracker={
+            "key": "live_r", "kind": "live_r", "available": True,
+            "data": {"n": 42, "mean": -0.0202, "forward_t": -0.25, "skipped": 0, "since": "2026-09-30"}}),
+    }
+    out = _run(f"const c = {json.dumps(cases)};\n"
+               "console.log(JSON.stringify(Object.fromEntries(Object.entries(c).map(([k, e]) => "
+               "[k, rsTrend(e).sentence + ' | ' + rsDetailHtml(e, {})]))));")
+    assert "Chạy demo: chưa có lệnh nào." in out["zero"]
+    assert "chưa đọc được" in out["off"] and "chưa có lệnh nào" not in out["off"]
+    for key in ("mismatch", "noplain"):
+        assert "chưa có lệnh nào" not in out[key], key
+    assert "chưa đủ chắc để đổi kết luận" in out["noisy"].split(" | ")[0]
+    assert "chưa trừ phí hoa hồng" in out["noisy"]

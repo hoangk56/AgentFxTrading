@@ -4,7 +4,7 @@ import sqlite3
 
 import pytest
 
-from app.forward_status import (CANDIDATES, COMMISSION_BP, evaluate, forward_status, load_nets, pooled_t,
+from app.forward_status import (CANDIDATES, COMMISSION_BP, evaluate, forward_status, forward_t, load_nets, pooled_t,
                                 trade_net_bp)
 
 
@@ -162,3 +162,15 @@ def test_calendar_alert_only_inside_the_warning_window():
     assert "còn 11 ngày" in alerts.check_calendar({"valid_through": "2026-12-11", "days_left": 11})
     assert "hết hạn" in alerts.check_calendar({"valid_through": "2026-12-11", "days_left": -1})
     assert len(sent) == 2
+
+
+def test_forward_t_is_mean_over_standard_error():
+    assert forward_t([]) is None and forward_t([3.0]) is None
+    assert forward_t([1.0, 3.0]) == pytest.approx(2.0)          # mean 2, sd 1.414, se 1.0
+    assert forward_t([2.0, 2.0]) is None                        # sd 0
+
+
+def test_evaluate_reports_forward_t_beside_pooled_t():
+    out = evaluate(CANDIDATES["ecb_f3"], [1.0, 3.0])
+    assert out["forward_t"] == pytest.approx(2.0) and "pooled_t" in out
+    assert evaluate(CANDIDATES["ecb_f3"], [])["forward_t"] is None

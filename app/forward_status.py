@@ -15,6 +15,7 @@ from __future__ import annotations
 
 import datetime
 import math
+import statistics
 from pathlib import Path
 from dataclasses import dataclass
 from typing import Dict, Iterable, List, Optional, Sequence, Tuple
@@ -94,6 +95,15 @@ def pooled_t(hold_n: int, hold_mean: float, hold_sd: float, values: Sequence[flo
     return mean / (sd / math.sqrt(n)) if sd > 0 else float("nan")
 
 
+def forward_t(values: Sequence[float]) -> Optional[float]:
+    """t of the forward values alone (mean over its standard error), rounded to 2; None under 2 values or no spread.
+    The research screen grades a real run on this, never on pooled_t, which already carries the HOLD run's t."""
+    if len(values) < 2:
+        return None
+    sd = statistics.stdev(values)
+    return round(statistics.fmean(values) / (sd / math.sqrt(len(values))), 2) if sd > 0 else None
+
+
 def evaluate(cand: Candidate, nets: Sequence[float]) -> dict:
     """Verdict for one candidate from its forward trades' net bp, oldest first."""
     n = len(nets)
@@ -101,10 +111,10 @@ def evaluate(cand: Candidate, nets: Sequence[float]) -> dict:
            "prereg": cand.prereg, "reasons": []}
     if n == 0:
         return {**out, "verdict": "NO_DATA", "mean": None, "cum": 0.0, "pooled_t": pooled_t(
-            cand.hold_n, cand.hold_mean, cand.hold_sd, []), "hold_n": cand.hold_n}
+            cand.hold_n, cand.hold_mean, cand.hold_sd, []), "forward_t": None, "hold_n": cand.hold_n}
     cum = sum(nets)
     pt = pooled_t(cand.hold_n, cand.hold_mean, cand.hold_sd, nets)
-    out.update(mean=cum / n, cum=cum, pooled_t=pt, hold_n=cand.hold_n)
+    out.update(mean=cum / n, cum=cum, pooled_t=pt, forward_t=forward_t(nets), hold_n=cand.hold_n)
 
     if cand.stop_cum_after is not None and n >= cand.stop_cum_after and cum < 0:
         out["reasons"].append(f"sau {cand.stop_cum_after} lệnh, tổng ròng {cum:+.1f} bp < 0")

@@ -307,3 +307,10 @@ def test_status_not_fillable_counts_zero():
 def test_status_function_on_empty_db(testdb):
     s = st.status()
     assert s["available"] is False and s["verdict"] == "NO_DATA" and s["signals"] == 0
+
+
+def test_status_reports_a_forward_only_t():
+    closed = [{"status": "closed", "fillable": 1, "net_book": v, "symbol": "ABCUSDT", "entry_ms": 1, "exit_ms": 2}
+              for v in (1e-4, 3e-4)]
+    assert st.evaluate(closed)["forward_t"] == pytest.approx(2.0)
+    assert st.evaluate([])["forward_t"] is None

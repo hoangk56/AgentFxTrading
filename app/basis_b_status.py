@@ -17,6 +17,7 @@ from typing import Any, Dict, List, Optional
 
 from app import basis_b as R
 from app import basis_b_store as store
+from app.forward_status import forward_t
 
 HOLD_N, HOLD_MEAN_BP, HOLD_T = 429, 213.5, 14.38
 STOP_AFTER = 40
@@ -77,7 +78,8 @@ def evaluate(trades: List[Dict[str, Any]], now_ms: Optional[int] = None) -> Dict
         "signals": len(trades), "closed_n": len(closed), "fillable": fill, "not_fillable": nofill,
         "unknown_borrow": unknown, "not_fillable_share": share,
         "cum_net_bp": round(cum * 1e4, 1), "mean_net_bp": round(cum / n * 1e4, 1) if n else None,
-        "pooled_t": round(pt, 2) if pt is not None else None, "verdict": verdict, "verdict_reason": reason,
+        "pooled_t": round(pt, 2) if pt is not None else None, "forward_t": forward_t([v * 1e4 for v in vals]),
+        "verdict": verdict, "verdict_reason": reason,
         "open": [{"coin": t["symbol"], "entry_time": _iso(t["entry_ms"]), "d_bp": round(t["d_bp"], 1),
                   "hours_open": (now_ms - t["entry_ms"]) // R.H_MS, "fillable": t.get("fillable")}
                  for t in sorted(opened, key=lambda t: -t["entry_ms"])],

@@ -25,6 +25,8 @@ from fastapi import APIRouter
 
 from app.forward_status import CANDIDATES, calendar_guard, forward_status
 from app.portfolio import get_portfolio_manager
+from app.research_plain import PLAIN_PATH, load_plain
+from app.live_r import live_r_status
 
 def _json_safe(value):
     """NaN is not JSON: a pooled t that cannot be computed goes out as null."""
@@ -163,8 +165,32 @@ def basis_b_tracker() -> dict:
             "message": None if status.get("available") else NO_DATA, "data": _json_safe(status)}
 
 
-def research_payload(path: Path = None) -> dict:
+def _live_r_db():
+    return get_portfolio_manager().db_path
+
+
+def live_r_tracker(entry: dict) -> Optional[dict]:
+    """Real-money R for a live algorithm sized by risk with no forward tracker of its own (Gotobi C3), or None when the
+    entry does not qualify. Its live date is the first `live` event of its plain journey."""
+    plain = entry.get("plain") or {}
+    if plain.get("unit") != "R" or entry["tier"] != "live" or entry["forward"] or not entry["bot"]:
+        return None
+    since = next((h["date"] for h in plain.get("history") or [] if h["kind"] == "live"), None)
+    out = {"key": "live_r", "kind": "live_r", "available": False, "message": NO_DATA}
+    try:
+        data = live_r_status(entry["bot"], since, _live_r_db())
+    except Exception as e:                      # a DB failure empties this tracker only
+        logger.warning(f"[RESEARCH] live R failed for {entry['id']}: {e}")
+        return out
+    return {**out, "available": True, "message": None, "data": _json_safe({**data, "since": since})}
+
+
+def research_payload(path: Path = None, plain_path: Path = None) -> dict:
     algorithms, tried, warnings = load_registry(path)
+    plain, plain_warnings = load_plain(plain_path or PLAIN_PATH, known_ids=[a["id"] for a in algorithms])
+    warnings = warnings + plain_warnings
+    for a in algorithms:
+        a["plain"] = plain.get(a["id"])
     wanted = {a["forward"] for a in algorithms if a["forward"]}
     trackers = _rule_trackers([k for k in RULE_TRACKERS if k in wanted])
     if "basis_b" in wanted:
@@ -174,7 +200,7 @@ def research_payload(path: Path = None) -> dict:
         if key and key not in trackers:
             trackers[key] = {"key": key, "kind": "unknown", "available": False,
                              "message": f"Không có bộ theo dõi tên \"{key}\"."}
-        a["tracker"] = trackers.get(key) if key else None
+        a["tracker"] = trackers.get(key) if key else live_r_tracker(a)
     return {
         "generated_at": datetime.datetime.now(datetime.timezone.utc).isoformat(timespec="seconds"),
         "registry": _rel(Path(path or REGISTRY_PATH)),
