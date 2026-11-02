@@ -1,0 +1,14 @@
+L30-X30  IS gross  +39.1 t +1.70 | net  +14.9 t +0.65 n 5 || VAL gross  +17.3 t +2.53 | net   -7.7 t -1.12 n 26 || ALL gross  +20.8 t +3.06 | net   -4.0 t -0.59 n 31
+L30-X4h  IS gross  +38.0 t +2.37 | net  +13.5 t +0.87 n 5 || VAL gross  +13.0 t +2.01 | net  -12.4 t -1.91 n 26 || ALL gross  +17.1 t +2.78 | net   -8.2 t -1.34 n 31
+L60-X30  IS gross   +9.0 t  +nan | net  -15.7 t  +nan n 1 || VAL gross  +10.7 t +1.91 | net  -13.9 t -2.48 n 8 || ALL gross  +10.5 t +2.12 | net  -14.1 t -2.86 n 9
+L60-X4h  IS gross  +42.6 t  +nan | net  +17.9 t  +nan n 1 || VAL gross   -8.5 t -0.97 | net  -33.7 t -3.82 n 8 || ALL gross   -2.9 t -0.30 | net  -28.0 t -2.89 n 9
+S30-X4h  IS gross  +20.8 t +2.02 | net   -4.6 t -0.45 n 25 || VAL gross  +30.7 t +3.37 | net   +5.5 t +0.61 n 30 || ALL gross  +26.2 t +3.86 | net   +0.9 t +0.13 n 55
+S60-X4h  IS gross  +44.8 t +2.68 | net  +19.3 t +1.14 n 13 || VAL gross  +34.6 t +2.30 | net   +9.2 t +0.61 n 16 || ALL gross  +39.2 t +3.56 | net  +13.7 t +1.24 n 29
+IS Roll half-spread at T: median 1.71 bp, p90 2.78, windows 43
+VAL Roll half-spread at T: median 2.00 bp, p90 3.13, windows 122
+L30-X30: VAL trigger share 0.17, HOLD n ~16, VAL SR -0.22, power -0.87
+L30-X4h: VAL trigger share 0.17, HOLD n ~16, VAL SR -0.38, power -1.49
+L60-X30: VAL trigger share 0.05, HOLD n ~5, VAL SR -0.88, power -1.93
+L60-X4h: VAL trigger share 0.05, HOLD n ~5, VAL SR -1.35, power -2.97
+S30-X4h: VAL trigger share 0.19, HOLD n ~18, VAL SR +0.11, power +0.47
+S60-X4h: VAL trigger share 0.10, HOLD n ~10, VAL SR +0.15, power +0.48

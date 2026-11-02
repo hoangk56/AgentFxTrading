@@ -1,0 +1,12 @@
+k1h1 IS: eps 31 ep-mean -13.3 ep-median -2.2 ep-win 0.42 | longest ep (17 trades) mean 47.3; without it net -11.7 t_cl -1.45 | ex-2018 net 4.3 t_cl 0.55 | power ep -0.78 tr -0.21
+k1h1 VAL: eps 23 ep-mean -1.0 ep-median -6.4 ep-win 0.39 | longest ep (161 trades) mean 3.1; without it net -5.3 t_cl -0.89 |  | power ep -0.12 tr -0.18
+k1h5 IS: eps 31 ep-mean 41.4 ep-median 4.6 ep-win 0.52 | longest ep (17 trades) mean 705.4; without it net 9.3 t_cl 0.32 | ex-2018 net 98.9 t_cl 1.29 | power ep 0.90 tr 1.36
+k1h5 VAL: eps 23 ep-mean 25.3 ep-median -2.3 ep-win 0.48 | longest ep (161 trades) mean 48.2; without it net 6.3 t_cl 0.21 |  | power ep 0.87 tr 2.31
+k1h20 IS: eps 31 ep-mean 82.8 ep-median 11.4 ep-win 0.52 | longest ep (17 trades) mean 403.8; without it net -26.8 t_cl -0.26 | ex-2018 net 50.2 t_cl 0.48 | power ep 0.69 tr 0.27
+k1h20 VAL: eps 22 ep-mean 81.3 ep-median 52.3 ep-win 0.59 | longest ep (161 trades) mean 305.7; without it net 75.6 t_cl 0.68 |  | power ep 1.05 tr 4.66
+k2h1 IS: eps 25 ep-mean -26.5 ep-median -3.4 ep-win 0.44 | longest ep (7 trades) mean -367.3; without it net -20.9 t_cl -1.17 | ex-2018 net -54.7 t_cl -1.08 | power ep -0.83 tr -0.82
+k2h1 VAL: eps 17 ep-mean -5.3 ep-median -7.0 ep-win 0.41 | longest ep (73 trades) mean 6.7; without it net -4.4 t_cl -0.73 |  | power ep -0.36 tr 0.49
+k2h5 IS: eps 25 ep-mean 70.2 ep-median 45.3 ep-win 0.68 | longest ep (7 trades) mean 511.8; without it net 25.4 t_cl 0.72 | ex-2018 net 98.7 t_cl 1.29 | power ep 1.35 tr 0.69
+k2h5 VAL: eps 17 ep-mean 20.6 ep-median -11.4 ep-win 0.29 | longest ep (73 trades) mean 86.5; without it net 16.0 t_cl 0.44 |  | power ep 0.52 tr 2.66
+k2h20 IS: eps 25 ep-mean 87.5 ep-median 183.9 ep-win 0.68 | longest ep (7 trades) mean 203.3; without it net -9.8 t_cl -0.09 | ex-2018 net 41.3 t_cl 0.38 | power ep 0.79 tr 0.16
+k2h20 VAL: eps 17 ep-mean 84.2 ep-median -19.7 ep-win 0.47 | longest ep (73 trades) mean 610.9; without it net 46.0 t_cl 0.34 |  | power ep 0.66 tr 4.38

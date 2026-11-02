@@ -1,0 +1,9 @@
+BTCBUSD vs BTCUSDT IS: hours 19996, implied USDT discount vs BUSD median -3.0 bp, p5 -17.0, p95 +16.0, hours > +30 bp 0.93 %, < -30 bp 1.16 %, max +98, min -115
+BTCBUSD vs BTCUSDT VAL: hours 17116, implied USDT discount vs BUSD median -0.8 bp, p5 -6.8, p95 +12.0, hours > +30 bp 0.44 %, < -30 bp 0.70 %, max +381, min -97
+   cross vs direct BUSDUSDT close at the same hour: corr 0.947, median |gap| 0.7 bp
+BTCUSDC vs BTCUSDT IS: hours 26651, implied USDT discount vs USDC median -3.2 bp, p5 -44.9, p95 +54.5, hours > +30 bp 8.65 %, < -30 bp 7.53 %, max +372, min -181
+BTCUSDC vs BTCUSDT VAL: hours 22364, implied USDT discount vs USDC median -0.8 bp, p5 -8.9, p95 +11.7, hours > +30 bp 0.13 %, < -30 bp 0.74 %, max +429, min -604
+   cross vs direct USDCUSDT close at the same hour: corr 0.991, median |gap| 1.3 bp
+BTCTUSD vs BTCUSDT IS: hours 24545, implied USDT discount vs TUSD median -2.9 bp, p5 -32.6, p95 +29.7, hours > +30 bp 4.94 %, < -30 bp 5.60 %, max +83270990000, min -302
+BTCTUSD vs BTCUSDT VAL: hours 22380, implied USDT discount vs TUSD median -6.0 bp, p5 -67.3, p95 +23.9, hours > +30 bp 3.47 %, < -30 bp 8.70 %, max +429, min -465
+   cross vs direct TUSDUSDT close at the same hour: corr 0.984, median |gap| 2.3 bp

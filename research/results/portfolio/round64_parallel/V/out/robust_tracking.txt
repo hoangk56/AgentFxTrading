@@ -1,0 +1,3 @@
+bybit: ex-crash n 123  shortfall mean 49.9 median 24.9 share>0 0.68  gap_h mean -43.2 median -16.9  corr(gap_h, shortfall) -0.88
+okx: ex-crash n 136  shortfall mean 46.0 median 16.9 share>0 0.76  gap_h mean -25.8 median -10.2  corr(gap_h, shortfall) -0.43
+kucoin: ex-crash n 204  shortfall mean 38.2 median 12.7 share>0 0.68  gap_h mean -42.8 median -12.0  corr(gap_h, shortfall) -0.70

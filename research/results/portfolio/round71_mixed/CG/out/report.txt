@@ -1,0 +1,110 @@
+=== declared cells (pooled BTC + ETH, cost 12 bp RT, funding incl.) ===
+G2_1d  IS  base       n  66 cl  53 net   -30.5 t -0.46 gross   -21.6 fund  +3.1 hit 0.44 hold 16.4h sd   482 closed 0
+G2_1d  IS  x1.5       n  66 cl  53 net   -36.5 t -0.55 gross   -21.6 fund  +3.1 hit 0.44 hold 16.4h sd   482 closed 0
+G2_1d  IS  late       n  66 cl  53 net   -29.2 t -0.44 gross   -20.3 fund  +3.1 hit 0.44 hold 16.4h sd   483 closed 0
+G2_1d  IS  late+x1.5  n  66 cl  53 net   -35.2 t -0.53 gross   -20.3 fund  +3.1 hit 0.44 hold 16.4h sd   483 closed 0
+G2_1d  VAL base       n  83 cl  59 net  -191.1 t -2.74 gross  -180.3 fund  +1.2 hit 0.24 hold 21.2h sd   492 closed 0
+G2_1d  VAL x1.5       n  83 cl  59 net  -197.1 t -2.82 gross  -180.3 fund  +1.2 hit 0.24 hold 21.2h sd   492 closed 0
+G2_1d  VAL late       n  83 cl  59 net  -192.0 t -2.75 gross  -181.2 fund  +1.2 hit 0.24 hold 21.2h sd   491 closed 0
+G2_1d  VAL late+x1.5  n  83 cl  59 net  -198.0 t -2.84 gross  -181.2 fund  +1.2 hit 0.24 hold 21.2h sd   491 closed 0
+
+G2_3d  IS  base       n  66 cl  53 net   -68.0 t -0.65 gross   -66.7 fund +10.7 hit 0.55 hold 41.8h sd   700 closed 0
+G2_3d  IS  x1.5       n  66 cl  53 net   -74.0 t -0.71 gross   -66.7 fund +10.7 hit 0.55 hold 41.8h sd   700 closed 0
+G2_3d  IS  late       n  66 cl  53 net   -68.6 t -0.66 gross   -67.3 fund +10.7 hit 0.55 hold 41.8h sd   696 closed 0
+G2_3d  IS  late+x1.5  n  66 cl  53 net   -74.6 t -0.72 gross   -67.3 fund +10.7 hit 0.55 hold 41.8h sd   696 closed 0
+G2_3d  VAL base       n  83 cl  59 net  -193.9 t -2.00 gross  -185.7 fund  +3.8 hit 0.43 hold 52.4h sd   744 closed 0
+G2_3d  VAL x1.5       n  83 cl  59 net  -199.9 t -2.06 gross  -185.7 fund  +3.8 hit 0.43 hold 52.4h sd   744 closed 0
+G2_3d  VAL late       n  83 cl  59 net  -194.0 t -2.01 gross  -185.8 fund  +3.8 hit 0.43 hold 52.4h sd   745 closed 0
+G2_3d  VAL late+x1.5  n  83 cl  59 net  -200.0 t -2.07 gross  -185.8 fund  +3.8 hit 0.43 hold 52.4h sd   745 closed 0
+
+G4_1d  IS  base       n  30 cl  24 net   -28.2 t -0.25 gross   -16.4 fund  +0.3 hit 0.33 hold 18.9h sd   547 closed 0
+G4_1d  IS  x1.5       n  30 cl  24 net   -34.2 t -0.30 gross   -16.4 fund  +0.3 hit 0.33 hold 18.9h sd   547 closed 0
+G4_1d  IS  late       n  30 cl  24 net   -24.2 t -0.21 gross   -12.5 fund  +0.3 hit 0.33 hold 18.9h sd   549 closed 0
+G4_1d  IS  late+x1.5  n  30 cl  24 net   -30.2 t -0.26 gross   -12.5 fund  +0.3 hit 0.33 hold 18.9h sd   549 closed 0
+G4_1d  VAL base       n  39 cl  29 net  -330.2 t -2.72 gross  -319.7 fund  +1.5 hit 0.15 hold 22.0h sd   597 closed 0
+G4_1d  VAL x1.5       n  39 cl  29 net  -336.2 t -2.77 gross  -319.7 fund  +1.5 hit 0.15 hold 22.0h sd   597 closed 0
+G4_1d  VAL late       n  39 cl  29 net  -326.7 t -2.67 gross  -316.2 fund  +1.5 hit 0.15 hold 22.0h sd   602 closed 0
+G4_1d  VAL late+x1.5  n  39 cl  29 net  -332.7 t -2.71 gross  -316.2 fund  +1.5 hit 0.15 hold 22.0h sd   602 closed 0
+
+G4_3d  IS  base       n  30 cl  24 net  -129.3 t -0.65 gross  -120.7 fund  +3.5 hit 0.40 hold 50.5h sd   886 closed 0
+G4_3d  IS  x1.5       n  30 cl  24 net  -135.3 t -0.68 gross  -120.7 fund  +3.5 hit 0.40 hold 50.5h sd   886 closed 0
+G4_3d  IS  late       n  30 cl  24 net  -126.3 t -0.64 gross  -117.7 fund  +3.5 hit 0.40 hold 50.6h sd   883 closed 0
+G4_3d  IS  late+x1.5  n  30 cl  24 net  -132.3 t -0.67 gross  -117.7 fund  +3.5 hit 0.40 hold 50.6h sd   883 closed 0
+G4_3d  VAL base       n  39 cl  29 net  -363.7 t -2.42 gross  -356.8 fund  +5.0 hit 0.26 hold 60.0h sd   765 closed 0
+G4_3d  VAL x1.5       n  39 cl  29 net  -369.7 t -2.46 gross  -356.8 fund  +5.0 hit 0.26 hold 60.0h sd   765 closed 0
+G4_3d  VAL late       n  39 cl  29 net  -355.0 t -2.37 gross  -348.0 fund  +5.0 hit 0.26 hold 60.0h sd   766 closed 0
+G4_3d  VAL late+x1.5  n  39 cl  29 net  -361.0 t -2.41 gross  -348.0 fund  +5.0 hit 0.26 hold 60.0h sd   766 closed 0
+
+=== by year (base) ===
+G2_1d  2020:     -1 (n 15) | 2021:    -39 (n 51) | 2022:   -146 (n 39) | 2023:   -218 (n 16) | 2024:   -238 (n 28)  positive years 0/5
+G2_3d  2020:     -5 (n 15) | 2021:    -86 (n 51) | 2022:   -230 (n 39) | 2023:   -238 (n 16) | 2024:   -119 (n 28)  positive years 0/5
+G4_1d  2020:    +80 (n  7) | 2021:    -61 (n 23) | 2022:   -356 (n 16) | 2023:   -328 (n  9) | 2024:   -302 (n 14)  positive years 1/5
+G4_3d  2020:    +36 (n  7) | 2021:   -180 (n 23) | 2022:   -468 (n 16) | 2023:   -278 (n  9) | 2024:   -300 (n 14)  positive years 1/5
+
+=== split by coin (base, information) ===
+G2_1d  BTCUSDT IS  n  42 cl  42 net   -59.0 t -0.76 gross   -49.7 fund  +2.6 hit 0.40 hold 16.8h sd   503 closed 0
+G2_1d  BTCUSDT VAL n  31 cl  31 net  -270.1 t -2.95 gross  -259.2 fund  +1.1 hit 0.23 hold 21.7h sd   511 closed 0
+G2_1d  ETHUSDT IS  n  24 cl  24 net   +19.4 t +0.21 gross   +27.5 fund  +3.9 hit 0.50 hold 15.8h sd   447 closed 0
+G2_1d  ETHUSDT VAL n  52 cl  52 net  -143.9 t -2.17 gross  -133.2 fund  +1.3 hit 0.25 hold 20.9h sd   479 closed 0
+G2_3d  BTCUSDT IS  n  42 cl  42 net   -88.1 t -0.93 gross   -85.2 fund  +9.1 hit 0.45 hold 44.5h sd   616 closed 0
+G2_3d  BTCUSDT VAL n  31 cl  31 net  -233.1 t -1.98 gross  -224.5 fund  +3.4 hit 0.42 hold 55.8h sd   654 closed 0
+G2_3d  ETHUSDT IS  n  24 cl  24 net   -32.8 t -0.19 gross   -34.5 fund +13.6 hit 0.71 hold 37.2h sd   841 closed 0
+G2_3d  ETHUSDT VAL n  52 cl  52 net  -170.5 t -1.54 gross  -162.5 fund  +4.0 hit 0.44 hold 50.4h sd   798 closed 0
+G4_1d  BTCUSDT IS  n  17 cl  17 net    +7.8 t +0.06 gross   +22.1 fund  -2.3 hit 0.29 hold 19.3h sd   554 closed 0
+G4_1d  BTCUSDT VAL n  13 cl  13 net  -513.8 t -3.02 gross  -503.5 fund  +1.7 hit 0.08 hold 22.8h sd   614 closed 0
+G4_1d  ETHUSDT IS  n  13 cl  13 net   -75.1 t -0.49 gross   -66.8 fund  +3.7 hit 0.38 hold 18.5h sd   556 closed 0
+G4_1d  ETHUSDT VAL n  26 cl  26 net  -238.4 t -2.10 gross  -227.8 fund  +1.4 hit 0.19 hold 21.6h sd   578 closed 0
+G4_3d  BTCUSDT IS  n  17 cl  17 net   -79.8 t -0.43 gross   -63.3 fund  -4.4 hit 0.29 hold 53.1h sd   758 closed 0
+G4_3d  BTCUSDT VAL n  13 cl  13 net  -544.0 t -2.43 gross  -538.1 fund  +6.1 hit 0.15 hold 66.9h sd   808 closed 0
+G4_3d  ETHUSDT IS  n  13 cl  13 net  -194.0 t -0.66 gross  -195.7 fund +13.8 hit 0.54 hold 47.2h sd  1059 closed 0
+G4_3d  ETHUSDT VAL n  26 cl  26 net  -273.6 t -1.88 gross  -266.1 fund  +4.5 hit 0.31 hold 56.5h sd   742 closed 0
+
+=== sign split (base, pooled IS+VAL): fade after weekend rally (short) vs after drop (long) ===
+G2_1d  side -1 IS  n  41 cl  33 net   -71.3 t -0.82 gross   -67.0 fund  +7.7 hit 0.44 hold 16.9h sd   505 closed 0
+G2_1d  side -1 VAL n  46 cl  34 net  -179.0 t -2.18 gross  -169.5 fund  +2.6 hit 0.24 hold 20.9h sd   450 closed 0
+G2_1d  side +1 IS  n  25 cl  20 net   +36.4 t +0.36 gross   +52.8 fund  -4.4 hit 0.44 hold 15.6h sd   443 closed 0
+G2_1d  side +1 VAL n  37 cl  25 net  -206.1 t -1.71 gross  -193.6 fund  -0.5 hit 0.24 hold 21.5h sd   545 closed 0
+G2_3d  side -1 IS  n  41 cl  33 net  -123.3 t -1.08 gross  -132.9 fund +21.7 hit 0.54 hold 42.6h sd   645 closed 0
+G2_3d  side -1 VAL n  46 cl  34 net  -104.5 t -1.12 gross   -99.9 fund  +7.3 hit 0.41 hold 52.2h sd   551 closed 0
+G2_3d  side +1 IS  n  25 cl  20 net   +22.6 t +0.11 gross   +41.8 fund  -7.2 hit 0.56 hold 40.6h sd   788 closed 0
+G2_3d  side +1 VAL n  37 cl  25 net  -305.0 t -1.66 gross  -292.3 fund  -0.7 hit 0.46 hold 52.6h sd   926 closed 0
+G4_1d  side -1 IS  n  16 cl  13 net   -41.8 t -0.26 gross   -35.6 fund  +5.8 hit 0.38 hold 19.0h sd   559 closed 0
+G4_1d  side -1 VAL n  22 cl  16 net  -239.1 t -1.71 gross  -230.1 fund  +3.0 hit 0.18 hold 21.2h sd   524 closed 0
+G4_1d  side +1 IS  n  14 cl  11 net   -12.6 t -0.08 gross    +5.4 fund  -6.0 hit 0.29 hold 18.8h sd   553 closed 0
+G4_1d  side +1 VAL n  17 cl  13 net  -448.2 t -2.14 gross  -435.7 fund  -0.5 hit 0.12 hold 23.0h sd   678 closed 0
+G4_3d  side -1 IS  n  16 cl  13 net  -142.3 t -0.65 gross  -145.0 fund +14.7 hit 0.44 hold 48.7h sd   758 closed 0
+G4_3d  side -1 VAL n  22 cl  16 net  -177.6 t -1.16 gross  -175.0 fund  +9.4 hit 0.27 hold 58.4h sd   623 closed 0
+G4_3d  side +1 IS  n  14 cl  11 net  -114.3 t -0.32 gross   -92.9 fund  -9.4 hit 0.36 hold 52.7h sd  1043 closed 0
+G4_3d  side +1 VAL n  17 cl  13 net  -604.6 t -2.33 gross  -592.1 fund  -0.5 hit 0.24 hold 62.0h sd   878 closed 0
+
+=== power at VAL size ===
+G2_1d  S/trade -0.389 n_H  50.6 power -2.77 clustered power t_VAL*sqrt(.61) -2.14  needed S 0.42
+G2_3d  S/trade -0.261 n_H  50.6 power -1.85 clustered power t_VAL*sqrt(.61) -1.56  needed S 0.42
+G4_1d  S/trade -0.553 n_H  23.8 power -2.70 clustered power t_VAL*sqrt(.61) -2.12  needed S 0.62
+G4_3d  S/trade -0.476 n_H  23.8 power -2.32 clustered power t_VAL*sqrt(.61) -1.89  needed S 0.62
+
+=== random benchmark (a): weekday 16:00 CT anchors, 49 h pseudo gap ===
+G2_1d  IS  real  -30.5 | Mon  -48.3 Tue  +25.2 Wed   -1.0 Thu  +42.8 | beats 0.25
+G2_1d  VAL real -191.1 | Mon  +35.4 Tue  -77.6 Wed  -66.6 Thu  +25.7 | beats 0.00
+G2_3d  IS  real  -68.0 | Mon  -64.1 Tue   +1.9 Wed  +28.9 Thu  +66.6 | beats 0.00
+G2_3d  VAL real -193.9 | Mon  -34.5 Tue -109.1 Wed -114.0 Thu -105.9 | beats 0.00
+G4_1d  IS  real  -28.2 | Mon  -31.3 Tue  +12.6 Wed  -17.2 Thu  +58.5 | beats 0.25
+G4_1d  VAL real -330.2 | Mon  +39.0 Tue  -61.0 Wed  -86.6 Thu  +20.7 | beats 0.00
+G4_3d  IS  real -129.3 | Mon  -63.0 Tue  -48.9 Wed  +29.0 Thu +122.9 | beats 0.00
+G4_3d  VAL real -363.7 | Mon  -20.6 Tue  -60.2 Wed -100.0 Thu -140.5 | beats 0.00
+
+=== random benchmark (b): hour-of-week placebo, 49 h pseudo gap ===
+G2_1d  IS  real  -30.5 placebo median  -23.7 p90  +19.2 random %  38.3 (n anchors 120)
+G2_3d  IS  real  -68.0 placebo median  -26.2 p90  +68.6 random %  20.0 (n anchors 120)
+G4_1d  IS  real  -28.2 placebo median  -26.4 p90  +27.7 random %  45.8 (n anchors 120)
+G4_3d  IS  real -129.3 placebo median  -36.4 p90  +96.0 random %   6.7 (n anchors 120)
+max-over-4 IS: best real  -28.2, beats 15.0 % of anchors' best
+G2_1d  VAL real -191.1 placebo median   -1.6 p90  +41.6 random %   0.0 (n anchors 120)
+G2_3d  VAL real -193.9 placebo median  -44.4 p90  +72.1 random %   0.0 (n anchors 120)
+G4_1d  VAL real -330.2 placebo median   +0.6 p90  +51.2 random %   0.0 (n anchors 120)
+G4_3d  VAL real -363.7 placebo median  -47.6 p90  +79.3 random %   0.0 (n anchors 120)
+max-over-4 VAL: best real -191.1, beats 0.0 % of anchors' best
+
+=== placebo event counts (k = 2 %, IS / VAL, median over anchors) ===
+IS real 66 placebo median 106.0
+VAL real 83 placebo median 174.0

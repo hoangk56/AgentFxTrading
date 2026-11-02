@@ -1,0 +1,5 @@
+HOLD n 92 net +221 bp t 0.88 median +656 worst -9959 best +4032 gross +775 funding -512
+  x1.5 net +200; L+2h entry net +160 (n 92)
+  2025: n 45 net -110
+  2026: n 47 net +539
+PASS (DEMO bar: net > 0)

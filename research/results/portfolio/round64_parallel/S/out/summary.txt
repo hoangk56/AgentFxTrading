@@ -1,0 +1,147 @@
+# coverage (1m bars, < 2025-01-01)
+USDCUSDT: 2018-12-15 03:12 .. 2024-12-31 23:59, bars 2936978, IS 1598518, VAL 1338460, median quote vol/min 27365 USDT, zero-trade bars 4.1 %
+   IS: minutes with d>=10bp 24.33 %, >=30 7.444 %, >=100 0.7770 %, rich<=-30 8.550 %, min close 0.9802, max 1.0441
+   VAL: minutes with d>=10bp 3.99 %, >=30 0.899 %, >=100 0.2080 %, rich<=-30 0.127 %, min close 0.9050, max 1.1055
+BUSDUSDT: 2019-09-20 08:00 .. 2023-12-15 04:59, bars 2224911, IS 1197971, VAL 1026940, median quote vol/min 108521 USDT, zero-trade bars 2.6 %
+   IS: minutes with d>=10bp 16.90 %, >=30 0.751 %, >=100 0.0023 %, rich<=-30 0.610 %, min close 0.0005, max 306.0963
+   VAL: minutes with d>=10bp 2.57 %, >=30 0.744 %, >=100 0.0021 %, rich<=-30 0.387 %, min close 0.9878, max 1.0901
+TUSDUSDT: 2018-05-31 09:32 .. 2024-12-31 23:59, bars 3219926, IS 1881466, VAL 1338460, median quote vol/min 2151 USDT, zero-trade bars 12.1 %
+   IS: minutes with d>=10bp 22.84 %, >=30 7.608 %, >=100 0.6062 %, rich<=-30 14.169 %, min close 0.9712, max 1.2291
+   VAL: minutes with d>=10bp 34.16 %, >=30 8.569 %, >=100 4.6441 %, rich<=-30 2.769 %, min close 0.9521, max 1.0660
+PAXUSDT: 2018-10-04 10:00 .. 2021-09-06 03:59, bars 1533040, IS 1533040, VAL 0, median quote vol/min 901 USDT, zero-trade bars 22.9 %
+   IS: minutes with d>=10bp 24.99 %, >=30 8.040 %, >=100 1.2844 %, rich<=-30 14.396 %, min close 0.9663, max 1.2000
+USDPUSDT: 2021-09-10 04:00 .. 2024-12-31 23:59, bars 1500820, IS 162360, VAL 1338460, median quote vol/min 0 USDT, zero-trade bars 65.2 %
+   IS: minutes with d>=10bp 4.45 %, >=30 0.012 %, >=100 0.0000 %, rich<=-30 0.028 %, min close 0.9902, max 2.0000
+   VAL: minutes with d>=10bp 3.86 %, >=30 0.741 %, >=100 0.2010 %, rich<=-30 1.035 %, min close 0.9483, max 1.4925
+FDUSDUSDT: 2023-07-26 08:00 .. 2024-12-31 23:59, bars 755265, IS 0, VAL 755265, median quote vol/min 116113 USDT, zero-trade bars 1.9 %
+   VAL: minutes with d>=10bp 21.94 %, >=30 0.662 %, >=100 0.0011 %, rich<=-30 2.794 %, min close 0.9867, max 1.0155
+DAIUSDT: 2020-07-23 14:00 .. 2020-08-12 03:59, bars 28200, IS 28200, VAL 0, median quote vol/min 0 USDT, zero-trade bars 57.6 %
+   IS: minutes with d>=10bp 0.00 %, >=30 0.000 %, >=100 0.0000 %, rich<=-30 99.706 %, min close 1.0004, max 1.1000
+USDSUSDT: 2019-02-14 10:00 .. 2020-06-24 06:59, bars 711604, IS 711604, VAL 0, median quote vol/min 0 USDT, zero-trade bars 89.0 %
+   IS: minutes with d>=10bp 58.71 %, >=30 33.254 %, >=100 3.5731 %, rich<=-30 12.770 %, min close 0.9002, max 1.1129
+USDSBUSDT: 2019-06-24 10:21 .. 2019-09-27 10:59, bars 136359, IS 136359, VAL 0, median quote vol/min 0 USDT, zero-trade bars 98.1 %
+   IS: minutes with d>=10bp 66.68 %, >=30 34.228 %, >=100 0.4151 %, rich<=-30 5.742 %, min close 0.9621, max 1.2899
+
+# cell k=10 bp, H=1 d  (net = after standard 10 bp taker + half-spread, minus DFF cash)
+  IS excess: n 8966, episodes 58 (pos 0), mean -17.8 bp, t_ep -35.50, Sh/ep -0.29, Sh/tr -0.53
+     gross +3.9 bp (t +7.68); net before cash -17.8; x1.5 -28.7 (t -57.29); late -18.2 (t -48.92, n 8578); zero-fee from 2023-07 -17.8 (t -35.50)
+     TAKER-VWAP fill (excess): -20.0 bp (t -37.55, ep pos 0/58, Sh/ep -0.29); x1.5 -30.0 (t -56.36); late -20.2 (t -43.60); zero-fee -20.0 (t -37.55); worst-fill -20.4 (t -58.10)
+     taker-fill years: 2018 -24.9, 2019 -20.0, 2020 -18.5, 2021 -17.7
+     exits {'revert': 8146, 'time': 818, 'end': 2}; median hold 0.5 h; pairs ['BUSDUSDT', 'PAXUSDT', 'TUSDUSDT', 'USDCUSDT', 'USDPUSDT', 'USDSBUSDT', 'USDSUSDT']
+     years: 2018 -19.4 (n 945), 2019 -17.4 (n 5218), 2020 -18.1 (n 1880), 2021 -17.9 (n 923)
+     pairs: BUSDUSDT -17.0 (n 560), PAXUSDT -18.0 (n 1480), TUSDUSDT -18.7 (n 2912), USDCUSDT -17.5 (n 2229), USDPUSDT -21.1 (n 32), USDSBUSDT -3.1 (n 206), USDSUSDT -18.5 (n 1547)
+     random uniform: rule beats 100.0 % (rand mean -20.6); same-discount: beats 99.7 % (rand mean -13.0)
+  VAL excess: n 1024, episodes 34 (pos 1), mean -18.3 bp, t_ep -12.52, Sh/ep -0.46, Sh/tr -0.65
+     gross +4.2 bp (t +2.87); net before cash -17.4; x1.5 -29.1 (t -19.92); late -18.5 (t -12.99, n 1019); zero-fee from 2023-07 -1.4 (t -1.21)
+     TAKER-VWAP fill (excess): -18.0 bp (t -13.60, ep pos 1/34, Sh/ep -0.47); x1.5 -28.0 (t -21.15); late -17.8 (t -12.46); zero-fee -1.1 (t -1.05); worst-fill -18.8 (t -14.73)
+     taker-fill years: 2022 -16.0, 2023 -16.5, 2024 -19.0
+     exits {'revert': 507, 'time': 516, 'end': 1}; median hold 24.0 h; pairs ['BUSDUSDT', 'FDUSDUSDT', 'TUSDUSDT', 'USDCUSDT', 'USDPUSDT']
+     years: 2022 -16.0 (n 1), 2023 -16.9 (n 402), 2024 -19.2 (n 621)
+     pairs: BUSDUSDT -19.7 (n 34), FDUSDUSDT -18.7 (n 234), TUSDUSDT -20.5 (n 445), USDCUSDT -9.4 (n 100), USDPUSDT -17.2 (n 211)
+     random uniform: rule beats 100.0 % (rand mean -22.6); same-discount: beats 99.9 % (rand mean -20.3)
+     power at VAL size: by episode -2.10 (HOLD ~20.7 episodes), by trade -16.12; taker fill by episode -2.12
+     largest episodes (|sum|): 2019-05-11 BUSD/PAX/TUSD/USDC/USDS/USDSB n4030 -67615bp; 2020-02-05 BUSD/PAX/TUSD/USDC/USDS n1198 -21575bp; 2018-12-17 PAX/TUSD/USDC n604 -11477bp; 2018-06-30 TUSD n419 -8349bp; 2021-04-15 BUSD/PAX/TUSD/USDC n376 -6847bp; 2019-04-02 PAX/TUSD/USDC/USDS n340 -6790bp; 2019-11-22 BUSD/PAX/TUSD/USDC/USDS n327 -6228bp; 2021-01-19 BUSD/PAX/TUSD/USDC n284 -5211bp
+
+# cell k=10 bp, H=7 d  (net = after standard 10 bp taker + half-spread, minus DFF cash)
+  IS excess: n 8204, episodes 58 (pos 0), mean -17.5 bp, t_ep -35.79, Sh/ep -0.29, Sh/tr -0.51
+     gross +4.3 bp (t +8.67); net before cash -17.4; x1.5 -28.3 (t -57.85); late -17.8 (t -48.36, n 7818); zero-fee from 2023-07 -17.5 (t -35.79)
+     TAKER-VWAP fill (excess): -19.7 bp (t -34.81, ep pos 0/58, Sh/ep -0.28); x1.5 -29.7 (t -52.47); late -20.0 (t -38.73); zero-fee -19.7 (t -34.81); worst-fill -20.2 (t -50.51)
+     taker-fill years: 2018 -24.9, 2019 -19.8, 2020 -17.8, 2021 -17.3
+     exits {'revert': 8170, 'time': 32, 'end': 2}; median hold 0.4 h; pairs ['BUSDUSDT', 'PAXUSDT', 'TUSDUSDT', 'USDCUSDT', 'USDPUSDT', 'USDSBUSDT', 'USDSUSDT']
+     years: 2018 -19.4 (n 906), 2019 -17.1 (n 4862), 2020 -17.5 (n 1631), 2021 -17.4 (n 805)
+     pairs: BUSDUSDT -16.1 (n 457), PAXUSDT -17.6 (n 1321), TUSDUSDT -18.5 (n 2758), USDCUSDT -17.3 (n 2078), USDPUSDT -21.0 (n 28), USDSBUSDT -2.0 (n 190), USDSUSDT -18.0 (n 1372)
+     random uniform: rule beats 99.8 % (rand mean -16.9); same-discount: beats 99.7 % (rand mean -12.7)
+  VAL excess: n 564, episodes 34 (pos 2), mean -15.5 bp, t_ep -5.43, Sh/ep -0.37, Sh/tr -0.33
+     gross +7.7 bp (t +2.59); net before cash -13.9; x1.5 -26.3 (t -9.21); late -15.9 (t -5.66, n 559); zero-fee from 2023-07 +2.2 (t +0.91)
+     TAKER-VWAP fill (excess): -15.5 bp (t -5.85, ep pos 2/34, Sh/ep -0.37); x1.5 -25.5 (t -9.61); late -15.1 (t -5.13); zero-fee +2.1 (t +1.00); worst-fill -17.0 (t -6.68)
+     taker-fill years: 2022 -16.0, 2023 -12.1, 2024 -17.6
+     exits {'revert': 524, 'time': 39, 'end': 1}; median hold 4.6 h; pairs ['BUSDUSDT', 'FDUSDUSDT', 'TUSDUSDT', 'USDCUSDT', 'USDPUSDT']
+     years: 2022 -16.0 (n 1), 2023 -12.3 (n 209), 2024 -17.4 (n 354)
+     pairs: BUSDUSDT -18.9 (n 19), FDUSDUSDT -16.7 (n 131), TUSDUSDT -17.8 (n 156), USDCUSDT -4.4 (n 71), USDPUSDT -16.6 (n 187)
+     random uniform: rule beats 100.0 % (rand mean -23.4); same-discount: beats 100.0 % (rand mean -20.9)
+     power at VAL size: by episode -1.67 (HOLD ~20.7 episodes), by trade -6.15; taker fill by episode -1.71
+     largest episodes (|sum|): 2019-05-11 BUSD/PAX/TUSD/USDC/USDS/USDSB n3804 -62879bp; 2020-02-05 BUSD/PAX/TUSD/USDC/USDS n993 -17043bp; 2018-12-17 PAX/TUSD/USDC n529 -9911bp; 2018-06-30 TUSD n407 -8095bp; 2019-11-22 BUSD/PAX/TUSD/USDC/USDS n315 -5990bp; 2021-04-15 BUSD/PAX/TUSD/USDC n318 -5604bp; 2019-04-02 PAX/TUSD/USDC/USDS n270 -5321bp; 2021-01-19 BUSD/PAX/TUSD/USDC n267 -4848bp
+
+# cell k=30 bp, H=1 d  (net = after standard 10 bp taker + half-spread, minus DFF cash)
+  IS excess: n 2111, episodes 43 (pos 2), mean -14.0 bp, t_ep -11.00, Sh/ep -0.40, Sh/tr -0.55
+     gross +7.9 bp (t +6.15); net before cash -13.9; x1.5 -24.9 (t -19.61); late -14.1 (t -21.42, n 2029); zero-fee from 2023-07 -14.0 (t -11.00)
+     TAKER-VWAP fill (excess): -18.7 bp (t -11.73, ep pos 2/43, Sh/ep -0.39); x1.5 -28.7 (t -18.01); late -18.6 (t -21.18); zero-fee -18.7 (t -11.73); worst-fill -20.4 (t -12.51)
+     taker-fill years: 2018 -22.5, 2019 -17.0, 2020 -24.2, 2021 -10.3
+     exits {'revert': 1772, 'time': 337, 'end': 2}; median hold 1.3 h; pairs ['BUSDUSDT', 'PAXUSDT', 'TUSDUSDT', 'USDCUSDT', 'USDPUSDT', 'USDSBUSDT', 'USDSUSDT']
+     years: 2018 -15.0 (n 273), 2019 -13.1 (n 1381), 2020 -17.9 (n 367), 2021 -8.8 (n 90)
+     pairs: BUSDUSDT -1.4 (n 54), PAXUSDT -11.2 (n 276), TUSDUSDT -11.9 (n 481), USDCUSDT -11.2 (n 339), USDPUSDT +60.8 (n 1), USDSBUSDT -15.2 (n 120), USDSUSDT -18.1 (n 840)
+     random uniform: rule beats 100.0 % (rand mean -22.0); same-discount: beats 100.0 % (rand mean -18.0)
+  VAL excess: n 219, episodes 30 (pos 3), mean -9.4 bp, t_ep -1.57, Sh/ep -0.28, Sh/tr -0.18
+     gross +13.2 bp (t +2.27); net before cash -8.6; x1.5 -20.3 (t -3.38); late -10.6 (t -1.77, n 217); zero-fee from 2023-07 +4.0 (t +2.40)
+     TAKER-VWAP fill (excess): -9.9 bp (t -2.04, ep pos 3/30, Sh/ep -0.34); x1.5 -19.9 (t -4.09); late -11.0 (t -2.18); zero-fee +3.5 (t +3.75); worst-fill -11.4 (t -1.95)
+     taker-fill years: 2023 -1.6, 2024 -16.8
+     exits {'revert': 102, 'time': 117}; median hold 24.0 h; pairs ['BUSDUSDT', 'FDUSDUSDT', 'TUSDUSDT', 'USDCUSDT', 'USDPUSDT']
+     years: 2023 +0.8 (n 99), 2024 -17.9 (n 120)
+     pairs: BUSDUSDT -16.7 (n 10), FDUSDUSDT -9.4 (n 21), TUSDUSDT -16.3 (n 117), USDCUSDT +35.1 (n 17), USDPUSDT -7.3 (n 54)
+     random uniform: rule beats 100.0 % (rand mean -22.8); same-discount: beats 98.9 % (rand mean -15.5)
+     power at VAL size: by episode -1.21 (HOLD ~18.3 episodes), by trade -2.10; taker fill by episode -1.44
+     largest episodes (|sum|): 2019-05-11 PAX/TUSD/USDC/USDS/USDSB n773 -8949bp; 2020-02-21 BUSD/PAX/TUSD/USDC/USDS n312 -6068bp; 2018-12-18 PAX/TUSD/USDC n181 -3102bp; 2019-04-02 PAX/TUSD/USDC/USDS n139 -2291bp; 2018-06-30 TUSD n144 -2112bp; 2019-09-01 BUSD/PAX/TUSD/USDC/USDS/USDSB n150 -1941bp; 2019-10-19 BUSD/PAX/TUSD/USDC/USDS n100 -1305bp; 2024-01-08 FDUSD/TUSD n60 -1205bp
+
+# cell k=30 bp, H=7 d  (net = after standard 10 bp taker + half-spread, minus DFF cash)
+  IS excess: n 1805, episodes 43 (pos 3), mean -12.9 bp, t_ep -10.69, Sh/ep -0.40, Sh/tr -0.57
+     gross +9.1 bp (t +7.50); net before cash -12.7; x1.5 -23.8 (t -19.80); late -13.1 (t -21.45, n 1723); zero-fee from 2023-07 -12.9 (t -10.69)
+     TAKER-VWAP fill (excess): -17.8 bp (t -10.80, ep pos 2/43, Sh/ep -0.39); x1.5 -27.8 (t -16.85); late -18.0 (t -18.88); zero-fee -17.8 (t -10.80); worst-fill -19.9 (t -11.37)
+     taker-fill years: 2018 -22.3, 2019 -16.0, 2020 -23.8, 2021 -10.2
+     exits {'revert': 1780, 'time': 23, 'end': 2}; median hold 0.8 h; pairs ['BUSDUSDT', 'PAXUSDT', 'TUSDUSDT', 'USDCUSDT', 'USDPUSDT', 'USDSBUSDT', 'USDSUSDT']
+     years: 2018 -14.4 (n 239), 2019 -11.9 (n 1178), 2020 -16.7 (n 299), 2021 -8.7 (n 89)
+     pairs: BUSDUSDT +0.1 (n 50), PAXUSDT -7.8 (n 215), TUSDUSDT -10.5 (n 414), USDCUSDT -9.5 (n 283), USDPUSDT +60.8 (n 1), USDSBUSDT -15.9 (n 114), USDSUSDT -17.5 (n 728)
+     random uniform: rule beats 100.0 % (rand mean -22.0); same-discount: beats 100.0 % (rand mean -18.8)
+  VAL excess: n 119, episodes 29 (pos 3), mean +0.6 bp, t_ep +0.07, Sh/ep +0.01, Sh/tr +0.01
+     gross +24.2 bp (t +2.93); net before cash +2.4; x1.5 -10.3 (t -1.21); late -1.0 (t -0.11, n 118); zero-fee from 2023-07 +12.7 (t +3.11)
+     TAKER-VWAP fill (excess): -0.2 bp (t -0.03, ep pos 3/29, Sh/ep -0.01); x1.5 -10.2 (t -1.37); late -1.7 (t -0.21); zero-fee +11.9 (t +4.02); worst-fill -3.4 (t -0.37)
+     taker-fill years: 2023 +7.2, 2024 -11.2
+     exits {'revert': 109, 'time': 10}; median hold 3.8 h; pairs ['BUSDUSDT', 'FDUSDUSDT', 'TUSDUSDT', 'USDCUSDT', 'USDPUSDT']
+     years: 2023 +9.4 (n 71), 2024 -12.5 (n 48)
+     pairs: BUSDUSDT -11.5 (n 4), FDUSDUSDT -5.7 (n 15), TUSDUSDT -8.2 (n 43), USDCUSDT +119.7 (n 7), USDPUSDT -5.8 (n 50)
+     random uniform: rule beats 100.0 % (rand mean -23.8); same-discount: beats 100.0 % (rand mean -14.5)
+     power at VAL size: by episode +0.05 (HOLD ~17.7 episodes), by trade +0.05; taker fill by episode -0.02
+     largest episodes (|sum|): 2019-05-11 PAX/TUSD/USDC/USDS/USDSB n699 -7441bp; 2020-02-21 BUSD/PAX/TUSD/USDC/USDS n245 -4539bp; 2018-06-30 TUSD n136 -1966bp; 2019-09-01 BUSD/PAX/TUSD/USDC/USDS/USDSB n147 -1855bp; 2018-12-18 PAX/TUSD/USDC n107 -1616bp; 2019-10-19 BUSD/PAX/TUSD/USDC/USDS n92 -1143bp; 2019-04-02 PAX/TUSD/USDC/USDS n73 -994bp; 2023-03-10 BUSD/TUSD/USDC/USDP n42 +969bp
+
+# cell k=100 bp, H=1 d  (net = after standard 10 bp taker + half-spread, minus DFF cash)
+  IS excess: n 218, episodes 31 (pos 24), mean +11.7 bp, t_ep +2.94, Sh/ep +0.53, Sh/tr +0.25
+     gross +33.8 bp (t +8.53); net before cash +12.0; x1.5 +0.8 (t +0.21); late +10.3 (t +2.82, n 217); zero-fee from 2023-07 +11.7 (t +2.94)
+     TAKER-VWAP fill (excess): +5.9 bp (t +1.62, ep pos 23/31, Sh/ep +0.31); x1.5 -4.1 (t -1.14); late +4.7 (t +1.47); zero-fee +5.9 (t +1.62); worst-fill -5.2 (t -1.27)
+     taker-fill years: 2018 +2.4, 2019 +4.2, 2020 +11.6, 2021 +20.3
+     exits {'revert': 145, 'time': 73}; median hold 7.8 h; pairs ['BUSDUSDT', 'PAXUSDT', 'TUSDUSDT', 'USDCUSDT', 'USDSBUSDT', 'USDSUSDT']
+     years: 2018 +8.9 (n 31), 2019 +12.7 (n 133), 2020 +11.0 (n 52), 2021 +9.8 (n 2)
+     pairs: BUSDUSDT +17.4 (n 4), PAXUSDT +6.1 (n 36), TUSDUSDT +19.8 (n 44), USDCUSDT +13.1 (n 42), USDSBUSDT -13.2 (n 6), USDSUSDT +10.7 (n 86)
+     random uniform: rule beats 100.0 % (rand mean -22.0); same-discount: beats 100.0 % (rand mean -2.1)
+  VAL excess: n 61, episodes 4 (pos 2), mean +6.5 bp, t_ep +0.20, Sh/ep +0.11, Sh/tr +0.06
+     gross +29.6 bp (t +0.91); net before cash +7.6; x1.5 -4.5 (t -0.14); late +4.5 (t +0.16, n 61); zero-fee from 2023-07 +21.9 (t +0.81)
+     TAKER-VWAP fill (excess): +2.7 bp (t +0.10, ep pos 2/4, Sh/ep +0.05); x1.5 -7.3 (t -0.27); late +2.4 (t +0.10); zero-fee +18.1 (t +0.86); worst-fill +1.5 (t +0.06)
+     taker-fill years: 2023 +66.8, 2024 -18.2
+     exits {'revert': 14, 'time': 47}; median hold 24.0 h; pairs ['BUSDUSDT', 'FDUSDUSDT', 'TUSDUSDT', 'USDCUSDT', 'USDPUSDT']
+     years: 2023 +84.6 (n 15), 2024 -19.0 (n 46)
+     pairs: BUSDUSDT +32.4 (n 2), FDUSDUSDT +46.7 (n 1), TUSDUSDT -14.6 (n 52), USDCUSDT +409.6 (n 2), USDPUSDT +56.3 (n 4)
+     random uniform: rule beats 100.0 % (rand mean -23.2); same-discount: beats 94.6 % (rand mean -4.9)
+     power at VAL size: by episode +0.17 (HOLD ~2.4 episodes), by trade +0.40; taker fill by episode +0.08
+     largest episodes (|sum|): 2023-03-11 BUSD/TUSD/USDC/USDP n14 +1324bp; 2024-01-15 TUSD n45 -921bp; 2019-04-02 PAX/TUSD/USDC/USDS n27 +531bp; 2019-09-24 TUSD/USDC/USDS/USDSB n6 +459bp; 2020-03-05 BUSD/PAX/TUSD/USDC/USDS n26 +345bp; 2019-04-08 PAX/TUSD/USDC/USDS n21 +284bp; 2019-01-03 PAX/TUSD/USDC n31 -266bp; 2019-05-25 PAX/TUSD/USDC/USDS n8 +185bp
+
+# cell k=100 bp, H=7 d  (net = after standard 10 bp taker + half-spread, minus DFF cash)
+  IS excess: n 163, episodes 29 (pos 25), mean +22.1 bp, t_ep +6.97, Sh/ep +0.79, Sh/tr +0.53
+     gross +44.2 bp (t +13.96); net before cash +22.4; x1.5 +11.2 (t +3.53); late +20.3 (t +6.07, n 162); zero-fee from 2023-07 +22.1 (t +6.97)
+     TAKER-VWAP fill (excess): +15.2 bp (t +4.52, ep pos 25/29, Sh/ep +0.66); x1.5 +5.2 (t +1.54); late +13.5 (t +3.68); zero-fee +15.2 (t +4.52); worst-fill +0.1 (t +0.02)
+     taker-fill years: 2018 +12.6, 2019 +12.0, 2020 +24.8, 2021 +20.3
+     exits {'revert': 157, 'time': 6}; median hold 3.4 h; pairs ['BUSDUSDT', 'PAXUSDT', 'TUSDUSDT', 'USDCUSDT', 'USDSBUSDT', 'USDSUSDT']
+     years: 2018 +21.3 (n 21), 2019 +21.9 (n 102), 2020 +23.7 (n 38), 2021 +9.8 (n 2)
+     pairs: BUSDUSDT +17.4 (n 4), PAXUSDT +30.2 (n 17), TUSDUSDT +28.4 (n 36), USDCUSDT +25.0 (n 31), USDSBUSDT -13.2 (n 6), USDSUSDT +18.8 (n 69)
+     random uniform: rule beats 100.0 % (rand mean -22.1); same-discount: beats 100.0 % (rand mean -3.1)
+  VAL excess: n 20, episodes 4 (pos 2), mean +65.4 bp, t_ep +1.34, Sh/ep +0.47, Sh/tr +0.30
+     gross +90.8 bp (t +1.97); net before cash +69.0; x1.5 +54.5 (t +1.11); late +60.5 (t +1.42, n 20); zero-fee from 2023-07 +74.4 (t +1.79)
+     TAKER-VWAP fill (excess): +50.6 bp (t +1.29, ep pos 2/4, Sh/ep +0.45); x1.5 +40.6 (t +1.03); late +53.0 (t +1.34); zero-fee +59.6 (t +1.86); worst-fill +48.9 (t +1.22)
+     taker-fill years: 2023 +86.9, 2024 -3.9
+     exits {'revert': 15, 'time': 5}; median hold 9.0 h; pairs ['BUSDUSDT', 'FDUSDUSDT', 'TUSDUSDT', 'USDCUSDT', 'USDPUSDT']
+     years: 2023 +110.3 (n 12), 2024 -1.8 (n 8)
+     pairs: BUSDUSDT +32.4 (n 2), FDUSDUSDT +46.7 (n 1), TUSDUSDT +7.1 (n 14), USDCUSDT +867.3 (n 1), USDPUSDT +115.5 (n 2)
+     random uniform: rule beats 100.0 % (rand mean -26.0); same-discount: beats 99.4 % (rand mean +25.4)
+     power at VAL size: by episode +0.73 (HOLD ~2.4 episodes), by trade +1.06; taker fill by episode +0.71
+     largest episodes (|sum|): 2023-03-11 BUSD/TUSD/USDC/USDP n11 +1378bp; 2019-04-02 PAX/TUSD/USDC/USDS n25 +566bp; 2019-09-24 TUSD/USDC/USDS/USDSB n6 +459bp; 2020-03-05 BUSD/PAX/TUSD/USDC/USDS n24 +445bp; 2019-04-08 PAX/TUSD/USDC/USDS n13 +414bp; 2018-12-22 PAX/TUSD/USDC n12 +236bp; 2020-02-26 USDS n5 +188bp; 2019-05-25 PAX/TUSD/USDC/USDS n8 +185bp
+
+# max-over-cells null IS: best cell (100, 7) excess over its random mean +44.2 bp; beats 99.8 % of max-over-6-cells random draws
+
+# max-over-cells null VAL: best cell (100, 7) excess over its random mean +91.5 bp; beats 100.0 % of max-over-6-cells random draws

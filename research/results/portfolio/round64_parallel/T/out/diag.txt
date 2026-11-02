@@ -1,0 +1,36 @@
+1000BTTCUSDT | 2022-04-11 09:00 | spot_ok | last perp close 0.001919, perp-vs-settle-proxy 50.5 bp | first perp bar 2022-04-03 00:00 | spot bars 14388
+AKROUSDT | 2022-05-27 07:00 | spot_ok | last perp close 0.00326, perp-vs-settle-proxy -63.2 bp | first perp bar 2022-05-19 00:00 | spot bars 11361
+ANCUSDT | 2022-05-13 04:01 | spot_ok | last perp close 0.0555, perp-vs-settle-proxy -807.9 bp | first perp bar 2022-05-05 00:00 | spot bars 14353
+ANTUSDT | 2024-04-01 09:00 | SPOT MISSING AT T | last perp close 8.915, perp-vs-settle-proxy na bp | first perp bar 2024-03-24 00:00 | spot bars 0
+AUDIOUSDT | 2024-05-16 09:01 | spot_ok | last perp close 0.1632, perp-vs-settle-proxy 138.2 bp | first perp bar 2024-05-08 00:00 | spot bars 13529
+BLZUSDT | 2024-12-23 09:00 | spot_ok | last perp close 0.06836, perp-vs-settle-proxy 22.0 bp | first perp bar 2024-12-15 00:00 | spot bars 14293
+BTSUSDT | 2022-08-18 09:00 | spot_ok | last perp close 0.01251, perp-vs-settle-proxy 6.4 bp | first perp bar 2022-08-10 00:00 | spot bars 9937
+DGBUSDT | 2024-04-01 09:01 | spot_ok | last perp close 0.01922, perp-vs-settle-proxy -229.9 bp | first perp bar 2024-03-24 00:00 | spot bars 14031
+DODOUSDT | 2022-05-27 09:00 | spot_ok | last perp close 0.141, perp-vs-settle-proxy -95.5 bp | first perp bar 2022-05-19 00:00 | spot bars 11546
+FTTUSDT | 2022-11-14 04:01 | spot_ok | last perp close 1.59, perp-vs-settle-proxy -127.3 bp | first perp bar 2022-11-06 00:00 | spot bars 13230
+GLMRUSDT | 2024-05-15 09:01 | spot_ok | last perp close 0.2592, perp-vs-settle-proxy 23.7 bp | first perp bar 2024-05-07 00:00 | spot bars 13776
+IDEXUSDT | 2024-05-15 09:01 | spot_ok | last perp close 0.0561, perp-vs-settle-proxy 46.7 bp | first perp bar 2024-05-07 00:00 | spot bars 13429
+KEYUSDT | 2024-12-03 09:00 | spot_ok | last perp close 0.0025177, perp-vs-settle-proxy 179.7 bp | first perp bar 2024-11-25 00:00 | spot bars 14367
+LOOMUSDT | 2024-12-09 09:00 | SPOT MISSING AT T | last perp close 0.08112, perp-vs-settle-proxy na bp | first perp bar 2024-12-01 00:00 | spot bars 0
+LUNAUSDT | 2022-05-12 15:33 | spot_ok | last perp close 0.008, perp-vs-settle-proxy 716.8 bp | first perp bar 2022-05-04 00:00 | spot bars 13000
+MBLUSDT | 2024-05-13 09:00 | spot_ok | last perp close 0.00419, perp-vs-settle-proxy -0.9 bp | first perp bar 2024-05-05 00:00 | spot bars 11480
+ORBSUSDT | 2024-12-09 09:00 | SPOT MISSING AT T | last perp close 0.035157, perp-vs-settle-proxy na bp | first perp bar 2024-12-01 00:00 | spot bars 0
+RADUSDT | 2024-05-14 09:01 | spot_ok | last perp close 1.6874, perp-vs-settle-proxy 21.8 bp | first perp bar 2024-05-06 00:00 | spot bars 12750
+RAYUSDT | 2022-11-15 04:01 | spot_ok | last perp close 0.248, perp-vs-settle-proxy 170.5 bp | first perp bar 2022-11-07 00:00 | spot bars 13879
+RENUSDT | 2024-12-03 09:01 | spot_ok | last perp close 0.048, perp-vs-settle-proxy 188.1 bp | first perp bar 2024-11-25 00:00 | spot bars 14370
+SCUSDT | 2022-06-17 09:00 | spot_ok | last perp close 0.003653, perp-vs-settle-proxy -45.5 bp | first perp bar 2022-06-09 00:00 | spot bars 11200
+SNTUSDT | 2024-05-13 09:00 | spot_ok | last perp close 0.03666, perp-vs-settle-proxy -18.5 bp | first perp bar 2024-05-05 00:00 | spot bars 12146
+SRMUSDT | 2022-11-15 04:31 | spot_ok | last perp close 0.287, perp-vs-settle-proxy -268.8 bp | first perp bar 2022-11-07 00:00 | spot bars 13989
+STPTUSDT | 2024-05-13 09:00 | spot_ok | last perp close 0.05306, perp-vs-settle-proxy -10.0 bp | first perp bar 2024-05-05 00:00 | spot bars 12116
+STRAXUSDT | 2024-03-15 09:00 | spot_ok | last perp close 1.4174, perp-vs-settle-proxy -172.3 bp | first perp bar 2024-03-07 00:00 | spot bars 14154
+UNFIUSDT | 2024-10-30 09:01 | spot_ok | last perp close 1.73, perp-vs-settle-proxy 343.4 bp | first perp bar 2024-10-22 00:00 | spot bars 14067
+WAVESUSDT | 2024-06-11 09:00 | spot_ok | last perp close 1.3355, perp-vs-settle-proxy -15.5 bp | first perp bar 2024-06-03 00:00 | spot bars 14005
+XEMUSDT | 2024-12-09 09:01 | SPOT MISSING AT T | last perp close 0.0338, perp-vs-settle-proxy na bp | first perp bar 2024-12-01 00:00 | spot bars 0
+BTCSTUSDT | 2021-03-12 02:00 | spot_ok | last perp close 319.408, perp-vs-settle-proxy 22.8 bp | first perp bar 2021-03-04 07:00 | spot bars 14239
+CTKUSDT | 2024-04-01 09:00 | spot_ok | last perp close 1.0106, perp-vs-settle-proxy 163.3 bp | first perp bar 2024-03-24 00:00 | spot bars 14250
+CVCUSDT | 2022-11-29 09:00 | spot_ok | last perp close 0.10201, perp-vs-settle-proxy -8.8 bp | first perp bar 2022-11-21 00:00 | spot bars 10077
+CVXUSDT | 2024-05-14 09:01 | spot_ok | last perp close 2.374, perp-vs-settle-proxy 13.2 bp | first perp bar 2024-05-06 00:00 | spot bars 12815
+MAVIAUSDT | 2024-12-16 09:01 | SPOT MISSING AT T | last perp close 1.4929, perp-vs-settle-proxy na bp | first perp bar 2024-12-08 00:00 | spot bars 0
+MDTUSDT | 2024-05-16 09:01 | spot_ok | last perp close 0.06331, perp-vs-settle-proxy 217.7 bp | first perp bar 2024-05-08 00:00 | spot bars 13982
+SLPUSDT | 2024-05-15 09:01 | spot_ok | last perp close 0.003515, perp-vs-settle-proxy -0.2 bp | first perp bar 2024-05-07 00:00 | spot bars 14022
+YFIIUSDT | 2022-04-12 09:01 | spot_ok | last perp close 1869.9, perp-vs-settle-proxy 2.6 bp | first perp bar 2022-04-04 00:00 | spot bars 10816

@@ -1,0 +1,19 @@
+# A4 post-hoc checks, H5-L (net bp). F0 declared, F1 aggressor side, F2 worst of the 1 s, Wx = $x alt buy walking taker-buy prints
+CTC    F0   11402 F1   11403 F2   10689 $10k   11000 (2.3 s)  $30k   10934 (6.8 s)  max 1-print jump N..N+10s 681 bp, prints 1976
+MNT    F0    1324 F1    1286 F2    1215 $10k    1288 (1.9 s)  $30k    1267 (4.5 s)  max 1-print jump N..N+10s 588 bp, prints 30599
+UXLINK F0    4684 F1    4559 F2    3461 $10k    5109 (0.1 s)  $30k    4769 (0.2 s)  max 1-print jump N..N+10s 784 bp, prints 6105
+SAFE   F0    3525 F1    3526 F2    2984 $10k    3431 (0.1 s)  $30k    3279 (0.1 s)  max 1-print jump N..N+10s 596 bp, prints 9537
+DRIFT  F0    2680 F1    2680 F2    2070 $10k    2511 (0.2 s)  $30k    2400 (0.2 s)  max 1-print jump N..N+10s 750 bp, prints 13997
+ME     F0     883 F1     888 F2     853 $10k     648 (3.5 s)  $30k     540 (6.0 s)  max 1-print jump N..N+10s 610 bp, prints 162
+MOCA   F0   10707 F1   10702 F2    9780 $10k   10479 (0.2 s)  $30k   10368 (0.5 s)  max 1-print jump N..N+10s 819 bp, prints 11021
+
+fill        mean      t   median   SR    power@4.3  power@11.0
+F0          5029   3.08    3525   1.17     2.41      3.87
+F1          5006   3.07    3526   1.16     2.40      3.84
+F2          4436   2.88    2984   1.09     2.25      3.61
+W10         4923   3.08    3431   1.16     2.41      3.86
+W30         4794   3.00    3279   1.13     2.34      3.76
+
+trimmed (drop min and max) mean 4584; median 3525; min 883
+leave-one-out (drop coin: mean / t): CTC 3967 / 2.71, MNT 5647 / 3.16, UXLINK 5087 / 2.64, SAFE 5280 / 2.77, DRIFT 5421 / 2.89, ME 5720 / 3.27, MOCA 4083 / 2.60
+log-return version of net (log(1 + net)): mean 3745 bp, t 3.64

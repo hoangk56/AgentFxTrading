@@ -1,0 +1,12 @@
+2020: universe coin-hours 209793, with >= 2 usable venues 103745 (49.5%); per venue {'okx': 132405, 'kucoin': 108642, 'bybit': 0, 'coinbase': 83195}
+2021: universe coin-hours 508080, with >= 2 usable venues 287898 (56.7%); per venue {'okx': 306974, 'kucoin': 324128, 'bybit': 53150, 'coinbase': 243680}
+2022: universe coin-hours 508019, with >= 2 usable venues 246882 (48.6%); per venue {'okx': 214263, 'kucoin': 260206, 'bybit': 214078, 'coinbase': 178148}
+2023: universe coin-hours 508080, with >= 2 usable venues 263682 (51.9%); per venue {'okx': 232376, 'kucoin': 265751, 'bybit': 248351, 'coinbase': 239134}
+2024: universe coin-hours 509434, with >= 2 usable venues 358547 (70.4%); per venue {'okx': 324260, 'kucoin': 371457, 'bybit': 339347, 'coinbase': 274715}
+cheap k30_H6: | main-IS n 2975 days 505 | main-VAL n 2051 days 618 | alt-IS n 4322 days 772 | alt-VAL n 704 days 351
+cheap k30_H24: | main-IS n 2627 days 505 | main-VAL n 1869 days 617 | alt-IS n 3851 days 772 | alt-VAL n 645 days 350
+cheap k60_H6: | main-IS n 924 days 248 | main-VAL n 489 days 187 | alt-IS n 1271 days 360 | alt-VAL n 142 days 75
+cheap k60_H24: | main-IS n 746 days 246 | main-VAL n 396 days 184 | alt-IS n 1030 days 357 | alt-VAL n 112 days 73
+cheap k100_H6: | main-IS n 492 days 163 | main-VAL n 224 days 90 | alt-IS n 647 days 220 | alt-VAL n 69 days 33
+cheap k100_H24: | main-IS n 386 days 158 | main-VAL n 169 days 89 | alt-IS n 500 days 214 | alt-VAL n 55 days 33
+coins 244, with any venue 181; load+count 71 s

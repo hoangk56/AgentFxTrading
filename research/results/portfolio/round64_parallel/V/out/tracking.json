@@ -1,0 +1,341 @@
+{
+ "bybit": {
+  "venue": "bybit",
+  "events": 333,
+  "covered": 161,
+  "corr_hourly": 0.9445364474174174,
+  "n_hours": 4390,
+  "gap_h_med": -13.858817105443544,
+  "gap_h_p10": -158.55561862389428,
+  "gap_h_p90": 52.044518214394415,
+  "gap_h_mean": -24.07802048124238,
+  "gap_e_med": -14.482261763647637,
+  "gap_e_mean": -23.37523601256411,
+  "sf_mean": 19.275805056273693,
+  "sf_med": 18.672210394454552,
+  "sf_p10": -46.60227284665044,
+  "sf_p90": 174.98649204654626,
+  "sf_absmed": 44.82550251146265,
+  "sf_mean_trim1": 31.96713369126203,
+  "b_ret_mean": -6.80726088449929,
+  "v_ret_mean": 12.468544171774402,
+  "capture": -1.8316536391555573,
+  "volratio_med": 0.02145246196973144,
+  "share_abs_sf_gt50": 0.4658385093167702,
+  "by_year": {
+   "2022": {
+    "events": 111,
+    "covered": 58,
+    "sf_mean": -45.601761948735216,
+    "sf_med": 10.814844831084354,
+    "gap_h_med": -12.5188747831025
+   },
+   "2023": {
+    "events": 145,
+    "covered": 59,
+    "sf_mean": 89.81479780369648,
+    "sf_med": 104.93699494415382,
+    "gap_h_med": -95.55499366587179
+   },
+   "2024": {
+    "events": 77,
+    "covered": 44,
+    "sf_mean": 10.209857651559416,
+    "sf_med": 2.7455095012176978,
+    "gap_h_med": -3.321860256170438
+   }
+  },
+  "largest_abs_shortfall": [
+   [
+    "SRMUSDT",
+    "2022-11-13T23",
+    -2944,
+    2404
+   ],
+   [
+    "SRMUSDT",
+    "2022-11-14T08",
+    -1143,
+    431
+   ],
+   [
+    "FTTUSDT",
+    "2022-11-13T10",
+    -980,
+    970
+   ],
+   [
+    "FTTUSDT",
+    "2022-11-14T04",
+    964,
+    -773
+   ],
+   [
+    "FTTUSDT",
+    "2022-11-14T00",
+    862,
+    -1174
+   ]
+  ],
+  "uncovered_coins": [
+   "ANCUSDT",
+   "API3USDT",
+   "ARKUSDT",
+   "ARPAUSDT",
+   "AUDIOUSDT",
+   "BAKEUSDT",
+   "BNXUSDT",
+   "CKBUSDT",
+   "COTIUSDT",
+   "DUSKUSDT",
+   "FETUSDT",
+   "FRONTUSDT",
+   "GLMUSDT",
+   "LUNAUSDT",
+   "MTLUSDT",
+   "OCEANUSDT",
+   "OGNUSDT",
+   "OMUSDT",
+   "PEOPLEUSDT",
+   "POWRUSDT",
+   "REEFUSDT",
+   "SAGAUSDT",
+   "SFPUSDT",
+   "STORJUSDT",
+   "TAOUSDT",
+   "TRBUSDT",
+   "TURBOUSDT",
+   "UNFIUSDT",
+   "XVGUSDT"
+  ]
+ },
+ "okx": {
+  "venue": "okx",
+  "events": 333,
+  "covered": 146,
+  "corr_hourly": 0.9721724856540417,
+  "n_hours": 3983,
+  "gap_h_med": -11.96199774734452,
+  "gap_h_p10": -136.83597195482747,
+  "gap_h_p90": 20.040033663121903,
+  "gap_h_mean": -27.330102578984693,
+  "gap_e_med": -10.035951881717384,
+  "gap_e_mean": -26.898577195210173,
+  "sf_mean": 45.365836708880906,
+  "sf_med": 17.117909903323834,
+  "sf_p10": -22.022482017353028,
+  "sf_p90": 153.70285342076227,
+  "sf_absmed": 27.07278788228698,
+  "sf_mean_trim1": 39.52453628698909,
+  "b_ret_mean": -43.3622013068623,
+  "v_ret_mean": 2.0036354020186073,
+  "capture": -0.046206957710459254,
+  "volratio_med": 0.17010633098921618,
+  "share_abs_sf_gt50": 0.3835616438356164,
+  "by_year": {
+   "2022": {
+    "events": 111,
+    "covered": 24,
+    "sf_mean": 10.216602104248546,
+    "sf_med": 7.145559807844965,
+    "gap_h_med": -36.452558164861394
+   },
+   "2023": {
+    "events": 145,
+    "covered": 81,
+    "sf_mean": 75.75640613058076,
+    "sf_med": 36.07985882236125,
+    "gap_h_med": -21.3960791424613
+   },
+   "2024": {
+    "events": 77,
+    "covered": 41,
+    "sf_mean": 5.901092985795256,
+    "sf_med": 6.930807716508157,
+    "gap_h_med": -1.1506155844132846
+   }
+  },
+  "largest_abs_shortfall": [
+   [
+    "TRBUSDT",
+    "2023-12-31T18",
+    1241,
+    150
+   ],
+   [
+    "ZILUSDT",
+    "2022-03-27T12",
+    -309,
+    306
+   ],
+   [
+    "TRBUSDT",
+    "2023-11-09T18",
+    -298,
+    278
+   ],
+   [
+    "APTUSDT",
+    "2023-03-24T11",
+    252,
+    -248
+   ],
+   [
+    "TRBUSDT",
+    "2022-09-01T20",
+    240,
+    -252
+   ]
+  ],
+  "uncovered_coins": [
+   "1000XECUSDT",
+   "ANCUSDT",
+   "ANKRUSDT",
+   "ARKUSDT",
+   "ARPAUSDT",
+   "AUDIOUSDT",
+   "BAKEUSDT",
+   "BELUSDT",
+   "BNXUSDT",
+   "CKBUSDT",
+   "COTIUSDT",
+   "DASHUSDT",
+   "DUSKUSDT",
+   "ENAUSDT",
+   "FETUSDT",
+   "FRONTUSDT",
+   "FTMUSDT",
+   "FTTUSDT",
+   "FXSUSDT",
+   "GALUSDT",
+   "ICXUSDT",
+   "INJUSDT",
+   "JASMYUSDT",
+   "LUNAUSDT",
+   "MATICUSDT",
+   "MTLUSDT",
+   "OCEANUSDT",
+   "OGNUSDT",
+   "OMUSDT",
+   "PENDLEUSDT",
+   "PERPUSDT",
+   "POWRUSDT",
+   "REEFUSDT",
+   "RENUSDT",
+   "SAGAUSDT",
+   "SEIUSDT",
+   "SFPUSDT",
+   "SRMUSDT",
+   "STGUSDT",
+   "STORJUSDT",
+   "TAOUSDT",
+   "UNFIUSDT",
+   "WAVESUSDT",
+   "XVGUSDT"
+  ]
+ },
+ "kucoin": {
+  "venue": "kucoin",
+  "events": 333,
+  "covered": 239,
+  "corr_hourly": 0.9746792486822823,
+  "n_hours": 6595,
+  "gap_h_med": -12.290745212761648,
+  "gap_h_p10": -146.98034417556568,
+  "gap_h_p90": 21.98118245804161,
+  "gap_h_mean": -49.824421348570546,
+  "gap_e_med": -12.660838887658485,
+  "gap_e_mean": -49.06283992857714,
+  "sf_mean": 40.1981640958763,
+  "sf_med": 11.770012421280992,
+  "sf_p10": -34.144916510304554,
+  "sf_p90": 144.9598593671862,
+  "sf_absmed": 25.36957459046911,
+  "sf_mean_trim1": 30.38963017151426,
+  "b_ret_mean": -39.62969878643665,
+  "v_ret_mean": 0.5684653094396449,
+  "capture": -0.014344426701375873,
+  "volratio_med": 0.03935424201864975,
+  "share_abs_sf_gt50": 0.30962343096234307,
+  "by_year": {
+   "2022": {
+    "events": 111,
+    "covered": 68,
+    "sf_mean": 37.0656069591446,
+    "sf_med": 12.434294535916788,
+    "gap_h_med": -11.205948730922342
+   },
+   "2023": {
+    "events": 145,
+    "covered": 114,
+    "sf_mean": 58.781000655622485,
+    "sf_med": 25.26637385575026,
+    "gap_h_med": -23.897747629341502
+   },
+   "2024": {
+    "events": 77,
+    "covered": 57,
+    "sf_mean": 6.7695766833621045,
+    "sf_med": 1.895485111560605,
+    "gap_h_med": -4.480172560293959
+   }
+  },
+  "largest_abs_shortfall": [
+   [
+    "FTTUSDT",
+    "2022-11-14T04",
+    1524,
+    -814
+   ],
+   [
+    "TRBUSDT",
+    "2023-12-31T18",
+    1432,
+    -638
+   ],
+   [
+    "FTTUSDT",
+    "2022-11-14T02",
+    -302,
+    -579
+   ],
+   [
+    "CKBUSDT",
+    "2024-02-14T03",
+    265,
+    -358
+   ],
+   [
+    "APTUSDT",
+    "2023-03-24T11",
+    257,
+    -252
+   ]
+  ],
+  "uncovered_coins": [
+   "ANCUSDT",
+   "ARKUSDT",
+   "AUDIOUSDT",
+   "BAKEUSDT",
+   "BELUSDT",
+   "BNXUSDT",
+   "FRONTUSDT",
+   "FTMUSDT",
+   "FXSUSDT",
+   "GALUSDT",
+   "LUNAUSDT",
+   "MATICUSDT",
+   "OCEANUSDT",
+   "OMUSDT",
+   "PERPUSDT",
+   "POWRUSDT",
+   "REEFUSDT",
+   "RENUSDT",
+   "SAGAUSDT",
+   "SRMUSDT",
+   "STGUSDT",
+   "UNFIUSDT",
+   "XVGUSDT"
+  ]
+ }
+}

@@ -1,0 +1,51 @@
+W24 IS: n 21 gross mean +507 bp (t clustered by day +1.91, 5 days) median +567 win 76% | random same coin N-40..-7 d: median of means -31, beats 100% | run-up N-24h->entry median -1.0% | years {'2020': (8, 1054), '2021': (13, 171)}
+W72 IS: n 21 gross mean +240 bp (t clustered by day +0.42, 5 days) median +676 win 67% | random same coin N-40..-7 d: median of means +7, beats 78% | run-up N-24h->entry median -1.0% | years {'2020': (8, 900), '2021': (13, -166)}
+W24 VAL: n 5 gross mean +276 bp (t clustered by day +1.35, 5 days) median +216 win 80% | random same coin N-40..-7 d: median of means +39, beats 93% | run-up N-24h->entry median -3.5% | years {'2022': (3, 10), '2023': (1, 954), '2024': (1, 397)}
+W72 VAL: n 5 gross mean +620 bp (t clustered by day +2.64, 5 days) median +584 win 80% | random same coin N-40..-7 d: median of means +136, beats 98% | run-up N-24h->entry median -3.5% | years {'2022': (3, 464), '2023': (1, 1208), '2024': (1, 497)}
+D24 IS: n 12 gross mean +136 bp (t clustered by day +0.88, 4 days) median +77 win 50% | random same coin N-40..-7 d: median of means +41, beats 67% | run-up N-24h->entry median -3.4% | years {'2020': (1, 387), '2021': (11, 113)}
+D72 IS: n 12 gross mean +703 bp (t clustered by day +6.58, 4 days) median +627 win 100% | random same coin N-40..-7 d: median of means +83, beats 96% | run-up N-24h->entry median -3.4% | years {'2020': (1, 447), '2021': (11, 726)}
+D24 VAL: n 3 gross mean -21 bp (t clustered by day -0.33, 3 days) median -29 win 33% | random same coin N-40..-7 d: median of means +75, beats 30% | run-up N-24h->entry median -5.2% | years {'2022': (1, -29), '2023': (2, -17)}
+D72 VAL: n 3 gross mean +197 bp (t clustered by day +1.15, 3 days) median +213 win 67% | random same coin N-40..-7 d: median of means +210, beats 47% | run-up N-24h->entry median -5.2% | years {'2022': (1, 486), '2023': (2, 53)}
+
+per event:
+W GRS    2020-04-29 07:58 IS run   -7.3% g24  +1202 g72  +1015 btcvol24 10.35
+W IOTX   2020-04-29 07:58 IS run   -5.7% g24  +1515 g72   +909 btcvol24 5.35
+W KMD    2020-04-29 07:58 IS run   -3.4% g24  +1487 g72  +1544 btcvol24 22.53
+W NAV    2020-04-29 07:58 IS run   -0.2% g24   +567 g72    -53 btcvol24 3.48
+W XVG    2020-04-29 07:58 IS run   +0.0% g24   +526 g72   +789 btcvol24 21.17
+W XZC    2020-04-29 07:58 IS run   -1.0% g24   +979 g72   +194 btcvol24 28.31
+W ZEN    2020-04-29 07:58 IS run   -0.8% g24  +1246 g72  +1185 btcvol24 11.43
+W DCR    2020-12-18 09:03 IS run  +27.0% g24   +911 g72  +1616 btcvol24 121.26
+D DCR    2020-12-28 08:04 IS run   +4.5% g24   +387 g72   +447 btcvol24 56.71
+W BTS    2021-01-28 08:35 IS run   -1.4% g24  -4521 g72  -4110 btcvol24 6.18
+W GO     2021-01-28 08:35 IS run   +0.0% g24   -417 g72  -2500 btcvol24 6.91
+W GTO    2021-01-28 08:35 IS run   +2.7% g24  +1316 g72   -789 btcvol24 15.66
+W NKN    2021-01-28 08:35 IS run  +28.9% g24  +2041 g72  +1020 btcvol24 119.63
+W OST    2021-01-28 08:35 IS run  +14.6% g24  +1455 g72  -1273 btcvol24 31.59
+D BTS    2021-02-04 09:00 IS run   -2.6% g24   -354 g72   +177 btcvol24 45.62
+D GTO    2021-02-04 09:00 IS run  +16.1% g24   +154 g72  +1077 btcvol24 915.03
+D OST    2021-02-04 09:00 IS run   -9.7% g24     -0 g72   +893 btcvol24 33.27
+W CTXC   2021-03-17 06:00 IS run  +12.9% g24   -193 g72   -270 btcvol24 22.83
+W VIB    2021-03-17 06:00 IS run   +0.7% g24    -65 g72     -0 btcvol24 23.67
+D CTXC   2021-03-24 09:00 IS run  +13.7% g24   +796 g72   +248 btcvol24 66.20
+D VIB    2021-03-24 09:00 IS run   +1.7% g24   +682 g72   +511 btcvol24 24.80
+W ADX    2021-06-11 08:30 IS run  -16.5% g24   +168 g72  +1427 btcvol24 84.79
+W ANT    2021-06-11 08:30 IS run   -6.1% g24   +397 g72   +224 btcvol24 59.40
+W KMD    2021-06-11 08:30 IS run  -14.3% g24  +1359 g72  +2009 btcvol24 77.48
+W RCN    2021-06-11 08:30 IS run   -9.1% g24     -0 g72  +1062 btcvol24 6.95
+W SYS    2021-06-11 08:30 IS run  -15.4% g24   +502 g72   +365 btcvol24 31.02
+W VITE   2021-06-11 08:30 IS run  -13.3% g24   +180 g72   +676 btcvol24 37.13
+D ADX    2021-06-18 09:26 IS run   -9.0% g24   +160 g72   +956 btcvol24 80.19
+D ANT    2021-06-18 09:26 IS run   -4.1% g24   +229 g72   +653 btcvol24 33.22
+D KMD    2021-06-18 09:26 IS run   -7.7% g24    -89 g72  +1547 btcvol24 42.03
+D RCN    2021-06-18 09:26 IS run   -2.1% g24   -142 g72   +426 btcvol24 8.81
+D SYS    2021-06-18 09:26 IS run   -5.4% g24    -25 g72   +898 btcvol24 10.50
+D VITE   2021-06-18 09:26 IS run   -6.2% g24   -164 g72   +601 btcvol24 22.85
+W LTC    2022-05-23 09:30 VAL run   +1.0% g24   +125 g72   +971 btcvol24 312.47
+D LTC    2022-06-08 07:00 VAL run   -2.1% g24    -29 g72   +486 btcvol24 256.69
+W KAVA   2022-11-02 16:00 VAL run   -2.0% g24   -309 g72   -162 btcvol24 9.17
+W WAVES  2022-12-08 09:00 VAL run   -9.8% g24   +216 g72   +584 btcvol24 123.91
+W OMG    2023-03-29 07:00 VAL run   -6.3% g24   +954 g72  +1208 btcvol24 12.34
+D OMG    2023-04-12 05:00 VAL run   -7.0% g24   -128 g72   -107 btcvol24 9.51
+D ENJ    2023-09-26 09:00 VAL run   -5.2% g24    +95 g72   +213 btcvol24 17.43
+W PLA    2024-02-13 09:00 VAL run   -3.5% g24   +397 g72   +497 btcvol24 0.75

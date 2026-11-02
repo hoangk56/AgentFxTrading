@@ -1,0 +1,28 @@
+coin lag | 2021-09: n, realised mean bp/8h, recon mean, corr, MAE bp
+BTC 0 | n 89 real 0.422 rec 0.389 corr 0.549 mae 1.329
+BTC 1 | n 89 real 0.422 rec 0.415 corr 0.920 mae 0.489
+ETH 0 | n 89 real 0.890 rec 1.078 corr 0.215 mae 2.228
+ETH 1 | n 89 real 0.890 rec 1.063 corr 0.875 mae 0.953
+SOL 0 | n 89 real 2.066 rec 2.128 corr -0.011 mae 3.335
+SOL 1 | n 89 real 2.066 rec 2.187 corr 0.885 mae 1.083
+XRP 0 | n 89 real 1.135 rec 1.514 corr 0.421 mae 1.616
+XRP 1 | n 89 real 1.135 rec 1.549 corr 0.912 mae 0.759
+DOGE 0 | n 89 real 1.882 rec 1.814 corr 0.113 mae 2.286
+DOGE 1 | n 89 real 1.882 rec 1.836 corr 0.949 mae 0.712
+ADA 0 | n 89 real 0.358 rec 0.607 corr 0.327 mae 2.581
+ADA 1 | n 89 real 0.358 rec 0.611 corr 0.938 mae 0.826
+LTC 0 | n 89 real 0.303 rec 0.444 corr -0.233 mae 2.385
+LTC 1 | n 89 real 0.303 rec 0.492 corr 0.793 mae 1.097
+LINK 0 | n 89 real 1.385 rec 1.630 corr 0.620 mae 1.304
+LINK 1 | n 89 real 1.385 rec 1.673 corr 0.897 mae 0.817
+BCH 0 | n 89 real 0.554 rec 0.974 corr 0.493 mae 1.600
+BCH 1 | n 89 real 0.554 rec 1.010 corr 0.820 mae 1.091
+DOT 0 | n 89 real -0.177 rec -0.128 corr 0.257 mae 2.406
+DOT 1 | n 89 real -0.177 rec -0.100 corr 0.931 mae 0.739
+lag 0 mean corr 2021-09 0.27506048810575895
+lag 1 mean corr 2021-09 0.8919411214794792
+VAL check (not used to choose):
+BTC 0 | n 1045 real 0.148 rec 0.205 corr 0.083 mae 1.128
+BTC 1 | n 1045 real 0.148 rec 0.219 corr 0.807 mae 0.421
+ETH 0 | n 1004 real -0.429 rec -0.311 corr 0.218 mae 1.787
+ETH 1 | n 1004 real -0.429 rec -0.291 corr 0.844 mae 0.747

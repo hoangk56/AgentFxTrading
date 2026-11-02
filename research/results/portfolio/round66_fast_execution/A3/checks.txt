@@ -1,0 +1,10 @@
+HIVE  base     415  worst-1s     288  $10k-walk     239 (3.8 s)  $30k-walk     242 (7.5 s)
+KAVA  base     289  worst-1s     289  $10k-walk     286 (3.0 s)  $30k-walk     249 (6.3 s)
+SAND  base    2451  worst-1s    2267  $10k-walk    2340 (0.1 s)  $30k-walk    2297 (1.1 s)
+STX   base    1504  worst-1s    1502  $10k-walk    1503 (3.0 s)  $30k-walk    1503 (5.5 s)
+NU    base   11554  worst-1s   11554  $10k-walk   11666 (2.8 s)  $30k-walk   11636 (2.8 s)
+declared      mean    3243  t  1.53  median   1504
+worst of 1 s  mean    3180  t  1.50  median   1502
+$10k walk     mean    3207  t  1.49  median   1503
+$30k walk     mean    3185  t  1.48  median   1503
+leave-one-out (drop coin: mean, t): HIVE 3950 / 1.53, KAVA 3981 / 1.56, SAND 3440 / 1.27, STX 3677 / 1.38, NU 1165 / 2.29

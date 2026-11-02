@@ -1,0 +1,6 @@
+C1 IS actual -4.12 shuffled mean -2.98 beats 10.4 % | VAL actual -1.73 shuffled mean -2.57 beats 71.2 %
+C2 IS actual -4.92 shuffled mean -3.17 beats 0.4 % | VAL actual -0.91 shuffled mean -1.91 beats 81.5 %
+C3 IS actual -7.46 shuffled mean -3.82 beats 1.4 % | VAL actual -3.27 shuffled mean -2.62 beats 39.4 %
+C4 IS actual +5.69 shuffled mean -1.36 beats 100.0 % | VAL actual +4.29 shuffled mean -1.31 beats 100.0 %
+C5 IS actual -8.04 shuffled mean -3.64 beats 2.7 % | VAL actual -5.49 shuffled mean -2.96 beats 13.9 %
+C6 IS actual +2.19 shuffled mean -1.46 beats 100.0 % | VAL actual +0.74 shuffled mean -1.38 beats 97.4 %

@@ -1,0 +1,12 @@
+M H24 IS {'n': 16, 'gross_h1': 252, 'pct_other': 100.0, 'med_other': -101, 'pct_same': 93.6, 'med_same': 10}
+M H24 VAL {'n': 17, 'gross_h1': 482, 'pct_other': 100.0, 'med_other': -10, 'pct_same': 100.0, 'med_same': 16}
+M H72 IS {'n': 16, 'gross_h1': -85, 'pct_other': 66.2, 'med_other': -200, 'pct_same': 38.6, 'med_same': -13}
+M H72 VAL {'n': 17, 'gross_h1': 588, 'pct_other': 100.0, 'med_other': -131, 'pct_same': 100.0, 'med_same': 31}
+K2 H24 IS {'n': 11, 'gross_h1': 524, 'pct_other': 100.0, 'med_other': -60, 'pct_same': 100.0, 'med_same': -38}
+K2 H24 VAL {'n': 29, 'gross_h1': 527, 'pct_other': 100.0, 'med_other': 41, 'pct_same': 100.0, 'med_same': 13}
+K2 H72 IS {'n': 11, 'gross_h1': 962, 'pct_other': 100.0, 'med_other': -148, 'pct_same': 100.0, 'med_same': -59}
+K2 H72 VAL {'n': 29, 'gross_h1': 589, 'pct_other': 100.0, 'med_other': -28, 'pct_same': 100.0, 'med_same': 7}
+K2+X H24 IS {'n': 12, 'gross_h1': 487, 'pct_other': 100.0, 'med_other': -33, 'pct_same': 99.8, 'med_same': -12}
+K2+X H24 VAL {'n': 32, 'gross_h1': 547, 'pct_other': 100.0, 'med_other': 62, 'pct_same': 100.0, 'med_same': -3}
+K2+X H72 IS {'n': 12, 'gross_h1': 878, 'pct_other': 100.0, 'med_other': -64, 'pct_same': 100.0, 'med_same': -58}
+K2+X H72 VAL {'n': 32, 'gross_h1': 608, 'pct_other': 100.0, 'med_other': -46, 'pct_same': 100.0, 'med_same': 20}

@@ -1,0 +1,6 @@
+BTCUSDT first 2020-01-01T00:00 | 2020: miss 0.0000 2021: miss 0.0000 2022: miss 0.0000 2023: miss 0.0000 2024: miss 0.0000 | tb>v 0 tb==0 share 0.0001 v==0 share 0.0001
+ETHUSDT first 2020-01-01T00:00 | 2020: miss 0.0000 2021: miss 0.0000 2022: miss 0.0000 2023: miss 0.0000 2024: miss 0.0000 | tb>v 0 tb==0 share 0.0005 v==0 share 0.0001
+SOLUSDT first 2020-09-14T07:00 | 2020: miss 0.0000 2021: miss 0.0000 2022: miss 0.0137 2023: miss 0.0000 2024: miss 0.0000 | tb>v 0 tb==0 share 0.0043 v==0 share 0.0002
+XRPUSDT first 2020-01-06T08:21 | 2020: miss 0.0000 2021: miss 0.0000 2022: miss 0.0137 2023: miss 0.0000 2024: miss 0.0000 | tb>v 1 tb==0 share 0.0046 v==0 share 0.0002
+DOGEUSDT first 2020-07-10T09:00 | 2020: miss 0.0000 2021: miss 0.0000 2022: miss 0.0000 2023: miss 0.0000 2024: miss 0.0000 | tb>v 0 tb==0 share 0.0167 v==0 share 0.006
+BNBUSDT first 2020-02-10T08:01 | 2020: miss 0.0000 2021: miss 0.0000 2022: miss 0.0000 2023: miss 0.0000 2024: miss 0.0000 | tb>v 0 tb==0 share 0.004 v==0 share 0.0004

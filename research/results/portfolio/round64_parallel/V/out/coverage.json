@@ -1,0 +1,2628 @@
+{
+ "bybit": {
+  "current": {
+   "n": 75,
+   "covered": 55,
+   "share": 0.7333333333333333,
+   "rate_med": 0.055418554440000004,
+   "rate_p90": 0.14789657445600002,
+   "rate_le40": 0.9636363636363636,
+   "n_rate": 55,
+   "cap_med": 61481.0,
+   "cap_ge1k": 1.0,
+   "cap_ge10k": 0.8545454545454545,
+   "missing": [
+    "ARK",
+    "DASH",
+    "ERA",
+    "GTC",
+    "HEMI",
+    "IOST",
+    "LSK",
+    "MUBARAK",
+    "NIL",
+    "NMR",
+    "OGN",
+    "ONE",
+    "ORCA",
+    "PHA",
+    "RLC",
+    "SAGA",
+    "SOPH",
+    "TAO",
+    "XMR",
+    "ZEC"
+   ]
+  },
+  "val_event": {
+   "n": 94,
+   "covered": 52,
+   "share": 0.5531914893617021,
+   "rate_med": 0.07466740614,
+   "rate_p90": 0.157366223808,
+   "rate_le40": 0.9423076923076923,
+   "n_rate": 52,
+   "cap_med": 26441.591,
+   "cap_ge1k": 1.0,
+   "cap_ge10k": 0.7115384615384616,
+   "missing": [
+    "ANC",
+    "API3",
+    "ARK",
+    "ARPA",
+    "AUDIO",
+    "BAKE",
+    "BEL",
+    "BNX",
+    "CKB",
+    "COTI",
+    "DASH",
+    "DUSK",
+    "FRONT",
+    "FTM",
+    "FTT",
+    "FXS",
+    "GAL",
+    "GLM",
+    "ICX",
+    "MATIC",
+    "MTL",
+    "OCEAN",
+    "OGN",
+    "OM",
+    "ONE",
+    "PERP",
+    "POWR",
+    "REEF",
+    "REN",
+    "SAGA",
+    "SFP",
+    "SRM",
+    "STG",
+    "STORJ",
+    "TAO",
+    "TRB",
+    "TURBO",
+    "UNFI",
+    "WAVES",
+    "XEC",
+    "XVG",
+    "ZIL"
+   ]
+  },
+  "all": {
+   "n": 384,
+   "covered": 188,
+   "share": 0.4895833333333333,
+   "rate_med": 0.10399606134,
+   "rate_p90": 0.48950663803200006,
+   "rate_le40": 0.8138297872340425,
+   "n_rate": 188,
+   "cap_med": 7290.875,
+   "cap_ge1k": 0.9840425531914894,
+   "cap_ge10k": 0.44148936170212766,
+   "missing": [
+    "ACE",
+    "ACT",
+    "AGIX",
+    "AI",
+    "AIGENSYN",
+    "AKRO",
+    "ALICE",
+    "ALLO",
+    "ALPACA",
+    "ALPHA",
+    "ALPINE",
+    "AMB",
+    "ANC",
+    "ANT",
+    "API3",
+    "ARK",
+    "ARPA",
+    "ASR",
+    "ASTR",
+    "AT",
+    "ATA",
+    "AUCTION",
+    "AUDIO",
+    "BADGER",
+    "BAKE",
+    "BAL",
+    "BANANA",
+    "BANANAS31",
+    "BAND",
+    "BANK",
+    "BEL",
+    "BIGTIME",
+    "BIO",
+    "BLZ",
+    "BNT",
+    "BNX",
+    "BOND",
+    "BROCCOLI714",
+    "BSW",
+    "BZRX",
+    "C",
+    "C98",
+    "CELR",
+    "CETUS",
+    "CFX",
+    "CHR",
+    "CKB",
+    "COCOS",
+    "COS",
+    "COTI",
+    "COW",
+    "CTSI",
+    "D",
+    "DAR",
+    "DASH",
+    "DEGO",
+    "DENT",
+    "DEXE",
+    "DIA",
+    "DODO",
+    "DUSK",
+    "EDEN",
+    "EDU",
+    "EOS",
+    "EPIC",
+    "ERA",
+    "ESP",
+    "EUL",
+    "FIDA",
+    "FLM",
+    "FORM",
+    "FRONT",
+    "FTM",
+    "FTT",
+    "FUN",
+    "FXS",
+    "GAL",
+    "GAS",
+    "GENIUS",
+    "GIGGLE",
+    "GLM",
+    "GTC",
+    "GUN",
+    "HEI",
+    "HEMI",
+    "HFT",
+    "HIFI",
+    "HIGH",
+    "HOOK",
+    "HOT",
+    "ICX",
+    "IOST",
+    "IOTA",
+    "IOTX",
+    "JOE",
+    "KAITO",
+    "KAT",
+    "KEEP",
+    "KERNEL",
+    "KITE",
+    "KLAY",
+    "KNC",
+    "LEND",
+    "LEVER",
+    "LINA",
+    "LISTA",
+    "LPT",
+    "LQTY",
+    "LRC",
+    "LSK",
+    "MATIC",
+    "MAV",
+    "MKR",
+    "MLN",
+    "MTL",
+    "MUBARAK",
+    "NEIRO",
+    "NEO",
+    "NFP",
+    "NIL",
+    "NKN",
+    "NMR",
+    "NOM",
+    "NTRN",
+    "OCEAN",
+    "OG",
+    "OGN",
+    "OM",
+    "OMG",
+    "OMNI",
+    "ONE",
+    "ONG",
+    "ONT",
+    "OPN",
+    "ORCA",
+    "OXT",
+    "PERP",
+    "PHA",
+    "PHB",
+    "PIXEL",
+    "POLYX",
+    "POWR",
+    "PROM",
+    "RARE",
+    "RDNT",
+    "RE",
+    "REEF",
+    "REN",
+    "REZ",
+    "RIF",
+    "RLC",
+    "RNDR",
+    "RSR",
+    "SAGA",
+    "SAPIEN",
+    "SFP",
+    "SKL",
+    "SOPH",
+    "SPELL",
+    "SRM",
+    "STEEM",
+    "STG",
+    "STMX",
+    "STO",
+    "STORJ",
+    "SUPER",
+    "SYN",
+    "SYRUP",
+    "T",
+    "TAO",
+    "THE",
+    "TLM",
+    "TOMO",
+    "TON",
+    "TRB",
+    "TROY",
+    "TRU",
+    "TST",
+    "TURBO",
+    "TUT",
+    "UNFI",
+    "USUAL",
+    "VANRY",
+    "VIC",
+    "VIDT",
+    "VOXEL",
+    "WAVES",
+    "XEC",
+    "XEM",
+    "XMR",
+    "XVG",
+    "XVS",
+    "YGG",
+    "ZEC",
+    "ZIL",
+    "ZKP"
+   ]
+  },
+  "per_coin_current": {
+   "AAVE": {
+    "rate_yr": 0.036891557400000004,
+    "cap_usdt": 82428.0
+   },
+   "ADA": {
+    "rate_yr": 0.0646465224,
+    "cap_usdt": 185275.19999999998
+   },
+   "APT": {
+    "rate_yr": 0.02021780844,
+    "cap_usdt": 37246.16
+   },
+   "ARB": {
+    "rate_yr": 0.03526474656,
+    "cap_usdt": 58117.696
+   },
+   "ASTER": {
+    "rate_yr": 0.022090381080000002,
+    "cap_usdt": 54209.009999999995
+   },
+   "AVAX": {
+    "rate_yr": 0.033001714439999996,
+    "cap_usdt": 176580.0
+   },
+   "BAT": {
+    "rate_yr": 0.07618089323999999,
+    "cap_usdt": 2695.8720000000003
+   },
+   "BCH": {
+    "rate_yr": 0.043267260599999996,
+    "cap_usdt": 78712.44
+   },
+   "BNB": {
+    "rate_yr": 0.04446583884,
+    "cap_usdt": 3556915.2
+   },
+   "BONK": {
+    "rate_yr": 0.09923229012,
+    "cap_usdt": 34725.6
+   },
+   "CRV": {
+    "rate_yr": 0.07634884872,
+    "cap_usdt": 145952.99
+   },
+   "DOGE": {
+    "rate_yr": 0.051698121119999996,
+    "cap_usdt": 531720.0
+   },
+   "DOT": {
+    "rate_yr": 0.021067519679999997,
+    "cap_usdt": 203062.99
+   },
+   "ENA": {
+    "rate_yr": 0.01681037868,
+    "cap_usdt": 148192.3
+   },
+   "ETC": {
+    "rate_yr": 0.02478596448,
+    "cap_usdt": 24466.68
+   },
+   "ETHFI": {
+    "rate_yr": 0.11265229476,
+    "cap_usdt": 47337.100000000006
+   },
+   "FET": {
+    "rate_yr": 0.08749745544000001,
+    "cap_usdt": 16320.000000000002
+   },
+   "FIL": {
+    "rate_yr": 0.0314782278,
+    "cap_usdt": 61481.0
+   },
+   "G": {
+    "rate_yr": 0.80845725516,
+    "cap_usdt": 4087.9999999999995
+   },
+   "HBAR": {
+    "rate_yr": 0.01066392468,
+    "cap_usdt": 56991.55
+   },
+   "HYPE": {
+    "rate_yr": 0.06520763544,
+    "cap_usdt": 210631.15199999997
+   },
+   "ICP": {
+    "rate_yr": 0.01789997376,
+    "cap_usdt": 24892.14
+   },
+   "INJ": {
+    "rate_yr": 0.02332001352,
+    "cap_usdt": 288970.24
+   },
+   "LINK": {
+    "rate_yr": 0.00912276036,
+    "cap_usdt": 220753.5
+   },
+   "LIT": {
+    "rate_yr": 0.10562588124000001,
+    "cap_usdt": 40753.7
+   },
+   "LTC": {
+    "rate_yr": 0.04367757024,
+    "cap_usdt": 225240.0
+   },
+   "MAGIC": {
+    "rate_yr": 0.10750066139999999,
+    "cap_usdt": 4938.599999999999
+   },
+   "MET": {
+    "rate_yr": 0.08961911868,
+    "cap_usdt": 10994.67
+   },
+   "MOVR": {
+    "rate_yr": 0.52624493748,
+    "cap_usdt": 1504.44
+   },
+   "NEAR": {
+    "rate_yr": 0.022122276240000002,
+    "cap_usdt": 307440.0
+   },
+   "ONDO": {
+    "rate_yr": 0.01594264812,
+    "cap_usdt": 63709.8
+   },
+   "OP": {
+    "rate_yr": 0.01895296956,
+    "cap_usdt": 43337.7
+   },
+   "PENGU": {
+    "rate_yr": 0.10790636328,
+    "cap_usdt": 58715.36
+   },
+   "PEPE": {
+    "rate_yr": 0.02289740484,
+    "cap_usdt": 322476.6
+   },
+   "PUMP": {
+    "rate_yr": 0.0548873568,
+    "cap_usdt": 66261.7104
+   },
+   "QNT": {
+    "rate_yr": 0.096967287,
+    "cap_usdt": 3262.8419999999996
+   },
+   "S": {
+    "rate_yr": 0.10514976648,
+    "cap_usdt": 8297.28
+   },
+   "SAND": {
+    "rate_yr": 0.15158770908,
+    "cap_usdt": 25766.874
+   },
+   "SHIB": {
+    "rate_yr": 0.00784876728,
+    "cap_usdt": 361107.53026
+   },
+   "SOL": {
+    "rate_yr": 0.04370625048,
+    "cap_usdt": 740147.5
+   },
+   "STRK": {
+    "rate_yr": 0.11340786228,
+    "cap_usdt": 26924.064000000002
+   },
+   "SUI": {
+    "rate_yr": 0.0146316528,
+    "cap_usdt": 1212959.51
+   },
+   "TIA": {
+    "rate_yr": 0.13581187764,
+    "cap_usdt": 58080.0
+   },
+   "TRUMP": {
+    "rate_yr": 0.08667779976,
+    "cap_usdt": 60845.7
+   },
+   "TRX": {
+    "rate_yr": 0.158008281,
+    "cap_usdt": 183682.80000000002
+   },
+   "UNI": {
+    "rate_yr": 0.00745932396,
+    "cap_usdt": 189747.0
+   },
+   "VTHO": {
+    "rate_yr": 0.27617912172,
+    "cap_usdt": 1270.654
+   },
+   "W": {
+    "rate_yr": 0.1980197562,
+    "cap_usdt": 14672.64
+   },
+   "WAL": {
+    "rate_yr": 0.07634684268,
+    "cap_usdt": 5952.0
+   },
+   "WLD": {
+    "rate_yr": 0.077816394,
+    "cap_usdt": 80040.0
+   },
+   "XAUT": {
+    "rate_yr": 0.11135562204,
+    "cap_usdt": 410769.07999999996
+   },
+   "XLM": {
+    "rate_yr": 0.03893844528,
+    "cap_usdt": 118650.00000000001
+   },
+   "XPL": {
+    "rate_yr": 0.14235987252,
+    "cap_usdt": 72075.0
+   },
+   "XRP": {
+    "rate_yr": 0.055418554440000004,
+    "cap_usdt": 6730773.319999999
+   },
+   "ZRO": {
+    "rate_yr": 0.06685515492,
+    "cap_usdt": 24269.52
+   }
+  }
+ },
+ "okx": {
+  "current": {
+   "n": 75,
+   "covered": 52,
+   "share": 0.6933333333333334,
+   "rate_med": 0.059567999999999996,
+   "rate_p90": 0.14870976,
+   "rate_le40": 0.9807692307692307,
+   "n_rate": 52,
+   "cap_med": 55039.5,
+   "cap_ge1k": 1.0,
+   "cap_ge10k": 0.8846153846153846,
+   "missing": [
+    "ARK",
+    "ERA",
+    "FET",
+    "G",
+    "GTC",
+    "HEMI",
+    "IOST",
+    "LSK",
+    "MOVR",
+    "MUBARAK",
+    "NIL",
+    "NMR",
+    "OGN",
+    "ONE",
+    "ORCA",
+    "PHA",
+    "QNT",
+    "RLC",
+    "SAGA",
+    "SOPH",
+    "VTHO",
+    "WAL",
+    "XMR"
+   ]
+  },
+  "val_event": {
+   "n": 94,
+   "covered": 52,
+   "share": 0.5531914893617021,
+   "rate_med": 0.0850596,
+   "rate_p90": 0.23817563999999994,
+   "rate_le40": 0.9615384615384616,
+   "n_rate": 52,
+   "cap_med": 22240.25,
+   "cap_ge1k": 1.0,
+   "cap_ge10k": 0.7692307692307693,
+   "missing": [
+    "ANC",
+    "ANKR",
+    "ARK",
+    "ARPA",
+    "AUDIO",
+    "BAKE",
+    "BEL",
+    "BNX",
+    "CKB",
+    "COTI",
+    "DOGS",
+    "DUSK",
+    "FET",
+    "FRONT",
+    "FTM",
+    "FTT",
+    "FXS",
+    "GAL",
+    "GLM",
+    "ICX",
+    "ID",
+    "JASMY",
+    "MATIC",
+    "MTL",
+    "OCEAN",
+    "OGN",
+    "OM",
+    "ONE",
+    "PENDLE",
+    "PERP",
+    "POWR",
+    "REEF",
+    "REN",
+    "SAGA",
+    "SFP",
+    "SRM",
+    "STG",
+    "STORJ",
+    "UNFI",
+    "WAVES",
+    "XEC",
+    "XVG"
+   ]
+  },
+  "all": {
+   "n": 384,
+   "covered": 141,
+   "share": 0.3671875,
+   "rate_med": 0.10406879999999999,
+   "rate_p90": 0.247032,
+   "rate_le40": 0.9716312056737588,
+   "n_rate": 141,
+   "cap_med": 13905.0,
+   "cap_ge1k": 0.9787234042553191,
+   "cap_ge10k": 0.5886524822695035,
+   "missing": [
+    "0G",
+    "ACE",
+    "AEVO",
+    "AGIX",
+    "AI",
+    "AIGENSYN",
+    "AIXBT",
+    "AKRO",
+    "ALICE",
+    "ALLO",
+    "ALPACA",
+    "ALPHA",
+    "ALPINE",
+    "ALT",
+    "AMB",
+    "ANC",
+    "ANKR",
+    "ANT",
+    "ARK",
+    "ARPA",
+    "ASR",
+    "ASTR",
+    "AT",
+    "ATA",
+    "AUDIO",
+    "AXL",
+    "BADGER",
+    "BAKE",
+    "BAL",
+    "BANANA",
+    "BANANAS31",
+    "BAND",
+    "BANK",
+    "BB",
+    "BEL",
+    "BICO",
+    "BLZ",
+    "BMT",
+    "BNT",
+    "BNX",
+    "BOND",
+    "BROCCOLI714",
+    "BSW",
+    "BTT",
+    "BZRX",
+    "C",
+    "C98",
+    "CAKE",
+    "CATI",
+    "CELR",
+    "CETUS",
+    "CHIP",
+    "CHR",
+    "CKB",
+    "COCOS",
+    "COOKIE",
+    "COS",
+    "COTI",
+    "COW",
+    "CTSI",
+    "CYBER",
+    "D",
+    "DAR",
+    "DEGO",
+    "DENT",
+    "DEXE",
+    "DIA",
+    "DODO",
+    "DOGS",
+    "DOLO",
+    "DUSK",
+    "DYM",
+    "EDEN",
+    "EDU",
+    "ENSO",
+    "EOS",
+    "EPIC",
+    "ERA",
+    "ESP",
+    "EUL",
+    "F",
+    "FET",
+    "FF",
+    "FIDA",
+    "FLM",
+    "FORM",
+    "FRONT",
+    "FTM",
+    "FTT",
+    "FUN",
+    "FXS",
+    "G",
+    "GAL",
+    "GENIUS",
+    "GIGGLE",
+    "GLM",
+    "GPS",
+    "GTC",
+    "GUN",
+    "HEI",
+    "HEMI",
+    "HFT",
+    "HIFI",
+    "HIGH",
+    "HMSTR",
+    "HNT",
+    "HOME",
+    "HOOK",
+    "HOT",
+    "HYPER",
+    "ICX",
+    "ID",
+    "INIT",
+    "IO",
+    "IOST",
+    "IOTX",
+    "JASMY",
+    "JOE",
+    "KAIA",
+    "KAT",
+    "KAVA",
+    "KEEP",
+    "KERNEL",
+    "KITE",
+    "KLAY",
+    "KNC",
+    "LA",
+    "LEND",
+    "LEVER",
+    "LINA",
+    "LISTA",
+    "LSK",
+    "LUNC",
+    "MANTA",
+    "MATIC",
+    "MAV",
+    "MEGA",
+    "MEME",
+    "MKR",
+    "MLN",
+    "MMT",
+    "MOVR",
+    "MTL",
+    "MUBARAK",
+    "NEWT",
+    "NFP",
+    "NIL",
+    "NKN",
+    "NMR",
+    "NOM",
+    "NTRN",
+    "OCEAN",
+    "OG",
+    "OGN",
+    "OM",
+    "OMG",
+    "OMNI",
+    "ONE",
+    "ONG",
+    "OPG",
+    "OPN",
+    "ORCA",
+    "OXT",
+    "PARTI",
+    "PENDLE",
+    "PERP",
+    "PHA",
+    "PHB",
+    "PIXEL",
+    "POLYX",
+    "PORTAL",
+    "POWR",
+    "PROM",
+    "PROVE",
+    "QNT",
+    "RARE",
+    "RDNT",
+    "RED",
+    "REEF",
+    "REN",
+    "RESOLV",
+    "REZ",
+    "RIF",
+    "RLC",
+    "RNDR",
+    "ROSE",
+    "RUNE",
+    "RVN",
+    "SAGA",
+    "SAHARA",
+    "SAPIEN",
+    "SENT",
+    "SFP",
+    "SIGN",
+    "SKL",
+    "SOLV",
+    "SOMI",
+    "SOPH",
+    "SPELL",
+    "SRM",
+    "STEEM",
+    "STG",
+    "STMX",
+    "STO",
+    "STORJ",
+    "SUN",
+    "SUPER",
+    "SXT",
+    "SYN",
+    "SYRUP",
+    "T",
+    "THE",
+    "TLM",
+    "TNSR",
+    "TOMO",
+    "TON",
+    "TROY",
+    "TRU",
+    "TST",
+    "TUT",
+    "TWT",
+    "UNFI",
+    "USTC",
+    "USUAL",
+    "VANA",
+    "VANRY",
+    "VET",
+    "VIC",
+    "VIDT",
+    "VOXEL",
+    "VTHO",
+    "WAL",
+    "WAVES",
+    "WOO",
+    "XAI",
+    "XEC",
+    "XEM",
+    "XMR",
+    "XVG",
+    "XVS",
+    "ZAMA",
+    "ZBT",
+    "ZKP"
+   ]
+  },
+  "per_coin_current": {
+   "AAVE": {
+    "rate_yr": 0.010074,
+    "cap_usdt": 41216.99999999999
+   },
+   "ADA": {
+    "rate_yr": 0.010074,
+    "cap_usdt": 38720.0
+   },
+   "APT": {
+    "rate_yr": 0.0830448,
+    "cap_usdt": 22235.5
+   },
+   "ARB": {
+    "rate_yr": 0.010074,
+    "cap_usdt": 52585.6
+   },
+   "ASTER": {
+    "rate_yr": 0.010074,
+    "cap_usdt": 7913.25
+   },
+   "AVAX": {
+    "rate_yr": 0.0850596,
+    "cap_usdt": 132510.0
+   },
+   "BAT": {
+    "rate_yr": 0.1110768,
+    "cap_usdt": 14050.000000000002
+   },
+   "BCH": {
+    "rate_yr": 0.010074,
+    "cap_usdt": 85620.0
+   },
+   "BNB": {
+    "rate_yr": 0.010074,
+    "cap_usdt": 142898.0
+   },
+   "BONK": {
+    "rate_yr": 0.1490076,
+    "cap_usdt": 22245.0
+   },
+   "CRV": {
+    "rate_yr": 0.10406879999999999,
+    "cap_usdt": 56780.0
+   },
+   "DASH": {
+    "rate_yr": 0.0830448,
+    "cap_usdt": 12157.5
+   },
+   "DOGE": {
+    "rate_yr": 0.010074,
+    "cap_usdt": 75970.0
+   },
+   "DOT": {
+    "rate_yr": 0.0650868,
+    "cap_usdt": 36221.6
+   },
+   "ENA": {
+    "rate_yr": 0.010074,
+    "cap_usdt": 3171.672
+   },
+   "ETC": {
+    "rate_yr": 0.010074,
+    "cap_usdt": 53715.0
+   },
+   "ETHFI": {
+    "rate_yr": 0.123078,
+    "cap_usdt": 40618.5
+   },
+   "FIL": {
+    "rate_yr": 0.010074,
+    "cap_usdt": 87840.0
+   },
+   "HBAR": {
+    "rate_yr": 0.056063999999999996,
+    "cap_usdt": 50442.0
+   },
+   "HYPE": {
+    "rate_yr": 0.010074,
+    "cap_usdt": 441034.99999999994
+   },
+   "ICP": {
+    "rate_yr": 0.010074,
+    "cap_usdt": 40384.0
+   },
+   "INJ": {
+    "rate_yr": 0.09600959999999999,
+    "cap_usdt": 43890.0
+   },
+   "LINK": {
+    "rate_yr": 0.010074,
+    "cap_usdt": 236180.0
+   },
+   "LIT": {
+    "rate_yr": 0.247032,
+    "cap_usdt": 31352.000000000004
+   },
+   "LTC": {
+    "rate_yr": 0.010074,
+    "cap_usdt": 281550.0
+   },
+   "MAGIC": {
+    "rate_yr": 0.10503240000000001,
+    "cap_usdt": 6420.179999999999
+   },
+   "MET": {
+    "rate_yr": 0.09303120000000001,
+    "cap_usdt": 2485.875
+   },
+   "NEAR": {
+    "rate_yr": 0.010074,
+    "cap_usdt": 272242.0
+   },
+   "ONDO": {
+    "rate_yr": 0.010074,
+    "cap_usdt": 74502.0
+   },
+   "OP": {
+    "rate_yr": 0.06806519999999999,
+    "cap_usdt": 12608.2
+   },
+   "PENGU": {
+    "rate_yr": 0.1170336,
+    "cap_usdt": 37996.4
+   },
+   "PEPE": {
+    "rate_yr": 0.010074,
+    "cap_usdt": 190763.8
+   },
+   "PUMP": {
+    "rate_yr": 0.063072,
+    "cap_usdt": 63930.0
+   },
+   "S": {
+    "rate_yr": 0.0940824,
+    "cap_usdt": 10037.5
+   },
+   "SAND": {
+    "rate_yr": 0.413034,
+    "cap_usdt": 13050.8
+   },
+   "SHIB": {
+    "rate_yr": 0.010074,
+    "cap_usdt": 56364.0
+   },
+   "SOL": {
+    "rate_yr": 0.0400332,
+    "cap_usdt": 3830800.0
+   },
+   "STRK": {
+    "rate_yr": 0.1120404,
+    "cap_usdt": 27323.399999999998
+   },
+   "SUI": {
+    "rate_yr": 0.010074,
+    "cap_usdt": 907700.0
+   },
+   "TAO": {
+    "rate_yr": 0.010074,
+    "cap_usdt": 178635.0
+   },
+   "TIA": {
+    "rate_yr": 0.2530764,
+    "cap_usdt": 23995.0
+   },
+   "TRUMP": {
+    "rate_yr": 0.11405520000000001,
+    "cap_usdt": 71865.0
+   },
+   "TRX": {
+    "rate_yr": 0.332004,
+    "cap_usdt": 466260.0
+   },
+   "UNI": {
+    "rate_yr": 0.010074,
+    "cap_usdt": 109065.0
+   },
+   "W": {
+    "rate_yr": 0.1460292,
+    "cap_usdt": 5731.0
+   },
+   "WLD": {
+    "rate_yr": 0.010074,
+    "cap_usdt": 80040.0
+   },
+   "XAUT": {
+    "rate_yr": 0.1100256,
+    "cap_usdt": 162771.0
+   },
+   "XLM": {
+    "rate_yr": 0.1070472,
+    "cap_usdt": 71135.4
+   },
+   "XPL": {
+    "rate_yr": 0.2840868,
+    "cap_usdt": 6295.8
+   },
+   "XRP": {
+    "rate_yr": 0.010074,
+    "cap_usdt": 3132000.0
+   },
+   "ZEC": {
+    "rate_yr": 0.010074,
+    "cap_usdt": 219103.5
+   },
+   "ZRO": {
+    "rate_yr": 0.08103,
+    "cap_usdt": 77275.8
+   }
+  }
+ },
+ "gate": {
+  "current": {
+   "n": 75,
+   "covered": 69,
+   "share": 0.92,
+   "rate_med": 0.064386,
+   "rate_p90": 0.42514032000000007,
+   "rate_le40": 0.8695652173913043,
+   "n_rate": 69,
+   "cap_med": 120000.0,
+   "cap_ge1k": 1.0,
+   "cap_ge10k": 1.0,
+   "missing": [
+    "ARK",
+    "DASH",
+    "GTC",
+    "LSK",
+    "XMR",
+    "ZEC"
+   ]
+  },
+  "val_event": {
+   "n": 94,
+   "covered": 70,
+   "share": 0.7446808510638298,
+   "rate_med": 0.1021416,
+   "rate_p90": 0.5582397600000001,
+   "rate_le40": 0.7857142857142857,
+   "n_rate": 70,
+   "cap_med": 30000.0,
+   "cap_ge1k": 0.9714285714285714,
+   "cap_ge10k": 0.9714285714285714,
+   "missing": [
+    "ANC",
+    "ANKR",
+    "ARK",
+    "BAKE",
+    "BEL",
+    "BNX",
+    "DASH",
+    "DUSK",
+    "FRONT",
+    "FTM",
+    "FXS",
+    "GAL",
+    "ICX",
+    "LUNA",
+    "MATIC",
+    "OCEAN",
+    "OM",
+    "REEF",
+    "REN",
+    "SFP",
+    "SRM",
+    "STG",
+    "UNFI",
+    "XVG"
+   ]
+  },
+  "all": {
+   "n": 384,
+   "covered": 291,
+   "share": 0.7578125,
+   "rate_med": 0.0938634,
+   "rate_p90": 0.55171356,
+   "rate_le40": 0.8090909090909091,
+   "n_rate": 110,
+   "cap_med": 30000.0,
+   "cap_ge1k": 0.979381443298969,
+   "cap_ge10k": 0.979381443298969,
+   "missing": [
+    "ACE",
+    "AGIX",
+    "AI",
+    "AIGENSYN",
+    "AKRO",
+    "ALPACA",
+    "ALPHA",
+    "ALPINE",
+    "AMB",
+    "ANC",
+    "ANKR",
+    "ANT",
+    "ARK",
+    "AXL",
+    "BAKE",
+    "BAL",
+    "BANK",
+    "BEL",
+    "BNT",
+    "BNX",
+    "BOND",
+    "BROCCOLI714",
+    "BSW",
+    "BTT",
+    "BZRX",
+    "CHIP",
+    "COCOS",
+    "COS",
+    "D",
+    "DAR",
+    "DASH",
+    "DEGO",
+    "DUSK",
+    "EOS",
+    "EPIC",
+    "FLM",
+    "FRONT",
+    "FTM",
+    "FUN",
+    "FXS",
+    "GAL",
+    "GTC",
+    "HEI",
+    "HIFI",
+    "HOOK",
+    "ICX",
+    "KAT",
+    "KEEP",
+    "KLAY",
+    "LEND",
+    "LEVER",
+    "LINA",
+    "LSK",
+    "LUNA",
+    "MATIC",
+    "MKR",
+    "NEIRO",
+    "NFP",
+    "NIGHT",
+    "NTRN",
+    "OCEAN",
+    "OM",
+    "OMG",
+    "OMNI",
+    "OPN",
+    "PHB",
+    "REEF",
+    "REN",
+    "RIF",
+    "RNDR",
+    "SENT",
+    "SFP",
+    "SOMI",
+    "SRM",
+    "STEEM",
+    "STG",
+    "STMX",
+    "THE",
+    "TOMO",
+    "TON",
+    "TROY",
+    "TRU",
+    "TST",
+    "UNFI",
+    "VANRY",
+    "VIDT",
+    "XEM",
+    "XMR",
+    "XVG",
+    "ZAMA",
+    "ZEC",
+    "ZEN",
+    "ZKP"
+   ]
+  },
+  "per_coin_current": {
+   "AAVE": {
+    "rate_yr": 0.012263999999999999,
+    "cap_usdt": 240000.0
+   },
+   "ADA": {
+    "rate_yr": 0.004993200000000001,
+    "cap_usdt": 240000.0
+   },
+   "APT": {
+    "rate_yr": 0.0641232,
+    "cap_usdt": 120000.0
+   },
+   "ARB": {
+    "rate_yr": 0.0405588,
+    "cap_usdt": 240000.0
+   },
+   "ASTER": {
+    "rate_yr": 0.29284679999999996,
+    "cap_usdt": 240000.0
+   },
+   "AVAX": {
+    "rate_yr": 0.0172572,
+    "cap_usdt": 240000.0
+   },
+   "BAT": {
+    "rate_yr": 0.4332696,
+    "cap_usdt": 20000.0
+   },
+   "BCH": {
+    "rate_yr": 0.09408240000000001,
+    "cap_usdt": 3000000.0
+   },
+   "BNB": {
+    "rate_yr": 0.0320616,
+    "cap_usdt": 2000000.0
+   },
+   "BONK": {
+    "rate_yr": 0.1154568,
+    "cap_usdt": 120000.0
+   },
+   "CRV": {
+    "rate_yr": 0.1255308,
+    "cap_usdt": 120000.0
+   },
+   "DOGE": {
+    "rate_yr": 0.028908000000000003,
+    "cap_usdt": 5000000.0
+   },
+   "DOT": {
+    "rate_yr": 0.0147168,
+    "cap_usdt": 120000.0
+   },
+   "ENA": {
+    "rate_yr": 0.4122456,
+    "cap_usdt": 600000.0
+   },
+   "ERA": {
+    "rate_yr": 1.3449228,
+    "cap_usdt": 30000.0
+   },
+   "ETC": {
+    "rate_yr": 0.021374399999999998,
+    "cap_usdt": 30000.0
+   },
+   "ETHFI": {
+    "rate_yr": 0.11116440000000001,
+    "cap_usdt": 120000.0
+   },
+   "FET": {
+    "rate_yr": 0.11055119999999999,
+    "cap_usdt": 120000.0
+   },
+   "FIL": {
+    "rate_yr": 0.02628,
+    "cap_usdt": 240000.0
+   },
+   "G": {
+    "rate_yr": 2.9669244,
+    "cap_usdt": 30000.0
+   },
+   "HBAR": {
+    "rate_yr": 0.0607068,
+    "cap_usdt": 120000.0
+   },
+   "HEMI": {
+    "rate_yr": 0.093294,
+    "cap_usdt": 20000.0
+   },
+   "HYPE": {
+    "rate_yr": 0.010774800000000001,
+    "cap_usdt": 600000.0
+   },
+   "ICP": {
+    "rate_yr": 0.2384472,
+    "cap_usdt": 120000.0
+   },
+   "INJ": {
+    "rate_yr": 0.0585168,
+    "cap_usdt": 120000.0
+   },
+   "IOST": {
+    "rate_yr": 0.15128519999999998,
+    "cap_usdt": 30000.0
+   },
+   "LINK": {
+    "rate_yr": 0.0141036,
+    "cap_usdt": 2000000.0
+   },
+   "LIT": {
+    "rate_yr": 0.1158072,
+    "cap_usdt": 120000.0
+   },
+   "LTC": {
+    "rate_yr": 0.031536,
+    "cap_usdt": 4000000.0
+   },
+   "MAGIC": {
+    "rate_yr": 0.4839024,
+    "cap_usdt": 20000.0
+   },
+   "MET": {
+    "rate_yr": 0.0933816,
+    "cap_usdt": 30000.0
+   },
+   "MOVR": {
+    "rate_yr": 0.0886512,
+    "cap_usdt": 30000.0
+   },
+   "MUBARAK": {
+    "rate_yr": 0.05466240000000001,
+    "cap_usdt": 20000.0
+   },
+   "NEAR": {
+    "rate_yr": 0.0177828,
+    "cap_usdt": 240000.0
+   },
+   "NIL": {
+    "rate_yr": 0.1911432,
+    "cap_usdt": 30000.0
+   },
+   "NMR": {
+    "rate_yr": 0.0482676,
+    "cap_usdt": 30000.0
+   },
+   "OGN": {
+    "rate_yr": 0.064386,
+    "cap_usdt": 20000.0
+   },
+   "ONDO": {
+    "rate_yr": 0.014454000000000002,
+    "cap_usdt": 240000.0
+   },
+   "ONE": {
+    "rate_yr": 0.062196,
+    "cap_usdt": 30000.0
+   },
+   "OP": {
+    "rate_yr": 0.10923719999999999,
+    "cap_usdt": 120000.0
+   },
+   "ORCA": {
+    "rate_yr": 0.071394,
+    "cap_usdt": 30000.0
+   },
+   "PENGU": {
+    "rate_yr": 0.5573112,
+    "cap_usdt": 120000.0
+   },
+   "PEPE": {
+    "rate_yr": 0.0182208,
+    "cap_usdt": 600000.0
+   },
+   "PHA": {
+    "rate_yr": 0.046077599999999996,
+    "cap_usdt": 30000.0
+   },
+   "PUMP": {
+    "rate_yr": 0.0774384,
+    "cap_usdt": 240000.0
+   },
+   "QNT": {
+    "rate_yr": 0.1146684,
+    "cap_usdt": 30000.0
+   },
+   "RLC": {
+    "rate_yr": 0.2568432,
+    "cap_usdt": 20000.0
+   },
+   "S": {
+    "rate_yr": 0.1324512,
+    "cap_usdt": 30000.0
+   },
+   "SAGA": {
+    "rate_yr": 0.5510916,
+    "cap_usdt": 10000.0
+   },
+   "SAND": {
+    "rate_yr": 0.181332,
+    "cap_usdt": 30000.0
+   },
+   "SHIB": {
+    "rate_yr": 0.0098988,
+    "cap_usdt": 2000000.0
+   },
+   "SOL": {
+    "rate_yr": 0.0335508,
+    "cap_usdt": 5000000.0
+   },
+   "SOPH": {
+    "rate_yr": 4.9932,
+    "cap_usdt": 120000.0
+   },
+   "STRK": {
+    "rate_yr": 0.056063999999999996,
+    "cap_usdt": 120000.0
+   },
+   "SUI": {
+    "rate_yr": 0.0030659999999999997,
+    "cap_usdt": 600000.0
+   },
+   "TAO": {
+    "rate_yr": 0.0296964,
+    "cap_usdt": 240000.0
+   },
+   "TIA": {
+    "rate_yr": 0.42310800000000004,
+    "cap_usdt": 120000.0
+   },
+   "TRUMP": {
+    "rate_yr": 0.2254824,
+    "cap_usdt": 120000.0
+   },
+   "TRX": {
+    "rate_yr": 0.021111599999999998,
+    "cap_usdt": 600000.0
+   },
+   "UNI": {
+    "rate_yr": 0.0339888,
+    "cap_usdt": 600000.0
+   },
+   "VTHO": {
+    "rate_yr": 0.059743199999999996,
+    "cap_usdt": 20000.0
+   },
+   "W": {
+    "rate_yr": 0.1680168,
+    "cap_usdt": 30000.0
+   },
+   "WAL": {
+    "rate_yr": 0.0642108,
+    "cap_usdt": 30000.0
+   },
+   "WLD": {
+    "rate_yr": 0.17502479999999998,
+    "cap_usdt": 600000.0
+   },
+   "XAUT": {
+    "rate_yr": 0.0465156,
+    "cap_usdt": 600000.0
+   },
+   "XLM": {
+    "rate_yr": 0.0614076,
+    "cap_usdt": 120000.0
+   },
+   "XPL": {
+    "rate_yr": 0.19394640000000002,
+    "cap_usdt": 120000.0
+   },
+   "XRP": {
+    "rate_yr": 0.031974,
+    "cap_usdt": 6000000.0
+   },
+   "ZRO": {
+    "rate_yr": 0.2600844,
+    "cap_usdt": 120000.0
+   }
+  }
+ },
+ "kucoin": {
+  "current": {
+   "n": 75,
+   "covered": 51,
+   "share": 0.68,
+   "rate_med": null,
+   "rate_p90": null,
+   "rate_le40": null,
+   "n_rate": 0,
+   "cap_med": null,
+   "cap_ge1k": null,
+   "cap_ge10k": null,
+   "missing": [
+    "ARK",
+    "BAT",
+    "ERA",
+    "G",
+    "GTC",
+    "HEMI",
+    "IOST",
+    "LIT",
+    "LSK",
+    "MAGIC",
+    "MET",
+    "MOVR",
+    "MUBARAK",
+    "NIL",
+    "NMR",
+    "OGN",
+    "ONE",
+    "ORCA",
+    "PHA",
+    "RLC",
+    "SAGA",
+    "SAND",
+    "VTHO",
+    "XMR"
+   ]
+  },
+  "val_event": {
+   "n": 94,
+   "covered": 44,
+   "share": 0.46808510638297873,
+   "rate_med": null,
+   "rate_p90": null,
+   "rate_le40": null,
+   "n_rate": 0,
+   "cap_med": null,
+   "cap_ge1k": null,
+   "cap_ge10k": null,
+   "missing": [
+    "ANC",
+    "ANKR",
+    "API3",
+    "ARK",
+    "ARPA",
+    "AUDIO",
+    "BAKE",
+    "BEL",
+    "BLUR",
+    "BNX",
+    "CKB",
+    "COTI",
+    "DOGS",
+    "DUSK",
+    "FRONT",
+    "FTM",
+    "FTT",
+    "FXS",
+    "GAL",
+    "GALA",
+    "GLM",
+    "GMT",
+    "ICX",
+    "ID",
+    "MASK",
+    "MATIC",
+    "MTL",
+    "OCEAN",
+    "OGN",
+    "OM",
+    "ONE",
+    "PENDLE",
+    "PEOPLE",
+    "PERP",
+    "POWR",
+    "REEF",
+    "REN",
+    "SAGA",
+    "SAND",
+    "SFP",
+    "SRM",
+    "STG",
+    "STORJ",
+    "TURBO",
+    "UMA",
+    "UNFI",
+    "WAVES",
+    "XEC",
+    "XVG",
+    "ZIL"
+   ]
+  },
+  "all": {
+   "n": 384,
+   "covered": 118,
+   "share": 0.3072916666666667,
+   "rate_med": null,
+   "rate_p90": null,
+   "rate_le40": null,
+   "n_rate": 0,
+   "cap_med": null,
+   "cap_ge1k": null,
+   "cap_ge10k": null,
+   "missing": [
+    "0G",
+    "ACE",
+    "ACH",
+    "ACT",
+    "AGIX",
+    "AGLD",
+    "AI",
+    "AIGENSYN",
+    "AIXBT",
+    "AKRO",
+    "ALICE",
+    "ALPACA",
+    "ALPHA",
+    "ALPINE",
+    "ALT",
+    "AMB",
+    "ANC",
+    "ANIME",
+    "ANKR",
+    "ANT",
+    "API3",
+    "ARK",
+    "ARKM",
+    "ARPA",
+    "ASR",
+    "ASTR",
+    "AT",
+    "ATA",
+    "AUCTION",
+    "AUDIO",
+    "AVNT",
+    "AXL",
+    "AXS",
+    "BADGER",
+    "BAKE",
+    "BAL",
+    "BANANA",
+    "BANANAS31",
+    "BAND",
+    "BANK",
+    "BARD",
+    "BAT",
+    "BB",
+    "BEL",
+    "BERA",
+    "BICO",
+    "BIGTIME",
+    "BIO",
+    "BLUR",
+    "BLZ",
+    "BMT",
+    "BNT",
+    "BNX",
+    "BOND",
+    "BROCCOLI714",
+    "BSW",
+    "BTT",
+    "BZRX",
+    "C",
+    "C98",
+    "CATI",
+    "CELO",
+    "CELR",
+    "CETUS",
+    "CHR",
+    "CKB",
+    "COCOS",
+    "COOKIE",
+    "COS",
+    "COTI",
+    "COW",
+    "CTSI",
+    "CYBER",
+    "D",
+    "DAR",
+    "DEGO",
+    "DENT",
+    "DEXE",
+    "DIA",
+    "DODO",
+    "DOGS",
+    "DOLO",
+    "DUSK",
+    "DYM",
+    "EDEN",
+    "EDU",
+    "ENJ",
+    "ENSO",
+    "EOS",
+    "EPIC",
+    "ERA",
+    "ESP",
+    "EUL",
+    "F",
+    "FF",
+    "FIDA",
+    "FLM",
+    "FLOW",
+    "FORM",
+    "FRONT",
+    "FTM",
+    "FTT",
+    "FUN",
+    "FXS",
+    "G",
+    "GAL",
+    "GALA",
+    "GAS",
+    "GENIUS",
+    "GIGGLE",
+    "GLM",
+    "GMT",
+    "GPS",
+    "GTC",
+    "HEI",
+    "HEMI",
+    "HFT",
+    "HIFI",
+    "HIGH",
+    "HMSTR",
+    "HNT",
+    "HOME",
+    "HOOK",
+    "HOT",
+    "ICX",
+    "ID",
+    "INIT",
+    "IOST",
+    "IOTA",
+    "IOTX",
+    "JOE",
+    "JTO",
+    "KAIA",
+    "KEEP",
+    "KERNEL",
+    "KITE",
+    "KLAY",
+    "KNC",
+    "KSM",
+    "LA",
+    "LAYER",
+    "LEND",
+    "LEVER",
+    "LINA",
+    "LINEA",
+    "LISTA",
+    "LIT",
+    "LPT",
+    "LQTY",
+    "LRC",
+    "LSK",
+    "MAGIC",
+    "MANTA",
+    "MASK",
+    "MATIC",
+    "MAV",
+    "ME",
+    "MEGA",
+    "MET",
+    "MKR",
+    "MLN",
+    "MOVE",
+    "MOVR",
+    "MTL",
+    "MUBARAK",
+    "NEIRO",
+    "NEWT",
+    "NFP",
+    "NIL",
+    "NKN",
+    "NMR",
+    "NOM",
+    "NTRN",
+    "OCEAN",
+    "OG",
+    "OGN",
+    "OM",
+    "OMG",
+    "OMNI",
+    "ONE",
+    "ONG",
+    "ONT",
+    "OPG",
+    "OPN",
+    "ORCA",
+    "OXT",
+    "PARTI",
+    "PENDLE",
+    "PEOPLE",
+    "PERP",
+    "PHA",
+    "PHB",
+    "PIXEL",
+    "POLYX",
+    "PORTAL",
+    "POWR",
+    "PROM",
+    "QTUM",
+    "RARE",
+    "RDNT",
+    "RED",
+    "REEF",
+    "REN",
+    "RESOLV",
+    "REZ",
+    "RIF",
+    "RLC",
+    "RNDR",
+    "RVN",
+    "SAGA",
+    "SAHARA",
+    "SAND",
+    "SAPIEN",
+    "SFP",
+    "SIGN",
+    "SOLV",
+    "SOMI",
+    "SPELL",
+    "SPK",
+    "SRM",
+    "SSV",
+    "STEEM",
+    "STG",
+    "STMX",
+    "STO",
+    "STORJ",
+    "SUN",
+    "SUPER",
+    "SXT",
+    "SYN",
+    "SYRUP",
+    "T",
+    "THE",
+    "TLM",
+    "TNSR",
+    "TOMO",
+    "TON",
+    "TROY",
+    "TRU",
+    "TST",
+    "TURBO",
+    "TUT",
+    "TWT",
+    "UMA",
+    "UNFI",
+    "USTC",
+    "VANA",
+    "VANRY",
+    "VIC",
+    "VIDT",
+    "VOXEL",
+    "VTHO",
+    "WAVES",
+    "WOO",
+    "XEC",
+    "XEM",
+    "XMR",
+    "XTZ",
+    "XVG",
+    "XVS",
+    "YGG",
+    "ZBT",
+    "ZIL",
+    "ZK",
+    "ZKP",
+    "ZRX"
+   ]
+  },
+  "per_coin_current": {
+   "AAVE": {
+    "rate_yr": NaN,
+    "cap_usdt": NaN,
+    "mode": "cross+iso"
+   },
+   "ADA": {
+    "rate_yr": NaN,
+    "cap_usdt": NaN,
+    "mode": "cross+iso"
+   },
+   "APT": {
+    "rate_yr": NaN,
+    "cap_usdt": NaN,
+    "mode": "cross+iso"
+   },
+   "ARB": {
+    "rate_yr": NaN,
+    "cap_usdt": NaN,
+    "mode": "cross+iso"
+   },
+   "ASTER": {
+    "rate_yr": NaN,
+    "cap_usdt": NaN,
+    "mode": "cross+iso"
+   },
+   "AVAX": {
+    "rate_yr": NaN,
+    "cap_usdt": NaN,
+    "mode": "cross+iso"
+   },
+   "BCH": {
+    "rate_yr": NaN,
+    "cap_usdt": NaN,
+    "mode": "cross+iso"
+   },
+   "BNB": {
+    "rate_yr": NaN,
+    "cap_usdt": NaN,
+    "mode": "cross+iso"
+   },
+   "BONK": {
+    "rate_yr": NaN,
+    "cap_usdt": NaN,
+    "mode": "cross+iso"
+   },
+   "CRV": {
+    "rate_yr": NaN,
+    "cap_usdt": NaN,
+    "mode": "cross+iso"
+   },
+   "DASH": {
+    "rate_yr": NaN,
+    "cap_usdt": NaN,
+    "mode": "cross+iso"
+   },
+   "DOGE": {
+    "rate_yr": NaN,
+    "cap_usdt": NaN,
+    "mode": "cross+iso"
+   },
+   "DOT": {
+    "rate_yr": NaN,
+    "cap_usdt": NaN,
+    "mode": "cross+iso"
+   },
+   "ENA": {
+    "rate_yr": NaN,
+    "cap_usdt": NaN,
+    "mode": "cross+iso"
+   },
+   "ETC": {
+    "rate_yr": NaN,
+    "cap_usdt": NaN,
+    "mode": "cross+iso"
+   },
+   "ETHFI": {
+    "rate_yr": NaN,
+    "cap_usdt": NaN,
+    "mode": "iso"
+   },
+   "FET": {
+    "rate_yr": NaN,
+    "cap_usdt": NaN,
+    "mode": "cross+iso"
+   },
+   "FIL": {
+    "rate_yr": NaN,
+    "cap_usdt": NaN,
+    "mode": "cross+iso"
+   },
+   "HBAR": {
+    "rate_yr": NaN,
+    "cap_usdt": NaN,
+    "mode": "cross+iso"
+   },
+   "HYPE": {
+    "rate_yr": NaN,
+    "cap_usdt": NaN,
+    "mode": "cross+iso"
+   },
+   "ICP": {
+    "rate_yr": NaN,
+    "cap_usdt": NaN,
+    "mode": "cross+iso"
+   },
+   "INJ": {
+    "rate_yr": NaN,
+    "cap_usdt": NaN,
+    "mode": "cross+iso"
+   },
+   "LINK": {
+    "rate_yr": NaN,
+    "cap_usdt": NaN,
+    "mode": "cross+iso"
+   },
+   "LTC": {
+    "rate_yr": NaN,
+    "cap_usdt": NaN,
+    "mode": "cross+iso"
+   },
+   "NEAR": {
+    "rate_yr": NaN,
+    "cap_usdt": NaN,
+    "mode": "cross+iso"
+   },
+   "ONDO": {
+    "rate_yr": NaN,
+    "cap_usdt": NaN,
+    "mode": "cross+iso"
+   },
+   "OP": {
+    "rate_yr": NaN,
+    "cap_usdt": NaN,
+    "mode": "cross+iso"
+   },
+   "PENGU": {
+    "rate_yr": NaN,
+    "cap_usdt": NaN,
+    "mode": "cross+iso"
+   },
+   "PEPE": {
+    "rate_yr": NaN,
+    "cap_usdt": NaN,
+    "mode": "cross+iso"
+   },
+   "PUMP": {
+    "rate_yr": NaN,
+    "cap_usdt": NaN,
+    "mode": "cross+iso"
+   },
+   "QNT": {
+    "rate_yr": NaN,
+    "cap_usdt": NaN,
+    "mode": "iso"
+   },
+   "S": {
+    "rate_yr": NaN,
+    "cap_usdt": NaN,
+    "mode": "cross+iso"
+   },
+   "SHIB": {
+    "rate_yr": NaN,
+    "cap_usdt": NaN,
+    "mode": "cross+iso"
+   },
+   "SOL": {
+    "rate_yr": NaN,
+    "cap_usdt": NaN,
+    "mode": "cross+iso"
+   },
+   "SOPH": {
+    "rate_yr": NaN,
+    "cap_usdt": NaN,
+    "mode": "iso"
+   },
+   "STRK": {
+    "rate_yr": NaN,
+    "cap_usdt": NaN,
+    "mode": "cross+iso"
+   },
+   "SUI": {
+    "rate_yr": NaN,
+    "cap_usdt": NaN,
+    "mode": "cross+iso"
+   },
+   "TAO": {
+    "rate_yr": NaN,
+    "cap_usdt": NaN,
+    "mode": "cross+iso"
+   },
+   "TIA": {
+    "rate_yr": NaN,
+    "cap_usdt": NaN,
+    "mode": "cross+iso"
+   },
+   "TRUMP": {
+    "rate_yr": NaN,
+    "cap_usdt": NaN,
+    "mode": "cross+iso"
+   },
+   "TRX": {
+    "rate_yr": NaN,
+    "cap_usdt": NaN,
+    "mode": "cross+iso"
+   },
+   "UNI": {
+    "rate_yr": NaN,
+    "cap_usdt": NaN,
+    "mode": "cross+iso"
+   },
+   "W": {
+    "rate_yr": NaN,
+    "cap_usdt": NaN,
+    "mode": "iso"
+   },
+   "WAL": {
+    "rate_yr": NaN,
+    "cap_usdt": NaN,
+    "mode": "iso"
+   },
+   "WLD": {
+    "rate_yr": NaN,
+    "cap_usdt": NaN,
+    "mode": "cross+iso"
+   },
+   "XAUT": {
+    "rate_yr": NaN,
+    "cap_usdt": NaN,
+    "mode": "cross+iso"
+   },
+   "XLM": {
+    "rate_yr": NaN,
+    "cap_usdt": NaN,
+    "mode": "cross+iso"
+   },
+   "XPL": {
+    "rate_yr": NaN,
+    "cap_usdt": NaN,
+    "mode": "cross+iso"
+   },
+   "XRP": {
+    "rate_yr": NaN,
+    "cap_usdt": NaN,
+    "mode": "cross+iso"
+   },
+   "ZEC": {
+    "rate_yr": NaN,
+    "cap_usdt": NaN,
+    "mode": "cross+iso"
+   },
+   "ZRO": {
+    "rate_yr": NaN,
+    "cap_usdt": NaN,
+    "mode": "cross+iso"
+   }
+  }
+ },
+ "binance_flag": {
+  "current": {
+   "n": 75,
+   "covered": 73,
+   "share": 0.9733333333333334,
+   "rate_med": null,
+   "rate_p90": null,
+   "rate_le40": null,
+   "n_rate": 0,
+   "cap_med": null,
+   "cap_ge1k": null,
+   "cap_ge10k": null,
+   "missing": [
+    "LIT",
+    "XMR"
+   ]
+  },
+  "val_event": {
+   "n": 94,
+   "covered": 73,
+   "share": 0.776595744680851,
+   "rate_med": null,
+   "rate_p90": null,
+   "rate_le40": null,
+   "n_rate": 0,
+   "cap_med": null,
+   "cap_ge1k": null,
+   "cap_ge10k": null,
+   "missing": [
+    "ANC",
+    "BAKE",
+    "BNX",
+    "FRONT",
+    "FTM",
+    "FXS",
+    "GAL",
+    "ICX",
+    "MATIC",
+    "OCEAN",
+    "OM",
+    "PERP",
+    "POWR",
+    "REEF",
+    "REN",
+    "SRM",
+    "STG",
+    "STORJ",
+    "UNFI",
+    "WAVES",
+    "XVG"
+   ]
+  },
+  "all": {
+   "n": 384,
+   "covered": 300,
+   "share": 0.78125,
+   "rate_med": null,
+   "rate_p90": null,
+   "rate_le40": null,
+   "n_rate": 0,
+   "cap_med": null,
+   "cap_ge1k": null,
+   "cap_ge10k": null,
+   "missing": [
+    "AGIX",
+    "AI",
+    "AKRO",
+    "ALPACA",
+    "ALPHA",
+    "AMB",
+    "ANC",
+    "ANT",
+    "ATA",
+    "BADGER",
+    "BAKE",
+    "BAL",
+    "BLZ",
+    "BNX",
+    "BOND",
+    "BSW",
+    "BTT",
+    "BZRX",
+    "COCOS",
+    "COS",
+    "D",
+    "DAR",
+    "DEGO",
+    "DENT",
+    "EOS",
+    "EPIC",
+    "FLM",
+    "FRONT",
+    "FTM",
+    "FUN",
+    "FXS",
+    "GAL",
+    "HFT",
+    "HIFI",
+    "HIGH",
+    "HNT",
+    "HOOK",
+    "HOT",
+    "ICX",
+    "IOTX",
+    "KEEP",
+    "KLAY",
+    "LEND",
+    "LEVER",
+    "LINA",
+    "LIT",
+    "LRC",
+    "MATIC",
+    "MKR",
+    "MLN",
+    "NFP",
+    "NKN",
+    "NTRN",
+    "OCEAN",
+    "OM",
+    "OMG",
+    "OMNI",
+    "OXT",
+    "PERP",
+    "PHB",
+    "POWR",
+    "RDNT",
+    "REEF",
+    "REN",
+    "RNDR",
+    "SRM",
+    "STG",
+    "STMX",
+    "STORJ",
+    "THE",
+    "TOMO",
+    "TON",
+    "TROY",
+    "TRU",
+    "TST",
+    "UNFI",
+    "VANRY",
+    "VIC",
+    "VIDT",
+    "VOXEL",
+    "WAVES",
+    "XEM",
+    "XMR",
+    "XVG"
+   ]
+  },
+  "per_coin_current": {
+   "AAVE": {
+    "rate_yr": NaN,
+    "cap_usdt": NaN
+   },
+   "ADA": {
+    "rate_yr": NaN,
+    "cap_usdt": NaN
+   },
+   "APT": {
+    "rate_yr": NaN,
+    "cap_usdt": NaN
+   },
+   "ARB": {
+    "rate_yr": NaN,
+    "cap_usdt": NaN
+   },
+   "ARK": {
+    "rate_yr": NaN,
+    "cap_usdt": NaN
+   },
+   "ASTER": {
+    "rate_yr": NaN,
+    "cap_usdt": NaN
+   },
+   "AVAX": {
+    "rate_yr": NaN,
+    "cap_usdt": NaN
+   },
+   "BAT": {
+    "rate_yr": NaN,
+    "cap_usdt": NaN
+   },
+   "BCH": {
+    "rate_yr": NaN,
+    "cap_usdt": NaN
+   },
+   "BNB": {
+    "rate_yr": NaN,
+    "cap_usdt": NaN
+   },
+   "BONK": {
+    "rate_yr": NaN,
+    "cap_usdt": NaN
+   },
+   "CRV": {
+    "rate_yr": NaN,
+    "cap_usdt": NaN
+   },
+   "DASH": {
+    "rate_yr": NaN,
+    "cap_usdt": NaN
+   },
+   "DOGE": {
+    "rate_yr": NaN,
+    "cap_usdt": NaN
+   },
+   "DOT": {
+    "rate_yr": NaN,
+    "cap_usdt": NaN
+   },
+   "ENA": {
+    "rate_yr": NaN,
+    "cap_usdt": NaN
+   },
+   "ERA": {
+    "rate_yr": NaN,
+    "cap_usdt": NaN
+   },
+   "ETC": {
+    "rate_yr": NaN,
+    "cap_usdt": NaN
+   },
+   "ETHFI": {
+    "rate_yr": NaN,
+    "cap_usdt": NaN
+   },
+   "FET": {
+    "rate_yr": NaN,
+    "cap_usdt": NaN
+   },
+   "FIL": {
+    "rate_yr": NaN,
+    "cap_usdt": NaN
+   },
+   "G": {
+    "rate_yr": NaN,
+    "cap_usdt": NaN
+   },
+   "GTC": {
+    "rate_yr": NaN,
+    "cap_usdt": NaN
+   },
+   "HBAR": {
+    "rate_yr": NaN,
+    "cap_usdt": NaN
+   },
+   "HEMI": {
+    "rate_yr": NaN,
+    "cap_usdt": NaN
+   },
+   "HYPE": {
+    "rate_yr": NaN,
+    "cap_usdt": NaN
+   },
+   "ICP": {
+    "rate_yr": NaN,
+    "cap_usdt": NaN
+   },
+   "INJ": {
+    "rate_yr": NaN,
+    "cap_usdt": NaN
+   },
+   "IOST": {
+    "rate_yr": NaN,
+    "cap_usdt": NaN
+   },
+   "LINK": {
+    "rate_yr": NaN,
+    "cap_usdt": NaN
+   },
+   "LSK": {
+    "rate_yr": NaN,
+    "cap_usdt": NaN
+   },
+   "LTC": {
+    "rate_yr": NaN,
+    "cap_usdt": NaN
+   },
+   "MAGIC": {
+    "rate_yr": NaN,
+    "cap_usdt": NaN
+   },
+   "MET": {
+    "rate_yr": NaN,
+    "cap_usdt": NaN
+   },
+   "MOVR": {
+    "rate_yr": NaN,
+    "cap_usdt": NaN
+   },
+   "MUBARAK": {
+    "rate_yr": NaN,
+    "cap_usdt": NaN
+   },
+   "NEAR": {
+    "rate_yr": NaN,
+    "cap_usdt": NaN
+   },
+   "NIL": {
+    "rate_yr": NaN,
+    "cap_usdt": NaN
+   },
+   "NMR": {
+    "rate_yr": NaN,
+    "cap_usdt": NaN
+   },
+   "OGN": {
+    "rate_yr": NaN,
+    "cap_usdt": NaN
+   },
+   "ONDO": {
+    "rate_yr": NaN,
+    "cap_usdt": NaN
+   },
+   "ONE": {
+    "rate_yr": NaN,
+    "cap_usdt": NaN
+   },
+   "OP": {
+    "rate_yr": NaN,
+    "cap_usdt": NaN
+   },
+   "ORCA": {
+    "rate_yr": NaN,
+    "cap_usdt": NaN
+   },
+   "PENGU": {
+    "rate_yr": NaN,
+    "cap_usdt": NaN
+   },
+   "PEPE": {
+    "rate_yr": NaN,
+    "cap_usdt": NaN
+   },
+   "PHA": {
+    "rate_yr": NaN,
+    "cap_usdt": NaN
+   },
+   "PUMP": {
+    "rate_yr": NaN,
+    "cap_usdt": NaN
+   },
+   "QNT": {
+    "rate_yr": NaN,
+    "cap_usdt": NaN
+   },
+   "RLC": {
+    "rate_yr": NaN,
+    "cap_usdt": NaN
+   },
+   "S": {
+    "rate_yr": NaN,
+    "cap_usdt": NaN
+   },
+   "SAGA": {
+    "rate_yr": NaN,
+    "cap_usdt": NaN
+   },
+   "SAND": {
+    "rate_yr": NaN,
+    "cap_usdt": NaN
+   },
+   "SHIB": {
+    "rate_yr": NaN,
+    "cap_usdt": NaN
+   },
+   "SOL": {
+    "rate_yr": NaN,
+    "cap_usdt": NaN
+   },
+   "SOPH": {
+    "rate_yr": NaN,
+    "cap_usdt": NaN
+   },
+   "STRK": {
+    "rate_yr": NaN,
+    "cap_usdt": NaN
+   },
+   "SUI": {
+    "rate_yr": NaN,
+    "cap_usdt": NaN
+   },
+   "TAO": {
+    "rate_yr": NaN,
+    "cap_usdt": NaN
+   },
+   "TIA": {
+    "rate_yr": NaN,
+    "cap_usdt": NaN
+   },
+   "TRUMP": {
+    "rate_yr": NaN,
+    "cap_usdt": NaN
+   },
+   "TRX": {
+    "rate_yr": NaN,
+    "cap_usdt": NaN
+   },
+   "UNI": {
+    "rate_yr": NaN,
+    "cap_usdt": NaN
+   },
+   "VTHO": {
+    "rate_yr": NaN,
+    "cap_usdt": NaN
+   },
+   "W": {
+    "rate_yr": NaN,
+    "cap_usdt": NaN
+   },
+   "WAL": {
+    "rate_yr": NaN,
+    "cap_usdt": NaN
+   },
+   "WLD": {
+    "rate_yr": NaN,
+    "cap_usdt": NaN
+   },
+   "XAUT": {
+    "rate_yr": NaN,
+    "cap_usdt": NaN
+   },
+   "XLM": {
+    "rate_yr": NaN,
+    "cap_usdt": NaN
+   },
+   "XPL": {
+    "rate_yr": NaN,
+    "cap_usdt": NaN
+   },
+   "XRP": {
+    "rate_yr": NaN,
+    "cap_usdt": NaN
+   },
+   "ZEC": {
+    "rate_yr": NaN,
+    "cap_usdt": NaN
+   },
+   "ZRO": {
+    "rate_yr": NaN,
+    "cap_usdt": NaN
+   }
+  }
+ },
+ "union_lenders_current": {
+  "covered": 71,
+  "missing": [
+   "ARK",
+   "GTC",
+   "LSK",
+   "XMR"
+  ]
+ }
+}

@@ -40,7 +40,7 @@ mỗi bot, lot không theo vốn, và không bắt buộc IC / cTrader (sàn kh�
 bên dưới giữ nguyên. Luật nào chiếm vốn (chân spot, lệnh trả đủ tiền) phải chấm theo lợi suất VƯỢT lãi suất cash
 (Fed funds, research/data/rates/DFF.csv) trên vốn đã dùng (bài học vòng 58).
 
-Đọc trước để không test lại (63 vòng đã chạy, chỉ C3 đạt bậc live; vòng mới nhất ở đầu JOURNAL; tạm dừng sau vòng 29
+Đọc trước để không test lại (73 vòng đã chạy, chỉ C3 đạt bậc live; vòng mới nhất ở đầu JOURNAL; tạm dừng sau vòng 29
 theo yêu cầu của tôi, rồi ngày 2026-10-18 tôi duyệt quyết định 1, 2, 4: luật vàng chạy demo, vòng 30 trên 6 mã FX mới,
 chạy lại log forward; ngày 2026-10-27 tôi cho research tiếp và cho tìm các nguồn khác (vòng 31 trở đi: dữ liệu công
 khai không phải giá); hiện trạng ở cuối báo cáo vòng mới nhất):
@@ -367,9 +367,48 @@ Những họ đã cạn, đừng quét lại kiểu cũ (chỉ làm lại nếu 
   perp-spot: phía perp rẻ hơn spot >100 bp (long perp / short spot vay margin) là ứng viên DEMO đã qua holdout (+213.5 bp, t 14.4);
   vào trễ 5 phút trên nến 1m holdout vẫn +222.8 bp t 13.9 (BM); lên live chỉ còn phụ thuộc vay được coin để short spot: cần demo trên tài
   khoản Binance margin. 2026-11-01 tôi duyệt: bot demo giấy app/basis_b_runner.py (docs/basis-b-demo.md, không đặt lệnh) ghi tín hiệu,
-  sổ lệnh, lượng coin vay được và lãi vay mỗi giờ; trạng thái dừng / nâng hạng ở màn Nghiên cứu (research/registry.yaml). Không có gì ở R (đấu giá trái phiếu), U (mở khoá token), O (metrics Binance), P (Polymarket), X (roll VIX),
+  sổ lệnh, lượng coin vay được và lãi vay mỗi giờ; trạng thái dừng / nâng hạng ở màn Nghiên cứu (research/registry.yaml). Bot chạy mỗi giờ trên VPS từ 2026-11-01 07:00 UTC; tài khoản Binance của tôi (cross margin 1.000 USDT, mức ký quỹ 999) bị chặn vay ở cấp tài khoản: 0/495 coin borrowable, kể cả USDT, maxBorrowable 0, đang hỏi hỗ trợ Binance. Chừng nào chưa vay được, mỗi tín hiệu ghi vay "chưa rõ" và B không xét lên live được; đừng tìm cách khác né việc vay (BX / BY đã cho thấy chỉ short spot thật mới ăn được edge). Không có gì ở R (đấu giá trái phiếu), U (mở khoá token), O (metrics Binance), P (Polymarket), X (roll VIX),
   W (Kalshi thời tiết), A (A-share chạm trần), BX (hedge B bằng perp Bybit: spot mới là bên dịch chuyển), BY (B trên Bybit: nến 1h Bybit mở = đóng trước).
   Nguồn cần tôi duyệt trước khi dùng lại: defillama-datasets.llama.fi (U), OHLCVault (A). Ý tưởng còn lại: round63_parallel/I/IDEAS_I.md.
+- vòng 64 (2026-11-01, điều phối song song, round64_parallel/BRIEF.md, báo cáo round64_parallel_2026-11-01.md): F fade cú
+  sập / vọt >= 5 % trong 1 phút của altcoin perp top-40 khi BTC đứng yên (vào nến kế, giữ 60 phút) đạt mọi ngưỡng LIVE ở IS / VAL
+  (+273 / +271 bp, t 4.05 / 3.76) nhưng TRƯỢT holdout đã đăng ký (+41.8 bp, t 1.17, n 2.080; phần hồi giờ nằm trong phút đầu):
+  đừng làm lại fade wick 1 phút trên Binance. K2 bán perp Binance sau khi coin lên sàn KRW của Upbit (vào L + 1 h, long BTC, 72 h)
+  qua holdout bậc DEMO (+221 bp, t 0.88, n 92; funding -512 bp), chưa có bot. Không có gì ở K1 (kimchi riêng từng coin: đóng
+  bằng Upbit giảm), L (K2 cho niêm yết Coinbase: không có pump trước giờ vào), N (chạy B từ kho coin: thua cash 5.5 %/năm), V
+  (sàn khác cho vay coin của B ~6 %/năm nhưng spot của họ hụt 40-50 bp; Binance cho margin 73/75 coin của B nên khoá vay ở
+  tài khoản), T (perp huỷ niêm yết nằm sát spot), X (spot Binance rẻ hơn sàn khác: perp cũng rẻ như spot, lỗ đúng bằng phí), G
+  (altcoin đuổi BTC sau cú sốc 1 phút: phần hồi nằm trong phút không giao dịch được), Q2 (hợp đồng quý vs perp). Bản nháp
+  DEMO chưa mở holdout: Q1 chênh perp COIN-M / USDT-M (chỉ ngày sập), S mua stablecoin lệch giá (chỉ tuần SVB, không khuyến nghị).
+  Binance có perp cổ phiếu / ETF / hàng hoá từ 2025: universe "altcoin" phải loại theo underlyingType của fapi exchangeInfo.
+- vòng 65 (2026-11-01, round65_retail_venues_2026-11-01.md): hiệu ứng niêm yết của K2 chỉ có ở thị trường KRW của Upbit
+  (pump +21,5 % trước giờ vào); Bithumb, Coinbase, 7 sàn nhỏ lẻ khác, thị trường BTC / USDT của Upbit không có; nhịp tăng nằm
+  trọn trong phút thông báo của Upbit (API thông báo api-manager.upbit.com, robots không cấm, 429 nếu nhanh hơn ~1,5 s);
+  cảnh báo / huỷ niêm yết Upbit, tỉ trọng khối lượng Upbit, giờ thức Hàn Quốc, ETF đòn bẩy HK: không có; CBBC HK cần file
+  trả phí của HKEX. Máy Mac trỏ hkex.com.hk về 127.0.0.1: lấy qua `ssh agentFx curl`, không để lại gì trên VPS.
+- vòng 65 A2 / vòng 66 (round66_fast_execution_2026-11-01.md): thông báo niêm yết KRW của Upbit là nguồn công khai duy nhất
+  làm giá chạy trong vài giây (giờ đăng first_listed_at chính xác tới giây, nửa nhịp tăng trong ~1,2 s); A2-D5L qua holdout
+  DEMO t 3,11. Không có ở OKX / Bybit (O2), Bithumb không có lịch sử thông báo (B2), spot Binance / perp Bybit / perp Binance
+  non không có sự kiện IS (A3, A4, A5). Ở mức giây: alt đuổi BTC (G0) dưới phí, fade lúc mở perp mới (N0) sai chiều.
+  F0 (luật F vào ngay khi nến đóng) đạt LIVE ở IS / VAL nhưng chỉ test forward. Mọi luật crypto vào lệnh ở mức giây chỉ
+  dùng aggTrades (giá mở nến 1m của Binance bằng giá đóng trước trong ~21 % trường hợp).
+- vòng 67 (round67_fix_seconds_2026-11-01.md): bất ngờ của tỉ giá trung tâm PBOC (SAFE RMBQuery, robots 404) có thật ở mid
+  nhưng dưới phí IC; altcoin nặng Upbit giảm từ lúc Upbit báo niêm yết KRW coin mới tới giờ mở (R2: VAL t 3,96) nhưng IS
+  chỉ 9 thông báo, trượt.
+- vòng 68 (round68_upbit_census_2026-11-01.md): các loại thông báo Upbit khác niêm yết KRW (tạm ngừng nạp rút, nâng cấp mạng,
+  airdrop, cảnh báo, bảo trì ví) không có cạnh: mọi loại đều làm coin tăng 1–3 giây rồi xẹp; bán khi tạm ngừng do chuỗi lỗ.
+  API body thông báo Upbit cho ~10 request/phút (giãn >= 6 s).
+- vòng 69 (round69_other_notices_2026-11-01.md): thông báo niêm yết của Coinone / Korbit / GOPAX không lấy được lịch sử, của
+  bitbank / Coincheck (Nhật) không làm giá phản ứng: thông báo KRW của Upbit là nguồn duy nhất có cạnh ở mức giây.
+- vòng 70-71: 8-K mua BTC của công ty (M8), carry công thức funding Deribit vs Binance (D2, qua IS / VAL nhưng holdout thua lãi
+  cash -1,32 %/năm: họ chênh funding giữa sàn đóng hẳn), gap CME cuối tuần (CG), funding âm cực đoan theo chiều ngày (L3F),
+  mất cân bằng taker mỗi 15 phút (L5F), PAXG cuối tuần (PX), fade cú sập spot coin chưa có perp (FS): không có.
+  Bẫy: host S3 liệt kê data.binance.vision (s3-ap-northeast-1.amazonaws.com) trả 403 cho robots.txt: dựng danh sách file
+  từ exchangeInfo / spot_first thay vì liệt kê bucket.
+- vòng 72 (round72_scout_leftovers_2026-11-01.md): chênh USDT/TRY trên BtcTurk -> USDTRY: chỉ hai lần lira vỡ. Bẫy: gặp 429 thì lùi,
+  không đổi User-Agent. Sau vòng 64-72, mọi hướng miễn phí không cần tôi quyết đã test hoặc rà với P(LIVE) <= ~1-2 %;
+  vòng tiếp theo nên bắt đầu từ một quyết định trong bảng xếp hạng ở round71_mixed_2026-11-01.md (bot A2-D5L, vay cho B,
+  bot K2, bộ dữ liệu L1, kỷ mới cho họ thông báo Upbit), hoặc chạy lại các log forward A2 / K2.
 
 Kết luận chung của các vòng 3-9: các dòng lệnh có thật ngoài gotobi chỉ 0.02-3 bp, cỡ spread + commission của IC;
 premia nhiều tuần thua phí qua đêm (financing markup) của IC; thông tin giữa các mã được định giá trong phút đầu;
@@ -424,6 +463,10 @@ luật có chiều và tham số cố định trước khi nhìn VAL; nếu đã
 Trước khi mở holdout: tính power và t holdout kỳ vọng theo cỡ hiệu ứng ở VAL, không theo IS; hiệu ứng ở VAL đã nhỏ
 hơn hẳn IS thì coi như đang suy giảm và nói rõ trong đăng ký. Holdout 2025-26 đã mở thêm 3 lần ở vòng 12, nên chỉ mở
 cho ứng viên có t holdout kỳ vọng đáng kể.
+Bài học vòng 58-64 cho crypto: các edge vi cấu trúc mạnh ở IS / VAL (carry funding, chênh funding giữa sàn, P2, F fade wick
+1 phút) đều co lại hoặc mất ở 2025-26 vì bot / market maker vào; luật qua được holdout là luật có dòng tiền hành vi còn tiếp
+diễn (C3, K2 nhà đầu tư nhỏ lẻ Hàn Quốc) hoặc neo cơ học mà người khác không vào được (B cần vay spot). Tính power HOLD
+theo cỡ VAL, nhưng kỳ vọng t holdout của luật crypto vi cấu trúc nên lấy ~1/4 cỡ VAL.
 
 Hướng cần tôi quyết (ghi lại, đừng tự làm): kéo thêm mã IC (cross FX, EM, softs, cổ phiếu CFD), dữ liệu sau
 2026-09-24 (Dukascopy hoặc cache IC; là holdout sạch duy nhất còn lại), một cấu trúc phí không có sàn commission
@@ -500,6 +543,11 @@ sàn cổ phiếu không thu commission theo cổ phiếu (DEMO ~3 %), cổ phi�
 Vòng 55 không có ứng viên; đăng nhập demo IC MT5 để đo spread mở cửa giảm giá trị (commission ~12 bp đã lớn hơn drift còn lại;
 DEMO < 2 %). Luật cổ phiếu ở IC cần > ~20 bp mỗi lệnh khi khớp lúc đóng cửa hoặc giữa phiên.
 Vòng 56 không có ứng viên. Sàn không thu commission theo cổ phiếu giảm còn DEMO < 1 % cho cross-section.
+Thêm từ vòng 65-66: bot dò API thông báo Upbit (api-manager.upbit.com, >= 1,5 s; hoặc feed riêng của Upbit cần tài khoản) và
+đặt lệnh Binance trong ~3 giây cho A2-D5L; file thuộc tính CBBC trả phí của HKEX (vòng 65 C).
+Thêm từ vòng 64: bot demo / giấy cho K2 (dò /v1/market/all của Upbit vài phút một lần, bán perp Binance + mua BTC; ~50
+sự kiện/năm theo nhịp 2025-26); gỡ khoá vay trên tài khoản Binance cho B (margin được phép ở 73/75 coin của B), hoặc chấp nhận
+test B khác trên Gate / Bybit / OKX (spot của họ hụt ~1/4 lợi của B).
 Vòng 57 không có ứng viên. Sau 4 vòng cổ phiếu (54-57), không còn hướng miễn phí nào không cần tôi quyết có khả năng ra
 live >= 1 %: vòng tiếp theo nên bắt đầu từ một quyết định trong mục này.
 web.archive.org đã gắn cờ IP máy này là bot sau 6 request (vòng 37 M): đừng dùng làm nguồn tải hàng loạt. Thêm từ vòng 25 (STREAM_A.md xếp hạng theo khả năng ra ứng viên live): đã làm ở vòng 30 phần kéo
@@ -553,6 +601,29 @@ có từ ~2011.
   Đừng tối ưu lại (mốc $100, chỉ chiều giảm, mốc theo % giá đều là chọn sau khi xem holdout).
   Bản nháp, không khuyến nghị: vàng long quanh Giáng sinh (round23_recent/PREREG_DRAFT_N_gold_christmas.md) và luật
   cuối năm vàng + USD (round24_relaxed/PREREG_DRAFT_B_turn_of_year.md), 1 lệnh/năm, PRE và VAL yếu.
+- A2-D5L (round65_retail_venues/A2/PREREG_A2_D5L.md): mua perp Binance / bán BTC ở giao dịch đầu tiên sau giờ đăng thông báo
+  niêm yết KRW của Upbit + 5 giây, thoát lúc KRW mở. DEMO qua holdout mạnh (+780 bp, t 3,11, n 91; power đăng ký 2,97 nên
+  không phải LIVE); lên live cần bot thấy thông báo trong ~3 giây (tôi quyết); vào sau 10 giây chỉ còn +276 bp.
+  Log forward dữ liệu công khai: chạy lại `research/.venv/bin/python -I research/results/portfolio/round65_retail_venues/A2/coord/forward/fwd_a2.py`
+  (việc định kỳ, không cần tôi quyết; ghi research/data/upbit_fwd_a2/fwd_log.csv).
+  2026-11-02: poll không cần tài khoản không đạt cổng 3 giây (429 sau 1-15 request ở nhịp 1,5-5 giây, xem
+  A2/coord/forward/CAPTURE_A2.md); chỉ còn WebSocket riêng của Upbit (cần tài khoản Upbit, tôi quyết). Logger 20 giây
+  trên agentFx cũng bị 429 (kể cả 1 request / 8 phút) nên đã dừng và gỡ; đừng poll Upbit từ IP đó nữa.
+  Vòng 73: kênh Telegram chính thức @upbit_news (xem trước công khai t.me/s, không cần tài khoản) đăng 100 % thông báo
+  niêm yết KRW, năm 2026 đều ≤ 1 giây; poll 1,5 giây từ agentFx có thể đạt cổng. Logger round73_telegram_capture/TG/coord/
+  tg_capture.py (agentFx /home/forge/tg_capture_a2). Tôi cho phép cron 2026-11-02: dòng `# tg-capture-a2` trong crontab
+  forge, mỗi phút + flock, tự dừng 2026-11-09T00:00Z; gỡ bằng `crontab -l | grep -v tg-capture-a2 | crontab -`. Đọc kết
+  quả: `ssh agentFx 'cd /home/forge/tg_capture_a2 && python3 -I tg_capture.py report; tail heartbeat.log'`. Mẫu đầu
+  (bài 2050, không phải niêm yết) hiện trên t.me/s trễ 17,7 giây: phải đo đủ trước khi kết luận độ tươi của trang xem trước.
+- F0 (round66_fast_execution/F0/PREREG_F0_bar_close_fade.md): luật F vào ngay khi nến sự kiện đóng; đạt LIVE ở IS / VAL, chỉ test
+  forward từ 2026-10-30 (holdout của F đã biết), đánh giá một lần khi đủ 333 sự kiện (~2027-02); viết runner forward trước đó.
+- K2 Upbit listing fade (round64_parallel/K/PREREG_K2_upbit_listing_fade.md): DEMO đã qua holdout, chưa có bot (tôi quyết);
+  Log forward dữ liệu công khai: `research/.venv/bin/python -I research/results/portfolio/round64_parallel/K/coord/forward/fwd_k2.py`.
+  luật dừng / lên live trong file đăng ký; đừng tối ưu lại (stop, giờ vào, giữ 24 h là chọn sau khi xem).
+- Basis B (round63_parallel/B/PREREG_B_cheap_basis.md): bot demo giấy app/basis_b_runner.py, cron mỗi giờ, không đặt
+  lệnh; luật dừng / lên live trong app/basis_b_status.py; tín hiệu đầu (LSK 2026-11-02) không vay được vì Binance hết
+  hàng cho vay (-3045), không phải lỗi tài khoản; lệnh thật cần nạp thế chấp vào Cross Margin (borrowLimit 0). X3 (vòng 61) là
+  DEMO chưa có bot; F15 EURJPY là bản nháp.
 - C1 Crypto Donchian H4 đã trượt holdout và bị gỡ khỏi VPS ngày 2026-10-03. Đừng tối ưu lại C1 hay test
   Donchian/breakout xu hướng trên mã khác (đã âm ở crypto, chỉ số, kim loại, năng lượng, FX).
 Muốn thuật toán MỚI, khác cơ chế với C3 (không phải lịch gotobi/fix JPY), ít tương quan với lợi nhuận ngày của C3:

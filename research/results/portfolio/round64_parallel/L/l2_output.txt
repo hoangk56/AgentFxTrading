@@ -1,0 +1,85 @@
+main7 e1h H24 c1.0 IS n 31 days 21 gross -123 fund -3 net -168 t -0.43 median 354 sd 1800 SR -0.093 win 0.65 worst -6907 best 1459 runup 429 years {2020: (7, 274), 2021: (24, -297)}
+main7 e1h H24 c1.0 VAL n 35 days 33 gross -134 fund -3 net -179 t -0.61 median 201 sd 1720 SR -0.104 win 0.66 worst -8381 best 1571 runup 703 years {2022: (19, 189), 2023: (6, -1199), 2024: (10, -267)}
+main7 e1h H24 c1.5 IS n 31 days 21 gross -123 fund -3 net -189 t -0.49 median 333 sd 1800 SR -0.105 win 0.61 worst -6928 best 1438 runup 429 years {2020: (7, 253), 2021: (24, -318)}
+main7 e1h H24 c1.5 VAL n 35 days 33 gross -134 fund -3 net -200 t -0.69 median 180 sd 1720 SR -0.116 win 0.63 worst -8402 best 1550 runup 703 years {2022: (19, 168), 2023: (6, -1220), 2024: (10, -288)}
+main7 e1h H72 c1.0 IS n 31 days 21 gross -582 fund 3 net -621 t -0.81 median 399 sd 3087 SR -0.201 win 0.65 worst -11053 best 2005 runup 429 years {2020: (7, 597), 2021: (24, -976)}
+main7 e1h H72 c1.0 VAL n 35 days 33 gross 194 fund -0 net 151 t 0.73 median 357 sd 1257 SR 0.120 win 0.69 worst -3963 best 2163 runup 703 years {2022: (19, 398), 2023: (6, -388), 2024: (10, 5)}
+main7 e1h H72 c1.5 IS n 31 days 21 gross -582 fund 3 net -642 t -0.84 median 378 sd 3087 SR -0.208 win 0.61 worst -11074 best 1984 runup 429 years {2020: (7, 576), 2021: (24, -997)}
+main7 e1h H72 c1.5 VAL n 35 days 33 gross 194 fund -0 net 130 t 0.63 median 336 sd 1257 SR 0.104 win 0.69 worst -3984 best 2142 runup 703 years {2022: (19, 377), 2023: (6, -409), 2024: (10, -16)}
+main7 e1h5 H24 c1.0 IS n 31 days 21 gross -150 fund -3 net -196 t -0.49 median 293 sd 1880 SR -0.104 win 0.65 worst -7620 best 1508 runup 433 years {2020: (7, 256), 2021: (24, -327)}
+main7 e1h5 H24 c1.0 VAL n 35 days 33 gross -108 fund -3 net -153 t -0.55 median 198 sd 1634 SR -0.094 win 0.66 worst -7905 best 1580 runup 718 years {2022: (19, 180), 2023: (6, -1093), 2024: (10, -222)}
+main7 e1h5 H24 c1.5 IS n 31 days 21 gross -150 fund -3 net -217 t -0.54 median 272 sd 1880 SR -0.115 win 0.65 worst -7641 best 1487 runup 433 years {2020: (7, 235), 2021: (24, -348)}
+main7 e1h5 H24 c1.5 VAL n 35 days 33 gross -108 fund -3 net -174 t -0.63 median 177 sd 1634 SR -0.107 win 0.63 worst -7926 best 1559 runup 718 years {2022: (19, 159), 2023: (6, -1114), 2024: (10, -243)}
+main7 e1h5 H72 c1.0 IS n 31 days 21 gross -589 fund 3 net -629 t -0.79 median 383 sd 3194 SR -0.197 win 0.65 worst -11645 best 2144 runup 433 years {2020: (7, 584), 2021: (24, -982)}
+main7 e1h5 H72 c1.0 VAL n 35 days 33 gross 211 fund -0 net 169 t 0.86 median 358 sd 1190 SR 0.142 win 0.69 worst -3563 best 2255 runup 718 years {2022: (19, 393), 2023: (6, -294), 2024: (10, 20)}
+main7 e1h5 H72 c1.5 IS n 31 days 21 gross -589 fund 3 net -650 t -0.82 median 362 sd 3194 SR -0.203 win 0.61 worst -11666 best 2123 runup 433 years {2020: (7, 563), 2021: (24, -1003)}
+main7 e1h5 H72 c1.5 VAL n 35 days 33 gross 211 fund -0 net 148 t 0.75 median 337 sd 1190 SR 0.124 win 0.69 worst -3584 best 2234 runup 718 years {2022: (19, 372), 2023: (6, -315), 2024: (10, -1)}
+main7 e2h H24 c1.0 IS n 31 days 21 gross -304 fund -3 net -350 t -0.82 median 279 sd 2150 SR -0.163 win 0.61 worst -9883 best 1438 runup 346 years {2020: (7, 83), 2021: (24, -476)}
+main7 e2h H24 c1.0 VAL n 35 days 33 gross -110 fund -3 net -156 t -0.55 median 165 sd 1695 SR -0.092 win 0.63 worst -8220 best 1460 runup 726 years {2022: (19, 159), 2023: (6, -1134), 2024: (10, -166)}
+main7 e2h H24 c1.5 IS n 31 days 21 gross -304 fund -3 net -371 t -0.87 median 258 sd 2150 SR -0.172 win 0.58 worst -9904 best 1417 runup 346 years {2020: (7, 62), 2021: (24, -497)}
+main7 e2h H24 c1.5 VAL n 35 days 33 gross -110 fund -3 net -177 t -0.62 median 144 sd 1695 SR -0.104 win 0.63 worst -8241 best 1439 runup 726 years {2022: (19, 138), 2023: (6, -1155), 2024: (10, -187)}
+main7 e2h H72 c1.0 IS n 31 days 21 gross -687 fund 3 net -726 t -0.94 median 252 sd 3135 SR -0.232 win 0.58 worst -10592 best 1893 runup 346 years {2020: (7, 453), 2021: (24, -1070)}
+main7 e2h H72 c1.0 VAL n 35 days 33 gross 205 fund -0 net 163 t 0.88 median 307 sd 1129 SR 0.144 win 0.71 worst -3782 best 2138 runup 726 years {2022: (19, 345), 2023: (6, -130), 2024: (10, -7)}
+main7 e2h H72 c1.5 IS n 31 days 21 gross -687 fund 3 net -747 t -0.97 median 231 sd 3135 SR -0.238 win 0.58 worst -10613 best 1872 runup 346 years {2020: (7, 432), 2021: (24, -1091)}
+main7 e2h H72 c1.5 VAL n 35 days 33 gross 205 fund -0 net 142 t 0.77 median 286 sd 1129 SR 0.126 win 0.69 worst -3803 best 2117 runup 726 years {2022: (19, 324), 2023: (6, -151), 2024: (10, -28)}
+sec1 e1h H24 c1.0 IS n 31 days 21 gross -123 fund -3 net -168 t -0.43 median 354 sd 1800 SR -0.093 win 0.65 worst -6907 best 1459 runup 429 years {2020: (7, 274), 2021: (24, -297)}
+sec1 e1h H24 c1.0 VAL n 38 days 36 gross -70 fund -2 net -114 t -0.42 median 211 sd 1677 SR -0.068 win 0.66 worst -8381 best 1571 runup 663 years {2022: (19, 189), 2023: (7, -940), 2024: (12, -111)}
+sec1 e1h H24 c1.5 IS n 31 days 21 gross -123 fund -3 net -189 t -0.49 median 333 sd 1800 SR -0.105 win 0.61 worst -6928 best 1438 runup 429 years {2020: (7, 253), 2021: (24, -318)}
+sec1 e1h H24 c1.5 VAL n 38 days 36 gross -70 fund -2 net -135 t -0.49 median 190 sd 1677 SR -0.080 win 0.63 worst -8402 best 1550 runup 663 years {2022: (19, 168), 2023: (7, -961), 2024: (12, -132)}
+sec1 e1h H72 c1.0 IS n 31 days 21 gross -582 fund 3 net -621 t -0.81 median 399 sd 3087 SR -0.201 win 0.65 worst -11053 best 2005 runup 429 years {2020: (7, 597), 2021: (24, -976)}
+sec1 e1h H72 c1.0 VAL n 38 days 36 gross 217 fund 2 net 177 t 0.91 median 395 sd 1229 SR 0.144 win 0.68 worst -3963 best 2163 runup 663 years {2022: (19, 398), 2023: (7, -239), 2024: (12, 69)}
+sec1 e1h H72 c1.5 IS n 31 days 21 gross -582 fund 3 net -642 t -0.84 median 378 sd 3087 SR -0.208 win 0.61 worst -11074 best 1984 runup 429 years {2020: (7, 576), 2021: (24, -997)}
+sec1 e1h H72 c1.5 VAL n 38 days 36 gross 217 fund 2 net 156 t 0.81 median 374 sd 1229 SR 0.127 win 0.68 worst -3984 best 2142 runup 663 years {2022: (19, 377), 2023: (7, -260), 2024: (12, 48)}
+sec1 e1h5 H24 c1.0 IS n 31 days 21 gross -150 fund -3 net -196 t -0.49 median 293 sd 1880 SR -0.104 win 0.65 worst -7620 best 1508 runup 433 years {2020: (7, 256), 2021: (24, -327)}
+sec1 e1h5 H24 c1.0 VAL n 38 days 36 gross -43 fund -2 net -87 t -0.33 median 204 sd 1596 SR -0.055 win 0.66 worst -7905 best 1580 runup 683 years {2022: (19, 180), 2023: (7, -828), 2024: (12, -78)}
+sec1 e1h5 H24 c1.5 IS n 31 days 21 gross -150 fund -3 net -217 t -0.54 median 272 sd 1880 SR -0.115 win 0.65 worst -7641 best 1487 runup 433 years {2020: (7, 235), 2021: (24, -348)}
+sec1 e1h5 H24 c1.5 VAL n 38 days 36 gross -43 fund -2 net -108 t -0.41 median 183 sd 1596 SR -0.068 win 0.63 worst -7926 best 1559 runup 683 years {2022: (19, 159), 2023: (7, -849), 2024: (12, -99)}
+sec1 e1h5 H72 c1.0 IS n 31 days 21 gross -589 fund 3 net -629 t -0.79 median 383 sd 3194 SR -0.197 win 0.65 worst -11645 best 2144 runup 433 years {2020: (7, 584), 2021: (24, -982)}
+sec1 e1h5 H72 c1.0 VAL n 38 days 36 gross 241 fund 2 net 201 t 1.09 median 404 sd 1171 SR 0.172 win 0.68 worst -3563 best 2255 runup 683 years {2022: (19, 393), 2023: (7, -129), 2024: (12, 88)}
+sec1 e1h5 H72 c1.5 IS n 31 days 21 gross -589 fund 3 net -650 t -0.82 median 362 sd 3194 SR -0.203 win 0.61 worst -11666 best 2123 runup 433 years {2020: (7, 563), 2021: (24, -1003)}
+sec1 e1h5 H72 c1.5 VAL n 38 days 36 gross 241 fund 2 net 180 t 0.97 median 383 sd 1171 SR 0.154 win 0.68 worst -3584 best 2234 runup 683 years {2022: (19, 372), 2023: (7, -150), 2024: (12, 67)}
+sec1 e2h H24 c1.0 IS n 31 days 21 gross -304 fund -3 net -350 t -0.82 median 279 sd 2150 SR -0.163 win 0.61 worst -9883 best 1438 runup 346 years {2020: (7, 83), 2021: (24, -476)}
+sec1 e2h H24 c1.0 VAL n 38 days 36 gross -48 fund -2 net -92 t -0.35 median 178 sd 1655 SR -0.056 win 0.63 worst -8220 best 1567 runup 685 years {2022: (19, 159), 2023: (7, -864), 2024: (12, -40)}
+sec1 e2h H24 c1.5 IS n 31 days 21 gross -304 fund -3 net -371 t -0.87 median 258 sd 2150 SR -0.172 win 0.58 worst -9904 best 1417 runup 346 years {2020: (7, 62), 2021: (24, -497)}
+sec1 e2h H24 c1.5 VAL n 38 days 36 gross -48 fund -2 net -113 t -0.43 median 157 sd 1655 SR -0.069 win 0.63 worst -8241 best 1546 runup 685 years {2022: (19, 138), 2023: (7, -885), 2024: (12, -61)}
+sec1 e2h H72 c1.0 IS n 31 days 21 gross -687 fund 3 net -726 t -0.94 median 252 sd 3135 SR -0.232 win 0.58 worst -10592 best 1893 runup 346 years {2020: (7, 453), 2021: (24, -1070)}
+sec1 e2h H72 c1.0 VAL n 38 days 36 gross 234 fund 2 net 193 t 1.11 median 331 sd 1106 SR 0.175 win 0.71 worst -3782 best 2138 runup 685 years {2022: (19, 345), 2023: (7, 7), 2024: (12, 62)}
+sec1 e2h H72 c1.5 IS n 31 days 21 gross -687 fund 3 net -747 t -0.97 median 231 sd 3135 SR -0.238 win 0.58 worst -10613 best 1872 runup 346 years {2020: (7, 432), 2021: (24, -1091)}
+sec1 e2h H72 c1.5 VAL n 38 days 36 gross 234 fund 2 net 172 t 0.99 median 310 sd 1106 SR 0.156 win 0.68 worst -3803 best 2117 runup 685 years {2022: (19, 324), 2023: (7, -14), 2024: (12, 41)}
+overlap with K2 (same coin within 7 d): [('GMT', '2022-04-28 16:00'), ('PEPE', '2024-11-13 16:00')]
+L-no-overlap e1h H24 c1.0 IS n 31 days 21 gross -123 fund -3 net -168 t -0.43 median 354 sd 1800 SR -0.093 win 0.65 worst -6907 best 1459 runup 429 years {2020: (7, 274), 2021: (24, -297)}
+L-no-overlap e1h H24 c1.0 VAL n 33 days 32 gross -56 fund -3 net -102 t -0.34 median 220 sd 1716 SR -0.059 win 0.70 worst -8381 best 1571 runup 589 years {2022: (18, 214), 2023: (6, -1199), 2024: (9, -1)}
+K2-repro e1h H24 c1.0 IS n 11 days 9 gross 729 fund -14 net 673 t 2.22 median 477 sd 791 SR 0.851 win 0.91 worst -106 best 2661 runup 2150 years {2020: (4, 185), 2021: (7, 952)}
+K2-repro e1h H24 c1.0 VAL n 29 days 29 gross 518 fund -87 net 389 t 1.96 median 384 sd 1069 SR 0.364 win 0.79 worst -1695 best 4161 runup 2216 years {2022: (3, -5), 2023: (9, 601), 2024: (17, 346)}
+pooled K2+L e1h H24 c1.0 IS n 42 days 30 gross 100 fund -6 net 52 t 0.17 median 373 sd 1632 SR 0.032 win 0.71 worst -6907 best 2661 runup 880 years {2020: (11, 242), 2021: (31, -15)}
+pooled K2+L e1h H24 c1.0 VAL n 62 days 59 gross 212 fund -42 net 128 t 0.67 median 312 sd 1460 SR 0.088 win 0.74 worst -8381 best 4161 runup 1350 years {2022: (21, 183), 2023: (15, -119), 2024: (26, 226)}
+L-no-overlap e1h H24 c1.5 IS n 31 days 21 gross -123 fund -3 net -189 t -0.49 median 333 sd 1800 SR -0.105 win 0.61 worst -6928 best 1438 runup 429 years {2020: (7, 253), 2021: (24, -318)}
+L-no-overlap e1h H24 c1.5 VAL n 33 days 32 gross -56 fund -3 net -123 t -0.41 median 199 sd 1716 SR -0.071 win 0.67 worst -8402 best 1550 runup 589 years {2022: (18, 193), 2023: (6, -1220), 2024: (9, -22)}
+K2-repro e1h H24 c1.5 IS n 11 days 9 gross 729 fund -14 net 652 t 2.15 median 456 sd 791 SR 0.824 win 0.91 worst -127 best 2640 runup 2150 years {2020: (4, 164), 2021: (7, 931)}
+K2-repro e1h H24 c1.5 VAL n 29 days 29 gross 518 fund -87 net 368 t 1.85 median 363 sd 1069 SR 0.344 win 0.76 worst -1716 best 4140 runup 2216 years {2022: (3, -26), 2023: (9, 580), 2024: (17, 325)}
+pooled K2+L e1h H24 c1.5 IS n 42 days 30 gross 100 fund -6 net 31 t 0.10 median 352 sd 1632 SR 0.019 win 0.69 worst -6928 best 2640 runup 880 years {2020: (11, 221), 2021: (31, -36)}
+pooled K2+L e1h H24 c1.5 VAL n 62 days 59 gross 212 fund -42 net 107 t 0.56 median 291 sd 1460 SR 0.073 win 0.71 worst -8402 best 4140 runup 1350 years {2022: (21, 162), 2023: (15, -140), 2024: (26, 205)}
+pooled K2+L e1h5 H24 c1.0 IS n 42 days 30 gross 52 fund -6 net 4 t 0.01 median 309 sd 1690 SR 0.002 win 0.71 worst -7620 best 2566 runup 842 years {2020: (11, 226), 2021: (31, -75)}
+pooled K2+L e1h5 H24 c1.0 VAL n 62 days 59 gross 219 fund -42 net 135 t 0.73 median 294 sd 1403 SR 0.096 win 0.73 worst -7905 best 4108 runup 1334 years {2022: (21, 172), 2023: (15, -88), 2024: (26, 233)}
+pooled K2+L e2h H24 c1.0 IS n 42 days 30 gross -86 fund -6 net -134 t -0.41 median 265 sd 1906 SR -0.070 win 0.67 worst -9883 best 2231 runup 739 years {2020: (11, 114), 2021: (31, -222)}
+pooled K2+L e2h H24 c1.0 VAL n 62 days 59 gross 214 fund -40 net 131 t 0.70 median 293 sd 1413 SR 0.093 win 0.68 worst -8220 best 3449 runup 1332 years {2022: (21, 132), 2023: (15, -97), 2024: (26, 263)}
+L-no-overlap e1h H72 c1.0 IS n 31 days 21 gross -582 fund 3 net -621 t -0.81 median 399 sd 3087 SR -0.201 win 0.65 worst -11053 best 2005 runup 429 years {2020: (7, 597), 2021: (24, -976)}
+L-no-overlap e1h H72 c1.0 VAL n 33 days 32 gross 235 fund 0 net 193 t 0.88 median 433 sd 1264 SR 0.152 win 0.70 worst -3963 best 2163 runup 589 years {2022: (18, 401), 2023: (6, -388), 2024: (9, 163)}
+K2-repro e1h H72 c1.0 IS n 11 days 9 gross 1150 fund -14 net 1094 t 3.16 median 1054 sd 909 SR 1.203 win 0.91 worst -6 best 3084 runup 2150 years {2020: (4, 555), 2021: (7, 1402)}
+K2-repro e1h H72 c1.0 VAL n 29 days 29 gross 570 fund -105 net 423 t 1.37 median 619 sd 1666 SR 0.254 win 0.72 worst -4669 best 4808 runup 2216 years {2022: (3, 378), 2023: (9, 1026), 2024: (17, 111)}
+pooled K2+L e1h H72 c1.0 IS n 42 days 30 gross -128 fund -2 net -172 t -0.29 median 475 sd 2785 SR -0.062 win 0.71 worst -11053 best 3084 runup 880 years {2020: (11, 581), 2021: (31, -439)}
+pooled K2+L e1h H72 c1.0 VAL n 62 days 59 gross 391 fund -49 net 300 t 1.52 median 499 sd 1458 SR 0.206 win 0.71 worst -4669 best 4808 runup 1350 years {2022: (21, 398), 2023: (15, 460), 2024: (26, 129)}
+L-no-overlap e1h H72 c1.5 IS n 31 days 21 gross -582 fund 3 net -642 t -0.84 median 378 sd 3087 SR -0.208 win 0.61 worst -11074 best 1984 runup 429 years {2020: (7, 576), 2021: (24, -997)}
+L-no-overlap e1h H72 c1.5 VAL n 33 days 32 gross 235 fund 0 net 172 t 0.78 median 412 sd 1264 SR 0.136 win 0.70 worst -3984 best 2142 runup 589 years {2022: (18, 380), 2023: (6, -409), 2024: (9, 142)}
+K2-repro e1h H72 c1.5 IS n 11 days 9 gross 1150 fund -14 net 1073 t 3.10 median 1033 sd 909 SR 1.180 win 0.91 worst -27 best 3063 runup 2150 years {2020: (4, 534), 2021: (7, 1381)}
+K2-repro e1h H72 c1.5 VAL n 29 days 29 gross 570 fund -105 net 402 t 1.30 median 598 sd 1666 SR 0.241 win 0.72 worst -4690 best 4787 runup 2216 years {2022: (3, 357), 2023: (9, 1005), 2024: (17, 90)}
+pooled K2+L e1h H72 c1.5 IS n 42 days 30 gross -128 fund -2 net -193 t -0.32 median 454 sd 2785 SR -0.069 win 0.69 worst -11074 best 3063 runup 880 years {2020: (11, 560), 2021: (31, -460)}
+pooled K2+L e1h H72 c1.5 VAL n 62 days 59 gross 391 fund -49 net 279 t 1.42 median 478 sd 1458 SR 0.192 win 0.71 worst -4690 best 4787 runup 1350 years {2022: (21, 377), 2023: (15, 439), 2024: (26, 108)}
+pooled K2+L e1h5 H72 c1.0 IS n 42 days 30 gross -159 fund -2 net -203 t -0.33 median 483 sd 2862 SR -0.071 win 0.71 worst -11645 best 2994 runup 842 years {2020: (11, 569), 2021: (31, -477)}
+pooled K2+L e1h5 H72 c1.0 VAL n 62 days 59 gross 388 fund -49 net 297 t 1.55 median 487 sd 1415 SR 0.210 win 0.71 worst -4610 best 4705 runup 1334 years {2022: (21, 390), 2023: (15, 489), 2024: (26, 111)}
+pooled K2+L e2h H72 c1.0 IS n 42 days 30 gross -254 fund -1 net -297 t -0.50 median 455 sd 2807 SR -0.106 win 0.67 worst -10592 best 2730 runup 739 years {2020: (11, 480), 2021: (31, -573)}
+pooled K2+L e2h H72 c1.0 VAL n 62 days 59 gross 391 fund -47 net 302 t 1.69 median 357 sd 1315 SR 0.229 win 0.73 worst -3976 best 4223 runup 1332 years {2022: (21, 313), 2023: (15, 567), 2024: (26, 140)}
+main7 without other-quote-earlier e1h H24 IS n 28 days 19 gross -141 fund -4 net -187 t -0.43 median 444 sd 1897 SR -0.098 win 0.64 worst -6907 best 1459 runup 407 years {2020: (6, 313), 2021: (22, -323)}
+main7 without other-quote-earlier e1h H24 VAL n 35 days 33 gross -134 fund -3 net -179 t -0.61 median 201 sd 1720 SR -0.104 win 0.66 worst -8381 best 1571 runup 703 years {2022: (19, 189), 2023: (6, -1199), 2024: (10, -267)}
+main7 without other-quote-earlier e1h H72 IS n 28 days 19 gross -704 fund 3 net -743 t -0.89 median 319 sd 3229 SR -0.230 win 0.61 worst -11053 best 2005 runup 407 years {2020: (6, 586), 2021: (22, -1106)}
+main7 without other-quote-earlier e1h H72 VAL n 35 days 33 gross 194 fund -0 net 151 t 0.73 median 357 sd 1257 SR 0.120 win 0.69 worst -3963 best 2163 runup 703 years {2022: (19, 398), 2023: (6, -388), 2024: (10, 5)}

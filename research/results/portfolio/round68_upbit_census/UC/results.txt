@@ -1,0 +1,390 @@
+# Stream UC results (bp). Events with data: 533 of 533
+
+## Path AIRDROP IS (n 10, days 9): r(t) = ln alt/BTC since N - 60 s, bp, RAW sign (not side-adjusted): q25 / median / q75 / mean / median |r|
+  t   -60s        0       0       0       0       0
+  t   -30s       -4      -0       2      -5       3
+  t   -10s       -2       3      10      -4       5
+  t    -5s       -3       0       4      -4       4
+  t    -2s       -3       1       4      -5       4
+  t    -1s       -3       1       6      -4       4
+  t    +0s       -5       1       9      -6       6
+  t    +1s       -0      26      67      43      50
+  t    +2s        6      32      98      59      68
+  t    +3s       10      33     115      63      81
+  t    +5s       13      60     121      75     101
+  t   +10s       11      86     183     120      86
+  t   +20s       92     172     455     289     172
+  t   +30s      145     289     470     348     289
+  t   +60s      130     303     513     340     303
+  t  +120s      151     298     643     384     298
+  t  +300s      315     378     625     415     378
+  t  +600s      283     372     845     461     372
+  t +1800s      253     594    1013     595     594
+  move N+5s -> N+30min: mean 520  median 479  median |.| 479
+
+## Path AIRDROP VAL (n 10, days 10): r(t) = ln alt/BTC since N - 60 s, bp, RAW sign (not side-adjusted): q25 / median / q75 / mean / median |r|
+  t   -60s        0       0       0       0       0
+  t   -30s        0       1       2       1       1
+  t   -10s       -2       0       2      -2       2
+  t    -5s       -1       1       3      -1       3
+  t    -2s       -4       1       3      -1       4
+  t    -1s       -4       1       3      -2       4
+  t    +0s       -2       2       4      -1       4
+  t    +1s        5       7      47      44       7
+  t    +2s        4       8      39      54       8
+  t    +3s        3       6      40      53       6
+  t    +5s        5      14      51      53      14
+  t   +10s        8      14     121     121      14
+  t   +20s        9      23     141     159      23
+  t   +30s       10      44     113     194      44
+  t   +60s       14      50      91     183      50
+  t  +120s       15      41      83     169      41
+  t  +300s        3      21      38     161      21
+  t  +600s       -4       9      31     183      22
+  t +1800s        9      17      26     302      17
+  move N+5s -> N+30min: mean 248  median 6  median |.| 18
+
+## Path DWSUSP IS (n 28, days 27): r(t) = ln alt/BTC since N - 60 s, bp, RAW sign (not side-adjusted): q25 / median / q75 / mean / median |r|
+  t   -60s        0       0       0       0       0
+  t   -30s       -7      -1       2      -3       5
+  t   -10s       -6       0       4       1       6
+  t    -5s       -8      -2       9       1       8
+  t    -2s       -8      -2      11       0      10
+  t    -1s       -8      -2      12       0       9
+  t    +0s       -7      -2      13      -0      11
+  t    +1s       -2       7      31      11      15
+  t    +2s       -2      12      37      16      20
+  t    +3s       -2      12      36      19      19
+  t    +5s       -2      11      42      21      20
+  t   +10s       -0      15      51      31      20
+  t   +20s        4      23      47      42      23
+  t   +30s        6      28      53      39      28
+  t   +60s        6      51      90      54      51
+  t  +120s        3      43      99      50      43
+  t  +300s        5      30      81      47      41
+  t  +600s       -9      38     102      43      52
+  t +1800s       -2      33      70      25      48
+  move N+5s -> N+30min: mean 3  median 18  median |.| 36
+
+## Path DWSUSP VAL (n 56, days 46): r(t) = ln alt/BTC since N - 60 s, bp, RAW sign (not side-adjusted): q25 / median / q75 / mean / median |r|
+  t   -60s        0       0       0       0       0
+  t   -30s       -3      -0       6       4       6
+  t   -10s       -2       3       8       4       5
+  t    -5s       -3       1       7       4       4
+  t    -2s       -3       1       6       4       5
+  t    -1s       -3       1       6       3       6
+  t    +0s       -4       1       6       4       6
+  t    +1s       -4       1      11       6       6
+  t    +2s       -4       2      19       9       9
+  t    +3s       -5       2      22       9       9
+  t    +5s       -4       5      25      13      11
+  t   +10s       -1       6      38      20      15
+  t   +20s        1      10      50      27      16
+  t   +30s        1      11      52      29      15
+  t   +60s        2      13      70      38      20
+  t  +120s       -0      16      62      37      23
+  t  +300s        0      23      56      39      32
+  t  +600s       -2      22      54      32      34
+  t +1800s      -11      14      71      51      31
+  move N+5s -> N+30min: mean 39  median 11  median |.| 26
+
+## Path DWWALLET IS (n 112, days 98): r(t) = ln alt/BTC since N - 60 s, bp, RAW sign (not side-adjusted): q25 / median / q75 / mean / median |r|
+  t   -60s        0       0       0       0       0
+  t   -30s       -5      -0       5       2       5
+  t   -10s       -7       2       9       5       8
+  t    -5s       -7       1      10       6       9
+  t    -2s       -7       1       8       6       8
+  t    -1s       -8       1       8       7       8
+  t    +0s       -8       2       9       8       8
+  t    +1s       -7       4      13      18      10
+  t    +2s       -4       4      18      21      11
+  t    +3s       -4       7      20      25      12
+  t    +5s       -4       8      23      25      12
+  t   +10s       -1      11      30      32      15
+  t   +20s        1      18      53      38      24
+  t   +30s        2      23      60      45      27
+  t   +60s        1      27      83      53      34
+  t  +120s       -1      26      75      55      36
+  t  +300s       -7      18      60      43      33
+  t  +600s       -9      18      68      51      37
+  t +1800s      -11      36      99      86      54
+  move N+5s -> N+30min: mean 61  median 20  median |.| 52
+
+## Path DWWALLET VAL (n 114, days 98): r(t) = ln alt/BTC since N - 60 s, bp, RAW sign (not side-adjusted): q25 / median / q75 / mean / median |r|
+  t   -60s        0       0       0       0       0
+  t   -30s       -4      -0       3      -1       3
+  t   -10s       -6      -0       5      -2       5
+  t    -5s       -5      -0       6      -2       6
+  t    -2s       -6      -0       5      -1       6
+  t    -1s       -6      -0       4      -1       5
+  t    +0s       -5      -0       4      -1       4
+  t    +1s       -4       3      13       4       8
+  t    +2s       -3       3      16       6       9
+  t    +3s       -3       3      17       8      10
+  t    +5s       -4       5      18      10       9
+  t   +10s       -1       5      23      16      11
+  t   +20s        0       9      34      25      13
+  t   +30s        2      11      43      30      17
+  t   +60s        2      14      42      32      18
+  t  +120s        3      16      44      31      19
+  t  +300s       -4      14      44      31      25
+  t  +600s       -7       9      45      32      21
+  t +1800s      -16      13      47      24      29
+  move N+5s -> N+30min: mean 14  median 8  median |.| 26
+
+## Path EVENT VAL (n 3, days 3): r(t) = ln alt/BTC since N - 60 s, bp, RAW sign (not side-adjusted): q25 / median / q75 / mean / median |r|
+  t   -60s        0       0       0       0       0
+  t   -30s     -115      -0      -0     -77       0
+  t   -10s      -72      -4      -1     -47       4
+  t    -5s      -80      -4      -1     -52       4
+  t    -2s      -84      -4      -2     -56       4
+  t    -1s      -68      -4      -2     -45       4
+  t    +0s      -70      -4      -2     -46       4
+  t    +1s      -65      -6      -1     -42       6
+  t    +2s      -71      -5      -1     -46       5
+  t    +3s      -65      -5       0     -42       6
+  t    +5s      -49      -6      -1     -31       6
+  t   +10s      -50      -7      -1     -31       7
+  t   +20s      -63      -8       7     -34      23
+  t   +30s      -50      -8       8     -25      25
+  t   +60s        7      23      33      19      23
+  t  +120s       -0       0       7       5       1
+  t  +300s      -11     -11      -6      -8      11
+  t  +600s      -35     -30     -15     -23      30
+  t +1800s      -23     -15       6      -7      27
+  move N+5s -> N+30min: mean 25  median -9  median |.| 36
+
+## Path NETUP IS (n 37, days 33): r(t) = ln alt/BTC since N - 60 s, bp, RAW sign (not side-adjusted): q25 / median / q75 / mean / median |r|
+  t   -60s        0       0       0       0       0
+  t   -30s       -8      -3       5      -2       7
+  t   -10s       -9       0       8      -2       8
+  t    -5s       -8      -0       7      -2       8
+  t    -2s      -10      -0       7      -3       7
+  t    -1s      -11      -1       7      -3       7
+  t    +0s       -9       0       7      -2       9
+  t    +1s       -1      10      54      28      17
+  t    +2s       -1      12      57      38      12
+  t    +3s        1      15      67      41      15
+  t    +5s        1      21      68      44      21
+  t   +10s        7      32     108      69      32
+  t   +20s       13      83     142     104      83
+  t   +30s       14      58     153     103      58
+  t   +60s       19      84     142      99      84
+  t  +120s       21      76     139     103      92
+  t  +300s       25      96     151     115      97
+  t  +600s       33      87     166     139      87
+  t +1800s       26     163     251     165     163
+  move N+5s -> N+30min: mean 121  median 100  median |.| 128
+
+## Path NETUP VAL (n 52, days 43): r(t) = ln alt/BTC since N - 60 s, bp, RAW sign (not side-adjusted): q25 / median / q75 / mean / median |r|
+  t   -60s        0       0       0       0       0
+  t   -30s       -4      -0       4      -0       4
+  t   -10s       -7      -1       4      -1       5
+  t    -5s       -6      -0       5      -1       6
+  t    -2s       -5       0       5       0       5
+  t    -1s       -6       0       3      -0       6
+  t    +0s       -6       0       3      -0       5
+  t    +1s       -2       5      19      11       8
+  t    +2s       -2       6      15      11       8
+  t    +3s       -1       6      15      11       9
+  t    +5s        0       7      18      14      10
+  t   +10s       -1       9      19      17      11
+  t   +20s        4      12      26      24      12
+  t   +30s        6      16      40      29      16
+  t   +60s        5      16      42      33      18
+  t  +120s        3      16      41      32      18
+  t  +300s        2      16      30      26      20
+  t  +600s       -3      13      46      31      22
+  t +1800s       -6      24      77      47      48
+  move N+5s -> N+30min: mean 33  median 12  median |.| 37
+
+## Path OTHER IS (n 14, days 11): r(t) = ln alt/BTC since N - 60 s, bp, RAW sign (not side-adjusted): q25 / median / q75 / mean / median |r|
+  t   -60s        0       0       0       0       0
+  t   -30s       -4      -1       8       3       5
+  t   -10s       -4      -2       6       3       5
+  t    -5s       -4      -1       9       4       6
+  t    -2s       -6       3      11       5       7
+  t    -1s       -6       1      14       6       7
+  t    +0s       -5      -2      12       5       6
+  t    +1s       -6      -1      15       6       7
+  t    +2s       -6       0      14       8       7
+  t    +3s       -4       1      13       9       7
+  t    +5s       -5       3      24      12      10
+  t   +10s       -0       4      23      13       8
+  t   +20s       -3      10      25      12      12
+  t   +30s        1      17      26      14      18
+  t   +60s       -2       8      21      13       8
+  t  +120s       -7       4      27      10      12
+  t  +300s      -12       5      16       6      16
+  t  +600s      -29       2      41      -0      35
+  t +1800s      -72      -6      31     -19      44
+  move N+5s -> N+30min: mean -31  median -19  median |.| 34
+
+## Path OTHER VAL (n 15, days 12): r(t) = ln alt/BTC since N - 60 s, bp, RAW sign (not side-adjusted): q25 / median / q75 / mean / median |r|
+  t   -60s        0       0       0       0       0
+  t   -30s      -11      -6       0     -10       8
+  t   -10s      -20      -6      -2     -15       6
+  t    -5s      -10      -6      -1     -13       6
+  t    -2s      -15      -9      -3     -14       9
+  t    -1s      -19      -8      -4     -15       8
+  t    +0s      -19      -9      -4     -16       9
+  t    +1s      -10      -5       4       1      10
+  t    +2s      -14      -1      12       0      12
+  t    +3s      -15      -1      11      -1      15
+  t    +5s      -14       4      24       9      17
+  t   +10s      -11       6      26      14      19
+  t   +20s      -17      -2      31      10      21
+  t   +30s      -22       1      38      14      34
+  t   +60s      -20       3      46       6      41
+  t  +120s      -20      -4      12      -3      19
+  t  +300s      -50     -17      22     -12      46
+  t  +600s      -51      -4      21     -11      28
+  t +1800s      -28     -12      54      -2      44
+  move N+5s -> N+30min: mean -11  median -14  median |.| 39
+
+## Path RESUME IS (n 9, days 8): r(t) = ln alt/BTC since N - 60 s, bp, RAW sign (not side-adjusted): q25 / median / q75 / mean / median |r|
+  t   -60s        0       0       0       0       0
+  t   -30s       -1       1       2      -5       2
+  t   -10s        0       3       7      -4       7
+  t    -5s       -5       2       8      -6       8
+  t    -2s       -5       4       8      -6       8
+  t    -1s       -5       3       8      -7       8
+  t    +0s       -5       3       8      -7       8
+  t    +1s       -5       3       7      -6       7
+  t    +2s       -4       4       8      -6       8
+  t    +3s       -3       4       8      -6       8
+  t    +5s       -3       5      12       8       9
+  t   +10s       -5       4      13      14      11
+  t   +20s       -7       7      17      42      13
+  t   +30s        2       6      13      63      11
+  t   +60s       -1       9      21      71      21
+  t  +120s      -15       6      15      67      15
+  t  +300s       -9      14      20      66      19
+  t  +600s      -48      -6      52      38      52
+  t +1800s      -92       9      49     -53      92
+  move N+5s -> N+30min: mean -60  median 1  median |.| 88
+
+## Path RESUME VAL (n 12, days 12): r(t) = ln alt/BTC since N - 60 s, bp, RAW sign (not side-adjusted): q25 / median / q75 / mean / median |r|
+  t   -60s        0       0       0       0       0
+  t   -30s       -7       0       2      -1       5
+  t   -10s      -12       1       5      -3       8
+  t    -5s       -7       1       3      -4       4
+  t    -2s       -9       1       3      -3       5
+  t    -1s      -10       1       3      -4       5
+  t    +0s       -9       0       4      -5       5
+  t    +1s       -1       0       4      10       4
+  t    +2s       -1       1       6       9       4
+  t    +3s       -4      -0       6       9       7
+  t    +5s       -3       4       8      11       6
+  t   +10s       -2       8      14      15      11
+  t   +20s        3       9      29      20      15
+  t   +30s        1      13      50      30      22
+  t   +60s        4       8      73      46      16
+  t  +120s       -1       3      47      52      20
+  t  +300s        0      12      79      62      23
+  t  +600s        4       8     109      81      12
+  t +1800s       -6      25      93      73      42
+  move N+5s -> N+30min: mean 62  median 20  median |.| 38
+
+## Path SUPPLY VAL (n 18, days 17): r(t) = ln alt/BTC since N - 60 s, bp, RAW sign (not side-adjusted): q25 / median / q75 / mean / median |r|
+  t   -60s        0       0       0       0       0
+  t   -30s       -1       0       3       0       2
+  t   -10s       -6      -1       4      -1       5
+  t    -5s       -7      -2       3      -2       5
+  t    -2s       -5      -2       4      -2       5
+  t    -1s       -6      -2       2      -2       4
+  t    +0s       -7      -2       2      -2       5
+  t    +1s       -4       2      18       6       9
+  t    +2s       -2       4      18       9       9
+  t    +3s       -1       4      18       9       9
+  t    +5s       -1       8      20      10      12
+  t   +10s        1      17      24      17      19
+  t   +20s       -1      12      33      20      17
+  t   +30s       -3      14      46      18      21
+  t   +60s       -6      11      22      16      16
+  t  +120s      -16       6      36       9      25
+  t  +300s      -24     -11       2      -6      19
+  t  +600s      -28      -9      10      -2      24
+  t +1800s      -31       9      33      22      33
+  move N+5s -> N+30min: mean 12  median -6  median |.| 29
+
+## Path SWAP IS (n 3, days 3): r(t) = ln alt/BTC since N - 60 s, bp, RAW sign (not side-adjusted): q25 / median / q75 / mean / median |r|
+  t   -60s        0       0       0       0       0
+  t   -30s       -4      -4      -1      -2       4
+  t   -10s       -7      -5      -5      -6       5
+  t    -5s       -9      -7      -6      -8       7
+  t    -2s       -9      -6      -4      -7       6
+  t    -1s       -8      -2      -2      -6       2
+  t    +0s       -8      -2      -1      -5       2
+  t    +1s        5      12      61      40      12
+  t    +2s        4      14      53      34      14
+  t    +3s        7      16      68      45      16
+  t    +5s       10      19      74      49      19
+  t   +10s       36      67     112      76      67
+  t   +20s       48      90     128      87      90
+  t   +30s      119     223     228     157     223
+  t   +60s       81     168     250     164     168
+  t  +120s       80     174     175     112     174
+  t  +300s       82     173     229     149     173
+  t  +600s       67     149     212     137     149
+  t +1800s       20      84     171      99      84
+  move N+5s -> N+30min: mean 49  median 65  median |.| 65
+
+## Path SWAP VAL (n 9, days 9): r(t) = ln alt/BTC since N - 60 s, bp, RAW sign (not side-adjusted): q25 / median / q75 / mean / median |r|
+  t   -60s        0       0       0       0       0
+  t   -30s       -5       0       3       2       5
+  t   -10s        1       6      10       5       6
+  t    -5s        0       4       8       7       6
+  t    -2s       -8       3      17       5      12
+  t    -1s       -4       3      17       7       9
+  t    +0s       -4       4      17       7       9
+  t    +1s       -4      17      41      33      17
+  t    +2s       -1      13      39      74      13
+  t    +3s       -1      13      41     104      13
+  t    +5s       -1      16      80     130      16
+  t   +10s       -2      32      81     153      32
+  t   +20s        7      40     141     178      40
+  t   +30s       13      47     179     160      47
+  t   +60s       21      69     206     185      69
+  t  +120s       17      44     268     173      44
+  t  +300s       22      50     454     234      50
+  t  +600s       28      49     527     284      49
+  t +1800s       29      51     387     243      51
+  move N+5s -> N+30min: mean 113  median 38  median |.| 70
+
+## Path WARN VAL (n 31, days 26): r(t) = ln alt/BTC since N - 60 s, bp, RAW sign (not side-adjusted): q25 / median / q75 / mean / median |r|
+  t   -60s        0       0       0       0       0
+  t   -30s       -8      -2       2      -2       5
+  t   -10s       -8       1       4      -2       5
+  t    -5s       -9       0       3      -4       5
+  t    -2s      -10       1       6      -2       8
+  t    -1s       -8       0       5       2       8
+  t    +0s       -9       1       5       2       6
+  t    +1s       -9       2      13      15      12
+  t    +2s       -6       2      16      23       8
+  t    +3s       -6       2      18      32      12
+  t    +5s       -5       5      17      31      15
+  t   +10s       -7      10      27      41      23
+  t   +20s      -27      19      67      48      30
+  t   +30s      -36       9      88      81      48
+  t   +60s      -44      17     110     110      85
+  t  +120s      -40       4      91      87      74
+  t  +300s      -45       0      92      62      58
+  t  +600s      -91       1     156      37     113
+  t +1800s      -97     -13      95      69     108
+  move N+5s -> N+30min: mean 39  median -22  median |.| 106
+
+## Cells (testable categories; side-adjusted; net bp per trade; 20 bp + slippage + real funding; t clustered by notice day)
+cell                era  n(days)  gross  slip  fund    net     t  median    SR   x1.5  late(d10)  years(net,n)                 power
+DWSUSP D5-5m        IS    28( 27)  -25.1   4.2   0.5  -48.8 -4.34  -47.1 -0.85  -60.8  -39.8  2020:-48(10) 2021:-49(18)        nan
+DWSUSP D5-5m        VAL   56( 46)  -25.9   2.8   0.0  -48.7 -6.29  -40.6 -0.83  -60.1  -42.1  2022:-56(23) 2023:-41(17) 2024:-46(16) -4.84
+DWSUSP D5-60m       IS    25( 24)    5.8   4.0   0.7  -17.5 -0.61   -8.9 -0.12  -29.5   -7.8  2020:-37(7) 2021:-10(18)         nan
+DWSUSP D5-60m       VAL   56( 46)  -41.2   2.5  -0.0  -63.7 -1.54  -23.5 -0.21  -74.9  -56.9  2022:-37(23) 2023:-139(17) 2024:-21(16) -1.25
+
+## Random benchmark (1000 draw sets; same coin / same UTC day of N, random second, same hold; side-adjusted gross; max-over-categories null)
+  DWSUSP D5-5m        IS   event gross   -25.1  random mean     0.3  beats   0.0 %  (cell net t -4.34)
+  DWSUSP D5-60m       IS   event gross     5.8  random mean    -2.8  beats  62.3 %  (cell net t -0.61)
+  IS: 95th pct of the max-over-categories-and-exits net t under the random null = 0.66
+  DWSUSP D5-5m        VAL  event gross   -25.9  random mean    -0.3  beats   0.0 %  (cell net t -6.29)
+  DWSUSP D5-60m       VAL  event gross   -41.2  random mean     0.4  beats   0.0 %  (cell net t -1.54)
+  VAL: 95th pct of the max-over-categories-and-exits net t under the random null = -0.10

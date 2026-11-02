@@ -1,0 +1,965 @@
+{
+"KRW-VET@1585274403000": {
+"n": 0,
+"first": null,
+"before": false,
+"first_after": null
+},
+"BTC-VET@1585274403000": {
+"n": 163,
+"first": 1585285200000,
+"before": false,
+"first_after": 1585285200000
+},
+"USDT-VET@1585274403000": null,
+"KRW-XTZ@1588052403000": {
+"n": 0,
+"first": null,
+"before": false,
+"first_after": null
+},
+"BTC-XTZ@1588052403000": {
+"n": 172,
+"first": 1588057200000,
+"before": false,
+"first_after": 1588057200000
+},
+"USDT-XTZ@1588052403000": null,
+"KRW-LINK@1594875603000": {
+"n": 0,
+"first": null,
+"before": false,
+"first_after": null
+},
+"BTC-LINK@1594875603000": {
+"n": 150,
+"first": 1594879200000,
+"before": false,
+"first_after": 1594879200000
+},
+"USDT-LINK@1594875603000": null,
+"KRW-COMP@1598247002000": {
+"n": 0,
+"first": null,
+"before": false,
+"first_after": null
+},
+"BTC-COMP@1598247002000": {
+"n": 164,
+"first": 1598252400000,
+"before": false,
+"first_after": 1598252400000
+},
+"USDT-COMP@1598247002000": null,
+"KRW-ALGO@1598936429000": {
+"n": 0,
+"first": null,
+"before": false,
+"first_after": null
+},
+"BTC-ALGO@1598936429000": {
+"n": 142,
+"first": 1598940000000,
+"before": false,
+"first_after": 1598940000000
+},
+"USDT-ALGO@1598936429000": null,
+"KRW-SRM@1602039602000": null,
+"BTC-SRM@1602039602000": null,
+"USDT-SRM@1602039602000": null,
+"KRW-FIL@1607515802000": {
+"n": 0,
+"first": null,
+"before": false,
+"first_after": null
+},
+"BTC-FIL@1607515802000": {
+"n": 191,
+"first": 1607518800000,
+"before": false,
+"first_after": 1607518800000
+},
+"USDT-FIL@1607515802000": {
+"n": 0,
+"first": null,
+"before": false,
+"first_after": null
+},
+"KRW-UNI@1607925601000": {
+"n": 0,
+"first": null,
+"before": false,
+"first_after": null
+},
+"BTC-UNI@1607925601000": {
+"n": 148,
+"first": 1607936400000,
+"before": false,
+"first_after": 1607936400000
+},
+"USDT-UNI@1607925601000": {
+"n": 0,
+"first": null,
+"before": false,
+"first_after": null
+},
+"KRW-NEAR@1615359600000": {
+"n": 0,
+"first": null,
+"before": false,
+"first_after": null
+},
+"BTC-NEAR@1615359600000": {
+"n": 189,
+"first": 1615363200000,
+"before": false,
+"first_after": 1615363200000
+},
+"USDT-NEAR@1615359600000": {
+"n": 0,
+"first": null,
+"before": false,
+"first_after": null
+},
+"KRW-GRT@1618383601000": {
+"n": 0,
+"first": null,
+"before": false,
+"first_after": null
+},
+"BTC-GRT@1618383601000": {
+"n": 190,
+"first": 1618387200000,
+"before": false,
+"first_after": 1618387200000
+},
+"USDT-GRT@1618383601000": null,
+"KRW-SNX@1618383601000": null,
+"BTC-SNX@1618383601000": null,
+"USDT-SNX@1618383601000": null,
+"KRW-SOL@1634270401000": {
+"n": 191,
+"first": 1634277600000,
+"before": false,
+"first_after": 1634277600000
+},
+"BTC-SOL@1634270401000": {
+"n": 182,
+"first": 1634277600000,
+"before": false,
+"first_after": 1634277600000
+},
+"USDT-SOL@1634270401000": {
+"n": 0,
+"first": null,
+"before": false,
+"first_after": null
+},
+"KRW-MATIC@1634270401000": null,
+"BTC-MATIC@1634270401000": null,
+"USDT-MATIC@1634270401000": null,
+"KRW-AAVE@1635314413000": {
+"n": 190,
+"first": 1635325200000,
+"before": false,
+"first_after": 1635325200000
+},
+"BTC-AAVE@1635314413000": {
+"n": 155,
+"first": 1635325200000,
+"before": false,
+"first_after": 1635325200000
+},
+"USDT-AAVE@1635314413000": null,
+"KRW-MASK@1635314413000": {
+"n": 0,
+"first": null,
+"before": false,
+"first_after": null
+},
+"BTC-MASK@1635314413000": {
+"n": 191,
+"first": 1635321600000,
+"before": false,
+"first_after": 1635321600000
+},
+"USDT-MASK@1635314413000": null,
+"KRW-ALGO@1637209501000": {
+"n": 193,
+"first": 1637208000000,
+"before": false,
+"first_after": 1637208000000
+},
+"BTC-ALGO@1637209501000": {
+"n": 200,
+"first": 1637179200000,
+"before": false,
+"first_after": 1637208000000
+},
+"USDT-ALGO@1637209501000": null,
+"KRW-AUDIO@1637209501000": null,
+"BTC-AUDIO@1637209501000": {
+"n": 191,
+"first": 1637215200000,
+"before": false,
+"first_after": 1637215200000
+},
+"USDT-AUDIO@1637209501000": null,
+"KRW-NEAR@1639540803000": {
+"n": 193,
+"first": 1639540800000,
+"before": false,
+"first_after": 1639540800000
+},
+"BTC-NEAR@1639540803000": {
+"n": 200,
+"first": 1639479600000,
+"before": false,
+"first_after": 1639540800000
+},
+"USDT-NEAR@1639540803000": {
+"n": 0,
+"first": null,
+"before": false,
+"first_after": null
+},
+"KRW-GTC@1640145601000": {
+"n": 0,
+"first": null,
+"before": false,
+"first_after": null
+},
+"BTC-GTC@1640145601000": {
+"n": 191,
+"first": 1640152800000,
+"before": false,
+"first_after": 1640152800000
+},
+"USDT-GTC@1640145601000": {
+"n": 0,
+"first": null,
+"before": false,
+"first_after": null
+},
+"KRW-OCEAN@1640145601000": null,
+"BTC-OCEAN@1640145601000": {
+"n": 191,
+"first": 1640152800000,
+"before": false,
+"first_after": 1640152800000
+},
+"USDT-OCEAN@1640145601000": null,
+"KRW-LPT@1640753401000": {
+"n": 0,
+"first": null,
+"before": false,
+"first_after": null
+},
+"BTC-LPT@1640753401000": {
+"n": 186,
+"first": 1640757600000,
+"before": false,
+"first_after": 1640757600000
+},
+"USDT-LPT@1640753401000": {
+"n": 0,
+"first": null,
+"before": false,
+"first_after": null
+},
+"KRW-AVAX@1644292823000": {
+"n": 184,
+"first": 1644318000000,
+"before": false,
+"first_after": 1644318000000
+},
+"BTC-AVAX@1644292823000": {
+"n": 123,
+"first": 1644318000000,
+"before": false,
+"first_after": 1644318000000
+},
+"USDT-AVAX@1644292823000": null,
+"KRW-API3@1650504301000": {
+"n": 0,
+"first": null,
+"before": false,
+"first_after": null
+},
+"BTC-API3@1650504301000": {
+"n": 144,
+"first": 1650528000000,
+"before": false,
+"first_after": 1650528000000
+},
+"USDT-API3@1650504301000": {
+"n": 0,
+"first": null,
+"before": false,
+"first_after": null
+},
+"KRW-ARPA@1651541401000": null,
+"BTC-ARPA@1651541401000": {
+"n": 149,
+"first": 1651564800000,
+"before": false,
+"first_after": 1651564800000
+},
+"USDT-ARPA@1651541401000": {
+"n": 0,
+"first": null,
+"before": false,
+"first_after": null
+},
+"KRW-ENS@1651541401000": {
+"n": 0,
+"first": null,
+"before": false,
+"first_after": null
+},
+"BTC-ENS@1651541401000": {
+"n": 182,
+"first": 1651564800000,
+"before": false,
+"first_after": 1651564800000
+},
+"USDT-ENS@1651541401000": null,
+"KRW-GMT@1651626001000": {
+"n": 187,
+"first": 1651647600000,
+"before": false,
+"first_after": 1651647600000
+},
+"BTC-GMT@1651626001000": {
+"n": 126,
+"first": 1651647600000,
+"before": false,
+"first_after": 1651647600000
+},
+"USDT-GMT@1651626001000": null,
+"KRW-APE@1652751148000": null,
+"BTC-APE@1652751148000": {
+"n": 181,
+"first": 1652774400000,
+"before": false,
+"first_after": 1652774400000
+},
+"USDT-APE@1652751148000": null,
+"KRW-RAY@1657761901000": {
+"n": 0,
+"first": null,
+"before": false,
+"first_after": null
+},
+"BTC-RAY@1657761901000": {
+"n": 186,
+"first": 1657785600000,
+"before": false,
+"first_after": 1657785600000
+},
+"USDT-RAY@1657761901000": {
+"n": 0,
+"first": null,
+"before": false,
+"first_after": null
+},
+"KRW-SHIB@1674003616000": {
+"n": 187,
+"first": 1674025200000,
+"before": false,
+"first_after": 1674025200000
+},
+"BTC-SHIB@1674003616000": null,
+"USDT-SHIB@1674003616000": null,
+"KRW-GAL@1674003616000": null,
+"BTC-GAL@1674003616000": null,
+"USDT-GAL@1674003616000": null,
+"KRW-MASK@1678149008000": {
+"n": 186,
+"first": 1678172400000,
+"before": false,
+"first_after": 1678172400000
+},
+"BTC-MASK@1678149008000": {
+"n": 200,
+"first": 1678057200000,
+"before": true,
+"first_after": 1678147200000
+},
+"USDT-MASK@1678149008000": null,
+"KRW-MAGIC@1679359905000": null,
+"BTC-MAGIC@1679359905000": {
+"n": 186,
+"first": 1679382000000,
+"before": false,
+"first_after": 1679382000000
+},
+"USDT-MAGIC@1679359905000": null,
+"KRW-ARB@1680138000000": {
+"n": 184,
+"first": 1680156000000,
+"before": false,
+"first_after": 1680156000000
+},
+"BTC-ARB@1680138000000": {
+"n": 117,
+"first": 1680156000000,
+"before": false,
+"first_after": 1680156000000
+},
+"USDT-ARB@1680138000000": null,
+"KRW-EGLD@1682557217000": {
+"n": 187,
+"first": 1682578800000,
+"before": false,
+"first_after": 1682578800000
+},
+"BTC-EGLD@1682557217000": {
+"n": 114,
+"first": 1682578800000,
+"before": false,
+"first_after": 1682578800000
+},
+"USDT-EGLD@1682557217000": {
+"n": 0,
+"first": null,
+"before": false,
+"first_after": null
+},
+"KRW-MINA@1689033602000": {
+"n": 0,
+"first": null,
+"before": false,
+"first_after": null
+},
+"BTC-MINA@1689033602000": {
+"n": 164,
+"first": 1689058800000,
+"before": false,
+"first_after": 1689058800000
+},
+"USDT-MINA@1689033602000": null,
+"KRW-STG@1691626200000": null,
+"BTC-STG@1691626200000": null,
+"USDT-STG@1691626200000": null,
+"KRW-ID@1701320400000": {
+"n": 0,
+"first": null,
+"before": false,
+"first_after": null
+},
+"BTC-ID@1701320400000": {
+"n": 183,
+"first": 1701334800000,
+"before": false,
+"first_after": 1701334800000
+},
+"USDT-ID@1701320400000": null,
+"KRW-ALT@1709001908000": {
+"n": 0,
+"first": null,
+"before": false,
+"first_after": null
+},
+"BTC-ALT@1709001908000": {
+"n": 188,
+"first": 1709017200000,
+"before": false,
+"first_after": 1709017200000
+},
+"USDT-ALT@1709001908000": {
+"n": 0,
+"first": null,
+"before": false,
+"first_after": null
+},
+"KRW-PYTH@1709001908000": {
+"n": 186,
+"first": 1709024400000,
+"before": false,
+"first_after": 1709024400000
+},
+"BTC-PYTH@1709001908000": {
+"n": 144,
+"first": 1709024400000,
+"before": false,
+"first_after": 1709024400000
+},
+"USDT-PYTH@1709001908000": null,
+"KRW-BIGTIME@1713850330000": {
+"n": 0,
+"first": null,
+"before": false,
+"first_after": null
+},
+"BTC-BIGTIME@1713850330000": {
+"n": 183,
+"first": 1713859200000,
+"before": false,
+"first_after": 1713859200000
+},
+"USDT-BIGTIME@1713850330000": {
+"n": 28,
+"first": 1713859200000,
+"before": false,
+"first_after": 1713859200000
+},
+"KRW-ZETA@1714714570000": {
+"n": 189,
+"first": 1714726800000,
+"before": false,
+"first_after": 1714726800000
+},
+"BTC-ZETA@1714714570000": {
+"n": 116,
+"first": 1714726800000,
+"before": false,
+"first_after": 1714726800000
+},
+"USDT-ZETA@1714714570000": {
+"n": 46,
+"first": 1714726800000,
+"before": false,
+"first_after": 1714726800000
+},
+"KRW-OMNI@1714714570000": null,
+"BTC-OMNI@1714714570000": null,
+"USDT-OMNI@1714714570000": null,
+"KRW-ONDO@1718334413000": {
+"n": 188,
+"first": 1718352000000,
+"before": false,
+"first_after": 1718352000000
+},
+"BTC-ONDO@1718334413000": {
+"n": 137,
+"first": 1718348400000,
+"before": false,
+"first_after": 1718348400000
+},
+"USDT-ONDO@1718334413000": {
+"n": 36,
+"first": 1718344800000,
+"before": false,
+"first_after": 1718344800000
+},
+"KRW-GAS@1718617515000": {
+"n": 200,
+"first": 1718589600000,
+"before": false,
+"first_after": 1718614800000
+},
+"BTC-GAS@1718617515000": {
+"n": 39,
+"first": 1718622000000,
+"before": false,
+"first_after": 1718622000000
+},
+"USDT-GAS@1718617515000": {
+"n": 32,
+"first": 1718629200000,
+"before": false,
+"first_after": 1718629200000
+},
+"KRW-NEO@1718617515000": {
+"n": 200,
+"first": 1718589600000,
+"before": false,
+"first_after": 1718614800000
+},
+"BTC-NEO@1718617515000": {
+"n": 34,
+"first": 1718622000000,
+"before": false,
+"first_after": 1718622000000
+},
+"USDT-NEO@1718617515000": {
+"n": 32,
+"first": 1718622000000,
+"before": false,
+"first_after": 1718622000000
+},
+"KRW-SOL@1718617515000": {
+"n": 200,
+"first": 1718589600000,
+"before": false,
+"first_after": 1718614800000
+},
+"BTC-SOL@1718617515000": {
+"n": 200,
+"first": 1718067600000,
+"before": true,
+"first_after": 1718614800000
+},
+"USDT-SOL@1718617515000": {
+"n": 51,
+"first": 1718629200000,
+"before": false,
+"first_after": 1718629200000
+},
+"KRW-JUP@1720075338000": {
+"n": 189,
+"first": 1720087200000,
+"before": false,
+"first_after": 1720087200000
+},
+"BTC-JUP@1720075338000": {
+"n": 95,
+"first": 1720087200000,
+"before": false,
+"first_after": 1720087200000
+},
+"USDT-JUP@1720075338000": {
+"n": 23,
+"first": 1720087200000,
+"before": false,
+"first_after": 1720087200000
+},
+"KRW-PENDLE@1722925975000": {
+"n": 190,
+"first": 1722934800000,
+"before": false,
+"first_after": 1722934800000
+},
+"BTC-PENDLE@1722925975000": {
+"n": 36,
+"first": 1722934800000,
+"before": false,
+"first_after": 1722934800000
+},
+"USDT-PENDLE@1722925975000": null,
+"KRW-PEPE@1724139466000": {
+"n": 0,
+"first": null,
+"before": false,
+"first_after": null
+},
+"BTC-PEPE@1724139466000": null,
+"USDT-PEPE@1724139466000": {
+"n": 186,
+"first": 1724148000000,
+"before": false,
+"first_after": 1724148000000
+},
+"KRW-USDC@1724977021000": {
+"n": 189,
+"first": 1724990400000,
+"before": false,
+"first_after": 1724990400000
+},
+"BTC-USDC@1724977021000": {
+"n": 78,
+"first": 1724990400000,
+"before": false,
+"first_after": 1724990400000
+},
+"USDT-USDC@1724977021000": {
+"n": 84,
+"first": 1724990400000,
+"before": false,
+"first_after": 1724990400000
+},
+"KRW-CKB@1726202178000": {
+"n": 187,
+"first": 1726221600000,
+"before": false,
+"first_after": 1726221600000
+},
+"BTC-CKB@1726202178000": {
+"n": 113,
+"first": 1726221600000,
+"before": false,
+"first_after": 1726221600000
+},
+"USDT-CKB@1726202178000": {
+"n": 58,
+"first": 1726221600000,
+"before": false,
+"first_after": 1726221600000
+},
+"KRW-MEW@1726728292000": {
+"n": 0,
+"first": null,
+"before": false,
+"first_after": null
+},
+"BTC-MEW@1726728292000": {
+"n": 186,
+"first": 1726740000000,
+"before": false,
+"first_after": 1726740000000
+},
+"USDT-MEW@1726728292000": {
+"n": 171,
+"first": 1726740000000,
+"before": false,
+"first_after": 1726740000000
+},
+"KRW-INJ@1729154873000": {
+"n": 192,
+"first": 1729155600000,
+"before": false,
+"first_after": 1729155600000
+},
+"BTC-INJ@1729154873000": {
+"n": 200,
+"first": 1728766800000,
+"before": true,
+"first_after": 1729152000000
+},
+"USDT-INJ@1729154873000": {
+"n": 35,
+"first": 1729155600000,
+"before": false,
+"first_after": 1729155600000
+},
+"KRW-BONK@1729576427000": null,
+"BTC-BONK@1729576427000": null,
+"USDT-BONK@1729576427000": null,
+"KRW-UNI@1729579046000": {
+"n": 192,
+"first": 1729580400000,
+"before": false,
+"first_after": 1729580400000
+},
+"BTC-UNI@1729579046000": {
+"n": 200,
+"first": 1729004400000,
+"before": true,
+"first_after": 1729576800000
+},
+"USDT-UNI@1729579046000": {
+"n": 20,
+"first": 1729580400000,
+"before": false,
+"first_after": 1729580400000
+},
+"KRW-AGLD@1731478500000": {
+"n": 192,
+"first": 1731481200000,
+"before": false,
+"first_after": 1731481200000
+},
+"BTC-AGLD@1731478500000": {
+"n": 200,
+"first": 1731276000000,
+"before": true,
+"first_after": 1731477600000
+},
+"USDT-AGLD@1731478500000": {
+"n": 78,
+"first": 1731481200000,
+"before": false,
+"first_after": 1731481200000
+},
+"KRW-ARPA@1731478500000": null,
+"BTC-ARPA@1731478500000": {
+"n": 200,
+"first": 1731362400000,
+"before": true,
+"first_after": 1731477600000
+},
+"USDT-ARPA@1731478500000": {
+"n": 62,
+"first": 1731481200000,
+"before": false,
+"first_after": 1731481200000
+},
+"KRW-ASTR@1731478500000": {
+"n": 200,
+"first": 1731452400000,
+"before": false,
+"first_after": 1731477600000
+},
+"BTC-ASTR@1731478500000": {
+"n": 200,
+"first": 1728187200000,
+"before": true,
+"first_after": 1731477600000
+},
+"USDT-ASTR@1731478500000": {
+"n": 33,
+"first": 1731481200000,
+"before": false,
+"first_after": 1731481200000
+},
+"KRW-BNT@1731478500000": null,
+"BTC-BNT@1731478500000": {
+"n": 200,
+"first": 1730638800000,
+"before": true,
+"first_after": 1731477600000
+},
+"USDT-BNT@1731478500000": {
+"n": 23,
+"first": 1731484800000,
+"before": false,
+"first_after": 1731484800000
+},
+"KRW-EGLD@1731478500000": {
+"n": 200,
+"first": 1731452400000,
+"before": false,
+"first_after": 1731477600000
+},
+"BTC-EGLD@1731478500000": {
+"n": 200,
+"first": 1716645600000,
+"before": true,
+"first_after": 1731477600000
+},
+"USDT-EGLD@1731478500000": {
+"n": 25,
+"first": 1731488400000,
+"before": false,
+"first_after": 1731488400000
+},
+"KRW-FIL@1731478500000": {
+"n": 0,
+"first": null,
+"before": false,
+"first_after": null
+},
+"BTC-FIL@1731478500000": {
+"n": 200,
+"first": 1731452400000,
+"before": false,
+"first_after": 1731477600000
+},
+"USDT-FIL@1731478500000": {
+"n": 141,
+"first": 1731484800000,
+"before": false,
+"first_after": 1731484800000
+},
+"KRW-NEAR@1731478500000": {
+"n": 200,
+"first": 1731452400000,
+"before": false,
+"first_after": 1731477600000
+},
+"BTC-NEAR@1731478500000": {
+"n": 200,
+"first": 1730577600000,
+"before": true,
+"first_after": 1731477600000
+},
+"USDT-NEAR@1731478500000": {
+"n": 53,
+"first": 1731484800000,
+"before": false,
+"first_after": 1731484800000
+},
+"KRW-OXT@1731478500000": null,
+"BTC-OXT@1731478500000": null,
+"USDT-OXT@1731478500000": null,
+"KRW-XLM@1731478500000": {
+"n": 200,
+"first": 1731452400000,
+"before": false,
+"first_after": 1731477600000
+},
+"BTC-XLM@1731478500000": {
+"n": 200,
+"first": 1731250800000,
+"before": true,
+"first_after": 1731477600000
+},
+"USDT-XLM@1731478500000": {
+"n": 86,
+"first": 1731488400000,
+"before": false,
+"first_after": 1731488400000
+},
+"KRW-JASMY@1732070949000": null,
+"BTC-JASMY@1732070949000": null,
+"USDT-JASMY@1732070949000": null,
+"KRW-SWELL@1733367705000": null,
+"BTC-SWELL@1733367705000": {
+"n": 181,
+"first": 1733378400000,
+"before": false,
+"first_after": 1733378400000
+},
+"USDT-SWELL@1733367705000": {
+"n": 89,
+"first": 1733378400000,
+"before": false,
+"first_after": 1733378400000
+},
+"KRW-RENDER@1733367957000": {
+"n": 192,
+"first": 1733371200000,
+"before": false,
+"first_after": 1733371200000
+},
+"BTC-RENDER@1733367957000": {
+"n": 200,
+"first": 1733256000000,
+"before": true,
+"first_after": 1733367600000
+},
+"USDT-RENDER@1733367957000": {
+"n": 81,
+"first": 1733371200000,
+"before": false,
+"first_after": 1733371200000
+},
+"KRW-MATIC@1634270400000": null,
+"BTC-MATIC@1634270400000": null,
+"USDT-MATIC@1634270400000": null,
+"KRW-POL@1634270400000": {
+"n": 190,
+"first": 1634277600000,
+"before": false,
+"first_after": 1634277600000
+},
+"BTC-POL@1634270400000": {
+"n": 174,
+"first": 1634277600000,
+"before": false,
+"first_after": 1634277600000
+},
+"USDT-POL@1634270400000": null,
+"KRW-AUDIO@1637208000000": null,
+"BTC-AUDIO@1637208000000": {
+"n": 190,
+"first": 1637215200000,
+"before": false,
+"first_after": 1637215200000
+},
+"USDT-AUDIO@1637208000000": null,
+"KRW-GAL@1673974800000": null,
+"BTC-GAL@1673974800000": null,
+"USDT-GAL@1673974800000": null,
+"KRW-GAL@1720664520000": null,
+"BTC-GAL@1720664520000": null,
+"USDT-GAL@1720664520000": null,
+"KRW-ALT@1708998300000": {
+"n": 0,
+"first": null,
+"before": false,
+"first_after": null
+},
+"BTC-ALT@1708998300000": {
+"n": 187,
+"first": 1709017200000,
+"before": false,
+"first_after": 1709017200000
+},
+"USDT-ALT@1708998300000": {
+"n": 0,
+"first": null,
+"before": false,
+"first_after": null
+},
+"KRW-OMNI@1714714560000": null,
+"BTC-OMNI@1714714560000": null,
+"USDT-OMNI@1714714560000": null,
+"KRW-STG@1717054140000": null,
+"BTC-STG@1717054140000": null,
+"USDT-STG@1717054140000": null,
+"KRW-BONK@1732071300000": null,
+"BTC-BONK@1732071300000": null,
+"USDT-BONK@1732071300000": null
+}

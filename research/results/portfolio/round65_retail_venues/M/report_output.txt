@@ -1,0 +1,82 @@
+guard failures: [('GAL', 0.017)]
+guard ratios: {'VET': 0.973, 'XTZ': 0.997, 'LINK': 1.006, 'COMP': 0.989, 'ALGO': 0.973, 'SRM': None, 'FIL': 1.006, 'UNI': 0.982, 'NEAR': 0.971, 'GRT': 0.976, 'SNX': None, 'MASK': 0.949, 'AUDIO': 1.011, 'GTC': 0.947, 'OCEAN': 1.0, 'LPT': 0.972, 'API3': 0.976, 'ARPA': 0.987, 'ENS': 0.993, 'APE': 1.0, 'RAY': 1.015, 'GAL': 0.017, 'MAGIC': 0.973, 'MINA': 0.975, 'STG': None, 'ID': 0.983, 'ALT': 1.017, 'BIGTIME': 0.959, 'PEPE': 1.002, 'MEW': 1.089, 'BONK': None, 'JASMY': None, 'SWELL': 1.027}
+
+== M events (non-KRW additions), K2 rule ==
+  VET      2020-03-27 05:00 BTC  H72   +630 H24   +386 pump(L-24h->entry)  +1021 pump(N-24h->entry)  +1042 notice->entry   +155  [first BTC-VET 60m candle]
+  XTZ      2020-04-28 07:00 BTC  H72   +875 H24   +221 pump(L-24h->entry)   +434 pump(N-24h->entry)   +158 notice->entry   +191  [first BTC-XTZ 60m candle]
+  LINK     2020-07-16 06:00 BTC  H72   +242 H24   -472 pump(L-24h->entry)   +247 pump(N-24h->entry)   +223 notice->entry   -130  [first BTC-LINK 60m candle]
+  COMP     2020-08-24 07:00 BTC  H72    +26 H24    +42 pump(L-24h->entry)   +333 pump(N-24h->entry)   +530 notice->entry    -31  [first BTC-COMP 60m candle]
+  ALGO     2020-09-01 06:00 BTC  H72  +2232 H24   +452 pump(L-24h->entry)   +148 pump(N-24h->entry)   +139 notice->entry   -226  [first BTC-ALGO 60m candle]
+  SRM      2020-10-07 04:00 BTC  H72    -85 H24   +665 pump(L-24h->entry)  -1495 pump(N-24h->entry)  -1560 notice->entry    +68  [fallback notice + median 2020 lag 1.3 h]
+  FIL      2020-12-09 13:00 BTC  H72    +51 H24   -161 pump(L-24h->entry)   +320 pump(N-24h->entry)   +316 notice->entry    -90  [first BTC-FIL 60m candle]
+  UNI      2020-12-14 09:00 BTC  H72   +607 H24   -212 pump(L-24h->entry)   +256 pump(N-24h->entry)   +465 notice->entry    +71  [first BTC-UNI 60m candle]
+  NEAR     2021-03-10 08:00 BTC  H72  -2226 H24   +158 pump(L-24h->entry)    +54 pump(N-24h->entry)   +789 notice->entry   -364  [first BTC-NEAR 60m candle]
+  GRT      2021-04-14 08:00 BTC  H72   -613 H24   -196 pump(L-24h->entry)   -203 pump(N-24h->entry)    -34 notice->entry   -357  [first BTC-GRT 60m candle]
+  SNX      2021-04-14 08:00 BTC  H72  -1169 H24   -449 pump(L-24h->entry)   -241 pump(N-24h->entry)   -352 notice->entry   -319  [partner GRT first BTC 60m candle]
+  MASK     2021-10-27 08:00 BTC  H72  +2308 H24  +1959 pump(L-24h->entry)  +4586 pump(N-24h->entry)  +4591 notice->entry  -1714  [first BTC-MASK 60m candle]
+  AUDIO    2021-11-18 06:00 BTC  H72  +1665 H24  +1378 pump(L-24h->entry)  +2631 pump(N-24h->entry)  +2935 notice->entry  -2939  [first BTC-AUDIO 60m candle]
+  GTC      2021-12-22 06:00 BTC  H72  -4938 H24   -138 pump(L-24h->entry)  +2694 pump(N-24h->entry)  +2580 notice->entry   +164  [first BTC-GTC 60m candle]
+  OCEAN    2021-12-22 06:00 BTC  H72   -629 H24   -252 pump(L-24h->entry)  +2045 pump(N-24h->entry)  +1947 notice->entry   -467  [first BTC-OCEAN 60m candle]
+  LPT      2021-12-29 06:00 BTC  H72   +405 H24   +530 pump(L-24h->entry)   +849 pump(N-24h->entry)  +1047 notice->entry  -1007  [first BTC-LPT 60m candle]
+  API3     2022-04-21 08:00 BTC  H72   +507 H24   +362 pump(L-24h->entry)    +11 pump(N-24h->entry)   +379 notice->entry  -1461  [first BTC-API3 60m candle]
+  ARPA     2022-05-03 08:00 BTC  H72   +976 H24   +708 pump(L-24h->entry)  +1750 pump(N-24h->entry)  +1607 notice->entry  +1031  [first BTC-ARPA 60m candle]
+  ENS      2022-05-03 08:00 BTC  H72  +2168 H24  +1427 pump(L-24h->entry)   +613 pump(N-24h->entry)   +474 notice->entry   -396  [first BTC-ENS 60m candle]
+  APE      2022-05-17 08:00 BTC  H72   +498 H24   -306 pump(L-24h->entry)   +356 pump(N-24h->entry)    -27 notice->entry    -12  [first BTC-APE 60m candle]
+  RAY      2022-07-14 08:00 BTC  H72   -253 H24   +407 pump(L-24h->entry)  +1571 pump(N-24h->entry)  +1829 notice->entry  +1232  [first BTC-RAY 60m candle]
+  MAGIC    2023-03-21 07:00 BTC  H72  +1475 H24   +227 pump(L-24h->entry)   +389 pump(N-24h->entry)   +233 notice->entry   +167  [first BTC-MAGIC 60m candle]
+  MINA     2023-07-11 07:00 BTC  H72     +7 H24   +720 pump(L-24h->entry)  +1082 pump(N-24h->entry)   +969 notice->entry   +119  [first BTC-MINA 60m candle]
+  STG      2023-08-10 07:00 BTC  H72   -271 H24   +504 pump(L-24h->entry)   +221 pump(N-24h->entry)   +350 notice->entry   -684  [fallback notice + median 2023 lag 7.0 h]
+  ID       2023-11-30 09:00 BTC  H72   +151 H24   +868 pump(L-24h->entry)  +1352 pump(N-24h->entry)  +1304 notice->entry   -941  [first BTC-ID 60m candle]
+  ALT      2024-02-27 07:00 BTC  H72  +1964 H24   +319 pump(L-24h->entry)   -356 pump(N-24h->entry)   -373 notice->entry   -594  [first BTC-ALT 60m candle]
+  BIGTIME  2024-04-23 08:00 BTC  H72   +691 H24   +420 pump(L-24h->entry)  +1058 pump(N-24h->entry)   +851 notice->entry   -998  [first BTC-BIGTIME 60m candle]
+  PEPE     2024-08-20 10:00 USDT H72    -26 H24    +90 pump(L-24h->entry)   +666 pump(N-24h->entry)   +622 notice->entry    -59  [first USDT-PEPE 60m candle]
+  MEW      2024-09-19 10:00 BTC  H72   +964 H24   -911 pump(L-24h->entry)  +1893 pump(N-24h->entry)  +1696 notice->entry   -769  [first BTC-MEW 60m candle]
+  BONK     2024-10-22 09:00 USDT H72   +423 H24   +351 pump(L-24h->entry)    +21 pump(N-24h->entry)   -121 notice->entry   -327  [WebSearch opening time]
+  JASMY    2024-11-20 06:00 USDT H72   +302 H24  +1102 pump(L-24h->entry)   -471 pump(N-24h->entry)   -436 notice->entry  -1122  [WebSearch opening time]
+  SWELL    2024-12-05 06:00 BTC  H72    -41 H24   -354 pump(L-24h->entry)  +1268 pump(N-24h->entry)  +1511 notice->entry  -1254  [first BTC-SWELL 60m candle]
+M H72      IS  n 16 (days 14) gross +18 fund -15 net -39 t -0.08 med +146 sd 1757 SR -0.022 win 0.62 worst -4938 best +2308 drop-best -195 years {2020: (8, 572), 2021: (8, -650)}
+M H72      VAL n 16 (days 15) gross +634 fund +4 net +596 t 2.98 med +460 sd 746 SR 0.799 win 0.75 worst -271 best +2168 drop-best +491 years {2022: (5, 779), 2023: (4, 341), 2024: (7, 611)}
+M H24      IS  n 16 (days 14) gross +307 fund -21 net +244 t 1.37 med +100 sd 661 SR 0.370 win 0.56 worst -472 best +1959 drop-best +130 years {2020: (8, 115), 2021: (8, 374)}
+M H24      VAL n 16 (days 15) gross +413 fund +0 net +371 t 2.42 med +385 sd 571 SR 0.650 win 0.81 worst -911 best +1427 drop-best +301 years {2022: (5, 520), 2023: (4, 580), 2024: (7, 146)}
+M H72_c15  IS  n 16 (days 14) gross +18 fund -15 net -60 t -0.13 med +125 sd 1757 SR -0.034 win 0.62 worst -4959 best +2287 drop-best -216 years {2020: (8, 551), 2021: (8, -671)}
+M H72_c15  VAL n 16 (days 15) gross +634 fund +4 net +575 t 2.88 med +439 sd 746 SR 0.771 win 0.69 worst -292 best +2147 drop-best +470 years {2022: (5, 758), 2023: (4, 320), 2024: (7, 590)}
+M H72_p5   IS  n 16 (days 14) gross +4 fund -15 net -54 t -0.11 med +141 sd 1793 SR -0.030 win 0.62 worst -5171 best +2333 drop-best -213 years {2020: (8, 552), 2021: (8, -659)}
+M H72_p5   VAL n 16 (days 15) gross +621 fund +4 net +584 t 2.87 med +357 sd 766 SR 0.762 win 0.75 worst -369 best +2140 drop-best +480 years {2022: (5, 729), 2023: (4, 323), 2024: (7, 628)}
+M H72_L2h  IS  n 16 (days 14) gross -94 fund -2 net -139 t -0.29 med +120 sd 1763 SR -0.079 win 0.56 worst -5093 best +2156 drop-best -292 years {2020: (8, 466), 2021: (8, -744)}
+M H72_L2h  VAL n 16 (days 15) gross +571 fund +5 net +533 t 2.64 med +304 sd 772 SR 0.691 win 0.75 worst -429 best +2183 drop-best +423 years {2022: (5, 722), 2023: (4, 181), 2024: (7, 600)}
+M pump IS: L-24h->entry mean +855 median +327 (n 16); N-24h->entry mean +926 median +498; notice->entry mean -437 median -178
+M pump VAL: L-24h->entry mean +714 median +639 (n 16); N-24h->entry mean +679 median +548; notice->entry mean -379 median -495
+M H72 no-fallback IS n 15 (days 13) gross +19 fund -12 net -36 t -0.07 med +242 sd 1818 SR -0.020 win 0.67 worst -4938 best +2308 drop-best -203 years {2020: (7, 666), 2021: (8, -650)}
+M H72 no-fallback VAL n 15 (days 14) gross +690 fund +6 net +654 t 3.24 med +498 sd 734 SR 0.890 win 0.80 worst -253 best +2168 drop-best +546 years {2022: (5, 779), 2023: (3, 544), 2024: (7, 611)}
+
+== K2 recomputed with this k2rule copy, and the survivorship extras ==
+  extra MATIC  2021-10-15 06:00 H72 -503 H24 -363 pump 1416 [KRW-POL first 60m candle (renamed market)]
+  extra OMNI   2024-05-03 09:00 H72 674 H24 295 pump 353 [partner ZETA KRW first 60m candle (same notice)]
+  extra STG    2024-05-30 07:00 H72 -616 H24 -124 pump 4240 [WebSearch: 16:45 KST opening, floored]
+  extra BONK   2024-11-20 03:00 H72 2555 H24 2345 pump 1647 [WebSearch: 12:30 KST opening, floored]
+K2   H72      IS  n 11 (days 9) gross +1150 fund -14 net +1094 t 3.16 med +1054 sd 909 SR 1.203 win 0.91 worst -6 best +3084 drop-best +895 years {2020: (4, 555), 2021: (7, 1402)}
+K2+X H72      IS  n 12 (days 9) gross +1017 fund -14 net +961 t 2.63 med +880 sd 982 SR 0.979 win 0.83 worst -503 best +3084 drop-best +768 years {2020: (4, 555), 2021: (8, 1164)}
+K2   H72      VAL n 29 (days 29) gross +570 fund -105 net +423 t 1.37 med +619 sd 1666 SR 0.254 win 0.72 worst -4669 best +4808 drop-best +266 years {2022: (3, 378), 2023: (9, 1026), 2024: (17, 111)}
+K2+X H72      VAL n 32 (days 31) gross +616 fund -110 net +465 t 1.61 med +644 sd 1639 SR 0.283 win 0.72 worst -4669 best +4808 drop-best +325 years {2022: (3, 378), 2023: (9, 1026), 2024: (20, 225)}
+K2   H24      IS  n 11 (days 9) gross +729 fund -14 net +673 t 2.22 med +477 sd 791 SR 0.851 win 0.91 worst -106 best +2661 drop-best +474 years {2020: (4, 185), 2021: (7, 952)}
+K2+X H24      IS  n 12 (days 9) gross +642 fund -13 net +587 t 1.96 med +390 sd 811 SR 0.723 win 0.83 worst -363 best +2661 drop-best +398 years {2020: (4, 185), 2021: (8, 788)}
+K2   H24      VAL n 29 (days 29) gross +518 fund -87 net +389 t 1.96 med +384 sd 1069 SR 0.364 win 0.79 worst -1695 best +4161 drop-best +254 years {2022: (3, -5), 2023: (9, 601), 2024: (17, 346)}
+K2+X H24      VAL n 32 (days 31) gross +566 fund -93 net +431 t 2.26 med +357 sd 1078 SR 0.400 win 0.78 worst -1695 best +4161 drop-best +311 years {2022: (3, -5), 2023: (9, 601), 2024: (20, 420)}
+K2   H72_c15  IS  n 11 (days 9) gross +1150 fund -14 net +1073 t 3.10 med +1033 sd 909 SR 1.180 win 0.91 worst -27 best +3063 drop-best +874 years {2020: (4, 534), 2021: (7, 1381)}
+K2+X H72_c15  IS  n 12 (days 9) gross +1017 fund -14 net +940 t 2.58 med +859 sd 982 SR 0.957 win 0.83 worst -524 best +3063 drop-best +747 years {2020: (4, 534), 2021: (8, 1143)}
+K2   H72_c15  VAL n 29 (days 29) gross +570 fund -105 net +402 t 1.30 med +598 sd 1666 SR 0.241 win 0.72 worst -4690 best +4787 drop-best +245 years {2022: (3, 357), 2023: (9, 1005), 2024: (17, 90)}
+K2+X H72_c15  VAL n 32 (days 31) gross +616 fund -110 net +444 t 1.53 med +623 sd 1639 SR 0.271 win 0.72 worst -4690 best +4787 drop-best +304 years {2022: (3, 357), 2023: (9, 1005), 2024: (20, 204)}
+K2   H72_p5   IS  n 11 (days 9) gross +1053 fund -14 net +997 t 2.87 med +744 sd 910 SR 1.096 win 0.91 worst -52 best +2994 drop-best +797 years {2020: (4, 544), 2021: (7, 1256)}
+K2+X H72_p5   IS  n 12 (days 9) gross +930 fund -14 net +874 t 2.44 med +647 sd 967 SR 0.903 win 0.83 worst -484 best +2994 drop-best +681 years {2020: (4, 544), 2021: (8, 1039)}
+K2   H72_p5   VAL n 29 (days 29) gross +546 fund -105 net +399 t 1.31 med +514 sd 1643 SR 0.243 win 0.72 worst -4610 best +4705 drop-best +245 years {2022: (3, 358), 2023: (9, 1010), 2024: (17, 83)}
+K2+X H72_p5   VAL n 32 (days 31) gross +583 fund -110 net +431 t 1.54 med +531 sd 1589 SR 0.271 win 0.72 worst -4610 best +4705 drop-best +293 years {2022: (3, 358), 2023: (9, 1010), 2024: (20, 182)}
+K2   H72_L2h  IS  n 11 (days 9) gross +966 fund -11 net +913 t 2.94 med +632 sd 805 SR 1.134 win 0.91 worst -84 best +2730 drop-best +731 years {2020: (4, 527), 2021: (7, 1133)}
+K2+X H72_L2h  IS  n 12 (days 9) gross +878 fund -12 net +824 t 2.69 med +628 sd 826 SR 0.997 win 0.83 worst -148 best +2730 drop-best +651 years {2020: (4, 527), 2021: (8, 973)}
+K2   H72_L2h  VAL n 29 (days 29) gross +573 fund -101 net +431 t 1.55 med +540 sd 1493 SR 0.288 win 0.72 worst -3976 best +4223 drop-best +295 years {2022: (3, 137), 2023: (9, 1032), 2024: (17, 164)}
+K2+X H72_L2h  VAL n 32 (days 31) gross +592 fund -106 net +445 t 1.75 med +552 sd 1442 SR 0.308 win 0.72 worst -3976 best +4223 drop-best +323 years {2022: (3, 137), 2023: (9, 1032), 2024: (20, 227)}
+K2 pump IS: mean +2150 median +1268
+K2 pump VAL: mean +2216 median +1722
+
+== pooled M + K2 + X (information only) ==
+pool H72 IS n 28 (days 21) gross +446 fund -15 net +390 t 1.04 med +475 sd 1537 SR 0.254 win 0.71 worst -4938 best +3084 drop-best +290 years {2020: (12, 566), 2021: (16, 257)}
+pool H72 VAL n 48 (days 42) gross +622 fund -72 net +508 t 2.45 med +508 sd 1398 SR 0.364 win 0.73 worst -4669 best +4808 drop-best +417 years {2022: (8, 629), 2023: (13, 815), 2024: (27, 325)}

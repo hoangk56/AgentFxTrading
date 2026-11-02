@@ -1,0 +1,24 @@
+e1h H24 c1.0 IS n 11 gross 729 fund -14 net 673 t 2.22 median 477 sd 791 SR 0.851 win 0.91 worst -106 best 2661 runup 2150 years {2020: (4, 185), 2021: (7, 952)}
+e1h H24 c1.0 VAL n 29 gross 518 fund -87 net 389 t 1.96 median 384 sd 1069 SR 0.364 win 0.79 worst -1695 best 4161 runup 2216 years {2022: (3, -5), 2023: (9, 601), 2024: (17, 346)}
+e1h H24 c1.5 IS n 11 gross 729 fund -14 net 652 t 2.15 median 456 sd 791 SR 0.824 win 0.91 worst -127 best 2640 runup 2150 years {2020: (4, 164), 2021: (7, 931)}
+e1h H24 c1.5 VAL n 29 gross 518 fund -87 net 368 t 1.85 median 363 sd 1069 SR 0.344 win 0.76 worst -1716 best 4140 runup 2216 years {2022: (3, -26), 2023: (9, 580), 2024: (17, 325)}
+e1h H72 c1.0 IS n 11 gross 1150 fund -14 net 1094 t 3.16 median 1054 sd 909 SR 1.203 win 0.91 worst -6 best 3084 runup 2150 years {2020: (4, 555), 2021: (7, 1402)}
+e1h H72 c1.0 VAL n 29 gross 570 fund -105 net 423 t 1.37 median 619 sd 1666 SR 0.254 win 0.72 worst -4669 best 4808 runup 2216 years {2022: (3, 378), 2023: (9, 1026), 2024: (17, 111)}
+e1h H72 c1.5 IS n 11 gross 1150 fund -14 net 1073 t 3.10 median 1033 sd 909 SR 1.180 win 0.91 worst -27 best 3063 runup 2150 years {2020: (4, 534), 2021: (7, 1381)}
+e1h H72 c1.5 VAL n 29 gross 570 fund -105 net 402 t 1.30 median 598 sd 1666 SR 0.241 win 0.72 worst -4690 best 4787 runup 2216 years {2022: (3, 357), 2023: (9, 1005), 2024: (17, 90)}
+e1h5 H24 c1.0 IS n 11 gross 621 fund -14 net 565 t 1.84 median 325 sd 797 SR 0.709 win 0.91 worst -191 best 2566 runup 1997 years {2020: (4, 175), 2021: (7, 788)}
+e1h5 H24 c1.0 VAL n 29 gross 507 fund -87 net 378 t 1.92 median 362 sd 1059 SR 0.357 win 0.76 worst -1567 best 4108 runup 2168 years {2022: (3, -44), 2023: (9, 582), 2024: (17, 344)}
+e1h5 H24 c1.5 IS n 11 gross 621 fund -14 net 544 t 1.77 median 304 sd 797 SR 0.683 win 0.82 worst -212 best 2545 runup 1997 years {2020: (4, 154), 2021: (7, 767)}
+e1h5 H24 c1.5 VAL n 29 gross 507 fund -87 net 357 t 1.82 median 341 sd 1059 SR 0.337 win 0.76 worst -1588 best 4087 runup 2168 years {2022: (3, -65), 2023: (9, 561), 2024: (17, 323)}
+e1h5 H72 c1.0 IS n 11 gross 1053 fund -14 net 997 t 2.87 median 744 sd 910 SR 1.096 win 0.91 worst -52 best 2994 runup 1997 years {2020: (4, 544), 2021: (7, 1256)}
+e1h5 H72 c1.0 VAL n 29 gross 546 fund -105 net 399 t 1.31 median 514 sd 1643 SR 0.243 win 0.72 worst -4610 best 4705 runup 2168 years {2022: (3, 358), 2023: (9, 1010), 2024: (17, 83)}
+e1h5 H72 c1.5 IS n 11 gross 1053 fund -14 net 976 t 2.81 median 723 sd 910 SR 1.073 win 0.91 worst -73 best 2973 runup 1997 years {2020: (4, 523), 2021: (7, 1235)}
+e1h5 H72 c1.5 VAL n 29 gross 546 fund -105 net 378 t 1.24 median 493 sd 1643 SR 0.230 win 0.69 worst -4631 best 4684 runup 2168 years {2022: (3, 337), 2023: (9, 989), 2024: (17, 62)}
+e2h H24 c1.0 IS n 11 gross 528 fund -13 net 473 t 1.80 median 239 sd 692 SR 0.684 win 0.82 worst -174 best 2231 runup 1846 years {2020: (4, 170), 2021: (7, 646)}
+e2h H24 c1.0 VAL n 29 gross 517 fund -82 net 392 t 2.29 median 378 sd 923 SR 0.425 win 0.69 worst -1347 best 3449 runup 2171 years {2022: (3, -162), 2023: (9, 594), 2024: (17, 383)}
+e2h H24 c1.5 IS n 11 gross 528 fund -13 net 452 t 1.72 median 218 sd 692 SR 0.654 win 0.82 worst -195 best 2210 runup 1846 years {2020: (4, 149), 2021: (7, 625)}
+e2h H24 c1.5 VAL n 29 gross 517 fund -82 net 371 t 2.17 median 357 sd 923 SR 0.402 win 0.69 worst -1368 best 3428 runup 2171 years {2022: (3, -183), 2023: (9, 573), 2024: (17, 362)}
+e2h H72 c1.0 IS n 11 gross 966 fund -11 net 913 t 2.94 median 632 sd 805 SR 1.134 win 0.91 worst -84 best 2730 runup 1846 years {2020: (4, 527), 2021: (7, 1133)}
+e2h H72 c1.0 VAL n 29 gross 573 fund -101 net 431 t 1.55 median 540 sd 1493 SR 0.288 win 0.72 worst -3976 best 4223 runup 2171 years {2022: (3, 137), 2023: (9, 1032), 2024: (17, 164)}
+e2h H72 c1.5 IS n 11 gross 966 fund -11 net 892 t 2.88 median 611 sd 805 SR 1.108 win 0.82 worst -105 best 2709 runup 1846 years {2020: (4, 506), 2021: (7, 1112)}
+e2h H72 c1.5 VAL n 29 gross 573 fund -101 net 410 t 1.48 median 519 sd 1493 SR 0.274 win 0.72 worst -3997 best 4202 runup 2171 years {2022: (3, 116), 2023: (9, 1011), 2024: (17, 143)}

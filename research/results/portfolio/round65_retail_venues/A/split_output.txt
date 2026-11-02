@@ -1,0 +1,8 @@
+IS  N0-1 -> N0     n 12 mean   +1524 median    +789 share>0 1.00
+IS  N0 -> N0+1     n 12 mean    +124 median     +80 share>0 0.67
+IS  N0+1 -> N0+5   n 12 mean    +175 median     +62 share>0 0.58
+IS  N0+5 -> N0+15  n 12 mean    -129 median      -3 share>0 0.50
+VAL N0-1 -> N0     n 32 mean   +1953 median   +1378 share>0 1.00
+VAL N0 -> N0+1     n 32 mean    +116 median      +8 share>0 0.50
+VAL N0+1 -> N0+5   n 32 mean    -133 median     -70 share>0 0.34
+VAL N0+5 -> N0+15  n 32 mean     +57 median     +43 share>0 0.56

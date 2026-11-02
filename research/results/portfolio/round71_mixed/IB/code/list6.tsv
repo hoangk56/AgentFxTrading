@@ -1,0 +1,1 @@
+hype_1d_2024.json	POST	https://api.hyperliquid.xyz/info	{"type": "candleSnapshot", "req": {"coin": "HYPE", "interval": "1d", "startTime": 1730419200000, "endTime": 1735689599000}}

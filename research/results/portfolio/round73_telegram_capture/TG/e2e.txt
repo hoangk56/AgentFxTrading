@@ -1,0 +1,14 @@
+response time from probe: n 60 median 0.477 s p90 0.587 s
+upbit_news since 2025-08-20: n 124, matched 124 | T=1s: P(<=3 s) 0.892 | T=1.1s: P(<=3 s) 0.881 | T=1.5s: P(<=3 s) 0.821 | T=2s: P(<=3 s) 0.713 | T=3s: P(<=3 s) 0.498
+newlistingsfeed since 2025-08-20: n 124, matched 124 | T=1s: P(<=3 s) 0.790 | T=1.1s: P(<=3 s) 0.772 | T=1.5s: P(<=3 s) 0.691 | T=2s: P(<=3 s) 0.576 | T=3s: P(<=3 s) 0.393
+coin_listing since 2025-08-20: n 124, matched 121 | T=1s: P(<=3 s) 0.762 | T=1.1s: P(<=3 s) 0.749 | T=1.5s: P(<=3 s) 0.683 | T=2s: P(<=3 s) 0.579 | T=3s: P(<=3 s) 0.396
+response time from probe: n 10 median 0.100 s p90 0.100 s
+upbit_news since 2025-08-20: n 124, matched 124 | T=1s: P(<=3 s) 0.933 | T=1.1s: P(<=3 s) 0.930 | T=1.5s: P(<=3 s) 0.903 | T=2s: P(<=3 s) 0.836 | T=3s: P(<=3 s) 0.626
+newlistingsfeed since 2025-08-20: n 124, matched 124 | T=1s: P(<=3 s) 0.891 | T=1.1s: P(<=3 s) 0.878 | T=1.5s: P(<=3 s) 0.821 | T=2s: P(<=3 s) 0.727 | T=3s: P(<=3 s) 0.520
+response time from probe: n 60 median 0.477 s p90 0.587 s
+upbit_news since 2026-01-01: n 80, matched 80 | T=1s: P(<=3 s) 0.962 | T=1.1s: P(<=3 s) 0.952 | T=1.5s: P(<=3 s) 0.893 | T=2s: P(<=3 s) 0.783 | T=3s: P(<=3 s) 0.545
+newlistingsfeed since 2026-01-01: n 80, matched 80 | T=1s: P(<=3 s) 0.750 | T=1.1s: P(<=3 s) 0.729 | T=1.5s: P(<=3 s) 0.648 | T=2s: P(<=3 s) 0.542 | T=3s: P(<=3 s) 0.371
+coin_listing since 2026-01-01: n 80, matched 78 | T=1s: P(<=3 s) 0.700 | T=1.1s: P(<=3 s) 0.687 | T=1.5s: P(<=3 s) 0.626 | T=2s: P(<=3 s) 0.533 | T=3s: P(<=3 s) 0.369
+response time from probe: n 10 median 0.100 s p90 0.100 s
+upbit_news since 2026-01-01: n 80, matched 80 | T=1s: P(<=3 s) 0.991 | T=1.1s: P(<=3 s) 0.989 | T=1.5s: P(<=3 s) 0.968 | T=2s: P(<=3 s) 0.904 | T=3s: P(<=3 s) 0.681
+newlistingsfeed since 2026-01-01: n 80, matched 80 | T=1s: P(<=3 s) 0.872 | T=1.1s: P(<=3 s) 0.856 | T=1.5s: P(<=3 s) 0.789 | T=2s: P(<=3 s) 0.692 | T=3s: P(<=3 s) 0.497

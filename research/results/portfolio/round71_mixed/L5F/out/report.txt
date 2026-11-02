@@ -1,0 +1,94 @@
+BTCUSDT: marks with z 172491, |z|>=2 0.0409, |z|>=3 0.0010
+ETHUSDT: marks with z 172498, |z|>=2 0.0429, |z|>=3 0.0011
+SOLUSDT: marks with z 147791, |z|>=2 0.0498, |z|>=3 0.0029
+XRPUSDT: marks with z 171969, |z|>=2 0.0465, |z|>=3 0.0025
+DOGEUSDT: marks with z 154087, |z|>=2 0.0481, |z|>=3 0.0023
+BNBUSDT: marks with z 169082, |z|>=2 0.0427, |z|>=3 0.0011
+
+== Declared cells (net bp per trade; gross = after funding, before fees + spread) ==
+cell era n net t gross sd longshare x1.5t late1t late15t
+A2_4 IS 6808 -12.48 -4.19 +2.10 222 0.48 -6.63 -4.11 -3.33
+A2_4 VAL 15319 -12.18 -9.31 +2.58 150 0.50 -14.95 -9.01 -9.47
+A2_4 years (n, net, gross): 2020: 1891 -13.6 +0.2 | 2021: 4917 -12.1 +2.8 | 2022: 5130 -12.2 +2.7 | 2023: 5062 -10.0 +4.7 | 2024: 5127 -14.3 +0.4
+A2_4 power at VAL size (HOLD 22 mo): clustered -7.28, per-trade -7.85
+A2_12 IS 3863 -9.93 -1.59 +4.65 378 0.48 -2.75 -1.51 -1.25
+A2_12 VAL 8223 -9.02 -2.97 +5.71 264 0.50 -5.40 -2.83 -2.70
+A2_12 years (n, net, gross): 2020: 1209 -3.0 +10.9 | 2021: 2654 -13.1 +1.8 | 2022: 2732 -5.9 +8.9 | 2023: 2727 -9.1 +5.6 | 2024: 2764 -12.0 +2.7
+A2_12 power at VAL size (HOLD 22 mo): clustered -2.32, per-trade -2.43
+A3_4 IS 334 -12.65 -1.25 +2.62 191 0.48 -2.00 -1.27 -1.62
+A3_4 VAL 1232 -9.68 -2.11 +5.52 155 0.54 -3.77 -2.00 -2.27
+A3_4 years (n, net, gross): 2020: 23 -41.4 -28.7 | 2021: 311 -10.5 +4.9 | 2022: 419 -21.4 -6.2 | 2023: 463 -4.3 +10.9 | 2024: 350 -2.8 +12.4
+A3_4 power at VAL size (HOLD 22 mo): clustered -1.65, per-trade -1.72
+A3_12 IS 295 -34.01 -1.78 -18.82 326 0.48 -2.18 -1.82 -1.85
+A3_12 VAL 1053 -4.41 -0.44 +10.73 308 0.55 -1.21 -0.45 -0.64
+A3_12 years (n, net, gross): 2020: 22 -57.8 -45.1 | 2021: 273 -32.1 -16.7 | 2022: 355 -8.5 +6.6 | 2023: 391 +1.2 +16.4 | 2024: 307 -6.8 +8.4
+A3_12 power at VAL size (HOLD 22 mo): clustered -0.35, per-trade -0.36
+M2_4 IS 2791 -11.71 -3.50 +0.29 168 0.45 -5.30 -3.35 -3.03
+M2_4 VAL 4980 -8.24 -4.85 +3.76 114 0.49 -8.38 -4.52 -4.55
+M2_4 years (n, net, gross): 2020: 1188 -12.4 -0.4 | 2021: 1603 -11.2 +0.8 | 2022: 1675 -7.2 +4.8 | 2023: 1633 -8.4 +3.6 | 2024: 1672 -9.1 +2.9
+M2_4 power at VAL size (HOLD 22 mo): clustered -3.79, per-trade -3.98
+M2_12 IS 1601 -0.08 -0.01 +11.92 291 0.45 -0.81 +0.15 +0.17
+M2_12 VAL 2737 -7.50 -1.97 +4.50 201 0.49 -3.55 -1.86 -1.81
+M2_12 years (n, net, gross): 2020: 716 +0.5 +12.5 | 2021: 885 -0.5 +11.5 | 2022: 916 -0.1 +11.9 | 2023: 909 -10.1 +1.9 | 2024: 912 -12.3 -0.3
+M2_12 power at VAL size (HOLD 22 mo): clustered -1.54, per-trade -1.53
+
+== Per coin (net / gross bp, n) ==
+A2_4 BTCUSDT: IS n 1394 net -11.1 gross +0.9 t -3.09 ; VAL n 2443 net -8.5 gross +3.5 t -4.19
+A2_4 ETHUSDT: IS n 1397 net -12.3 gross -0.3 t -2.34 ; VAL n 2537 net -8.0 gross +4.0 t -3.13
+A2_4 SOLUSDT: IS n 885 net -18.7 gross -1.3 t -1.64 ; VAL n 2657 net -11.9 gross +4.1 t -3.47
+A2_4 XRPUSDT: IS n 1058 net -5.9 gross +10.1 t -0.76 ; VAL n 2616 net -11.0 gross +5.0 t -2.93
+A2_4 DOGEUSDT: IS n 848 net -14.3 gross +2.1 t -2.01 ; VAL n 2613 net -16.9 gross -0.6 t -5.27
+A2_4 BNBUSDT: IS n 1226 net -14.2 gross +1.8 t -2.35 ; VAL n 2453 net -16.6 gross -0.6 t -7.52
+A2_12 BTCUSDT: IS n 798 net +5.6 gross +17.6 t +0.64 ; VAL n 1355 net -9.8 gross +2.2 t -2.10
+A2_12 ETHUSDT: IS n 803 net -5.7 gross +6.3 t -0.51 ; VAL n 1382 net -5.3 gross +6.7 t -0.89
+A2_12 SOLUSDT: IS n 486 net -6.4 gross +11.0 t -0.28 ; VAL n 1403 net +2.9 gross +18.9 t +0.31
+A2_12 XRPUSDT: IS n 606 net -29.7 gross -13.7 t -1.87 ; VAL n 1354 net -24.0 gross -8.0 t -3.06
+A2_12 DOGEUSDT: IS n 455 net -14.5 gross +2.0 t -0.68 ; VAL n 1376 net -9.2 gross +7.1 t -1.22
+A2_12 BNBUSDT: IS n 715 net -14.7 gross +1.3 t -1.04 ; VAL n 1353 net -9.3 gross +6.7 t -1.71
+A3_4 BTCUSDT: IS n 30 net +9.1 gross +21.1 t +0.33 ; VAL n 127 net -3.5 gross +8.5 t -0.55
+A3_4 ETHUSDT: IS n 43 net -48.4 gross -36.4 t -1.81 ; VAL n 136 net -0.9 gross +11.1 t -0.12
+A3_4 SOLUSDT: IS n 49 net -48.6 gross -31.7 t -1.37 ; VAL n 309 net -15.8 gross +0.2 t -1.65
+A3_4 XRPUSDT: IS n 70 net +9.4 gross +25.4 t +0.47 ; VAL n 297 net -2.7 gross +13.3 t -0.22
+A3_4 DOGEUSDT: IS n 94 net -5.1 gross +10.9 t -0.25 ; VAL n 234 net -16.5 gross -0.2 t -2.05
+A3_4 BNBUSDT: IS n 48 net -4.5 gross +11.5 t -0.16 ; VAL n 129 net -14.2 gross +1.8 t -1.61
+A3_12 BTCUSDT: IS n 29 net -6.8 gross +5.2 t -0.16 ; VAL n 116 net -10.3 gross +1.7 t -0.71
+A3_12 ETHUSDT: IS n 41 net -111.3 gross -99.3 t -1.80 ; VAL n 123 net +1.3 gross +13.3 t +0.08
+A3_12 SOLUSDT: IS n 43 net -6.7 gross +10.2 t -0.11 ; VAL n 258 net -20.6 gross -4.6 t -0.97
+A3_12 XRPUSDT: IS n 62 net -45.6 gross -29.6 t -1.28 ; VAL n 239 net +16.3 gross +32.3 t +0.59
+A3_12 DOGEUSDT: IS n 77 net -4.9 gross +11.2 t -0.13 ; VAL n 197 net -9.2 gross +7.1 t -0.46
+A3_12 BNBUSDT: IS n 43 net -41.5 gross -25.5 t -0.96 ; VAL n 120 net -3.1 gross +12.9 t -0.20
+
+== Random entries (500 reps): share of reps with mean net below real; max-over-cells IS t null ==
+A2_4 IS: real -12.48, random median -14.70, beats 77.0 %
+A2_4 VAL: real -12.18, random median -14.69, beats 97.0 %
+A2_12 IS: real -9.93, random median -15.40, beats 73.6 %
+A2_12 VAL: real -9.02, random median -14.93, beats 96.0 %
+A3_4 IS: real -12.65, random median -14.58, beats 53.8 %
+A3_4 VAL: real -9.68, random median -14.89, beats 82.2 %
+A3_12 IS: real -34.01, random median -11.29, beats 23.4 %
+A3_12 VAL: real -4.41, random median -15.02, beats 85.0 %
+M2_4 IS: real -11.71, random median -12.49, beats 58.2 %
+M2_4 VAL: real -8.24, random median -12.14, beats 98.0 %
+M2_12 IS: real -0.08, random median -13.72, beats 97.4 %
+M2_12 VAL: real -7.50, random median -11.91, beats 86.4 %
+max-over-6-cells IS t: real -0.01; null median -0.00, p95 +1.49; real at 49.8 pct
+
+== Information: all |z|>=2 marks, sign-weighted price return (bp, before funding/costs), clustered t ==
+IS all6 n~12496: 0.5h -1.67 (t -2.54) | 1h -1.50 (t -1.44) | 4h -0.50 (t -0.22) | 8h +1.36 (t +0.42) | 12h -0.12 (t -0.03)
+IS BTC+ETH n~4753: 0.5h -1.14 (t -1.39) | 1h -1.14 (t -0.99) | 4h -1.85 (t -0.68) | 8h -2.64 (t -0.68) | 12h -4.31 (t -0.92)
+VAL all6 n~31917: 0.5h +0.35 (t +1.13) | 1h +0.89 (t +1.69) | 4h +3.17 (t +2.31) | 8h +5.15 (t +3.00) | 12h +4.83 (t +2.63)
+VAL BTC+ETH n~9693: 0.5h +0.25 (t +0.67) | 1h +1.41 (t +2.56) | 4h +3.49 (t +2.95) | 8h +4.55 (t +2.72) | 12h +3.34 (t +1.58)
+
+== Information: placebo minute (:07/:22/:37/:52), same k=2 cells ==
+placebo A2_4: IS n 7174 net -10.04 t -3.77 gross +4.47 ; VAL n 15177 net -13.82 t -11.15 gross +0.95
+placebo A2_12: IS n 4002 net -3.42 t -0.54 gross +11.11 ; VAL n 8099 net -13.78 t -4.47 gross +0.95
+placebo M2_4: IS n 3058 net -6.27 t -1.99 gross +5.73 ; VAL n 4889 net -10.39 t -6.37 gross +1.61
+placebo M2_12: IS n 1710 net -4.11 t -0.59 gross +7.89 ; VAL n 2695 net -14.75 t -3.46 gross -2.75
+
+== Information: reversal side of the declared cells (net = -gross - cost) ==
+rev A2_4: IS net -16.68 t -5.60 ; VAL net -17.34 t -13.26
+rev A2_12: IS net -19.23 t -3.07 ; VAL net -20.44 t -6.73
+rev A3_4: IS net -17.89 t -1.76 ; VAL net -20.71 t -4.52
+rev A3_12: IS net +3.64 t +0.19 ; VAL net -25.87 t -2.61
+rev M2_4: IS net -12.29 t -3.68 ; VAL net -15.76 t -9.27
+rev M2_12: IS net -23.92 t -3.17 ; VAL net -16.50 t -4.33

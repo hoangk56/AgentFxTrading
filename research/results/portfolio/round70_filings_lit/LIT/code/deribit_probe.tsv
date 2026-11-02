@@ -1,0 +1,2 @@
+deribit_robots.txt	https://www.deribit.com/robots.txt
+deribit_fund_20200101.json	https://www.deribit.com/api/v2/public/get_funding_rate_history?instrument_name=BTC-PERPETUAL&start_timestamp=1577836800000&end_timestamp=1577923200000
