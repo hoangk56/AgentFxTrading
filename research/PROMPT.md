@@ -616,7 +616,11 @@ có từ ~2011.
   quả: `ssh agentFx 'cd /home/forge/tg_capture_a2 && python3 -I tg_capture.py report; tail heartbeat.log'`. Mẫu đầu
   (bài 2050, không phải niêm yết) hiện trên t.me/s trễ 17,7 giây: phải đo đủ trước khi kết luận độ tươi của trang xem trước.
 - F0 (round66_fast_execution/F0/PREREG_F0_bar_close_fade.md): luật F vào ngay khi nến sự kiện đóng; đạt LIVE ở IS / VAL, chỉ test
-  forward từ 2026-10-30 (holdout của F đã biết), đánh giá một lần khi đủ 333 sự kiện (~2027-02); viết runner forward trước đó.
+  forward từ 2026-10-30 (holdout của F đã biết), đánh giá một lần khi đủ 333 sự kiện (~2027-02). Runner forward (đã hash
+  trong PREREG): `research/.venv/bin/python -I research/results/portfolio/round66_fast_execution/F0/coord/forward/fwd_f0.py pull`
+  rồi `... fwd_f0.py progress` (việc định kỳ, chỉ in số đếm: sự kiện, số ngày, số tháng, ngày dự kiến đủ 333; không bao giờ
+  in lợi nhuận). `eval` tự từ chối cho tới cuối tháng đầu tiên có n >= 333 và >= 3 tháng đủ (sớm nhất 2027-01-31, trần
+  2027-10-29); đừng xem lợi nhuận forward trước lần đánh giá duy nhất đó.
 - K2 Upbit listing fade (round64_parallel/K/PREREG_K2_upbit_listing_fade.md): DEMO đã qua holdout, chưa có bot (tôi quyết);
   Log forward dữ liệu công khai: `research/.venv/bin/python -I research/results/portfolio/round64_parallel/K/coord/forward/fwd_k2.py`.
   luật dừng / lên live trong file đăng ký; đừng tối ưu lại (stop, giờ vào, giữ 24 h là chọn sau khi xem).

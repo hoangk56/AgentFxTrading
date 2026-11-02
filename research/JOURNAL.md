@@ -6,6 +6,12 @@ detail. The numbers are copied from those files, and the file wins if the two ev
 When you write a new result file, add a row to that day's entry (or start a new entry) and link the file. Don't
 repeat its tables here.
 
+## 2026-11-02: F0 forward runner written (pull / progress / eval gate). No grade
+
+| tested | verdict | detail |
+|---|---|---|
+| F0 forward runner `F0/coord/forward/fwd_f0.py` (hash 4d603298cde843d0) | **plumbing only, no return read**: reuses the hashed F / F0 code; its blind event builder equals the registered HOLD run's 2,080 trades and F0's 1,150 IS / VAL events exactly. First progress (data 2026-10-30..31): 13 events on 2 days; projected evaluation at the 2027-01-31 month end. `eval` refuses until the registered date rule holds | [PREREG F0, "Forward runner"](results/portfolio/round66_fast_execution/F0/PREREG_F0_bar_close_fade.md) |
+
 ## 2026-11-02: round 73, Upbit's official Telegram channel as A2's capture route (TG). Not settled, looks feasible
 
 | tested | verdict | detail |
