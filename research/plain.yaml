@@ -1,0 +1,351 @@
+# Bản dễ hiểu của research/registry.yaml cho màn "Nghiên cứu" (docs/research-screen.md). Khoá = id trong registry.
+# Viết lúc 2026-11-02. Mỗi số chép từ dòng research của registry (nguồn là file báo cáo ghi trong registry);
+# file báo cáo thắng nếu số ở đây lệch. Ngày lấy từ tên file báo cáo, tier_reason, research/JOURNAL.md và git;
+# mốc không có nguồn ghi ngày thì bỏ, không đoán.
+#
+#   name / what / why: tên, "làm gì", "vì sao có thể lãi", mỗi thứ một câu, không thuật ngữ.
+#   unit: đơn vị của mọi mean bên dưới: R (bội số rủi ro mỗi lệnh) | bp (phần vạn giá mỗi lệnh)
+#         | pct_week (% mỗi tuần) | pct_year (% mỗi năm).
+#   periods: is (lúc tìm ra) / val (kiểm lần 1) / hold (kiểm cuối): {years, n, mean, t}; thiếu số thì null.
+#   history: [{date, kind, text}], cũ trước; kind: find | demo | live | change | wait | out.
+#   note: một câu thêm vào kết luận "Mạnh hay yếu" (tuỳ chọn).
+
+# ---------------------------------------------------------------- tiền thật
+c3-gotobi:
+  name: "Gotobi: mua đô bằng yên vào ngày gotobi"
+  what: "Ngày 5, 10, 15, 20, 25 và cuối tháng: mua USDJPY, EURJPY, GBPJPY từ tối hôm trước tới giờ chốt tỷ giá Tokyo sáng hôm sau, rồi bán khống thêm 2 tiếng sau giờ chốt."
+  why: "Doanh nghiệp Nhật cần mua đô trước giờ chốt tỷ giá vào các ngày này nên đẩy giá đô lên; qua giờ chốt, lực mua hết và giá đô hay giảm lại."
+  unit: R
+  periods:
+    is: {years: "2016–2021", n: null, mean: 0.043, t: 5.4}
+    val: {years: "2022–2024", n: null, mean: 0.041, t: 3.7}
+    hold: {years: "2025–2026", n: 738, mean: 0.042, t: 2.9}
+  history:
+    - {date: 2026-09-27, kind: find, text: "Tìm ra ở vòng Swing v2"}
+    - {date: 2026-09-30, kind: live, text: "Đã chạy tiền thật (lệnh thật đầu tiên được đối chiếu)"}
+    - {date: 2026-10-03, kind: change, text: "Đổi thông số: bỏ các ngày lễ Nhật không chốt tỷ giá"}
+    - {date: 2026-10-05, kind: find, text: "Kiểm thêm trên dữ liệu 2004–2015: vẫn lãi"}
+    - {date: 2026-10-06, kind: change, text: "Đổi cách đặt lệnh: lệnh bán lúc chốt tỷ giá gửi sớm hơn, thử lại nhanh khi lỗi"}
+    - {date: 2026-10-15, kind: change, text: "Đổi thông số: gửi mức cắt lỗ thật lên sàn"}
+  note: "Đây là thuật toán duy nhất đạt luật lên tiền thật; ECB F3 chạy tiền thật 0,01 lot chỉ để đo giá khớp."
+
+ecb-f3:
+  name: "ECB F3: bán euro buổi trưa ngày đô mạnh"
+  what: "Bán euro lấy đô từ 11:00 tới 13:00 giờ London, chỉ những ngày đô mạnh nhất từ tối hôm trước."
+  why: "Gần giờ ngân hàng châu Âu chốt tỷ giá, euro thường yếu đi một chút."
+  unit: bp
+  periods:
+    is: {years: "2016–2021", n: 381, mean: 2.39, t: 3.29}
+    val: {years: "2022–2024", n: 207, mean: 3.01, t: 2.60}
+    hold: {years: "2025–2026", n: 117, mean: 2.00, t: 2.16}
+  history:
+    - {date: 2026-10-15, kind: find, text: "Tìm ra ở vòng R24, luật được đăng ký trước khi kiểm"}
+    - {date: 2026-10-16, kind: live, text: "Chạy tiền thật 0,01 lot, chỉ để đo giá khớp lệnh"}
+  note: "Riêng năm 2026 đang lỗ nhẹ (−0,91 mỗi $10.000)."
+
+# ---------------------------------------------------------------- demo
+ecb-e1:
+  name: "ECB E1: bán euro buổi trưa mọi ngày"
+  what: "Bán euro lấy đô từ 11:00 tới 13:00 giờ London mọi ngày làm việc."
+  why: "Giống F3 nhưng không lọc ngày, nên nhiều lệnh hơn và lãi mỗi lệnh mỏng hơn."
+  unit: bp
+  periods:
+    is: {years: "2016–2021", n: null, mean: 1.17, t: 3.29}
+    val: {years: "2022–2024", n: null, mean: 1.35, t: 2.46}
+    hold: {years: "2025–2026", n: 444, mean: 0.64, t: 0.99}
+  history:
+    - {date: 2026-10-06, kind: find, text: "Tìm ra ở vòng R13"}
+    - {date: 2026-10-16, kind: demo, text: "Chạy demo 0,1 lot"}
+  note: "Vào và ra trễ 1 phút thì lãi về 0."
+
+gold-50:
+  name: "Vàng phá mốc tròn $50"
+  what: "Khi giá vàng chạm một mốc tròn $50 (ví dụ $2.650), vào lệnh theo chiều vừa phá mốc và đóng sau 30 phút."
+  why: "Nhiều lệnh chờ đặt quanh mốc tròn; giá phá mốc thì các lệnh đó kích hoạt và đẩy giá đi tiếp."
+  unit: bp
+  periods:
+    is: {years: "2016–2021", n: null, mean: 5.99, t: 2.66}
+    val: {years: "2022–2024", n: null, mean: 3.27, t: 1.81}
+    hold: {years: "2025–2026", n: 228, mean: 2.87, t: 1.43}
+  history:
+    - {date: 2026-10-17, kind: find, text: "Tìm ra ở vòng R27"}
+    - {date: 2026-10-18, kind: demo, text: "Chạy demo 0,01 lot"}
+  note: "Phần lớn lãi đến từ vài lệnh lớn (5 lệnh chiếm 518 trên 655 bp ở lần kiểm cuối)."
+
+basis-b:
+  name: "Coin hợp đồng rẻ hơn coin thật (basis B)"
+  what: "Khi giá hợp đồng của một altcoin trên Binance rẻ hơn giá coin thật quá 1 % so với mức thường ngày, mua hợp đồng và bán khống coin thật, thoát khi hai giá khép lại một nửa hoặc sau 24 giờ."
+  why: "Hai giá của cùng một coin hiếm khi lệch nhau lâu; phần lớn lãi còn đến từ phí funding được nhận."
+  unit: bp
+  periods:
+    is: {years: "2020–2021", n: 303, mean: 286.5, t: 2.46}
+    val: {years: "2022–2024", n: 333, mean: 174.6, t: 6.41}
+    hold: {years: "2025–2026", n: 429, mean: 213.5, t: 14.38}
+  history:
+    - {date: 2026-11-01, kind: find, text: "Tìm ra ở vòng R63"}
+    - {date: 2026-11-01, kind: demo, text: "Thêm bot demo đo xem có vay được coin để bán khống không"}
+  note: "Chưa biết có vay được coin để bán thật không; demo đang đo đúng chuyện đó."
+
+# ---------------------------------------------------------------- chờ quyết
+x3-crypto-mom-carry:
+  name: "Crypto: mua coin đang lên, bán coin đang xuống mỗi tuần"
+  what: "Mỗi tuần xếp 40 coin lớn nhất trên Binance theo đà tăng 4 tuần và phí funding; mua 8 coin đầu, bán 8 coin cuối."
+  why: "Coin đang lên thường lên tiếp vài tuần nữa."
+  unit: pct_week
+  periods:
+    is: {years: "2020–2021", n: 89, mean: 2.39, t: 4.32}
+    val: {years: "2022–2024", n: 156, mean: 0.83, t: 1.51}
+    hold: {years: "2025–2026", n: 94, mean: 1.14, t: 1.16}
+  history:
+    - {date: 2026-10-31, kind: find, text: "Tìm ra ở vòng R61"}
+    - {date: 2026-10-31, kind: wait, text: "Chờ anh quyết: chạy demo cần tài khoản Binance"}
+  note: "Có tuần mất 30 %, sụt sâu nhất 57 %."
+
+gold-settlement-bigday:
+  name: "Vàng ngày chạy mạnh, vào lúc chốt giá COMEX"
+  what: "Ngày giá vàng đã chạy mạnh từ sáng, vào lệnh theo chiều đó lúc 13:15 giờ New York và thoát lúc 13:30 khi sàn COMEX chốt giá."
+  why: "Giả thuyết: ngày biến động lớn, giá hay đi tiếp theo chiều cũ tới lúc sàn chốt giá."
+  unit: bp
+  periods:
+    is: {years: "2016–2021", n: 150, mean: 3.48, t: 3.19}
+    val: {years: "2022–2024", n: 78, mean: 2.11, t: 1.70}
+    hold: {years: "2025–2026", n: 46, mean: 1.68, t: 0.37}
+  history:
+    - {date: 2026-10-06, kind: find, text: "Tìm ra ở vòng R12"}
+    - {date: 2026-10-06, kind: wait, text: "Chờ anh quyết có chạy demo không"}
+
+f15-eurjpy-quarter-end:
+  name: "Bán EURJPY sáng ngày cuối quý"
+  what: "Ngày làm việc cuối cùng của tháng 3, 6 và 9: bán EURJPY từ 05:00 tới 07:00 giờ London."
+  why: "Cuối quý, công ty Nhật mang tiền về nước nên mua yên, đẩy EURJPY xuống."
+  unit: bp
+  periods:
+    is: {years: "2016–2021", n: 18, mean: 7.58, t: 2.80}
+    val: {years: "2022–2024", n: 9, mean: 8.47, t: 1.51}
+  history:
+    - {date: 2026-11-01, kind: find, text: "Tìm ra ở vòng R63, chưa kiểm lần cuối"}
+    - {date: 2026-11-01, kind: wait, text: "Chờ anh quyết: mỗi năm chỉ 3 lệnh"}
+
+# ---------------------------------------------------------------- đã loại
+p2-post-stamp-1s:
+  name: "Crypto: vào lệnh 1 giây sau mốc trả phí funding"
+  what: "Sau mốc trả phí funding trên Binance mà phí cao bất thường, vào lệnh 1 giây sau mốc và thoát sau 60 giây."
+  why: "Giả thuyết: giá bật lại ngay sau mốc trả phí."
+  unit: bp
+  periods:
+    is: {years: "2020–2021", n: null, mean: 3.3, t: 0.15}
+    val: {years: "2022–2024", n: null, mean: 31.2, t: 4.87}
+    hold: {years: "2025–2026", n: 576, mean: -5.7, t: -1.38}
+  history:
+    - {date: 2026-10-31, kind: find, text: "Tìm ra ở vòng R62"}
+    - {date: 2026-10-31, kind: out, text: "Loại: lỗ ở lần kiểm cuối"}
+
+b2-binance-hyperliquid:
+  name: "Crypto: ăn chênh phí funding giữa hai sàn"
+  what: "Khi phí funding của cùng một coin trên Binance và Hyperliquid chênh nhau nhiều, bán ở sàn đắt và mua ở sàn rẻ."
+  why: "Giả thuyết: phí funding hai sàn sẽ kéo về gần nhau."
+  unit: pct_year
+  periods:
+    is: {years: "06/2023–2024", n: null, mean: 16.3, t: 6.81}
+    hold: {years: "2025–2026", n: null, mean: 0.74, t: 1.27}
+  history:
+    - {date: 2026-10-31, kind: find, text: "Tìm ra ở vòng R59"}
+    - {date: 2026-10-31, kind: out, text: "Loại: lãi lần kiểm cuối thấp hơn gửi tiết kiệm"}
+  note: "Số là lãi gộp; trừ lãi gửi tiết kiệm thì lần kiểm cuối còn −0,35 %/năm."
+
+a3-funding-carry:
+  name: "Crypto: ăn phí funding BTC và ETH"
+  what: "Mua BTC, ETH thật và bán hợp đồng khi phí funding cao, thoát khi phí về dưới 0."
+  why: "Người mua hợp đồng trả phí cho người bán khi thị trường hưng phấn."
+  unit: pct_year
+  periods:
+    is: {years: "2020–2021", n: null, mean: 26.9, t: 7.30}
+    val: {years: "2022–2024", n: null, mean: 6.1, t: 6.97}
+    hold: {years: "2025–2026", n: null, mean: 1.91, t: 5.62}
+  history:
+    - {date: 2026-10-31, kind: find, text: "Tìm ra ở vòng R58"}
+    - {date: 2026-10-31, kind: out, text: "Loại: từ 2025 lãi chỉ bằng gửi tiết kiệm"}
+  note: "Số là lãi gộp; trừ lãi gửi tiết kiệm thì lần kiểm cuối chỉ còn +0,01 %/năm (như may rủi)."
+
+a2-funding-carry-top30:
+  name: "Crypto: ăn phí funding 30 coin lớn"
+  what: "Như bản BTC và ETH nhưng trên 30 coin lớn, giữ tối đa 10 coin."
+  why: "Người mua hợp đồng trả phí cho người bán khi thị trường hưng phấn."
+  unit: pct_year
+  periods:
+    is: {years: "2020–2021", n: null, mean: 29.3, t: 6.89}
+    val: {years: "2022–2024", n: null, mean: 8.8, t: 6.63}
+    hold: {years: "2025–2026", n: null, mean: 1.36, t: 1.73}
+  history:
+    - {date: 2026-10-31, kind: find, text: "Tìm ra ở vòng R58"}
+    - {date: 2026-10-31, kind: out, text: "Loại: lãi lần kiểm cuối quá mỏng"}
+  note: "Số là lãi gộp, chưa trừ lãi gửi tiết kiệm."
+
+c1-hk50-rebound:
+  name: "Mua chỉ số Hồng Kông sau khi nhà đầu tư Trung Quốc bán tháo"
+  what: "Ngày chứng khoán Trung Quốc giảm và nợ vay ký quỹ giảm mạnh bất thường, mua HK50 phiên sau và giữ một phiên."
+  why: "Giả thuyết: bán tháo vì bị gọi ký quỹ thì giá hay bật lại."
+  unit: bp
+  periods:
+    is: {years: "2016–2021", n: null, mean: 35.38, t: 2.14}
+    val: {years: "2022–2024", n: null, mean: 41.11, t: 0.77}
+    hold: {years: "2025–2026", n: 24, mean: 19.0, t: 0.74}
+  history:
+    - {date: 2026-10-30, kind: find, text: "Tìm ra ở vòng R40"}
+    - {date: 2026-10-30, kind: out, text: "Loại: lần kiểm cuối chưa đủ chắc"}
+
+joint-d-k4:
+  name: "Đánh ngược BTC sau giờ đáo hạn quyền chọn thứ Sáu"
+  what: "Thứ Sáu có nhiều quyền chọn BTC đáo hạn lúc 08:00 UTC, đánh ngược chiều giá BTC trong 1 giờ sau đó."
+  why: "Giả thuyết: giá bị kéo về giá đáo hạn rồi bật lại."
+  unit: bp
+  periods:
+    is: {years: "2016–2021", n: 144, mean: 6.07, t: 0.80}
+    val: {years: "2022–2024", n: 89, mean: 16.68, t: 3.24}
+    hold: {years: "2025–2026", n: 45, mean: -11.5, t: -1.12}
+  history:
+    - {date: 2026-10-28, kind: find, text: "Tìm ra ở vòng R34"}
+    - {date: 2026-10-28, kind: out, text: "Loại: lỗ ở lần kiểm cuối"}
+
+joint-e-ustec:
+  name: "Theo chiều Nasdaq cuối phiên ngày quỹ đòn bẩy tái cân bằng"
+  what: "Ngày các quỹ ETF đòn bẩy phải mua hoặc bán nhiều, theo chiều của ngày trên Nasdaq 100 trong 30 phút cuối phiên."
+  why: "Giả thuyết: lệnh tái cân bằng cuối phiên đẩy giá đi tiếp."
+  unit: bp
+  periods:
+    is: {years: "2016–2021", n: 150, mean: 10.26, t: 1.38}
+    val: {years: "2022–2024", n: 93, mean: 11.49, t: 2.78}
+    hold: {years: "2025–2026", n: 42, mean: -2.2, t: -0.35}
+  history:
+    - {date: 2026-10-28, kind: find, text: "Tìm ra ở vòng R34"}
+    - {date: 2026-10-28, kind: out, text: "Loại: lỗ ở lần kiểm cuối"}
+
+joint-a5-hn:
+  name: "Mua S&P 500 khi Hacker News nói nhiều về suy thoái"
+  what: "Khi số bài nhắc chữ suy thoái trên Hacker News tăng vọt, mua US500 và giữ 3 ngày."
+  why: "Giả thuyết: lúc mọi người lo nhất thường là lúc giá đã giảm đủ."
+  unit: bp
+  periods:
+    is: {years: "2016–2021", n: 79, mean: 32.87, t: 2.51}
+    val: {years: "2022–2024", n: 28, mean: 100.41, t: 2.70}
+    hold: {years: "2025–2026", n: 15, mean: -24.4, t: -0.25}
+  history:
+    - {date: 2026-10-27, kind: find, text: "Tìm ra ở vòng R32"}
+    - {date: 2026-10-28, kind: out, text: "Loại: lỗ ở lần kiểm cuối"}
+
+joint-u3-btc:
+  name: "Mua BTC khi Kho bạc Mỹ trả tiền cho dân nhiều bất ngờ"
+  what: "Khi tiền Kho bạc Mỹ trả cho hộ gia đình (hoàn thuế, trợ cấp) cao bất ngờ, mua BTC và giữ một thời gian ngắn."
+  why: "Giả thuyết: người dân có thêm tiền sẽ mua tài sản rủi ro."
+  unit: bp
+  periods:
+    is: {years: "2016–2021", n: 108, mean: 96.44, t: 1.06}
+    val: {years: "2022–2024", n: 92, mean: 159.37, t: 2.27}
+    hold: {years: "2025–2026", n: 58, mean: -43.3, t: -0.69}
+  history:
+    - {date: 2026-10-28, kind: find, text: "Tìm ra ở vòng R36"}
+    - {date: 2026-10-28, kind: out, text: "Loại: lỗ ở lần kiểm cuối"}
+
+a4-fomc-dollar-short:
+  name: "Bán đô ngày Fed công bố lãi suất"
+  what: "Ngày Fed công bố quyết định lãi suất theo lịch, bán đô so với 7 đồng tiền lớn."
+  why: "Một nghiên cứu học thuật (2017) thấy đô hay yếu đi vào các ngày này."
+  unit: bp
+  periods:
+    is: {years: "2016–2021", n: null, mean: 21.6, t: 1.90}
+    val: {years: "2022–2024", n: null, mean: 31.6, t: 2.40}
+    hold: {years: "2025–2026", n: 10, mean: -34.63, t: -2.36}
+  history:
+    - {date: 2026-10-06, kind: find, text: "Tìm ra ở vòng R20"}
+    - {date: 2026-10-15, kind: out, text: "Loại: lỗ rõ ở lần kiểm cuối"}
+
+i-month-end-post-fix-usd:
+  name: "Đánh đô sau giờ chốt tỷ giá cuối tháng"
+  what: "Ngày cuối tháng, khi chứng khoán Mỹ trong tháng tăng hoặc giảm mạnh, đánh đô sau giờ chốt tỷ giá London theo chiều chứng khoán."
+  why: "Giả thuyết: quỹ lớn cân lại tỷ lệ tiền tệ cuối tháng."
+  unit: bp
+  periods:
+    is: {years: "2016–2021", n: null, mean: 6.77, t: 3.79}
+    val: {years: "2022–2024", n: null, mean: 1.68, t: 0.84}
+    hold: {years: "2025–2026", n: null, mean: -0.23, t: -0.08}
+  history:
+    - {date: 2026-10-06, kind: find, text: "Tìm ra ở vòng R12"}
+    - {date: 2026-10-06, kind: out, text: "Loại: lỗ ở lần kiểm cuối"}
+
+j-sydney-aud-offroll:
+  name: "Bán đô Úc 15 phút trước giờ mở Sydney"
+  what: "Mùa hè nước Mỹ, bán AUDUSD từ 09:45 tới 10:00 giờ Sydney."
+  why: "Giả thuyết: giá đô Úc hay giảm nhẹ ngay trước giờ mở cửa."
+  unit: bp
+  periods:
+    is: {years: "2016–2021", n: null, mean: 0.44, t: 2.54}
+    val: {years: "2022–2024", n: null, mean: 0.76, t: 3.77}
+    hold: {years: "2025–2026", n: null, mean: -0.25, t: -0.99}
+  history:
+    - {date: 2026-10-06, kind: find, text: "Tìm ra ở vòng R12"}
+    - {date: 2026-10-06, kind: out, text: "Loại: lỗ ở lần kiểm cuối"}
+
+m1-month-end-usd:
+  name: "Mua đô ngày thứ ba trước cuối tháng"
+  what: "Ngày làm việc thứ ba tính từ cuối tháng, mua đô so với yên, franc Thuỵ Sĩ và euro từ 10:00 tới 13:00 UTC."
+  why: "Giả thuyết: doanh nghiệp cần đô để thanh toán cuối tháng."
+  unit: R
+  periods:
+    is: {years: "2016–2021", n: null, mean: 0.123, t: null}
+    val: {years: "2022–2024", n: null, mean: 0.228, t: null}
+    hold: {years: "2025–2026", n: null, mean: 0.044, t: 0.7}
+  history:
+    - {date: 2026-09-27, kind: find, text: "Tìm ra (tìm theo dòng tiền cuối tháng)"}
+    - {date: 2026-10-05, kind: out, text: "Loại: lần kiểm cuối và dữ liệu 2004–2015 đều không đủ chắc"}
+
+c1-crypto-donchian:
+  name: "Crypto: theo đà khi giá phá đỉnh, đáy 9 ngày"
+  what: "Mua hoặc bán BTC, ETH khi nến 4 giờ đóng vượt đỉnh hoặc đáy của 55 nến trước, thoát theo kênh 20 nến hoặc sau 5 ngày."
+  why: "Giá phá đỉnh cũ thường chạy tiếp một đoạn."
+  unit: R
+  periods:
+    is: {years: "2018–2021", n: 553, mean: 0.276, t: 4.3}
+    val: {years: "2022–2024", n: 413, mean: 0.227, t: 3.3}
+    hold: {years: "2025–2026", n: 302, mean: -0.025, t: -0.3}
+  history:
+    - {date: 2026-09-27, kind: find, text: "Tìm ra ở vòng Swing v2"}
+    - {date: 2026-10-03, kind: out, text: "Loại và gỡ bot demo: lỗ ở lần kiểm cuối"}
+
+c4-gotobi-day-lots:
+  name: "Gotobi USDJPY với lot thay đổi theo ngày"
+  what: "Như Gotobi nhưng lot gấp đôi ngày 20 và 25, một nửa ngày 5, 10 và cuối tháng."
+  why: "Giả thuyết: một số ngày gotobi mạnh hơn ngày khác."
+  unit: R
+  periods:
+    hold: {years: "2025–2026", n: 246, mean: 0.038, t: 1.3}
+  history:
+    - {date: 2026-09-27, kind: find, text: "Tìm ra ở vòng Swing v2"}
+    - {date: 2026-09-27, kind: out, text: "Không dùng: lãi ít hơn bản lot đều"}
+
+flowrsi:
+  name: "Bot cũ FlowRSI"
+  what: "Vào lệnh theo chỉ báo RSI trên nến 15 phút, có lọc xu hướng, chạy 15 cặp trên demo."
+  why: "Bot có sẵn từ trước khi có quy trình nghiên cứu."
+  history:
+    - {date: 2026-09-25, kind: out, text: "Dừng 15 bot demo: thử lại trên dữ liệu 2023–2026 không mã nào trong 22 mã có lãi"}
+    - {date: 2026-09-27, kind: out, text: "Gỡ khỏi repo"}
+
+tms-orb:
+  name: "Bot cũ TMS + ORB"
+  what: "Kết hợp vài chỉ báo kỹ thuật với lệnh phá vùng giá đầu phiên."
+  why: "Bot có sẵn từ trước khi có quy trình nghiên cứu."
+  unit: R
+  periods:
+    hold: {years: "2025–2026", n: 5685, mean: -0.071, t: -2.65}
+  history:
+    - {date: 2026-09-27, kind: out, text: "Gỡ khỏi repo: thử lại trên dữ liệu 2023–2026 chỉ 2 trên 22 mã có lãi"}
+
+judas-sweep:
+  name: "Bot cũ Judas Sweep"
+  what: "Chờ giá quét qua đỉnh hoặc đáy phiên Á trong giờ London rồi vào lệnh ngược lại."
+  why: "Bot có sẵn từ trước khi có quy trình nghiên cứu."
+  unit: R
+  periods:
+    hold: {years: "2025–2026", n: 2355, mean: -0.131, t: -2.69}
+  history:
+    - {date: 2026-09-27, kind: out, text: "Gỡ khỏi repo: thử lại trên dữ liệu 2023–2026 chỉ 4 trên 22 mã có lãi"}

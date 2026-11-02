@@ -1,0 +1,13 @@
+# Test fixture for app/research_plain.py (not the real research/plain.yaml).
+F3:
+  name: "ECB F3 dễ hiểu"
+  what: "Bán euro buổi trưa."
+  why: "Euro hay yếu trước giờ chốt."
+  unit: bp
+  periods:
+    is: {years: "2016–2021", n: 381, mean: 2.39, t: 3.29}
+    hold: {years: "2025–2026", n: 117, mean: 2.0, t: 2.16}
+  history:
+    - {date: "2026-10-16", kind: live, text: "Tiền thật"}
+    - {date: 2026-10-15, kind: find, text: "Tìm ra"}
+  note: "Ghi chú."

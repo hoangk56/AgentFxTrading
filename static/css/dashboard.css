@@ -1382,3 +1382,46 @@ details[open]>summary .fold-chev,[aria-expanded="true"]>.fold-chev{transform:rot
 .bt-chevron{font-size:1rem;transform:rotate(90deg)}
 .bt-collapsed .bt-chevron{transform:none}
 @media (prefers-reduced-motion:reduce){.fold-chev{transition:none}}
+
+/* Research in plain words (2026-11-02, docs/research-screen.md): trend word, period bars, certainty, journey */
+.rs-item{grid-template-columns:minmax(0,1fr) auto}
+.rs-item-bars{justify-self:end;align-self:center;line-height:0}
+.rs-item-meta{display:flex;flex-wrap:wrap;align-items:center;gap:6px 10px}
+.rs-trend{display:inline-flex;align-items:center;gap:4px;font-size:0.78rem;font-weight:600;white-space:nowrap}
+.rs-trend--up{color:var(--profit)}.rs-trend--flat{color:var(--text-primary)}.rs-trend--down{color:var(--loss)}
+.rs-trend--unk{color:var(--warn)}.rs-trend--out{color:var(--text-dim)}
+.rs-tier--da-loai{border-color:var(--text-dim);color:var(--text-dim)}
+.rs-plain{display:grid;grid-template-columns:max-content minmax(0,1fr);gap:6px 14px;margin:12px 0 0}
+.rs-plain dt{color:var(--text-muted)}.rs-plain dd{margin:0;min-width:0;line-height:1.55}
+@media (max-width:520px){.rs-plain{grid-template-columns:1fr;gap:0}.rs-plain dd{margin-bottom:6px}}
+.rs-verdict{display:flex;gap:10px;align-items:flex-start;border-radius:10px;padding:10px 12px;background:var(--bg-elevated)}
+.rs-verdict p{margin:0;line-height:1.55}.rs-verdict b{margin-right:4px}
+.rs-arrow{font-size:1.1rem;font-weight:700;line-height:1.3}
+.rs-verdict--up{background:var(--profit-soft)}.rs-verdict--up .rs-arrow{color:var(--profit)}
+.rs-verdict--down{background:var(--loss-soft)}.rs-verdict--down .rs-arrow{color:var(--loss)}
+.rs-verdict--unk{background:var(--warn-soft)}.rs-verdict--unk .rs-arrow{color:var(--warn)}
+.rs-verdict--out .rs-arrow{color:var(--text-dim)}
+.rs-caption{margin:10px 0 2px;font-size:0.78rem}
+.rs-chart{display:block;width:100%;max-width:560px;height:auto}
+.rs-chart text{font-family:var(--font-ui);font-size:11px;fill:var(--text-muted)}
+.rs-chart .rs-chart-val{fill:var(--text-primary);font-size:12px;font-weight:600}
+.rs-chart .rs-chart-label{fill:var(--text-primary)}
+.rs-chart .rs-chart-none{fill:var(--text-dim)}
+.rs-sure-line{display:flex;flex-wrap:wrap;gap:4px 14px;margin:4px 0 0;font-size:0.78rem;color:var(--text-muted)}
+.rs-sure-item{white-space:nowrap}
+.rs-sure{display:inline-flex;gap:2px;vertical-align:middle;margin-left:2px}
+.rs-sure i{width:8px;height:8px;border-radius:2px;background:var(--bg-hover);display:block}
+.rs-sure i.on{background:var(--accent-bright)}
+.rs-journey{list-style:none;margin:0;padding:0}
+.rs-ev{display:grid;grid-template-columns:84px 14px minmax(0,1fr);gap:8px;position:relative;padding-bottom:10px;line-height:1.45}
+.rs-ev:not(:last-child)::after{content:"";position:absolute;left:97px;top:15px;bottom:-1px;width:2px;background:var(--border-subtle)}
+.rs-ev-date{color:var(--text-dim);font-size:0.78rem;text-align:right;padding-top:1px}
+.rs-ev-dot{width:10px;height:10px;border-radius:50%;margin-top:4px;background:var(--text-dim);position:relative;z-index:1}
+.rs-ev--find .rs-ev-dot{background:var(--accent-bright)}.rs-ev--demo .rs-ev-dot{background:var(--demo)}
+.rs-ev--live .rs-ev-dot{background:var(--live)}.rs-ev--change .rs-ev-dot,.rs-ev--wait .rs-ev-dot{background:var(--warn)}
+.rs-ev--out .rs-ev-dot{background:var(--loss)}
+.rs-tech{margin-top:16px;border-top:1px solid var(--border-subtle)}
+.rs-tech > summary{display:flex;align-items:center;gap:6px;cursor:pointer;list-style:none;margin:12px 0 0}
+.rs-tech > summary::-webkit-details-marker{display:none}
+.rs-tech > summary .td-dim{font-weight:400}
+@media (max-width:600px){.rs-chart text{font-size:17px}.rs-chart .rs-chart-val{font-size:19px}.rs-chart .rs-chart-sub{font-size:15px}}

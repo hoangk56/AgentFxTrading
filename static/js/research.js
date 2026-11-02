@@ -1,17 +1,29 @@
 /* Research view ("Nghiên cứu"): every researched algorithm from research/registry.yaml grouped by tier, the selected
- * one's detail with its forward tracker, and the collapsed "Đã thử, không đạt" table
- * (app/research_api.py, GET /api/research; docs/research-screen.md). Modelled on 106.dnse-stock's research page.
+ * one's detail, and the collapsed "Đã thử, không đạt" table (app/research_api.py, GET /api/research;
+ * docs/research-screen.md). Written for a reader who is not a professional investor (2026-11-02): each row shows a
+ * trend word and four period bars, the detail says what the rule does, whether it is holding up and its dated journey,
+ * from research/plain.yaml; the registry's technical text is folded under "Số kỹ thuật".
  *
  * Loaded with `defer`, after the dashboard script whose escapeHtml it uses. The functions above the DOM part are pure
  * (data in, HTML or values out) so tests/app/test_research_ui.py can run them in node with hostile strings.
  * Filter, search and the selected algorithm live in the hash: #research?tier=demo&q=ecb&id=F3. */
 
 const RS_TIERS = [
-    {tier: 'live', label: 'Đang live'},
+    {tier: 'live', label: 'Tiền thật'},
     {tier: 'demo', label: 'Demo'},
-    {tier: 'cho-kiem', label: 'Chờ kiểm'},
+    {tier: 'cho-kiem', label: 'Chờ anh quyết'},
     {tier: 'da-loai', label: 'Đã loại'},
 ];
+// Bar value = mean x scale, in words a layman reads (spec 2026-11-02-research-plain-design.md, Units).
+const RS_UNITS = {
+    R: {scale: 100, caption: '$ lãi trên mỗi $100 chịu rủi ro', count: 'lệnh'},
+    bp: {scale: 1, caption: '$ lãi trên mỗi $10.000 vào lệnh', count: 'lệnh'},
+    pct_week: {scale: 1, caption: '% lãi mỗi tuần', count: 'tuần'},
+    pct_year: {scale: 1, caption: '% lãi mỗi năm', count: ''},
+};
+const RS_PERIODS = [['is', 'Lúc tìm ra'], ['val', 'Kiểm lần 1'], ['hold', 'Kiểm cuối']];
+const RS_REAL_MIN = 30;                  // real-run trades before its own numbers decide the trend
+const RS_TRENDS = {up: '↗', flat: '→', down: '↘', unk: '?', out: '×'};
 const RS_COLLAPSED_TIER = 'da-loai';      // collapsed when the page opens
 const RS_CLOSED_ROWS = 10;                // latest closed basis B demo signals shown
 
@@ -38,7 +50,9 @@ function rsFold(text) {
 function rsMatches(entry, q) {
     const needle = rsFold(q).trim();
     if (!needle) return true;
-    return rsFold([entry.id, entry.name, entry.description, entry.market, entry.round].join(' ')).includes(needle);
+    const p = entry.plain || {};
+    return rsFold([entry.id, entry.name, entry.description, entry.market, entry.round, p.name, p.what, p.why].join(' '))
+        .includes(needle);
 }
 
 function rsFilter(entries, state) {
@@ -107,12 +121,17 @@ function rsChipsHtml(counts, state) {
     return chip('', 'Tất cả', counts.all) + RS_TIERS.map(t => chip(t.tier, t.label, counts[t.tier])).join('');
 }
 
-/** The short state on the right of a list row: the tracker's verdict, or nothing. */
-function rsItemStateHtml(entry) {
+/** A tracker verdict that needs the owner (STOP, PROMOTE_CHECK), or null. */
+function rsFlagOf(entry) {
     const tr = entry.tracker;
-    if (!tr) return '';
-    if (!tr.available || !tr.data) return '<span class="td-dim">chưa có dữ liệu</span>';
-    return rsVerdictHtml(tr.data.verdict);
+    const v = tr && tr.available && tr.data && tr.data.verdict;
+    return v === 'STOP' || v === 'PROMOTE_CHECK' ? v : null;
+}
+
+/** The badge on a list row: only a tracker verdict that needs the owner; the trend word says the rest. */
+function rsItemStateHtml(entry) {
+    const flag = rsFlagOf(entry);
+    return flag ? rsVerdictHtml(flag) : '';
 }
 
 function rsListHtml(ordered, selected, state, toggled) {
@@ -127,11 +146,11 @@ function rsListHtml(ordered, selected, state, toggled) {
         if (!open) return head;
         const body = rows.length ? rows.map(e => {
             const chosen = selected && e.id === selected.id;
-            const meta = [e.market, e.round ? 'vòng ' + e.round : null].filter(Boolean).join(' · ');
+            const trend = rsTrend(e);
             return `<button type="button" class="rs-item${chosen ? ' is-selected' : ''}" data-rs-id="${escapeHtml(e.id)}" aria-current="${chosen ? 'true' : 'false'}">`
-                + `<span class="rs-item-name">${escapeHtml(e.name)}</span>`
-                + `<span class="rs-item-state">${rsItemStateHtml(e)}</span>`
-                + `<span class="rs-item-meta td-dim">${escapeHtml(meta)}</span></button>`;
+                + `<span class="rs-item-name">${escapeHtml(rsPlainName(e))}</span>`
+                + `<span class="rs-item-bars">${rsMiniBarsHtml(e)}</span>`
+                + `<span class="rs-item-meta">${rsTrendHtml(trend)}${rsItemStateHtml(e)}</span></button>`;
         }).join('') : '<p class="rs-empty td-dim">Chưa có thuật toán nào ở bậc này.</p>';
         return head + body;
     }).join('');
@@ -266,8 +285,22 @@ function rsBasisHtml(tr) {
     return html;
 }
 
+/** Real-money R of a live rule without a tracker of its own (app/live_r.py). */
+function rsLiveRHtml(tr) {
+    if (!tr.available || !tr.data) return `<p class="td-dim">${escapeHtml(tr.message || 'Chưa có dữ liệu.')}</p>`;
+    const d = tr.data;
+    return rsStatsHtml([
+        ['Lệnh thật', escapeHtml(d.n)],
+        ['TB mỗi lệnh (R)', rsNum(d.mean, 3, true), rsTone(d.mean)],
+        ['t riêng lệnh thật', rsNum(d.forward_t, 2, true)],
+        ['Bỏ qua (thiếu stop)', escapeHtml(d.skipped)],
+    ]) + `<p class="rs-line td-dim">R tính từ giá khớp thật và khoảng stop của từng chân thật (bỏ chân nghi binh)${
+        d.since ? `, từ ${escapeHtml(d.since)}` : ''}; đã có spread, chưa trừ phí hoa hồng.</p>`;
+}
+
 function rsTrackerHtml(entry, data) {
     const tr = entry.tracker;
+    if (tr && tr.kind === 'live_r') return rsLiveRHtml(tr);
     if (!entry.forward || !tr) {
         // A live algorithm's forward check is its own real bots: send the reader to their results instead of
         // leaving the backtest numbers above as the only figures on screen.
@@ -276,6 +309,7 @@ function rsTrackerHtml(entry, data) {
         return '<p class="td-dim">Không có bot kiểm chứng.</p>';
     }
     if (tr.kind === 'basis_b') return rsBasisHtml(tr);
+    if (tr.kind === 'live_r') return rsLiveRHtml(tr);
     if (!tr.available || !tr.data) return `<p class="td-dim">${escapeHtml(tr.message || 'Chưa có dữ liệu.')}</p>`;
     return rsRulesTrackerHtml(tr, data && data.gold_calendar);
 }
@@ -283,19 +317,48 @@ function rsTrackerHtml(entry, data) {
 function rsDetailHtml(entry, data) {
     if (!entry) return '<section class="rs-detail"><p class="td-dim">Không có thuật toán nào khớp bộ lọc.</p></section>';
     const tier = rsTierOf(entry);
+    const p = entry.plain || {};
+    const trend = rsTrend(entry);
+    const name = rsPlainName(entry);
+    const sub = [name !== entry.name ? entry.name : null, entry.id].filter(Boolean).join(' · ');
+    const what = p.what || entry.description;
+    const plain = (what ? `<dt>Làm gì</dt><dd>${escapeHtml(what)}</dd>` : '')
+        + (p.why ? `<dt>Vì sao có lãi</dt><dd>${escapeHtml(p.why)}</dd>` : '');
+    const unit = rsUnitInfo(p.unit);
+    const hasBars = rsBarValues(entry).some(v => v !== null);
+    return '<section class="rs-detail" aria-live="polite">'
+        + `<div class="rs-detail-head"><h3>${escapeHtml(name)}</h3>`
+        + `<span class="rs-tier rs-tier--${tier}">${escapeHtml(rsTierLabel(tier))}</span></div>`
+        + `<div class="td-dim rs-id">${escapeHtml(sub)}</div>`
+        + (plain ? `<dl class="rs-plain">${plain}</dl>` : '')
+        + '<h4 class="rs-h">Mạnh hay yếu</h4>'
+        + `<div class="rs-verdict rs-verdict--${trend.key}"><span class="rs-arrow" aria-hidden="true">${trend.arrow}</span>`
+        + `<p><b>${escapeHtml(trend.word)}</b>${trend.sentence ? ' ' + escapeHtml(trend.sentence) : ''}</p></div>`
+        + (hasBars && unit
+            ? `<p class="rs-caption td-dim">Cột: ${escapeHtml(unit.caption)}, đã trừ phí như trong nghiên cứu${
+                entry.tracker && entry.tracker.kind === 'live_r' && rsRealRun(entry)
+                    ? '; cột chạy thật tính từ giá khớp, chưa trừ phí hoa hồng' : ''}.</p>`
+              + rsPeriodChartHtml(entry) + rsSureLineHtml(entry)
+            : '<p class="td-dim">Sổ chưa có số của từng giai đoạn.</p>')
+        + `<h4 class="rs-h">Hành trình</h4>${rsJourneyHtml(p.history)}`
+        + rsTechHtml(entry, data)
+        + '</section>';
+}
+
+/** Everything the detail showed before 2026-11-02, folded: tier reason, IS / VAL / HOLD, the tracker and the files. */
+function rsTechHtml(entry, data) {
+    const tier = rsTierOf(entry);
     const meta = [entry.market, entry.round ? 'vòng ' + entry.round : null].filter(Boolean).join(' · ');
     const files = [['Bot', entry.bot], ['Đăng ký trước', entry.prereg], ['Báo cáo', entry.report]].filter(([, v]) => v);
-    return '<section class="rs-detail" aria-live="polite">'
-        + `<div class="rs-detail-head"><h3>${escapeHtml(entry.name)}</h3>`
-        + `<span class="rs-tier rs-tier--${tier}">${escapeHtml(rsTierLabel(tier))}</span>`
-        + `<span class="td-dim rs-detail-meta">${escapeHtml(meta)}</span></div>`
-        + `<div class="td-dim rs-id">${escapeHtml(entry.id)}</div>`
-        + (entry.description ? `<p class="rs-desc">${escapeHtml(entry.description)}</p>` : '')
+    return '<details class="rs-tech"><summary class="rs-h"><span class="fold-chev" aria-hidden="true">›</span>'
+        + 'Số kỹ thuật <span class="td-dim">t, bp, luật dừng, tệp nghiên cứu</span></summary>'
+        + (meta ? `<p class="rs-line td-dim">${escapeHtml(meta)}</p>` : '')
+        + (entry.description && entry.plain && entry.plain.what ? `<p class="rs-desc">${escapeHtml(entry.description)}</p>` : '')
         + (entry.tier_reason ? `<p class="rs-line"><span class="td-dim">Vì sao ở bậc ${escapeHtml(rsTierLabel(tier))}:</span> ${escapeHtml(entry.tier_reason)}</p>` : '')
         + `<h4 class="rs-h">Kết quả nghiên cứu</h4>${rsResearchHtml(entry.research)}`
         + `<h4 class="rs-h">Kiểm chứng</h4>${rsTrackerHtml(entry, data)}`
         + (files.length ? `<h4 class="rs-h">Tệp</h4><dl class="rs-dl">${files.map(([k, v]) => `<dt>${k}</dt><dd>${rsCode(v)}</dd>`).join('')}</dl>` : '')
-        + '</section>';
+        + '</details>';
 }
 
 /** The rounds that did not pass, folded: one line until opened (the list and its detail above are the screen). */
@@ -332,9 +395,224 @@ function rsStatusOf(data) {
     const verdicts = entries.map(e => e.tracker && e.tracker.available && e.tracker.data && e.tracker.data.verdict);
     const stop = verdicts.filter(v => v === 'STOP').length, promote = verdicts.filter(v => v === 'PROMOTE_CHECK').length;
     const flags = [stop ? `${stop} chạm luật dừng` : '', promote ? `${promote} đủ điều kiện xét nâng hạng` : ''].filter(Boolean);
-    const text = `${c.live || 0} đang live · ${c.demo || 0} chạy demo · ${c['cho-kiem'] || 0} chờ kiểm`
-        + (flags.length ? ` · ${flags.join(', ')}` : '');
+    const weak = entries.filter(e => rsTierOf(e) !== 'da-loai' && rsTrend(e).key === 'down').length;
+    const text = `${c.live || 0} tiền thật · ${c.demo || 0} demo · ${c['cho-kiem'] || 0} chờ anh quyết`
+        + (weak ? ` · ${weak} đang yếu đi` : '') + (flags.length ? ` · ${flags.join(', ')}` : '');
     return [stop ? 'crit' : (promote ? 'warn' : 'ok'), text];
+}
+
+// ---------- plain words: trend, certainty, bars, journey (pure) ----------
+
+function rsPlainName(entry) {
+    return (entry.plain && entry.plain.name) || entry.name || entry.id;
+}
+
+function rsUnitInfo(unit) {
+    return RS_UNITS[unit] || null;
+}
+
+/** Vietnamese number: comma decimal, real minus sign, trailing zeros dropped; 0 decimals from 100, 1 from 10. */
+function rsVi(v, signed) {
+    if (v === null || v === undefined || !Number.isFinite(Number(v))) return '–';
+    const n = Number(v), a = Math.abs(n);
+    const text = a.toFixed(a >= 100 ? 0 : (a >= 10 ? 1 : 2)).replace(/\.?0+$/, '').replace('.', ',');
+    return (n < 0 ? '−' : (signed && n > 0 ? '+' : '')) + text;
+}
+
+/** {level 0-4, word} for a t; a run under RS_REAL_MIN trades (n given) gets no certainty yet. */
+function rsSure(t, n) {
+    if (n !== null && n !== undefined && n < RS_REAL_MIN) return {level: 0, word: `mới ${n} lệnh, chưa đủ`};
+    if (t === null || t === undefined || !Number.isFinite(Number(t))) return {level: 0, word: 'chưa có số'};
+    if (t >= 3) return {level: 4, word: 'Rất chắc'};
+    if (t >= 2) return {level: 3, word: 'Khá chắc'};
+    if (t >= 1) return {level: 2, word: 'Chưa chắc'};
+    if (t > -1) return {level: 1, word: 'Như may rủi'};
+    return {level: 1, word: 'Lỗ khá rõ'};
+}
+
+function rsSureHtml(sure) {
+    const boxes = [1, 2, 3, 4].map(i => `<i class="${i <= sure.level ? 'on' : ''}"></i>`).join('');
+    return `<span class="rs-sure" aria-hidden="true">${boxes}</span> ${escapeHtml(sure.word)}`;
+}
+
+/** "Chạy thật" for a live rule, "Chạy demo" otherwise. */
+function rsRunLabel(entry) {
+    return rsTierOf(entry) === 'live' ? 'Chạy thật' : 'Chạy demo';
+}
+
+/** The forward run in the plain unit: {n, mean, t, target, label}, or null without trades or in another unit. */
+function rsRealRun(entry) {
+    const tr = entry.tracker;
+    const unit = entry.plain && entry.plain.unit;
+    if (!tr || !tr.available || !tr.data) return null;
+    const d = tr.data;
+    let run = null;
+    if (tr.kind === 'rules' && unit === 'bp') {
+        run = {n: d.n, mean: d.mean, t: d.forward_t, target: tr.rules ? tr.rules.promote_after : null};
+    } else if (tr.kind === 'basis_b' && unit === 'bp') {
+        run = {n: d.closed_n, mean: d.mean_net_bp, t: d.forward_t, target: d.rules ? d.rules.stop_after : null};
+    } else if (tr.kind === 'live_r' && unit === 'R') {
+        run = {n: d.n, mean: d.mean, t: d.forward_t, target: null};
+    }
+    if (!run || !run.n || run.mean === null || run.mean === undefined) return null;
+    return {...run, t: run.t === undefined ? null : run.t, label: rsRunLabel(entry)};
+}
+
+/** [lúc tìm ra, kiểm lần 1, kiểm cuối, chạy] in bar units (mean x scale), null where missing. */
+function rsBarValues(entry) {
+    const p = entry.plain || {};
+    const unit = rsUnitInfo(p.unit);
+    if (!unit) return [null, null, null, null];
+    const periods = p.periods || {};
+    const scaled = v => (v === null || v === undefined || !Number.isFinite(Number(v))) ? null : Number(v) * unit.scale;
+    const run = rsRealRun(entry);
+    return RS_PERIODS.map(([k]) => scaled(periods[k] && periods[k].mean)).concat([run ? scaled(run.mean) : null]);
+}
+
+/** Trend word from the research periods, or from the real run once it has RS_REAL_MIN trades (spec, Trend rule). */
+function rsTrend(entry) {
+    const p = entry.plain || {};
+    const periods = p.periods || {};
+    const num = v => (v === null || v === undefined || !Number.isFinite(Number(v))) ? null : Number(v);
+    const is = num(periods.is && periods.is.mean), hold = num(periods.hold && periods.hold.mean);
+    const holdT = num(periods.hold && periods.hold.t);
+    const run = rsRealRun(entry);
+    const real = run && run.n >= RS_REAL_MIN ? rsRealVerdict(run, is) : null;
+    const noisy = Boolean(run && run.n >= RS_REAL_MIN && !real);
+    let key, word;
+    if (rsTierOf(entry) === 'da-loai') [key, word] = ['out', 'Đã loại'];
+    else if (real) [key, word] = real;
+    else if (is === null || hold === null) [key, word] = ['unk', 'Chưa rõ'];
+    else if (is <= 0) [key, word] = hold <= 0 ? ['down', 'Yếu đi'] : ['unk', 'Chưa rõ'];
+    else if (hold <= 0) [key, word] = ['down', 'Yếu đi'];
+    else if (hold >= 1.25 * is && holdT !== null && holdT >= 2) [key, word] = ['up', 'Mạnh lên'];
+    else if (hold >= 0.75 * is) [key, word] = ['flat', 'Giữ vững'];
+    else if (hold >= 0.4 * is) [key, word] = ['down', 'Yếu dần'];
+    else [key, word] = ['down', 'Yếu đi'];
+    return {key, arrow: RS_TRENDS[key], word, sentence: rsTrendSentence(entry, is, hold, run, noisy)};
+}
+
+/** [key, word] from a forward run of RS_REAL_MIN+ trades, or null when it cannot overrule the research: no positive
+ *  "lúc tìm ra" mean to compare with, no t, or a shortfall under one standard error (a few dozen legs are mostly
+ *  noise next to a small edge; Gotobi's 42 live legs on 2026-11-02 sit 0,8 se under its research mean). */
+function rsRealVerdict(run, is) {
+    if (is === null || is <= 0 || !run.t) return null;
+    if (run.mean >= is && run.t >= 2) return ['up', 'Mạnh lên'];
+    if (run.mean >= 0.5 * is) return ['flat', 'Giữ vững'];
+    const se = Math.abs(run.mean / run.t);
+    if ((run.mean - is) / se > -1) return null;
+    return run.mean <= 0 ? ['down', 'Yếu đi'] : ['down', 'Yếu dần'];
+}
+
+/** Trades the forward tracker has, whatever their unit: null when it cannot be read. */
+function rsTrackerCount(tr) {
+    if (!tr || !tr.available || !tr.data) return null;
+    const n = tr.kind === 'basis_b' ? tr.data.closed_n : tr.data.n;
+    return Number.isFinite(Number(n)) ? Number(n) : null;
+}
+
+function rsTrendSentence(entry, is, hold, run, noisy) {
+    const parts = [];
+    const flag = rsFlagOf(entry);
+    if (flag === 'STOP') parts.push('Đã chạm luật dừng đăng ký trước.');
+    if (flag === 'PROMOTE_CHECK') parts.push('Đủ điều kiện xét nâng hạng, chờ anh quyết.');
+    if (is !== null && hold !== null && is > 0) {
+        parts.push(hold <= 0 ? 'Lần kiểm cuối bị lỗ.' : `Kiểm cuối lãi bằng ${Math.round(hold / is * 100)}% lúc tìm ra.`);
+    }
+    const unit = rsUnitInfo(entry.plain && entry.plain.unit);
+    if (run) {
+        parts.push(run.n < RS_REAL_MIN
+            ? `${run.label}: ${run.n}${run.target ? '/' + run.target : ''} lệnh, chưa đủ để kết luận.`
+            : `${run.label}: ${run.n} lệnh, trung bình ${rsVi(run.mean * (unit ? unit.scale : 1), true)} `
+              + `(${rsSure(run.t).word.toLowerCase()})${noisy ? ', chưa đủ chắc để đổi kết luận' : ''}.`);
+    } else if (entry.tracker && ['live', 'demo'].includes(rsTierOf(entry))) {
+        // Only say "no trades" when the tracker says so; a tracker in another unit says nothing here.
+        const count = rsTrackerCount(entry.tracker);
+        if (!entry.tracker.available) parts.push(`${rsRunLabel(entry)}: chưa đọc được số.`);
+        else if (count === 0) parts.push(`${rsRunLabel(entry)}: chưa có lệnh nào.`);
+    }
+    if (entry.plain && entry.plain.note) parts.push(entry.plain.note);
+    return parts.join(' ');
+}
+
+function rsTrendHtml(trend) {
+    return `<span class="rs-trend rs-trend--${trend.key}"><span aria-hidden="true">${trend.arrow}</span> ${escapeHtml(trend.word)}</span>`;
+}
+
+/** Four tiny bars for a list row (one scale per row); a missing period is a flat dash. */
+function rsMiniBarsHtml(entry) {
+    const vals = rsBarValues(entry);
+    const known = vals.filter(v => v !== null);
+    if (!known.length) return '';
+    const w = 64, h = 22, mid = h / 2, bw = w / 4 - 4;
+    const max = Math.max(...known.map(Math.abs)) || 1;
+    const bars = vals.map((v, i) => {
+        const x = i * (w / 4) + 2;
+        if (v === null) return `<rect x="${x}" y="${mid - 1}" width="${bw}" height="2" fill="var(--border)"></rect>`;
+        const bh = Math.max(2, Math.abs(v) / max * (mid - 1));
+        return `<rect x="${x}" y="${(v >= 0 ? mid - bh : mid).toFixed(1)}" width="${bw}" height="${bh.toFixed(1)}" rx="1.5" `
+            + `fill="var(${v >= 0 ? '--profit' : '--loss'})"${i === 3 ? '' : ' opacity="0.7"'}></rect>`;
+    }).join('');
+    return `<svg class="rs-mini" width="${w}" height="${h}" viewBox="0 0 ${w} ${h}" aria-hidden="true">`
+        + `<line x1="0" x2="${w}" y1="${mid}" y2="${mid}" stroke="var(--border)"></line>${bars}</svg>`;
+}
+
+/** The detail's bar chart: one bar per period on one scale, value on the bar, years and count under it. */
+function rsPeriodChartHtml(entry) {
+    const p = entry.plain || {};
+    const unit = rsUnitInfo(p.unit) || RS_UNITS.bp;
+    const periods = p.periods || {};
+    const run = rsRealRun(entry);
+    const vals = rsBarValues(entry);
+    const known = vals.filter(v => v !== null);
+    const pos = Math.max(0, ...known.filter(v => v > 0)), neg = Math.max(0, ...known.filter(v => v < 0).map(Math.abs));
+    // A negative bar prints its value under itself: keep that row clear of the period labels.
+    const W = 520, top = 26, bottom = neg > 0 ? 76 : 58, H = 134 + bottom, L = 6, R = 6, plotH = H - top - bottom;
+    const span = (pos + neg) || 1, zeroY = top + plotH * pos / span, colW = (W - L - R) / 4, bw = Math.min(64, colW * 0.5);
+    const since = ((p.history || []).find(h => h.kind === (rsTierOf(entry) === 'live' ? 'live' : 'demo')) || {}).date;
+    const cols = RS_PERIODS.map(([k, label]) => [label, periods[k] ? periods[k].years : null, periods[k] ? periods[k].n : null])
+        .concat([[rsRunLabel(entry), since ? 'từ ' + since.slice(8, 10) + '/' + since.slice(5, 7) : null, run ? run.n : null]]);
+    let svg = `<svg class="rs-chart" viewBox="0 0 ${W} ${H}" role="img" aria-label="Lãi qua các giai đoạn: ${
+        escapeHtml(cols.map(([label], i) => `${label} ${rsVi(vals[i], true)}`).join(', '))}">`;
+    cols.forEach(([label, years, n], i) => {
+        const cx = L + colW * i + colW / 2, v = vals[i];
+        if (v === null) {
+            svg += `<text class="rs-chart-none" x="${cx}" y="${(zeroY - 8).toFixed(1)}" text-anchor="middle">chưa có</text>`;
+        } else {
+            const bh = Math.max(2, Math.abs(v) / span * plotH), y = v >= 0 ? zeroY - bh : zeroY;
+            svg += `<rect x="${(cx - bw / 2).toFixed(1)}" y="${y.toFixed(1)}" width="${bw.toFixed(1)}" height="${bh.toFixed(1)}" rx="4" `
+                + `fill="var(${v >= 0 ? '--profit' : '--loss'})"${i === 3 ? '' : ' opacity="0.8"'}></rect>`
+                + `<text class="rs-chart-val" x="${cx}" y="${(v >= 0 ? y - 6 : y + bh + 14).toFixed(1)}" text-anchor="middle">${rsVi(v, true)}</text>`;
+        }
+        // Three short lines under each bar (label, years, count) so a phone can draw them large without overlap.
+        const count = n !== null && n !== undefined && unit.count ? `${n} ${unit.count}` : '';
+        svg += `<text class="rs-chart-label" x="${cx}" y="${H - 38}" text-anchor="middle">${escapeHtml(label)}</text>`
+            + `<text class="rs-chart-sub" x="${cx}" y="${H - 22}" text-anchor="middle">${escapeHtml(years || '')}</text>`
+            + `<text class="rs-chart-sub" x="${cx}" y="${H - 6}" text-anchor="middle">${escapeHtml(count)}</text>`;
+    });
+    return svg + `<line x1="${L}" x2="${W - R}" y1="${zeroY.toFixed(1)}" y2="${zeroY.toFixed(1)}" stroke="var(--border)"></line></svg>`;
+}
+
+/** "Độ chắc" per period: four squares and a word. */
+function rsSureLineHtml(entry) {
+    const periods = (entry.plain && entry.plain.periods) || {};
+    const items = RS_PERIODS.filter(([k]) => periods[k]).map(([k, label]) => [label, rsSure(periods[k].t)]);
+    const run = rsRealRun(entry);
+    if (run) items.push([run.label, rsSure(run.t, run.n)]);
+    if (!items.length) return '';
+    return `<p class="rs-sure-line"><span class="td-dim">Độ chắc:</span> ${items.map(([label, sure]) =>
+        `<span class="rs-sure-item">${escapeHtml(label)} ${rsSureHtml(sure)}</span>`).join('')}</p>`;
+}
+
+/** The dated journey, oldest first; dd/mm/yyyy dates. */
+function rsJourneyHtml(history) {
+    if (!history || !history.length) return '<p class="td-dim">Sổ chưa ghi mốc thời gian.</p>';
+    return `<ol class="rs-journey">${history.map(h => {
+        const d = String(h.date || '');
+        const when = /^\d{4}-\d{2}-\d{2}$/.test(d) ? `${d.slice(8, 10)}/${d.slice(5, 7)}/${d.slice(0, 4)}` : d;
+        return `<li class="rs-ev rs-ev--${escapeHtml(h.kind)}"><span class="rs-ev-date">${escapeHtml(when)}</span>`
+            + `<span class="rs-ev-dot" aria-hidden="true"></span><span>${escapeHtml(h.text || '')}</span></li>`;
+    }).join('')}</ol>`;
 }
 
 // ---------- DOM, fetch ----------
