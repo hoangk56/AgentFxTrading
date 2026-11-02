@@ -4,19 +4,19 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AgentFxTrading</title>
-    <link rel="stylesheet" href="/static/css/dashboard.css?v=20261102_d7">
-    <script src="/static/js/auth.js?v=20261102_d7"></script>
+    <link rel="stylesheet" href="/static/css/dashboard.css?v=20261102_d8">
+    <script src="/static/js/auth.js?v=20261102_d8"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="/static/js/backtest.js?v=20261102_d7" defer></script>
-    <script src="/static/js/ledger.js?v=20261102_d7" defer></script>
-    <script src="/static/js/confirm_dialog.js?v=20261102_d7" defer></script>
-    <script src="/static/js/overview_alerts.js?v=20261102_d7" defer></script>
-    <script src="/static/js/overview_demo.js?v=20261102_d7" defer></script>
-    <script src="/static/js/overview_upcoming.js?v=20261102_d7" defer></script>
-    <script src="/static/js/research.js?v=20261102_d7" defer></script>
-    <script src="/static/js/paper_desk.js?v=20261102_d7" defer></script>
-    <script src="/static/js/gotobi_calendar.js?v=20261102_d7" defer></script>
+    <script src="/static/js/backtest.js?v=20261102_d8" defer></script>
+    <script src="/static/js/ledger.js?v=20261102_d8" defer></script>
+    <script src="/static/js/confirm_dialog.js?v=20261102_d8" defer></script>
+    <script src="/static/js/overview_alerts.js?v=20261102_d8" defer></script>
+    <script src="/static/js/overview_demo.js?v=20261102_d8" defer></script>
+    <script src="/static/js/overview_upcoming.js?v=20261102_d8" defer></script>
+    <script src="/static/js/research.js?v=20261102_d8" defer></script>
+    <script src="/static/js/paper_desk.js?v=20261102_d8" defer></script>
+    <script src="/static/js/gotobi_calendar.js?v=20261102_d8" defer></script>
     <link rel="icon" type="image/png" href="/static/favicon.png">
 </head>
 {# Nghiên cứu (redesign D step 3, 2026-11-01): one menu item, three tabs. Each tab is still its own view (#research,
@@ -70,7 +70,7 @@
                 <span class="nav-icon"><i data-lucide="bar-chart-2"></i></span>
                 <span class="nav-label">Tổng quan</span>
             </a>
-            <a href="#docker" class="nav-item" data-target="view-docker" title="Bot: bot đang chạy, chạy / dừng, mức rủi ro">
+            <a href="#bot" class="nav-item" data-target="view-bot" title="Bot: bot đang chạy, chạy / dừng, mức rủi ro">
                 <span class="nav-icon"><i data-lucide="bot"></i></span>
                 <span class="nav-label">Bot</span>
             </a>
@@ -370,9 +370,9 @@
             <!-- Docker Bots View -->
             {# Bot (redesign D step 2, 2026-11-01): Real bots first behind the red rule, Demo folded, each row with its
                sizing, open positions and result for the period, in dollars or per unit of risk (the former Xếp hạng screen,
-               merged here 2026-11-01; #leaderboard opens this view). One main button per row by state, Sửa, the rest
+               merged here 2026-11-01). One main button per row by state, Sửa, the rest
                under ⋯; real-money actions ask for the pair. #}
-            <div id="view-docker" class="view-section">
+            <div id="view-bot" class="view-section">
                 <div class="ov-title bots-title">
                     <div>
                         <h1>Bot</h1>
@@ -679,10 +679,9 @@
 
     <script>
         window.DASHBOARD_BOOTSTRAP = {
-            currentMode: '{{ current_mode }}',
             pnlHistory: {{ pnl_history | tojson }},
             positions: {{ positions | tojson }},
         };
     </script>
-    <script src="/static/js/dashboard.js?v=20261102_d7"></script>
+    <script src="/static/js/dashboard.js?v=20261102_d8"></script>
 </body></html>

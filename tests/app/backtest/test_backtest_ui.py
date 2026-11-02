@@ -32,7 +32,7 @@ def _function(src: str, name: str) -> str:
 
 
 def test_dashboard_has_the_backtest_nav_view_and_script():
-    html = client.get("/demo/dashboard").text
+    html = client.get("/").text
     assert 'data-target="view-backtest"' in html and 'id="view-backtest"' in html
     assert '<script src="/static/js/backtest.js' in html and " defer></script>" in html
     for element_id in ("bt-form-panel", "bt-bot", "bt-start", "bt-end", "bt-data-mode", "bt-spread-wrap",
@@ -79,7 +79,7 @@ def test_the_avg_win_loss_pair_may_wrap_in_its_card():
 
 
 def test_job_list_heads_position_columns():
-    html = client.get("/demo/dashboard").text
+    html = client.get("/").text
     assert "<th class=\"num\">% thắng (lệnh)</th>" in html and "<th class=\"num\">Số lệnh</th>" in html
 
 

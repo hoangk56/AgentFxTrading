@@ -19,13 +19,12 @@ PURE = ("rsNum", "rsTierOf", "rsTierLabel", "rsFold", "rsMatches", "rsFilter", "
 
 
 def test_dashboard_has_the_research_nav_view_and_script():
-    html = client.get("/demo/dashboard").text
+    html = client.get("/").text
     assert 'data-target="view-research"' in html and 'id="view-research"' in html and 'id="rs-grid"' in html
     assert 'href="#research"' in html and '<script src="/static/js/research.js' in html
     assert ">Nghiên cứu</span>" in html and "view-forward" not in html
     page = dashboard_page(client)
     assert "targetId === 'view-research'" in page and "rsOnShow();" in page
-    assert "forward: 'research'" in page                   # old #forward links still open the view
 
 
 def _run(body: str) -> dict:

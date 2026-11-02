@@ -48,14 +48,14 @@ FastAPI generates the full, current reference: open **`http://127.0.0.1:8000/doc
 
 | Group | Prefix | Module |
 | :--- | :--- | :--- |
-| Bot reporting | `/portfolio/report`, `/portfolio/status`, `/api/tick`, `/api/telemetry_tick`, `/api/dashboard/accounts` | `app/portfolio_api.py` |
-| Dashboard pages | `/`, `/dashboard`, `/demo[/dashboard]`, `/real[/dashboard]`, `/live[/dashboard]` | `app/dashboard.py` |
+| Bot reporting | `/portfolio/report`, `/api/tick` | `app/portfolio_api.py` |
+| Dashboard page | `/` | `app/dashboard.py` |
 | Dashboard data | `/api/dashboard/*`, `/api/leaderboard`, `WS /ws/dashboard` | `app/dashboard.py` |
 | Docker bot management | `/api/bots/*`, `/api/positions/{id}/close`, `/api/bot-commands/*`, `/api/watchdog/status` | `app/dashboard.py` |
 | Setup Instances | `/api/setup/*`, `/api/ctrader-accounts/*` | `app/dashboard.py` |
 | Ledger | `/api/ledger`, `/api/ledger/movements` | `app/ledger_api.py` (logic in `app/ledger.py`) |
 | Backtests | `/api/backtests/*` | `app/backtest_api.py` |
-| Research view | `/api/research` (registry + trackers), `/api/forward/status` | `app/research_api.py`, `app/forward_status_api.py`; see [research-screen.md](research-screen.md) |
+| Research view | `/api/research` (registry + trackers), `/api/paper-desk/status` | `app/research_api.py`, `app/paper_desk_api.py`; see [research-screen.md](research-screen.md) |
 
 Most dashboard data routes accept `account_id=demo|live|all|<id>`; see `/docs` for parameters. New endpoints go in
 an `APIRouter` module, not in `app/server.py` (see [CLAUDE.md](../CLAUDE.md)).
@@ -85,11 +85,15 @@ Started from the FastAPI lifespan in `app/server.py`:
   - Every server URL of a backtested bot is locked off (`app/backtest_command.py`).
   - EcbWindowBot and GoldLevelBot also get `cBot/seeds` read-only, for their quote seed and release calendar.
 
-## Dashboard modes
+## Dashboard page and screens
 
-`/demo/dashboard` and `/real/dashboard` show only demo or only live accounts. `/` and `/dashboard` redirect to the
-mode used last, remembered by the `agentfx_trade_mode` cookie and `webui_data/trade_mode.json`. Accounts are the
-cTrader accounts created on the Setup Instances screen; a cBot tags its trades with `--AccountLabel`.
+One page at `/` (since 2026-11-02). Each screen is a hash: Tổng quan (none), `#bot` (bots, their results),
+`#calendar`, `#ledger`, `#research`, `#paper-desk`, `#backtest`, `#logs`; `#bot?bot=<container>` opens Bot on that row.
+The old addresses (`/dashboard`, `/demo[/dashboard]`, `/real[/dashboard]`, `/live[/dashboard]`) and hashes (`#docker`,
+`#leaderboard`, `#gotobi`, `#forward`) were dropped without redirects; an unknown hash opens Tổng quan.
+Real and demo money share the page: Tổng quan, Bot and Sổ tiền show live accounts first with demo folded below; Lịch
+and Nhật ký carry their own Thật / Demo switch. Accounts are the cTrader accounts created on the Setup Instances screen;
+a cBot tags its trades with `--AccountLabel`.
 
 ## Logging
 

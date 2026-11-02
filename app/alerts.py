@@ -156,7 +156,7 @@ def bot_link(name: Optional[str] = None, env: Mapping[str, str] = os.environ) ->
     if not base:
         return ""
     row = f"?bot={urllib.parse.quote(name, safe='')}" if name else ""
-    return f"\n{base}/real/dashboard#docker{row}"
+    return f"\n{base}/#bot{row}"
 
 
 def notify(text: str, key: Optional[Hashable] = None) -> bool:

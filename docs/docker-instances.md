@@ -37,7 +37,7 @@ underneath them are the preset and should be copied as-is.
 | `--ctid=your_email@example.com` | The email of your cTID login. |
 | `--account=YOUR_ACCOUNT_ID` | Your cTrader account number, e.g. `10101649`. |
 | `--pwd-file=/root/ctrader_data/ctid_pwd` | Path to the `chmod 600` file holding that cTID's password. |
-| `--AccountLabel="demo"` | `demo` or `live` — the cBot tags every trade with it and routes live data to `/real/dashboard`. |
+| `--AccountLabel="demo"` | `demo` or `live` — the cBot tags every trade with it; `live` trades show under Tiền thật on the dashboard. |
 | `--name` / `--BotId` `cbot-demo-…` | Swap the `demo` slug for your own account slug so a demo and a live bot on the same symbol never collide. |
 
 Two flags are worth a second look before you go live:
@@ -343,7 +343,7 @@ things must differ per account:
 
 1. **`--name` and `--BotId`** — swap the `demo` slug (`cbot-live-usdjpy-fix-gotobi`). Container names are unique per host.
 2. **`--account`** — the live account number.
-3. **`--AccountLabel`** — `live` (or `live-main`), so trades are tagged and routed to `/real/dashboard`.
+3. **`--AccountLabel`** — `live` (or `live-main`), so trades are tagged as real money and shown under Tiền thật.
 4. **`--pwd-file`** — a dedicated password file if the live account sits under a different cTID.
 
 Then create both accounts on the dashboard (**Setup Instances → New account**) so its account selector lists

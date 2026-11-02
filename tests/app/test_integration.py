@@ -5,7 +5,7 @@ from app.server import app as fastapi_app
 client = TestClient(fastapi_app)
 
 
-def test_telemetry_tick():
+def test_tick():
     payload = {
         "bot_id": "cbot-usdjpy-fix-gotobi",
         "account_number": "123456",

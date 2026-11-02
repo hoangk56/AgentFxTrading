@@ -1057,8 +1057,8 @@ body.login-shell{display:flex;align-items:center;justify-content:center;padding:
 .pos-close-error{font-size:0.78rem;color:var(--loss);max-width:36ch;text-align:right}
 
 /* ---------- Bot screen, redesign D step 2 (2026-11-01) ---------- */
-#view-docker{max-width:1280px;margin:0 auto}
-#view-docker.active{display:flex;flex-direction:column;gap:14px}
+#view-bot{max-width:1280px;margin:0 auto}
+#view-bot.active{display:flex;flex-direction:column;gap:14px}
 .bots-title{flex-direction:row;align-items:flex-end;justify-content:space-between;flex-wrap:wrap;gap:10px 16px}
 .bots-tools{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
 .bots-period{display:inline-flex;align-items:center;gap:6px;font-size:0.82rem;color:var(--text-muted)}

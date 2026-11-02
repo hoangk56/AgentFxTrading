@@ -5,7 +5,7 @@ The registry is written by the research sessions; this module only reads it. A m
 the page: the answer is an empty registry and a `warning` the page shows. Trackers:
 
 - `ecb_f3`, `ecb_e1`, `gold_levels`: the registered stop and promotion rules applied to the bots' closed trades
-  (app/forward_status.py, also served alone at /api/forward/status), with the rule numbers of each candidate.
+  (app/forward_status.py), with the rule numbers of each candidate.
 - `basis_b`: the paper / demo bot's `status()` from app/basis_b_status.py, imported lazily so a missing module or one
   that raises only empties that tracker.
 
@@ -17,14 +17,25 @@ from __future__ import annotations
 import datetime
 import importlib
 import logging
+import math
 from pathlib import Path
 from typing import List, Optional, Tuple
 
 from fastapi import APIRouter
 
 from app.forward_status import CANDIDATES, calendar_guard, forward_status
-from app.forward_status_api import _json_safe
 from app.portfolio import get_portfolio_manager
+
+def _json_safe(value):
+    """NaN is not JSON: a pooled t that cannot be computed goes out as null."""
+    if isinstance(value, float) and not math.isfinite(value):
+        return None
+    if isinstance(value, dict):
+        return {k: _json_safe(v) for k, v in value.items()}
+    if isinstance(value, list):
+        return [_json_safe(v) for v in value]
+    return value
+
 
 router = APIRouter()
 logger = logging.getLogger(__name__)

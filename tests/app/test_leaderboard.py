@@ -216,10 +216,8 @@ def test_api_leaderboard_endpoints():
     assert "fleet_win_rate" in data
     assert "total_bots" in data
 
-    # Test /api/dashboard/leaderboard alias
-    resp_alias = client.get("/api/dashboard/leaderboard?account_id=demo")
-    assert resp_alias.status_code == 200
-    assert "rankings" in resp_alias.json()
+    # The /api/dashboard/leaderboard alias was dropped 2026-11-02 (nothing called it)
+    assert client.get("/api/dashboard/leaderboard?account_id=demo").status_code == 404
 
 
 def _utc_ago(**delta) -> str:
