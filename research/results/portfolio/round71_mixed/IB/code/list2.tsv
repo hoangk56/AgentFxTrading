@@ -1,0 +1,8 @@
+BETHETH-1d-2022-06.zip	GET	https://data.binance.vision/data/spot/monthly/klines/BETHETH/1d/BETHETH-1d-2022-06.zip
+WBETHETH-1d-2024-06.zip	GET	https://data.binance.vision/data/spot/monthly/klines/WBETHETH/1d/WBETHETH-1d-2024-06.zip
+WBTCBTC-1d-2024-08.zip	GET	https://data.binance.vision/data/spot/monthly/klines/WBTCBTC/1d/WBTCBTC-1d-2024-08.zip
+USDCUSDT-1m-2024-06.head	HEAD	https://data.binance.vision/data/spot/monthly/klines/USDCUSDT/1m/USDCUSDT-1m-2024-06.zip
+SOLTRY-1d-2023-06.zip	GET	https://data.binance.vision/data/spot/monthly/klines/SOLTRY/1d/SOLTRY-1d-2023-06.zip
+cbeth_eth_2023.json	GET	https://api.exchange.coinbase.com/products/CBETH-ETH/candles?granularity=86400&start=2023-01-01T00:00:00Z&end=2023-10-01T00:00:00Z
+history_p16.json	GET	https://status.coinbase.com/history.json?page=16
+robots_retry.txt	GET	https://fred.stlouisfed.org/robots.txt

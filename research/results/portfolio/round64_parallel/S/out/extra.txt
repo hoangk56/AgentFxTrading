@@ -1,0 +1,92 @@
+== k=100 H=7 subsets
+  IS all [close]: n 163, episodes 29 (pos 25), excess +22.1 bp, t_ep +6.97, Sh/ep +0.79
+  IS all [taker]: n 163, episodes 29 (pos 25), excess +15.2 bp, t_ep +4.52, Sh/ep +0.66
+  IS 2020-21 only (standard crypto IS) [close]: n 40, episodes 8 (pos 7), excess +23.0 bp, t_ep +5.69, Sh/ep +0.77
+  IS 2020-21 only (standard crypto IS) [taker]: n 40, episodes 8 (pos 8), excess +24.5 bp, t_ep +4.38, Sh/ep +0.82
+  IS 2018-19 only [close]: n 123, episodes 21 (pos 18), excess +21.8 bp, t_ep +5.39, Sh/ep +0.78
+  IS 2018-19 only [taker]: n 123, episodes 21 (pos 17), excess +12.1 bp, t_ep +3.15, Sh/ep +0.59
+  IS without USDS / USDSB [close]: n 88, episodes 18 (pos 15), excess +27.0 bp, t_ep +6.46, Sh/ep +0.83
+  IS without USDS / USDSB [taker]: n 88, episodes 18 (pos 16), excess +22.8 bp, t_ep +6.57, Sh/ep +0.77
+  IS USDC + BUSD only (deep pairs) [close]: n 35, episodes 14 (pos 12), excess +24.2 bp, t_ep +4.96, Sh/ep +0.79
+  IS USDC + BUSD only (deep pairs) [taker]: n 35, episodes 14 (pos 12), excess +16.8 bp, t_ep +3.82, Sh/ep +0.72
+  IS without 2020-03..04 [close]: n 131, episodes 25 (pos 21), excess +22.7 bp, t_ep +5.78, Sh/ep +0.78
+  IS without 2020-03..04 [taker]: n 131, episodes 25 (pos 21), excess +13.7 bp, t_ep +3.49, Sh/ep +0.62
+  VAL all [close]: n 20, episodes 4 (pos 2), excess +65.4 bp, t_ep +1.34, Sh/ep +0.47
+  VAL all [taker]: n 20, episodes 4 (pos 2), excess +50.6 bp, t_ep +1.29, Sh/ep +0.45
+  VAL without SVB week [close]: n 9, episodes 3 (pos 1), excess -7.8 bp, t_ep -0.79, Sh/ep -0.38
+  VAL without SVB week [taker]: n 9, episodes 3 (pos 1), excess -8.4 bp, t_ep -1.21, Sh/ep -0.54
+  VAL TUSD only [close]: n 14, episodes 2 (pos 1), excess +7.1 bp, t_ep +0.45, Sh/ep +0.32
+  VAL TUSD only [taker]: n 14, episodes 2 (pos 0), excess -10.2 bp, t_ep -5.81, Sh/ep -4.11
+  IS entry-bar quote volume (USDT): median 3655, p25 169, p75 17915
+  IS taker-fill excess per year per unit of notional: +608 bp/yr (days in a trade 120 over 1486)
+  IS max concurrent positions 5
+  VAL entry-bar quote volume (USDT): median 17323, p25 2375, p75 110661
+  VAL taker-fill excess per year per unit of notional: +337 bp/yr (days in a trade 50 over 1095)
+  VAL max concurrent positions 4
+
+== VAL trades k=100 H=7 (taker-fill excess bp)
+  USDCUSDT 2023-03-11 14:01 -> 2023-03-13 17:48 d_sig 879 +866.3 revert
+  BUSDUSDT 2023-03-11 01:43 -> 2023-03-11 04:23 d_sig 101 +33.4 revert
+  BUSDUSDT 2023-03-11 16:45 -> 2023-03-11 21:02 d_sig 101 +27.5 revert
+  TUSDUSDT 2023-03-11 14:01 -> 2023-03-11 17:20 d_sig 198 +93.7 revert
+  TUSDUSDT 2023-03-11 17:34 -> 2023-03-11 17:59 d_sig 170 -16.8 revert
+  TUSDUSDT 2023-03-11 18:04 -> 2023-03-11 18:17 d_sig 145 -58.9 revert
+  TUSDUSDT 2023-03-11 18:20 -> 2023-03-11 18:22 d_sig 159 -111.1 revert
+  TUSDUSDT 2023-03-11 20:40 -> 2023-03-12 10:13 d_sig 100 -12.8 revert
+  TUSDUSDT 2023-03-13 07:41 -> 2023-03-13 12:07 d_sig 107 +38.6 revert
+  TUSDUSDT 2023-03-13 17:21 -> 2023-03-13 17:29 d_sig 100 -16.4 revert
+  TUSDUSDT 2024-01-15 21:42 -> 2024-01-22 21:42 d_sig 101 -88.8 time
+  TUSDUSDT 2024-01-22 21:44 -> 2024-01-26 16:01 d_sig 159 +83.3 revert
+  TUSDUSDT 2024-01-26 16:38 -> 2024-02-02 16:38 d_sig 104 -42.2 time
+  TUSDUSDT 2024-02-02 16:40 -> 2024-02-09 16:40 d_sig 118 -55.5 time
+  TUSDUSDT 2024-02-09 16:42 -> 2024-02-16 16:42 d_sig 141 -108.1 time
+  TUSDUSDT 2024-02-16 16:44 -> 2024-02-23 16:44 d_sig 218 -63.9 time
+  TUSDUSDT 2024-02-23 16:46 -> 2024-02-29 03:36 d_sig 249 +216.1 revert
+  USDPUSDT 2023-03-11 14:01 -> 2023-03-13 18:03 d_sig 305 +243.6 revert
+  USDPUSDT 2023-11-09 16:48 -> 2023-11-09 16:52 d_sig 123 -44.1 revert
+  FDUSDUSDT 2024-03-05 19:58 -> 2024-03-05 21:47 d_sig 127 +27.7 revert
+
+== IS episode list (taker-fill excess bp per episode)
+  2018-06-25 TUSD n 1 -46
+  2018-07-04 TUSD n 1 +22
+  2018-07-08 TUSD n 2 +49
+  2018-07-18 TUSD n 2 +33
+  2018-12-20 PAX/TUSD/USDC n 3 +35
+  2018-12-22 PAX/TUSD/USDC n 12 +172
+  2019-01-03 PAX/TUSD/USDC n 10 +114
+  2019-04-02 PAX/TUSD/USDC/USDS n 25 +373
+  2019-04-08 PAX/TUSD/USDC/USDS n 13 +311
+  2019-04-17 USDS n 1 +1
+  2019-05-11 PAX/TUSD/USDC/USDS n 21 -125
+  2019-05-19 USDS n 2 +43
+  2019-05-25 PAX/TUSD/USDC/USDS n 8 +87
+  2019-06-16 USDS n 1 +48
+  2019-06-22 PAX/TUSD/USDC/USDS/USDSB n 6 +185
+  2019-07-04 USDS/USDSB n 3 +32
+  2019-07-09 USDS/USDSB n 2 +2
+  2019-07-18 USDS n 1 -32
+  2019-09-20 BUSD n 1 -30
+  2019-09-24 TUSD/USDC/USDS/USDSB n 6 +206
+  2019-10-25 USDC/USDS n 2 +12
+  2020-02-26 USDS n 5 +226
+  2020-03-05 BUSD/PAX/TUSD/USDC/USDS n 24 +428
+  2020-03-25 USDS n 5 +202
+  2020-04-13 USDS n 1 +27
+  2020-04-28 USDS n 2 +26
+  2020-05-10 USDS n 1 +32
+  2021-01-03 USDC n 1 +6
+  2021-12-04 BUSD n 1 +35
+
+== mirror (information only): long USDT vs X when X rich by k (price of USDT in X = 1 / close)
+  k 10 H 1 IS: n 5901 (bad prints dropped 2), episodes 89 (pos 5), excess -17.4 bp, t_ep -33.30
+  k 10 H 1 VAL: n 1068 (bad prints dropped 0), episodes 44 (pos 3), excess -18.4 bp, t_ep -26.88
+  k 10 H 7 IS: n 5233 (bad prints dropped 2), episodes 89 (pos 5), excess -16.9 bp, t_ep -31.98
+  k 10 H 7 VAL: n 691 (bad prints dropped 0), episodes 43 (pos 3), excess -16.8 bp, t_ep -17.84
+  k 30 H 1 IS: n 1743 (bad prints dropped 2), episodes 59 (pos 12), excess -10.2 bp, t_ep -5.08
+  k 30 H 1 VAL: n 297 (bad prints dropped 0), episodes 45 (pos 12), excess -4.0 bp, t_ep -0.92
+  k 30 H 7 IS: n 1322 (bad prints dropped 2), episodes 59 (pos 12), excess -6.5 bp, t_ep -3.74
+  k 30 H 7 VAL: n 251 (bad prints dropped 0), episodes 44 (pos 11), excess -1.0 bp, t_ep -0.20
+  k 100 H 1 IS: n 394 (bad prints dropped 2), episodes 26 (pos 18), excess +4.6 bp, t_ep +0.71
+  k 100 H 1 VAL: n 69 (bad prints dropped 0), episodes 19 (pos 14), excess +50.7 bp, t_ep +1.82
+  k 100 H 7 IS: n 192 (bad prints dropped 2), episodes 25 (pos 21), excess +32.6 bp, t_ep +4.68
+  k 100 H 7 VAL: n 61 (bad prints dropped 0), episodes 19 (pos 16), excess +59.7 bp, t_ep +1.92

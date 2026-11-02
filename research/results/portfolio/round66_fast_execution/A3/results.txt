@@ -1,0 +1,108 @@
+# Stream A3 results (bp unless noted). main = declared event set (5, all IS); info = JST / T / GAL (never for a verdict)
+
+## Per event: onset a (s vs N), completion of r(N+60 s) (s), path r = spot vs BTC (bp vs N - 60 s), capacity
+coin set  era day        L-N(min) pre60n onA    c50    c90   r(-1) r(0) r(+1) r(+2) r(+5) r(+10) r(+30) r(+60) r(+300) raw(+5) raw(+60)  cap1s($)  cap5s($) slipE(bp) base(bp)
+HIVE  main IS  2020-07-21     9.2   509   -9.1   -5.3   22.1   154   509   781   772   840  1061  1246  1402  2028    841   1404      1666     28842    22.6    0.0
+KAVA  main IS  2020-07-23   139.5     3    0.8    0.8   21.6     3     3   391   332   417   453   722   691   845    416    690      2068     24425    22.0    0.0
+SAND  main IS  2021-01-21     5.0    53    0.8    6.2   30.0     0     1   927  1091  1509  1681  3349  3622  3738   1505   3629     21527    165742    91.5    0.0
+STX   main IS  2021-04-05     4.8    59    0.8    1.8   56.0    -7     1   237   512   545   537   415   990  2539    558   1024       967     28397    29.5    0.0
+NU    main IS  2021-10-15   130.0     4    0.4   12.9   49.1    15    14   734   723  1103  1198  2730  4340  8868   1108   4340        10    103651    89.3    0.0
+JST   info IS  2020-08-14     4.5    23    0.6    1.6   19.2   -24   -24   345   602   558   577  1082  1118  1264    560   1124      2206     60344    86.9    2.1
+T     info VAL 2022-03-02   275.0    15    0.3    1.3    4.0    27    27   345   867   964   773  1076  1114  1226    960   1111       818     10504    43.9    0.0
+GAL   info VAL 2024-07-11    42.5    18    0.9    0.9    0.9    18    16  1144  1105  1263  1045   952   917   981   1262    921     50490    131404    69.7    0.0
+
+## Path main IS (n 5): r(t) spot vs BTC, bp vs N - 60 s: q25 / median / q75 / mean | raw spot median
+  t   -60s        0       0       0       0 |       0
+  t   -30s      -19      -1       7      -7 |       0
+  t   -10s      -20       0       3     -11 |       1
+  t    -5s        3       5      17     108 |      14
+  t    -2s       -0       3      15     150 |      11
+  t    -1s        0       3      15      33 |      11
+  t    +0s        1       3      14     106 |      14
+  t    +1s      391     734     781     614 |     734
+  t    +2s      512     723     772     686 |     724
+  t    +3s      547     848    1128     871 |     850
+  t    +5s      545     840    1103     883 |     841
+  t   +10s      537    1061    1198     986 |    1063
+  t   +20s      583    1229    2161    1401 |    1231
+  t   +30s      722    1246    2730    1692 |    1247
+  t   +60s      990    1402    3622    2209 |    1404
+  t  +120s     1173    1271    3752    2354 |    1271
+  t  +300s     2028    2539    3738    3604 |    2587
+  on_a: n 5/5  median 0.8 s  min -9.1  max 0.8
+  c50: n 5/5  median 1.8 s  min -5.3  max 12.9
+  c90: n 5/5  median 30.0 s  min 21.6  max 56.0
+
+## Path all 8 (main + info, 2020-24): r(t) spot vs BTC, bp vs N - 60 s: q25 / median / q75 / mean | raw spot median
+  t   -60s        0       0       0       0 |       0
+  t   -30s      -23       3      10      -4 |       4
+  t   -10s       -6       2      12      -2 |       2
+  t    -5s        3       7      20      70 |      13
+  t    -2s       -2       6      18      95 |      12
+  t    -1s       -1       9      20      23 |      13
+  t    +0s        1       9      19      68 |      16
+  t    +1s      345     562     817     613 |     562
+  t    +2s      580     747     923     751 |     749
+  t    +3s      552     863    1221     911 |     863
+  t    +5s      555     902    1143     900 |     901
+  t   +10s      567     909    1096     916 |     910
+  t   +20s      619     811    1462    1157 |     811
+  t   +30s      895    1079    1617    1446 |    1079
+  t   +60s      971    1116    1957    1774 |    1118
+  t  +120s     1153    1301    2356    2011 |    1306
+  t  +300s     1165    1646    2839    2686 |    1640
+  on_a: n 8/8  median 0.7 s  min -9.1  max 0.9
+  c50: n 8/8  median 1.5 s  min -5.3  max 12.9
+  c90: n 8/8  median 21.8 s  min 0.9  max 56.0
+
+## Per-event trades (net bp; hedged H = long spot / short BTC perp, 30 bp + 4 slips + BTC funding; U = unhedged long, 20 bp + 2 slips)
+coin set  era  hold(min) lagA(s) lagB(s)  H5 gross  slip   fund   H5 net  H10 net  H5x1.5 |  U5 net  U10 net | H2 net H30 net
+HIVE  main IS       9.2   5.01   5.36      475    31    0.0      415      260     384 |     425      271 |    520     39
+KAVA  main IS     139.4   5.14   5.11      343    25    0.0      289      252     261 |     310      273 |    378     21
+SAND  main IS       4.9   5.02   5.01     2650   169    0.0     2451     1799    2352 |    2476     1823 |   3178    581
+STX   main IS       4.8   5.03   5.03     1612    78    0.0     1504     1503    1450 |    1560     1552 |   1539   1527
+NU    main IS     129.9   5.00   5.03    11689   105    0.0    11554    11195   11487 |   11569    11213 |  12459   8104
+JST   info IS       4.4   5.02   5.06      803   103    0.0      670      682     603 |     666      679 |    686    191
+T     info VAL    274.9   5.11   5.11      135    61    1.0       45      188      -1 |      27      168 |    255    -71
+GAL   info VAL     42.5   5.00   5.07     1260    88    0.0     1142     1400    1083 |    1152     1407 |   1199   1545
+
+## Summary (t clustered by notice day; VAL main set n = 0, so no bar can be tested)
+set              cell  n(days) gross  slip  fund  cash    net      t  median    SR   years(net)
+main IS          H5      5( 5)   3354    81   0.0  0.05   3243   1.53    1504  0.69  2020:+352(2) 2021:+5170(3)
+main IS          H5x15   5( 5)   3354    81   0.0  0.05   3187   1.51    1450  0.68  2020:+323(2) 2021:+5096(3)
+main IS          H10     5( 5)   3115    83   0.0  0.05   3002   1.45    1503  0.65  2020:+256(2) 2021:+4832(3)
+main IS          U5      5( 5)   3369    81   0.0  0.05   3268   1.55    1560  0.69  2020:+368(2) 2021:+5202(3)
+main IS          U5x15   5( 5)   3369    81   0.0  0.05   3218   1.53    1511  0.68  2020:+344(2) 2021:+5133(3)
+main IS          U10     5( 5)   3129    82   0.0  0.05   3027   1.46    1552  0.65  2020:+272(2) 2021:+4863(3)
+main VAL          --    0      (no events)
+info IS (JST)    H5      1( 1)    803   103   0.0  0.00    670    nan     670   nan  2020:+670(1)
+info IS (JST)    H5x15   1( 1)    803   103   0.0  0.00    603    nan     603   nan  2020:+603(1)
+info IS (JST)    H10     1( 1)    814   102   0.0  0.00    682    nan     682   nan  2020:+682(1)
+info IS (JST)    U5      1( 1)    789   103   0.0  0.00    666    nan     666   nan  2020:+666(1)
+info IS (JST)    U5x15   1( 1)    789   103   0.0  0.00    605    nan     605   nan  2020:+605(1)
+info IS (JST)    U10     1( 1)    801   102   0.0  0.00    679    nan     679   nan  2020:+679(1)
+info VAL (T,GAL) H5      2( 2)    697    74   0.5  0.15    593   1.08     593  0.76  2022:+45(1) 2024:+1142(1)
+info VAL (T,GAL) H5x15   2( 2)    697    74   0.5  0.15    541   1.00     541  0.71  2022:-1(1) 2024:+1083(1)
+info VAL (T,GAL) H10     2( 2)    895    71   0.5  0.15    794   1.31     794  0.93  2022:+188(1) 2024:+1400(1)
+info VAL (T,GAL) U5      2( 2)    684    74   0.0  0.15    590   1.05     590  0.74  2022:+27(1) 2024:+1152(1)
+info VAL (T,GAL) U5x15   2( 2)    684    74   0.0  0.15    543   0.98     543  0.69  2022:-13(1) 2024:+1099(1)
+info VAL (T,GAL) U10     2( 2)    878    71   0.0  0.15    787   1.27     787  0.90  2022:+168(1) 2024:+1407(1)
+all 8 pooled     H5      8( 8)   2371    82   0.1  0.07   2259   1.67     906  0.59  2020:+458(3) 2021:+5170(3) 2022:+45(1) 2024:+1142(1)
+all 8 pooled     H5x15   8( 8)   2371    82   0.1  0.07   2202   1.63     843  0.58  2020:+416(3) 2021:+5096(3) 2022:-1(1) 2024:+1083(1)
+all 8 pooled     H10     8( 8)   2272    83   0.1  0.07   2160   1.65    1041  0.58  2020:+398(3) 2021:+4832(3) 2022:+188(1) 2024:+1400(1)
+all 8 pooled     U5      8( 8)   2375    82   0.0  0.07   2273   1.68     909  0.59  2020:+467(3) 2021:+5202(3) 2022:+27(1) 2024:+1152(1)
+all 8 pooled     U5x15   8( 8)   2375    82   0.0  0.07   2222   1.64     852  0.58  2020:+431(3) 2021:+5133(3) 2022:-13(1) 2024:+1099(1)
+all 8 pooled     U10     8( 8)   2275    82   0.0  0.07   2173   1.66    1043  0.59  2020:+408(3) 2021:+4863(3) 2022:+168(1) 2024:+1407(1)
+
+## Random benchmark (1000 draw sets, same coin / day, gross; percentile of the event gross mean)
+  H5 main IS  event gross    3354  random mean     46  beats 100.0 %
+  H5 all 8    event gross    2371  random mean      8  beats 100.0 %
+  U5 main IS  event gross    3369  random mean     58  beats 100.0 %
+  U5 all 8    event gross    2375  random mean     12  beats 100.0 %
+
+## Power (A2 arithmetic: SR per trade x sqrt(n_HOLD))
+  VAL main n = 0: SR at VAL size undefined -> power undefined (LIVE / DEMO cannot be tested).
+  using the IS SR 0.69 as if it were VAL's: n_HOLD 1 -> power 0.69; SR needed for power 3: 3.00
+  using the IS SR 0.69 as if it were VAL's: n_HOLD 2 -> power 0.97; SR needed for power 3: 2.12
+  using the IS SR 0.69 as if it were VAL's: n_HOLD 5 -> power 1.53; SR needed for power 3: 1.34
+  capacity main: buyer-taker spot notional 1 s after N + 5 s median $1,666, 5 s $28,842

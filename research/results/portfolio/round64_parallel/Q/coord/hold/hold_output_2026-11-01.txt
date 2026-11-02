@@ -1,0 +1,8 @@
+HOLD screen n 37, dropped guard 0, dropped no-1m 0
+HOLD {"n": 37, "days": 7, "net_bp": 299.192, "med_bp": 116.889, "t": 2.151, "win": 0.946, "sr": 0.613, "sr_day": 0.409}
+  x1.5 net +284.3 t 2.04; T+2 min net +333.8 t 2.11
+  event-days 7; top-5 days share of net 1.013; price +301.7 funding +27.3 cost 29.8 bp
+  2025: n 35 net +311.6
+  2026: n 2 net +82.9
+  largest |day| P&L: ['2025-10-10', '2025-10-11', '2025-02-06', '2026-06-30', '2025-02-03']
+PASS (DEMO bar: net > 0)

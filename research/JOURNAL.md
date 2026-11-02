@@ -6,6 +6,96 @@ detail. The numbers are copied from those files, and the file wins if the two ev
 When you write a new result file, add a row to that day's entry (or start a new entry) and link the file. Don't
 repeat its tables here.
 
+## 2026-11-02: round 73, Upbit's official Telegram channel as A2's capture route (TG). Not settled, looks feasible
+
+| tested | verdict | detail |
+|---|---|---|
+| TG: @upbit_news via the keyless preview t.me/s, plus 4 third-party repost channels | official channel posts 124 / 124 KRW-listing notices, 2026 all <= 1 s after N; modelled 82-97 % seen <= 3 s at a 1-1.5 s poll. Preview freshness and sustained allowance not yet measured; forward logger on agentFx, from cron since 04:53 UTC (user allowed it), ends 2026-11-09. First sample: post 2050 (not a listing) appeared on the preview 17.7 s after its Telegram time. Third-party channels <= 79 % | [round73 report](results/portfolio/round73_telegram_capture_2026-11-02.md) |
+
+## 2026-11-02: user decisions 1-2 from their cheapest step (A2 capture, B borrow), K2 paper only. No LIVE candidate
+
+| tested | verdict | detail |
+|---|---|---|
+| A2-D5L capture gate (detect the Upbit KRW-listing notice <= 3 s after N) with keyless polling | **cannot pass keyless**: the notice list returns 429 after 1-3 requests at 1.5-5 s from the Hetzner VPS and after 15 at 1.5 s from a residential IP (response itself fresh, max-age 1). Only route left: Upbit's private WebSocket feed (needs an Upbit account: user decision). a slow 20 s logger on agentFx also got 429 (even one request per 8 min) and was stopped and removed | [CAPTURE_A2.md](results/portfolio/round65_retail_venues/A2/coord/forward/CAPTURE_A2.md) |
+| B borrow, paper demo (app/basis_b_runner.py, running since 11-01) | first signal LSKUSDT 11-02 01:00 **not fillable: Binance has no LSK to lend (-3045)**, a real inventory shortage, not an account block; 5 / 60 universe coins at zero inventory today. Real trades would also need collateral in Cross Margin (borrowLimit 0) | same |
+| K2 | paper only (public forward log): 1 event, +2,238 bp | same |
+
+Standing: C3 is the only LIVE algorithm. A2's promotion now waits on an Upbit account for the private feed; B's demo keeps logging borrow at each signal until its stop / promotion rule decides.
+
+## 2026-11-01: round 72, leftover scout idea (TRY). No LIVE or DEMO candidate
+
+| tested | verdict | detail |
+|---|---|---|
+| TRY: BtcTurk USDT/TRY premium -> long USDTRY | **none**: IS t 1.3 by episode, random 84 %; two lira breaks | [round72 report](results/portfolio/round72_scout_leftovers_2026-11-01.md) |
+
+Standing: C3 is the only LIVE algorithm. Free directions without a user decision are exhausted at P(LIVE) <= ~1-2 %; the ranked decisions are in the round 71 report.
+
+## 2026-11-01: round 71, funding-formula asymmetries, CME gap, forward-only literature rules, spot wicks, PAXG, barrier scout. No LIVE or DEMO candidate
+
+| tested | verdict | detail |
+|---|---|---|
+| D3 OKX / Kraken funding formulas, CG CME weekend gap, L3F / L5F forward-only literature rules, FS spot-only crash fade, PX PAXG weekend, IB barrier scout, W7 listing withdrawal window | **none** (cross-venue funding carry closed; CG worse than placebo; FS / PX below cost; W7 1 IS event) | [round71 report](results/portfolio/round71_mixed_2026-11-01.md) |
+
+Also: public-data forward log for K2 (`K/coord/forward/fwd_k2.py`), first event NIL +2,238 bp.
+
+## 2026-11-01: round 70, corporate BTC 8-Ks at seconds (M8), literature scout (LIT), funding-formula carry (D2). No candidate yet
+
+| tested | verdict | detail |
+|---|---|---|
+| M8 BTC-purchase 8-Ks -> BTC perp; LIT 2025-26 scout | **none** (M8 all cells negative, VAL t -6.60); LIT ideas -> D2, round 71 D3 / L3F / L5F; L1 needs the user's OK | [round70 report](results/portfolio/round70_filings_lit_2026-11-01.md) |
+| D2-ON: long Deribit perp / short Binance perp (funding-formula carry) | **FAIL at HOLD**: VAL excess over cash +1.37 (t 1.83, DEMO); HOLD net +2.64 %/yr but excess -1.32 (t -3.48) | [PREREG_D2_ON](results/portfolio/round70_filings_lit/D2/PREREG_D2_ON.md) |
+
+## 2026-11-01: round 69, listing notices of other retail venues (KO, JP). No LIVE or DEMO candidate
+
+| tested | verdict | detail |
+|---|---|---|
+| KO Coinone / Korbit / GOPAX notices; JP bitbank / Coincheck notices at seconds | **none**: KO no allowed history; JP no reaction (VAL median 0 bp at +5 s) | [round69 report](results/portfolio/round69_other_notices_2026-11-01.md) |
+
+## 2026-11-01: round 68, census of Upbit notice types (UC). No LIVE or DEMO candidate
+
+| tested | verdict | detail |
+|---|---|---|
+| UC: 11 declared Upbit notice categories other than KRW listings, Binance perp at +5 s | **none**: DWSUSP short loses (IS t -4.34, VAL t -6.29); every category rises 1-3 s after the stamp, then fades; AIRDROP n 10 per era | [round68 report](results/portfolio/round68_upbit_census_2026-11-01.md) |
+
+## 2026-11-01: round 67, scheduled releases within seconds (P, R2). No LIVE or DEMO candidate
+
+| tested | verdict | detail |
+|---|---|---|
+| P PBoC central-parity surprise -> USDCNH at seconds; R2 short Upbit-heavy alts after an Upbit KRW-listing notice | **none**: P real at mid but under IC's 1.3-1.7 bp; R2 VAL +71 bp t 3.96 but IS t 0.74 (9 notices) | [round67 report](results/portfolio/round67_fix_seconds_2026-11-01.md) |
+
+Also: public-data forward log for A2-D5L (`coord/forward/fwd_a2.py`), first slice 0 events.
+
+## 2026-11-01: round 66, effects inside the first minute (F0, G0, A3, B2, O2, N0, A4, A5). F0 passes LIVE bars on IS / VAL, registered for a FORWARD test
+
+| tested | verdict | detail |
+|---|---|---|
+| F0: F's wick fade entered at the first trade after the event bar's close | **LIVE bars on IS / VAL** (IS +319.5 bp t 4.90, VAL +339.2 t 4.56); F's HOLD is known, so FORWARD only from 2026-10-30 (~333 events) | [PREREG_F0](results/portfolio/round66_fast_execution/F0/PREREG_F0_bar_close_fade.md) |
+| G0 catch-up at seconds, A3 Upbit notice -> Binance spot, B2 Bithumb notices, O2 OKX / Bybit notices, N0 new-perp launch fade, A4 Upbit notice -> Bybit perp, A5 young Binance perps | **none** (A4: IS 0 events, VAL 7 events +5,029 bp descriptive; B2 no data; A5 0 events) | [round66 report](results/portfolio/round66_fast_execution_2026-11-01.md) |
+
+Standing: C3 is the only LIVE algorithm. DEMO that passed HOLD: B, X3, K2, Q1, A2-D5L. Forward: F0.
+
+## 2026-11-01: round 65, retail-venue attention (H, U, I, W, J, A, C, R, E, M, A2). A2-D5L (5 s after the Upbit notice) passes HOLD as DEMO, t 3.11; the listing chase is Upbit-KRW-specific
+
+| tested | verdict | detail |
+|---|---|---|
+| H Bithumb listings, U Upbit volume-share shocks, I retail-venue scout, W Upbit warning / delisting notices, A chase the Upbit notice, M Upbit BTC / USDT markets, R Korean waking hours, E HK leveraged ETFs, C HK CBBC calls (no data), J scout | **none**; Upbit KRW listings pump +21.5 % before entry, other venues -6 % to +6 %; the Upbit pump sits inside the notice minute (+1,524 / +1,953 bp); K2 survivorship check (+4 listings) IS t 2.63, VAL t 1.61 | [round65 report](results/portfolio/round65_retail_venues_2026-11-01.md) |
+| A2-D5L: long Binance perp / short BTC at notice + 5 s, exit at the KRW open | **DEMO, HOLD passed**: IS +1,296 (t 3.07, n 12), VAL +520 (t 1.75, n 32), power 2.97; HOLD +780 bp, t 3.11, n 91 (worst-of-1 s +540, t 2.25) | [PREREG_A2_D5L](results/portfolio/round65_retail_venues/A2/PREREG_A2_D5L.md) |
+
+Standing: C3 is the only LIVE algorithm. DEMO that passed HOLD: B, X3, K2, A2-D5L (needs a ~3 s notice bot). Round 66 tests bar-close / seconds execution of the effects that moved inside the first minute.
+
+## 2026-11-01: round 64, parallel streams (Q, K, F, N, V, T, X, G, S, L). F passes LIVE bars on IS / VAL but fails HOLD; K2 (Upbit listing fade) passes HOLD as DEMO
+
+| tested | verdict | detail |
+|---|---|---|
+| F: fade >= 5 % idiosyncratic 1m wicks on top-40 altcoin perps, next-bar entry, 60 min | **FAIL at HOLD**: IS +273.0 bp (t 4.05), VAL +270.5 (t 3.76), all LIVE bars; HOLD +41.8 bp, t 1.17, n 2,080 (gate t >= 2.0) | [PREREG_F](results/portfolio/round64_parallel/F/PREREG_F_wick_fade.md) |
+| K2: short the Binance perp from the first Upbit KRW hour + 1 h, long BTC, 72 h | **DEMO, HOLD passed**: IS +1,094 (t 3.16, n 11), VAL +423 (t 1.37, n 29), HOLD +221 (t 0.88, n 92; funding -512) | [PREREG_K2](results/portfolio/round64_parallel/K/PREREG_K2_upbit_listing_fade.md) |
+| Q1 COIN-M vs USDT-M perp gap; S stablecoin peg | DEMO numbers on IS / VAL, crash-day / one-episode driven: drafts, HOLD not opened | [round64 report](results/portfolio/round64_parallel_2026-11-01.md) |
+| K1 kimchi residual, L Coinbase listings, N B via inventory, V lenders for B, T delisting convergence, X cross-venue spot wedge, G alt catch-up after BTC shocks, Q2 quarterlies | **none** (N: inventory costs 5.5 %/yr vs cash; V: others lend at ~6 %/yr but their spot misses ~1/4 of B's move; Binance's block is account-level) | [round64 report](results/portfolio/round64_parallel_2026-11-01.md) |
+
+Later the same day: Q1 HOLD (registered [PREREG_Q1](results/portfolio/round64_parallel/Q/PREREG_Q1_cm_um_perp_gap.md)) n 37 on 7 days, +299 bp, t 2.15: **DEMO, HOLD passed** (crash-day rule).
+
+Standing: C3 is the only LIVE algorithm. DEMO that passed HOLD: B, X3, K2, Q1. Round 65 tests K2's mechanism on other retail venues.
+
 ## 2026-10-31: round 63, parallel streams (S, V, C, D, M, B). B (altcoin perp-discount basis reversion) passes HOLD as DEMO, t 14; no LIVE yet
 
 | tested | verdict | detail |

@@ -1,0 +1,95 @@
+# Stream A4 results (bp unless noted). Bybit alt perp vs Bybit BTCUSDT. 7 events, all VAL (IS n = 0)
+
+## Per event: onset a (s vs N), completion of r(N+60 s) (s), path r = alt vs BTC (bp vs N - 60 s), capacity
+coin   day        L-N(min) pre60n onA    c50    c90   r(-1) r(0) r(+1) r(+2) r(+5) r(+10) r(+30) r(+60) r(+300) raw(+5) cap1s($)  cap5s($) slipE(bp) base(bp)
+CTC    2023-12-12    64.7   413    0.3   31.3   49.0    -0    -1  2171  2953  3048  3225  5166 13615  9572   3047      2148     25834   290.3    0.0
+MNT    2024-03-27   231.6    34    0.2    0.4   39.6     1     1   654   666   957   964  1410  2230  2516    958      8693     32669    54.0    0.5
+UXLINK 2024-09-03   180.4    24    2.3    2.6   14.7    -0    -0    -1    -1  2315  2793  3247  3531  4775   2325     99863    205658   100.4    0.0
+SAFE   2024-10-24   152.5     6    1.3    2.0    8.9     7     7     7  1139  1781  2996  3128  3247  3599   1778     39433    112236   117.6    9.4
+DRIFT  2024-11-08   200.0    17    0.4    1.1   21.3    12    12  1500  2337  2704  2896  3634  3870  4278   2708     91651    168706   153.0    0.0
+ME     2024-12-10   975.8    13    1.2   16.4   21.0    22    24    24   -28   -45    89  1835  1686  1436    -49       644     27638    85.6    0.0
+MOCA   2024-12-16   188.2    63    1.8    2.4    3.4   -12   -17   -17  2558  4165  5960  7639  8394 10410   4167     45358    161698   260.6    0.5
+
+## Path VAL main (n 7): r(t) alt vs BTC, bp vs N - 60 s: q25 / median / q75 / mean | raw alt median
+  t   -60s        0       0       0       0 |       0
+  t   -30s       -0       0       3       3 |       0
+  t   -10s        5      12      13       8 |       7
+  t    -5s        5      12      17       9 |      15
+  t    -2s        1       7      11       6 |       7
+  t    -1s       -0       1       9       4 |       3
+  t    +0s       -1       1       9       4 |       3
+  t    +1s        3      24    1077     620 |      21
+  t    +2s      333    1139    2447    1375 |    1136
+  t    +3s     1201    1713    2663    2210 |    1710
+  t    +5s     1369    2315    2876    2132 |    2325
+  t   +10s     1879    2896    3110    2703 |    2900
+  t   +20s     2093    3139    3338    2945 |    3142
+  t   +30s     2481    3247    4400    3723 |    3256
+  t   +60s     2739    3531    6132    5225 |    3539
+  t  +120s     2762    3569    6564    4701 |    3577
+  t  +300s     3058    4278    7174    5227 |    4280
+  on_a: n 7/7  median 1.2 s  min 0.2  max 2.3
+  c50: n 7/7  median 2.4 s  min 0.4  max 31.3
+  c90: n 7/7  median 21.0 s  min 3.4  max 49.0
+
+## Path VAL main without ME: r(t) alt vs BTC, bp vs N - 60 s: q25 / median / q75 / mean | raw alt median
+  t   -60s        0       0       0       0 |       0
+  t   -30s        0       1       3       4 |       0
+  t   -10s        4      10      13       6 |       5
+  t    -5s        4       9      13       7 |      10
+  t    -2s        0       4      10       3 |       5
+  t    -1s       -0       1       5       1 |       3
+  t    +0s       -1       1       5       0 |       3
+  t    +1s        1     330    1288     719 |     331
+  t    +2s      784    1738    2503    1609 |    1738
+  t    +3s     1396    2135    2717    2583 |    2135
+  t    +5s     1915    2510    2962    2495 |    2517
+  t   +10s     2819    2946    3167    3139 |    2946
+  t   +20s     2992    3156    3421    3253 |    3163
+  t   +30s     3157    3440    4783    4037 |    3447
+  t   +60s     3318    3701    7263    5815 |    3705
+  t  +120s     3269    4014    7616    5249 |    4018
+  t  +300s     3769    4526    8373    5858 |    4529
+  on_a: n 6/6  median 0.8 s  min 0.2  max 2.3
+  c50: n 6/6  median 2.2 s  min 0.4  max 31.3
+  c90: n 6/6  median 18.0 s  min 3.4  max 49.0
+
+## Per-event trades (net bp; H = long alt / short BTC, 22 bp + 4 slips + funding; U = unhedged long, 11 bp + 2 slips + alt funding)
+coin    hold(min) lagA(s) lagB(s) H5 gross  slip   fund   H5 net  H10 net  H5x1.5 |  U5 net  U10 net | H2 net H30 net H5-5m
+CTC        64.6   5.01   5.86    11761   337    0.0    11402    10906   11223 |   11413    10917 |  11480   7113   9085
+MNT       231.5   5.00   5.14     1409    82   18.2     1324     1269    1272 |    1207     1152 |   1607    773   1654
+UXLINK    180.4   5.00   5.16     4836   130    0.0     4684     3882    4608 |    4744     3941 |   8415   3272   2762
+SAFE      152.4   5.01   5.31     3618   152   81.0     3525     2013    3438 |    3441     1929 |   4465   1869   1804
+DRIFT     199.9   5.00   5.15     2759   208  151.0     2680     2427    2565 |    2656     2402 |   3184   1621   1487
+ME        975.7   5.25   5.09      932   128  101.0      883      720     808 |     785      620 |   1107   -747   1202
+MOCA      188.1   5.01   5.62    11068   339    0.0    10707     7162   10527 |   10629     7082 |  14262   4664   8398
+
+## Summary (t clustered by notice day; IS n = 0, so no bar can be tested)
+set                  cell   n(days) gross  slip  fund    net      t  median    SR   years(net)
+VAL main (n 7)       H5      7( 7)   5197   196  50.2   5029   3.08    3525  1.17  2023:+11402(1) 2024:+3967(6)
+VAL main (n 7)       H5x15   7( 7)   5197   196  50.2   4920   3.05    3438  1.15  2023:+11223(1) 2024:+3870(6)
+VAL main (n 7)       H10     7( 7)   4216   190  50.2   4054   2.90    2427  1.09  2023:+10906(1) 2024:+2912(6)
+VAL main (n 7)       H2      7( 7)   6532   200  50.2   6360   3.29    4465  1.24  2023:+11480(1) 2024:+5507(6)
+VAL main (n 7)       H30     7( 7)   2806   183  50.2   2652   2.68    1869  1.01  2023:+7113(1) 2024:+1909(6)
+VAL main (n 7)       H5-5m   7( 7)   3979   187   0.0   3770   2.90    1804  1.10  2023:+9085(1) 2024:+2885(6)
+VAL main (n 7)       U5      7( 7)   5140   196  49.1   4982   3.04    3441  1.15  2023:+11413(1) 2024:+3910(6)
+VAL main (n 7)       U10     7( 7)   4158   190  49.1   4006   2.84    2402  1.07  2023:+10917(1) 2024:+2854(6)
+VAL main without ME  H5      6( 6)   5908   208  41.7   5720   3.27    4104  1.34  2023:+11402(1) 2024:+4584(5)
+VAL main without ME  H5x15   6( 6)   5908   208  41.7   5605   3.25    4023  1.32  2023:+11223(1) 2024:+4482(5)
+VAL main without ME  H10     6( 6)   4791   201  41.7   4610   3.03    3154  1.24  2023:+10906(1) 2024:+3351(5)
+VAL main without ME  H2      6( 6)   7429   213  41.7   7235   3.55    6440  1.45  2023:+11480(1) 2024:+6386(5)
+VAL main without ME  H30     6( 6)   3393   194  41.7   3219   3.35    2570  1.37  2023:+7113(1) 2024:+2440(5)
+VAL main without ME  H5-5m   6( 6)   4424   204   0.0   4198   2.89    2283  1.18  2023:+9085(1) 2024:+3221(5)
+VAL main without ME  U5      6( 6)   5860   208  40.8   5682   3.24    4092  1.32  2023:+11413(1) 2024:+4535(5)
+VAL main without ME  U10     6( 6)   4742   201  40.8   4570   2.98    3171  1.22  2023:+10917(1) 2024:+3301(5)
+
+## Random benchmark (1000 draw sets, same coin / day(s), gross; percentile of the event gross mean)
+  H5 VAL main (n 7)       n 7 event gross    5197  random mean    -91  beats 100.0 %
+  H5 VAL main without ME  n 6 event gross    5908  random mean     93  beats 100.0 %
+  U5 VAL main (n 7)       n 7 event gross    5140  random mean    -41  beats 100.0 %
+  U5 VAL main without ME  n 6 event gross    5860  random mean     93  beats 100.0 %
+
+## Power (A2 arithmetic: SR per trade (VAL) x sqrt(n_HOLD))
+  n_HOLD at the 2022-24 pace (7 / 3 yr x 1.83 yr) = 4.3: power 2.41; SR needed 1.45
+  info, 2024 pace (6 / yr): n_HOLD 11.0: power 3.87; SR needed 0.90
+  capacity: taker-buy alt notional 1 s after N + 5 s median $39,433, 5 s $112,236

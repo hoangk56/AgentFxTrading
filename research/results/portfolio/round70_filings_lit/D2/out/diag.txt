@@ -1,0 +1,24 @@
+IS BTC  ON L 1.5: capital 1.33 N  net  20.07  excess  19.77 t  6.70 SR  7.50  excess by year {2020: 13.83, 2021: 25.76}
+IS ETH  ON L 1.5: capital 1.33 N  net  28.68  excess  28.38 t  7.80 SR  9.58  excess by year {2020: 24.43, 2021: 32.4}
+IS BOTH ON L 1.5: capital 1.33 N  net  24.37  excess  24.07 t  7.47 SR  9.20  excess by year {2020: 19.13, 2021: 29.08}
+IS BTC  ON L 2.0: capital 1.00 N  net  17.99  excess  17.76 t  7.05 SR  6.36  excess by year {2020: 13.29, 2021: 22.29}
+IS ETH  ON L 2.0: capital 1.00 N  net  27.41  excess  27.19 t  8.70 SR  9.46  excess by year {2020: 24.74, 2021: 29.71}
+IS BOTH ON L 2.0: capital 1.00 N  net  22.70  excess  22.47 t  8.24 SR  8.57  excess by year {2020: 19.01, 2021: 26.0}
+IS BTC  ON L 3.0: capital 0.67 N  net  15.71  excess  15.56 t  6.48 SR  4.66  excess by year {2020: 10.7, 2021: 20.46}
+IS ETH  ON L 3.0: capital 0.67 N  net  24.26  excess  24.11 t  8.70 SR  8.19  excess by year {2020: 22.71, 2021: 25.58}
+IS BOTH ON L 3.0: capital 0.67 N  net  19.99  excess  19.84 t  8.12 SR  6.84  excess by year {2020: 16.71, 2021: 23.02}
+IS mean DFF by year (%): {2020: 0.37, 2021: 0.08}
+IS BTC by year %/yr: pure gap fB-fD {2020: 7.99, 2021: 14.09}  Binance funding {2020: 17.23, 2021: 30.6}
+IS ETH by year %/yr: pure gap fB-fD {2020: 21.18, 2021: 20.21}  Binance funding {2020: 27.44, 2021: 37.51}
+VAL BTC  ON L 1.5: capital 1.33 N  net   6.33  excess   1.05 t  1.38 SR  0.98  excess by year {2022: 2.14, 2023: -0.46, 2024: 1.48}
+VAL ETH  ON L 1.5: capital 1.33 N  net   6.09  excess   0.82 t  0.96 SR  0.72  excess by year {2022: -0.13, 2023: -0.87, 2024: 3.46}
+VAL BOTH ON L 1.5: capital 1.33 N  net   6.21  excess   0.93 t  1.21 SR  0.91  excess by year {2022: 1.0, 2023: -0.67, 2024: 2.47}
+VAL BTC  ON L 2.0: capital 1.00 N  net   5.30  excess   1.35 t  1.71 SR  1.20  excess by year {2022: 3.2, 2023: -0.43, 2024: 1.28}
+VAL ETH  ON L 2.0: capital 1.00 N  net   5.34  excess   1.39 t  1.68 SR  1.16  excess by year {2022: 1.36, 2023: -0.59, 2024: 3.4}
+VAL BOTH ON L 2.0: capital 1.00 N  net   5.32  excess   1.37 t  1.83 SR  1.30  excess by year {2022: 2.28, 2023: -0.51, 2024: 2.34}
+VAL BTC  ON L 3.0: capital 0.67 N  net   4.22  excess   1.59 t  2.06 SR  1.39  excess by year {2022: 4.2, 2023: -0.13, 2024: 0.69}
+VAL ETH  ON L 3.0: capital 0.67 N  net   4.62  excess   1.98 t  2.49 SR  1.66  excess by year {2022: 2.73, 2023: -0.16, 2024: 3.39}
+VAL BOTH ON L 3.0: capital 0.67 N  net   4.42  excess   1.79 t  2.46 SR  1.68  excess by year {2022: 3.47, 2023: -0.14, 2024: 2.04}
+VAL mean DFF by year (%): {2022: 1.69, 2023: 5.03, 2024: 5.14}
+VAL BTC by year %/yr: pure gap fB-fD {2022: 6.43, 2023: 1.01, 2024: 1.62}  Binance funding {2022: 4.16, 2023: 7.89, 2024: 11.89}
+VAL ETH by year %/yr: pure gap fB-fD {2022: 6.86, 2023: 0.36, 2024: 4.55}  Binance funding {2022: 0.79, 2023: 8.28, 2024: 12.93}

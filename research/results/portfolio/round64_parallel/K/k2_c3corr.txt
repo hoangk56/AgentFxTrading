@@ -1,0 +1,4 @@
+H24 IS days 731 K2 active days 9 corr -0.002
+H24 VAL days 1096 K2 active days 29 corr -0.007
+H72 IS days 731 K2 active days 9 corr -0.003
+H72 VAL days 1096 K2 active days 29 corr -0.034

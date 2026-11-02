@@ -1,0 +1,8 @@
+runup>=0.10 H24 IS n 3401 gross -78 bp t -2.57 median +146
+runup>=0.10 H24 VAL n 5261 gross -33 bp t -1.39 median +134
+runup>=0.10 H72 IS n 2366 gross -179 bp t -2.96 median +161
+runup>=0.10 H72 VAL n 3914 gross -81 bp t -2.26 median +176
+runup>=0.20 H24 IS n 972 gross -184 bp t -2.40 median +185
+runup>=0.20 H24 VAL n 1182 gross -131 bp t -2.76 median +167
+runup>=0.20 H72 IS n 778 gross -293 bp t -2.29 median +259
+runup>=0.20 H72 VAL n 972 gross -180 bp t -2.43 median +261

@@ -1,0 +1,31 @@
+BTC-L IS: real gross +106.9; random means (20000 books) mean -0.8 sd 12.4 p99 +28.9 max +43.3; z 8.7
+BTC-L VAL: real gross +102.1; random means (20000 books) mean -2.2 sd 19.0 p99 +47.4 max +82.6; z 5.5
+   BTC-L IS lead >= 30 min: n 3 net +274.5 t +0.86
+   BTC-L IS lead < 30 min: n 6 net -21.4 t -1.94
+   BTC-L VAL lead < 120 min: n 13 net +41.9 t +1.97
+   BTC-L VAL lead >= 120 min: n 19 net +91.1 t +3.51
+   BTC-L VAL 2022-23: n 12 net +101.5 t +2.82
+   BTC-L VAL 2024: n 20 net +52.8 t +2.85
+BTC-L1H IS: real gross +120.4; random means (20000 books) mean -3.8 sd 26.7 p99 +56.4 max +99.3; z 4.6
+BTC-L1H VAL: real gross +91.4; random means (20000 books) mean -0.6 sd 19.8 p99 +48.2 max +98.3; z 4.6
+   BTC-L1H IS lead >= 30 min: n 3 net +253.8 t +1.02
+   BTC-L1H IS lead < 30 min: n 6 net +9.6 t +0.49
+   BTC-L1H VAL lead < 120 min: n 13 net +9.7 t +0.61
+   BTC-L1H VAL lead >= 120 min: n 19 net +94.7 t +3.60
+   BTC-L1H VAL 2022-23: n 12 net +105.3 t +2.86
+   BTC-L1H VAL 2024: n 20 net +33.1 t +1.91
+LOW-L IS: real gross +45.2; random means (20000 books) mean -0.7 sd 11.9 p99 +29.6 max +45.7; z 3.8
+LOW-L VAL: real gross +63.3; random means (20000 books) mean +4.2 sd 11.3 p99 +31.7 max +55.3; z 5.2
+   LOW-L IS lead >= 30 min: n 3 net +91.7 t +1.20
+   LOW-L IS lead < 30 min: n 6 net -31.2 t -4.25
+   LOW-L VAL lead < 120 min: n 13 net -4.6 t -0.40
+   LOW-L VAL lead >= 120 min: n 19 net +47.6 t +3.45
+   LOW-L VAL 2022-23: n 12 net +44.4 t +2.00
+   LOW-L VAL 2024: n 20 net +15.6 t +1.60
+
+BTC hedge VAL gross path at fractions of the lead entry -> L (mean bp):
+0.25: +28 | 0.50: +40 | 0.75: +70 | 1.00: +102
+C3 corr BTC-L IS: days 731 active 9 overlap 4 corr -0.008
+C3 corr BTC-L VAL: days 1096 active 32 overlap 8 corr -0.020
+C3 corr BTC-L1H IS: days 731 active 9 overlap 4 corr -0.007
+C3 corr BTC-L1H VAL: days 1096 active 32 overlap 8 corr -0.019

@@ -1,0 +1,1 @@
+oa_R1.json	https://api.openalex.org/works?search=retail%20investors%20cryptocurrency%20order%20flow%20returns&filter=from_publication_date:2025-01-01&per-page=25&select=id,doi,display_name,publication_year,abstract_inverted_index,primary_location

@@ -1,0 +1,80 @@
+BTC missing marks (2nd half) FD/FB/S: 0 0 1
+ETH missing marks (2nd half) FD/FB/S: 0 0 1
+
+== Funding by year (annualised %/yr): Binance stamps sum, Deribit interest_1h sum, gap; share Binance stamps == 0.0001, share Deribit hours == 0
+  BTC 2020: Binance  17.23  Deribit   9.23  gap   7.99  | B@0.01%  50.5%  D==0  12.8%
+  BTC 2021: Binance  30.60  Deribit  16.51  gap  14.09  | B@0.01%  43.1%  D==0   8.3%
+  BTC 2022: Binance   4.16  Deribit  -2.26  gap   6.43  | B@0.01%  30.8%  D==0  37.1%
+  BTC 2023: Binance   7.89  Deribit   6.88  gap   1.01  | B@0.01%  38.5%  D==0  23.0%
+  BTC 2024: Binance  11.89  Deribit  10.27  gap   1.62  | B@0.01%  42.1%  D==0   7.2%
+  ETH 2020: Binance  27.44  Deribit   6.26  gap  21.18  | B@0.01%  56.8%  D==0   5.9%
+  ETH 2021: Binance  37.51  Deribit  17.30  gap  20.21  | B@0.01%  44.8%  D==0   9.5%
+  ETH 2022: Binance   0.79  Deribit  -6.08  gap   6.86  | B@0.01%  25.8%  D==0  25.0%
+  ETH 2023: Binance   8.28  Deribit   7.92  gap   0.36  | B@0.01%  37.3%  D==0  19.6%
+  ETH 2024: Binance  12.93  Deribit   8.38  gap   4.55  | B@0.01%  39.6%  D==0   6.1%
+
+== Cells (net %/yr on N, NW t lag 10, annual Sharpe; excess over DFF on capital C = N at L 2)
+IS BTC  ON: net  17.99  vol  2.79  t  7.11  SR  6.44  maxdd  -1.53 | excess(C=N)  17.76 t  7.05 | excess(C=2/3N)  17.84 t  7.07 | excess dep-only  17.76 t  7.05 | x1.5  17.64 late  17.99 | on  100%  rebal 26 transfers 17 liq-days 1
+      years {2020: 13.66, 2021: 22.37}  decomposition %/yr: Binance funding received 24.84  Deribit funding paid 6.09  price -0.05  costs 0.71  | pure gap fB-fD while on 11.04
+      pure pair (USD-stable Deribit collateral, descriptive): net  12.52 t  4.86 SR  2.64 | Binance funding  24.16 Deribit funding paid  12.86 price   1.22 | excess(C=N)  12.29 t  4.79
+      liquidation-check days (date, Binance loss/N, Deribit loss/N): [('2020-03-12', np.float64(0.003), np.float64(0.429))]
+IS BTC  F7: net  14.53  vol  2.94  t  5.60  SR  4.95  maxdd  -1.53 | excess(C=N)  14.31 t  5.52 | excess(C=2/3N)  14.38 t  5.55 | excess dep-only  14.36 t  5.55 | x1.5  12.47 late  14.79 | on   81%  rebal 19 transfers 18 liq-days 1
+      years {2020: 11.15, 2021: 17.95}  decomposition %/yr: Binance funding received 20.44  Deribit funding paid 1.83  price 0.03  costs 4.12  | pure gap fB-fD while on 10.91
+      pure pair (USD-stable Deribit collateral, descriptive): net   8.78 t  3.37 SR  1.88 | Binance funding  20.08 Deribit funding paid   8.95 price  -2.35 | excess(C=N)   8.55 t  3.30
+      liquidation-check days (date, Binance loss/N, Deribit loss/N): [('2020-03-12', np.float64(0.004), np.float64(0.429))]
+IS ETH  ON: net  27.41  vol  2.87  t  8.75  SR  9.54  maxdd  -1.03 | excess(C=N)  27.19 t  8.70 | excess(C=2/3N)  27.26 t  8.72 | excess dep-only  27.19 t  8.70 | x1.5  26.91 late  27.41 | on  100%  rebal 37 transfers 29 liq-days 4
+      years {2020: 25.11, 2021: 29.79}  decomposition %/yr: Binance funding received 34.56  Deribit funding paid 5.45  price -0.7  costs 0.99  | pure gap fB-fD while on 20.70
+      pure pair (USD-stable Deribit collateral, descriptive): net  22.33 t  7.75 SR  5.41 | Binance funding  33.05 Deribit funding paid  11.81 price   1.09 | excess(C=N)  22.11 t  7.68
+      liquidation-check days (date, Binance loss/N, Deribit loss/N): [('2020-03-12', np.float64(0.005), np.float64(0.489)), ('2020-03-13', np.float64(2.027), np.float64(0.18)), ('2021-01-03', np.float64(0.319), np.float64(0.008)), ('2021-05-19', np.float64(0.018), np.float64(0.465))]
+IS ETH  F7: net  25.28  vol  2.87  t  8.03  SR  8.80  maxdd  -1.03 | excess(C=N)  25.05 t  7.97 | excess(C=2/3N)  25.13 t  7.99 | excess dep-only  25.07 t  7.99 | x1.5  24.02 late  24.32 | on   93%  rebal 33 transfers 27 liq-days 3
+      years {2020: 22.6, 2021: 28.03}  decomposition %/yr: Binance funding received 31.21  Deribit funding paid 3.15  price -0.26  costs 2.52  | pure gap fB-fD while on 20.05
+      pure pair (USD-stable Deribit collateral, descriptive): net  20.44 t  6.79 SR  4.99 | Binance funding  30.05 Deribit funding paid   9.51 price  -0.10 | excess(C=N)  20.21 t  6.73
+      liquidation-check days (date, Binance loss/N, Deribit loss/N): [('2020-03-12', np.float64(0.005), np.float64(0.489)), ('2020-03-13', np.float64(2.027), np.float64(0.18)), ('2021-05-19', np.float64(0.02), np.float64(0.465))]
+IS BOTH ON: net  22.70  vol  2.62  t  8.30  SR  8.65  maxdd  -1.28 | excess(C=N)  22.47 t  8.24 | excess(C=2/3N)  22.55 t  8.26 | excess dep-only  22.47 t  8.24 | x1.5  22.28 late  22.70 | on  100%  rebal 63 transfers 46 liq-days 5
+      years {2020: 19.38, 2021: 26.08}  decomposition %/yr: Binance funding received 29.7  Deribit funding paid 5.77  price -0.38  costs 0.85  | pure gap fB-fD while on 15.87
+      liquidation-check days (date, Binance loss/N, Deribit loss/N): [('2020-03-12', np.float64(0.003), np.float64(0.429)), ('2020-03-12', np.float64(0.005), np.float64(0.489)), ('2020-03-13', np.float64(2.027), np.float64(0.18)), ('2021-01-03', np.float64(0.319), np.float64(0.008)), ('2021-05-19', np.float64(0.018), np.float64(0.465))]
+IS BOTH F7: net  19.91  vol  2.63  t  7.30  SR  7.56  maxdd  -1.28 | excess(C=N)  19.68 t  7.23 | excess(C=2/3N)  19.75 t  7.25 | excess dep-only  19.72 t  7.25 | x1.5  18.25 late  19.55 | on   87%  rebal 52 transfers 45 liq-days 4
+      years {2020: 16.88, 2021: 22.99}  decomposition %/yr: Binance funding received 25.83  Deribit funding paid 2.49  price -0.11  costs 3.32  | pure gap fB-fD while on 14.85
+      liquidation-check days (date, Binance loss/N, Deribit loss/N): [('2020-03-12', np.float64(0.004), np.float64(0.429)), ('2020-03-12', np.float64(0.005), np.float64(0.489)), ('2020-03-13', np.float64(2.027), np.float64(0.18)), ('2021-05-19', np.float64(0.02), np.float64(0.465))]
+VAL BTC  ON: net   5.30  vol  1.12  t  6.79  SR  4.75  maxdd  -0.84 | excess(C=N)   1.35 t  1.71 | excess(C=2/3N)   2.67 t  3.41 | excess dep-only   1.35 t  1.71 | x1.5   5.11 late   5.30 | on  100%  rebal 17 transfers 13 liq-days 0
+      years {2022: 4.89, 2023: 4.59, 2024: 6.44}  decomposition %/yr: Binance funding received 8.28  Deribit funding paid 2.31  price -0.29  costs 0.37  | pure gap fB-fD while on 3.02
+      pure pair (USD-stable Deribit collateral, descriptive): net   4.01 t  3.62 SR  2.29 | Binance funding   8.04 Deribit funding paid   4.96 price   0.93 | excess(C=N)   0.06 t  0.05
+VAL BTC  F7: net   3.20  vol  1.18  t  3.52  SR  2.72  maxdd  -1.65 | excess(C=N)  -0.75 t -0.84 | excess(C=2/3N)   0.57 t  0.63 | excess dep-only   0.68 t  0.78 | x1.5   1.36 late   2.91 | on   70%  rebal 11 transfers 9 liq-days 0
+      years {2022: 2.16, 2023: 2.82, 2024: 4.64}  decomposition %/yr: Binance funding received 5.32  Deribit funding paid -1.29  price 0.28  costs 3.69  | pure gap fB-fD while on 3.75
+      pure pair (USD-stable Deribit collateral, descriptive): net   1.05 t  0.93 SR  0.63 | Binance funding   5.29 Deribit funding paid   1.47 price  -2.76 | excess(C=N)  -2.90 t -2.46
+VAL ETH  ON: net   5.34  vol  1.20  t  6.39  SR  4.44  maxdd  -0.99 | excess(C=N)   1.39 t  1.68 | excess(C=2/3N)   2.71 t  3.28 | excess dep-only   1.39 t  1.68 | x1.5   5.07 late   5.34 | on  100%  rebal 31 transfers 27 liq-days 0
+      years {2022: 3.05, 2023: 4.44, 2024: 8.55}  decomposition %/yr: Binance funding received 7.62  Deribit funding paid 1.61  price -0.13  costs 0.54  | pure gap fB-fD while on 3.93
+      pure pair (USD-stable Deribit collateral, descriptive): net   4.94 t  4.07 SR  2.52 | Binance funding   7.38 Deribit funding paid   3.40 price   0.96 | excess(C=N)   0.98 t  0.79
+VAL ETH  F7: net   3.78  vol  1.25  t  4.07  SR  3.03  maxdd  -1.56 | excess(C=N)  -0.18 t -0.20 | excess(C=2/3N)   1.14 t  1.24 | excess dep-only   1.00 t  1.10 | x1.5   2.34 late   3.71 | on   74%  rebal 22 transfers 22 liq-days 0
+      years {2022: 1.47, 2023: 2.71, 2024: 7.15}  decomposition %/yr: Binance funding received 4.76  Deribit funding paid -1.75  price 0.14  costs 2.88  | pure gap fB-fD while on 4.78
+      pure pair (USD-stable Deribit collateral, descriptive): net   3.50 t  2.97 SR  1.88 | Binance funding   4.78 Deribit funding paid  -0.06 price  -1.34 | excess(C=N)  -0.45 t -0.38
+VAL BOTH ON: net   5.32  vol  1.05  t  7.11  SR  5.07  maxdd  -0.65 | excess(C=N)   1.37 t  1.83 | excess(C=2/3N)   2.69 t  3.61 | excess dep-only   1.37 t  1.83 | x1.5   5.09 late   5.32 | on  100%  rebal 48 transfers 40 liq-days 0
+      years {2022: 3.97, 2023: 4.51, 2024: 7.5}  decomposition %/yr: Binance funding received 7.95  Deribit funding paid 1.96  price -0.21  costs 0.46  | pure gap fB-fD while on 3.47
+VAL BOTH F7: net   3.49  vol  1.04  t  4.35  SR  3.36  maxdd  -1.16 | excess(C=N)  -0.47 t -0.59 | excess(C=2/3N)   0.85 t  1.08 | excess dep-only   0.84 t  1.09 | x1.5   1.85 late   3.31 | on   72%  rebal 33 transfers 31 liq-days 0
+      years {2022: 1.82, 2023: 2.76, 2024: 5.9}  decomposition %/yr: Binance funding received 5.04  Deribit funding paid -1.52  price 0.21  costs 3.28  | pure gap fB-fD while on 3.88
+
+== Random benchmark F7: circular shifts of the on/off mask (500 draws, offsets 30..n-30)
+  IS BTC F7: SR  4.95  random median  4.21  beaten  98.2%
+  IS ETH F7: SR  8.80  random median  8.40  beaten  98.8%
+  IS BOTH F7: SR  7.56  random median  7.04  beaten  95.0%
+  IS BTC ON: random side = minus the book; beaten iff net > 0: yes
+  IS ETH ON: random side = minus the book; beaten iff net > 0: yes
+  IS BOTH ON: random side = minus the book; beaten iff net > 0: yes
+  VAL BTC F7: SR  2.72  random median  0.85  beaten 100.0%
+  VAL ETH F7: SR  3.03  random median  1.73  beaten 100.0%
+  VAL BOTH F7: SR  3.36  random median  1.52  beaten 100.0%
+  VAL BTC ON: random side = minus the book; beaten iff net > 0: yes
+  VAL ETH ON: random side = minus the book; beaten iff net > 0: yes
+  VAL BOTH ON: random side = minus the book; beaten iff net > 0: yes
+
+== Max-over-cells null on IS t (joint stationary bootstrap of demeaned series, mean block 20, 1,000 draws)
+  IS: best cell t 8.75; null max t 95th pct 2.42; p 0.000
+  VAL: best cell t 7.11; null max t 95th pct 2.48; p 0.000
+
+== HOLD power at VAL size (VAL annual Sharpe x sqrt(667/365)), raw and excess over cash (C = N)
+  BTC  ON: raw  6.42  excess  1.63
+  BTC  F7: raw  3.68  excess -0.86
+  ETH  ON: raw  6.00  excess  1.56
+  ETH  F7: raw  4.09  excess -0.20
+  BOTH ON: raw  6.85  excess  1.76
+  BOTH F7: raw  4.54  excess -0.61

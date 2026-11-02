@@ -1,0 +1,15 @@
+gate current: max-over-100h rate median 12.3%/yr, share > 40%: 0.28, n 69
+bybit: VAL events whose coin is borrowable/margin today 105/333 (32%)
+okx: VAL events whose coin is borrowable/margin today 151/333 (45%)
+gate: VAL events whose coin is borrowable/margin today 231/333 (69%)
+kucoin: VAL events whose coin is borrowable/margin today 120/333 (36%)
+binance_flag: VAL events whose coin is borrowable/margin today 237/333 (71%)
+current covered by Bybit or Gate: 69 / 75
+TRB {'bybit': False, 'okx': True, 'gate': True, 'kucoin': True, 'binance_flag': True}
+UMA {'bybit': True, 'okx': True, 'gate': True, 'kucoin': False, 'binance_flag': True}
+OM {'bybit': False, 'okx': False, 'gate': False, 'kucoin': False, 'binance_flag': False}
+REN {'bybit': False, 'okx': False, 'gate': False, 'kucoin': False, 'binance_flag': False}
+FTT {'bybit': False, 'okx': False, 'gate': True, 'kucoin': False, 'binance_flag': True}
+SRM {'bybit': False, 'okx': False, 'gate': False, 'kucoin': False, 'binance_flag': False}
+LUNA {'bybit': True, 'okx': True, 'gate': False, 'kucoin': True, 'binance_flag': True}
+PEOPLE {'bybit': True, 'okx': True, 'gate': True, 'kucoin': False, 'binance_flag': True}

@@ -1,0 +1,15 @@
+sampled 300: ok 279, fail 12, nospot 6, gap 3
+IS: ok 125, fail 6, nospot 0, gap 2
+VAL: ok 154, fail 6, nospot 6, gap 1
+fail XLMUSDT 2021-05-19 13:44 perp -764 bp spot +6 bp
+fail CKBUSDT 2024-02-28 17:32 perp -655 bp spot +154 bp
+fail TRBUSDT 2023-09-16 16:00 perp -301 bp spot -81 bp
+fail AVAXUSDT 2021-05-19 13:43 perp +648 bp spot +51 bp
+fail FTTUSDT 2022-11-10 06:00 perp -433 bp spot -141 bp
+fail MKRUSDT 2021-05-19 13:49 perp -1417 bp spot +6 bp
+fail XTZUSDT 2021-05-19 13:49 perp -1132 bp spot +88 bp
+fail KSMUSDT 2021-04-18 03:20 perp -333 bp spot -64 bp
+fail FTTUSDT 2022-11-09 20:28 perp +665 bp spot +212 bp
+fail MATICUSDT 2021-03-02 02:00 perp +353 bp spot -13 bp
+fail FTTUSDT 2022-11-13 20:50 perp -329 bp spot -72 bp
+fail TRBUSDT 2023-09-14 01:11 perp +322 bp spot +136 bp

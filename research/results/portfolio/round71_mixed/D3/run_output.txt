@@ -1,0 +1,35 @@
+Descriptive (holding-day funding, bp per day; valid days only)
+ BTC 2020 days 364  Binance 4.74  OKX 2.59  gap 2.15 bp/day  (OKX reconstructed share 1.00)
+ BTC 2021 days 365  Binance 8.39  OKX 6.46  gap 1.93 bp/day  (OKX reconstructed share 0.92)
+ BTC 2022 days 365  Binance 1.14  OKX 0.44  gap 0.70 bp/day  (OKX reconstructed share 0.04)
+ BTC 2023 days 365  Binance 2.16  OKX 1.66  gap 0.51 bp/day  (OKX reconstructed share 0.00)
+ BTC 2024 days 366  Binance 3.26  OKX 3.14  gap 0.12 bp/day  (OKX reconstructed share 0.00)
+ ETH 2020 days 364  Binance 7.54  OKX 4.09  gap 3.45 bp/day  (OKX reconstructed share 1.00)
+ ETH 2021 days 365  Binance 10.28  OKX 6.49  gap 3.80 bp/day  (OKX reconstructed share 0.92)
+ ETH 2022 days 365  Binance 0.22  OKX -1.14  gap 1.36 bp/day  (OKX reconstructed share 0.04)
+ ETH 2023 days 365  Binance 2.27  OKX 1.80  gap 0.47 bp/day  (OKX reconstructed share 0.00)
+ ETH 2024 days 366  Binance 3.54  OKX 3.34  gap 0.20 bp/day  (OKX reconstructed share 0.00)
+ BTC 2020 Binance stamps at 0.0001: 0.50 (n 1098); OKX realised stamps within 0.5 bp of 0.0001: n/a
+ BTC 2021 Binance stamps at 0.0001: 0.43 (n 1095); OKX realised stamps within 0.5 bp of 0.0001: 0.24 (n 90)
+ BTC 2022 Binance stamps at 0.0001: 0.31 (n 1095); OKX realised stamps within 0.5 bp of 0.0001: 0.32 (n 1047)
+ BTC 2023 Binance stamps at 0.0001: 0.39 (n 1095); OKX realised stamps within 0.5 bp of 0.0001: 0.32 (n 1095)
+ BTC 2024 Binance stamps at 0.0001: 0.42 (n 1098); OKX realised stamps within 0.5 bp of 0.0001: 0.34 (n 1098)
+BTC-ON   IS  n  729 net  +7.31% vol  2.22% Sh +3.29 t_nw +4.82 | ex.cash L2  +7.09% t +4.65 L3  +7.16% | x1.5  +7.08% late  +7.32% | fund  +7.68 price  +0.12 cost  0.46 xfer 0.03 %/yr | on 1.00 liq 2 | rnd 1.00 | yrs 2020:+7.85 2021:+6.77
+BTC-ON   VAL n 1096 net  +1.27% vol  0.66% Sh +1.92 t_nw +3.11 | ex.cash L2  -2.69% t -5.61 L3  -1.37% | x1.5  +1.15% late  +1.24% | fund  +1.52 price  -0.01 cost  0.23 xfer 0.01 %/yr | on 1.00 liq 0 | rnd 1.00 | yrs 2022:+2.20 2023:+1.64 2024:-0.03
+BTC-F7   IS  n  729 net  +5.67% vol  2.10% Sh +2.70 t_nw +3.68 | ex.cash L2  +5.45% t +3.52 L3  +5.53% | x1.5  +4.44% late  +5.17% | fund  +7.77 price  +0.38 cost  2.47 xfer 0.01 %/yr | on 0.81 liq 1 | rnd 0.99 | yrs 2020:+7.43 2021:+3.92
+BTC-F7   VAL n 1096 net  -2.32% vol  0.86% Sh -2.70 t_nw -3.45 | ex.cash L2  -6.27% t -8.73 L3  -4.95% | x1.5  -4.29% late  -2.36% | fund  +1.69 price  -0.05 cost  3.95 xfer 0.00 %/yr | on 0.74 liq 0 | rnd 0.98 | yrs 2022:-1.64 2023:-2.42 2024:-2.88
+ETH-ON   IS  n  729 net +12.69% vol  2.52% Sh +5.04 t_nw +6.60 | ex.cash L2 +12.47% t +6.51 L3 +12.54% | x1.5 +12.37% late +12.71% | fund +13.82 price  -0.44 cost  0.64 xfer 0.05 %/yr | on 1.00 liq 2 | rnd 1.00 | yrs 2020:+11.55 2021:+13.83
+ETH-ON   VAL n 1096 net  +2.02% vol  0.74% Sh +2.74 t_nw +4.19 | ex.cash L2  -1.94% t -3.34 L3  -0.62% | x1.5  +1.86% late  +2.03% | fund  +2.41 price  -0.06 cost  0.32 xfer 0.01 %/yr | on 1.00 liq 0 | rnd 1.00 | yrs 2022:+4.39 2023:+1.41 2024:+0.26
+ETH-F7   IS  n  729 net  +9.89% vol  2.42% Sh +4.09 t_nw +5.01 | ex.cash L2  +9.67% t +4.90 L3  +9.74% | x1.5  +8.37% late  +9.48% | fund +13.17 price  -0.20 cost  3.05 xfer 0.03 %/yr | on 0.84 liq 2 | rnd 0.99 | yrs 2020:+8.29 2021:+11.49
+ETH-F7   VAL n 1096 net  -1.21% vol  0.90% Sh -1.33 t_nw -1.73 | ex.cash L2  -5.16% t -6.56 L3  -3.84% | x1.5  -3.09% late  -1.36% | fund  +2.52 price  +0.06 cost  3.78 xfer 0.01 %/yr | on 0.73 liq 0 | rnd 1.00 | yrs 2022:+2.14 2023:-3.34 2024:-2.41
+B10-ON   IS  n  729 net  +5.09% vol 12.82% Sh +0.40 t_nw +1.06 | ex.cash L2  +4.87% t +1.02 L3  +4.94% | x1.5  +4.51% late  +3.98% | fund +10.66 price  -4.28 cost  1.16 xfer 0.13 %/yr | on 1.00 liq 21 | rnd 1.00 | yrs 2020:+1.47 2021:+8.70
+B10-ON   VAL n 1096 net  +0.24% vol  0.67% Sh +0.36 t_nw +0.49 | ex.cash L2  -3.71% t -6.63 L3  -2.40% | x1.5  -0.05% late  +0.23% | fund  +0.99 price  -0.15 cost  0.58 xfer 0.02 %/yr | on 1.00 liq 10 | rnd 1.00 | yrs 2022:+0.80 2023:+0.46 2024:-0.54
+B10-F7   IS  n  729 net  +7.04% vol  6.36% Sh +1.11 t_nw +2.01 | ex.cash L2  +6.81% t +1.94 L3  +6.89% | x1.5  +4.50% late  +7.10% | fund +13.54 price  -1.40 cost  5.07 xfer 0.03 %/yr | on 0.64 liq 27 | rnd 0.98 | yrs 2020:+8.41 2021:+5.66
+B10-F7   VAL n 1096 net  -3.49% vol  0.46% Sh -7.52 t_nw -8.48 | ex.cash L2  -7.44% t -14.59 L3  -6.12% | x1.5  -6.17% late  -3.60% | fund  +1.96 price  -0.07 cost  5.37 xfer 0.01 %/yr | on 0.63 liq 4 | rnd 1.00 | yrs 2022:-1.63 2023:-4.50 2024:-4.32
+max-over-cells IS null (common window 729 days): 95th pct of max t = 2.28
+  B10-F7 IS t (common window) +2.01  p_max 0.084
+  B10-ON IS t (common window) +1.06  p_max 0.430
+  BTC-F7 IS t (common window) +3.68  p_max 0.001
+  BTC-ON IS t (common window) +4.82  p_max 0.000
+  ETH-F7 IS t (common window) +5.01  p_max 0.000
+  ETH-ON IS t (common window) +6.60  p_max 0.000

@@ -1,0 +1,175 @@
+# Round 66 N0 results (bp unless noted). HOLD never loaded.
+events in list 376, analysed 376, missing 0: []
+analysed by era/group: {('IS', 'OLD'): 88, ('IS', 'NEW'): 39, ('VAL', 'OLD'): 111, ('VAL', 'NEW'): 138}
+launch clock (UTC hh:mm, top): [('07:00', 51), ('12:30', 32), ('03:30', 30), ('12:00', 28), ('14:30', 19), ('14:00', 18), ('13:00', 15), ('02:30', 13)]
+second-of-minute of T0: share < 5 s 0.29  median trades in first minute 330.0
+
+## Path ln(P(T0 + tau) / P0), bp: median [q25, q75] (mean |.|), by era x group
+  IS NEW n 39
+    +    5s       53 [  -100,    382]  mean|.|    371
+    +   30s       -9 [  -239,    574]  mean|.|    521
+    +   60s       93 [  -201,    531]  mean|.|    499
+    +  120s       71 [  -174,    562]  mean|.|    524
+    +  300s       71 [  -244,    583]  mean|.|    567
+    +  600s       28 [  -258,    633]  mean|.|    568
+    +  900s       37 [  -223,    517]  mean|.|    560
+    + 1800s       65 [  -224,    465]  mean|.|    590
+    + 3600s      113 [  -202,    637]  mean|.|    736
+    + 7200s       22 [  -452,    727]  mean|.|    886
+    half-spread in the first second after T0: median 34, mean 199
+  IS OLD n 88
+    +    5s        0 [   -21,     53]  mean|.|    216
+    +   30s        0 [   -91,    213]  mean|.|    317
+    +   60s        4 [   -92,    231]  mean|.|    311
+    +  120s       13 [  -109,    325]  mean|.|    317
+    +  300s       29 [  -164,    392]  mean|.|    339
+    +  600s       43 [  -141,    310]  mean|.|    358
+    +  900s       59 [  -144,    302]  mean|.|    378
+    + 1800s       45 [  -138,    413]  mean|.|    389
+    + 3600s       77 [  -205,    469]  mean|.|    455
+    + 7200s       33 [  -265,    457]  mean|.|    525
+    half-spread in the first second after T0: median 50, mean 137
+  IS ALL n 127
+    +    5s        0 [   -33,    169]  mean|.|    263
+    +   30s        0 [  -131,    313]  mean|.|    379
+    +   60s        8 [  -107,    339]  mean|.|    369
+    +  120s       18 [  -120,    378]  mean|.|    381
+    +  300s       37 [  -195,    416]  mean|.|    409
+    +  600s       41 [  -209,    399]  mean|.|    423
+    +  900s       48 [  -184,    331]  mean|.|    434
+    + 1800s       61 [  -179,    443]  mean|.|    451
+    + 3600s      109 [  -202,    526]  mean|.|    541
+    + 7200s       32 [  -302,    520]  mean|.|    636
+    half-spread in the first second after T0: median 43, mean 156
+  VAL NEW n 138
+    +    5s      -17 [  -205,     35]  mean|.|    318
+    +   30s       -6 [  -210,    142]  mean|.|    343
+    +   60s        8 [  -225,    186]  mean|.|    369
+    +  120s       13 [  -228,    195]  mean|.|    389
+    +  300s       19 [  -252,    252]  mean|.|    435
+    +  600s        1 [  -331,    282]  mean|.|    479
+    +  900s      -37 [  -409,    342]  mean|.|    503
+    + 1800s      -28 [  -435,    366]  mean|.|    550
+    + 3600s      -92 [  -529,    502]  mean|.|    676
+    + 7200s      -66 [  -748,    765]  mean|.|    920
+    half-spread in the first second after T0: median 25, mean 72
+  VAL OLD n 111
+    +    5s        0 [  -160,     75]  mean|.|    191
+    +   30s      -25 [  -151,    142]  mean|.|    461
+    +   60s      -21 [  -226,    216]  mean|.|    496
+    +  120s       15 [  -214,    193]  mean|.|    504
+    +  300s      -35 [  -262,    248]  mean|.|    534
+    +  600s       -2 [  -269,    295]  mean|.|    555
+    +  900s       42 [  -276,    292]  mean|.|    567
+    + 1800s      -30 [  -286,    400]  mean|.|    644
+    + 3600s      -34 [  -399,    373]  mean|.|    691
+    + 7200s      -39 [  -448,    375]  mean|.|    728
+    half-spread in the first second after T0: median 27, mean 69
+  VAL ALL n 249
+    +    5s        0 [  -200,     64]  mean|.|    262
+    +   30s      -14 [  -195,    142]  mean|.|    396
+    +   60s        8 [  -230,    198]  mean|.|    426
+    +  120s       15 [  -228,    194]  mean|.|    440
+    +  300s      -25 [  -256,    249]  mean|.|    479
+    +  600s       -1 [  -293,    289]  mean|.|    513
+    +  900s        3 [  -311,    314]  mean|.|    532
+    + 1800s      -30 [  -332,    373]  mean|.|    592
+    + 3600s      -58 [  -438,    426]  mean|.|    683
+    + 7200s      -65 [  -537,    547]  mean|.|    835
+    half-spread in the first second after T0: median 27, mean 71
+
+## Share of events with |m_k| >= X (by era x group)
+  IS NEW n 39: k1 X5: 0.41 (up 0.31)  k1 X10: 0.13 (up 0.10)  k5 X5: 0.38 (up 0.28)  k5 X10: 0.15 (up 0.13)
+  IS OLD n 88: k1 X5: 0.22 (up 0.12)  k1 X10: 0.05 (up 0.03)  k5 X5: 0.25 (up 0.17)  k5 X10: 0.06 (up 0.05)
+  VAL NEW n 138: k1 X5: 0.24 (up 0.12)  k1 X10: 0.05 (up 0.04)  k5 X5: 0.28 (up 0.14)  k5 X10: 0.07 (up 0.05)
+  VAL OLD n 111: k1 X5: 0.17 (up 0.11)  k1 X10: 0.04 (up 0.03)  k5 X5: 0.18 (up 0.13)  k5 X10: 0.05 (up 0.04)
+
+## Cells: net bp / trade (fees 22 bp + measured alt half-spread at entry and exit + real funding); t clustered by launch day
+cell              era  n(days) gross  hs_e  hs_x  fund    net      t  median   SR   x1.5   late  real$10k d0     d10   up / down (n)        years                         power
+NEW-k1-X5         IS    16( 15)   -194    14     9     1   -237  -1.50   -110 -0.37   -260   -224   -233   -287   -201   -116(12) /  -602(4)  2020:-280(12) 2021:-109(4)       nan
+                       worst -1555 best 822 median entry half-spread 4.6
+NEW-k1-X5         VAL   33( 27)   -120     9     4     1   -154  -1.23   -290 -0.20   -172   -179   -132   -155   -162   -123(17) /  -187(16)  2022:-1637(1) 2023:-93(10) 2024:-115(22) -0.89
+                       worst -1637 best 1516 median entry half-spread 7.2
+NEW-k1-X10        IS     5(  4)   -282    29     7   -15   -355  -0.97   -221 -0.44   -384   -195   -270   -387   -228    -55(4) / -1555(1)  2020:-100(3) 2021:-737(2)        nan
+                       worst -1555 best 579 median entry half-spread 4.9
+NEW-k1-X10        VAL    7(  6)   -138    12     4     2   -174  -0.49   -290 -0.19   -193   -254   -139   -179   -154   -193(6) /   -62(1)  2023:-1605(1) 2024:+64(6)      -0.39
+                       worst -1605 best 1516 median entry half-spread 4.9
+NEW-k5-X5         IS    15( 14)    -50    13     9     2    -93  -0.65     42 -0.17   -115    -69    -82    -84    -75    +57(11) /  -504(4)  2020:-172(11) 2021:+127(4)       nan
+                       worst -1202 best 888 median entry half-spread 2.9
+NEW-k5-X5         VAL   39( 30)     18     5     4    -1    -14  -0.13    -19 -0.02    -29     18      3     -8     -3    +12(19) /   -38(20)  2022:-309(1) 2023:+90(13) 2024:-56(25) -0.10
+                       worst -1386 best 1682 median entry half-spread 4.9
+NEW-k5-X10        IS     6(  5)   -201    27     8     2   -255  -1.10   -241 -0.46   -284   -250   -225   -231   -213    -66(5) / -1202(1)  2020:-201(4) 2021:-364(2)        nan
+                       worst -1202 best 474 median entry half-spread 4.8
+NEW-k5-X10        VAL   10(  8)     76     4     4    -1     45   0.19     18  0.06     31     81     58     40     59     +4(7) /  +141(3)  2023:-635(2) 2024:+215(8)       0.14
+                       worst -1379 best 1682 median entry half-spread 2.0
+OLD-k1-X5         IS    19( 19)    -44    18     8    -1    -92  -1.12    -90 -0.26   -116   -114   -116    -70    -81   -102(11) /   -78(8)  2020:+148(8) 2021:-267(11)       nan
+                       worst -973 best 311 median entry half-spread 10.2
+OLD-k1-X5         VAL   19( 19)    115    10     3     0     79   0.82     80  0.19     62     15     86     87     84    +41(12) /  +146(7)  2022:+74(2) 2023:+18(10) 2024:+168(7)  0.64
+                       worst -1050 best 879 median entry half-spread 8.9
+OLD-k1-X10        IS     4(  4)     89     8     3    -3     53   0.31    195  0.15     37      2      1     63     67    -15(3) /  +258(1)  2020:+266(2) 2021:-160(2)        nan
+                       worst -452 best 274 median entry half-spread 9.3
+OLD-k1-X10        VAL    4(  4)    209    10     5    -2    170   0.68     26  0.34    151    251    189    159    203   +253(3) /   -80(1)  2023:+314(2) 2024:+26(2)        0.53
+                       worst -252 best 879 median entry half-spread 9.9
+OLD-k5-X5         IS    22( 22)   -102    10     8    -2   -144  -2.00   -133 -0.43   -164   -112   -137   -147   -129   -141(15) /  -149(7)  2020:-74(10) 2021:-202(12)       nan
+                       worst -976 best 438 median entry half-spread 6.3
+OLD-k5-X5         VAL   20( 20)     43     7     3    -0     10   0.09    101  0.02     -6      1     16      6     18    -65(14) /  +184(6)  2022:-97(1) 2023:+19(13) 2024:+9(6)  0.07
+                       worst -1024 best 928 median entry half-spread 6.3
+OLD-k5-X10        IS     5(  5)    -49     2     8    -4    -85  -0.73    -64 -0.33   -101    -51    -56    -91    -52    -90(4) /   -64(1)  2020:-128(3) 2021:-20(2)         nan
+                       worst -472 best 152 median entry half-spread 1.3
+OLD-k5-X10        VAL    6(  6)    178    10     5    -1    139   0.73    146  0.30    120    165    152    140    199    +98(4) /  +221(2)  2023:+274(3) 2024:+4(3)         0.57
+                       worst -382 best 928 median entry half-spread 9.4
+ALL-k1-X5         IS    35( 33)   -113    16     8     0   -158  -1.93    -90 -0.32   -181   -164   -171   -169   -136   -109(23) /  -253(12)  2020:-109(20) 2021:-225(15)      nan
+                       worst -1555 best 822 median entry half-spread 7.7
+ALL-k1-X5         VAL   52( 45)    -34     9     4     0    -69  -0.79    -87 -0.10    -87   -108    -52    -67    -72    -55(29) /   -86(23)  2022:-497(3) 2023:-38(20) 2024:-46(29) -0.58
+                       worst -1637 best 1516 median entry half-spread 7.9
+ALL-k1-X10        IS     9(  8)   -117    20     5   -10   -174  -0.80     81 -0.27   -197   -107   -169   -187    -97    -38(7) /  -649(2)  2020:+46(5) 2021:-449(4)         nan
+                       worst -1555 best 579 median entry half-spread 8.4
+ALL-k1-X10        VAL   11( 10)    -12    11     4     1    -49  -0.21    -80 -0.06    -68    -70    -20    -56    -24    -44(9) /   -71(2)  2023:-326(3) 2024:+55(8)       -0.16
+                       worst -1605 best 1516 median entry half-spread 6.7
+ALL-k5-X5         IS    37( 35)    -81    12     8    -0   -123  -1.86   -119 -0.29   -144    -95   -114   -122   -107    -57(26) /  -278(11)  2020:-126(21) 2021:-120(16)      nan
+                       worst -1202 best 888 median entry half-spread 5.2
+ALL-k5-X5         VAL   59( 49)     26     6     4    -1     -6  -0.07      7 -0.01    -22     12      7     -3      4    -21(33) /   +13(26)  2022:-203(2) 2023:+54(26) 2024:-44(31) -0.06
+                       worst -1386 best 1682 median entry half-spread 5.0
+ALL-k5-X10        IS    11( 10)   -132    16     8    -1   -178  -1.34   -187 -0.41   -201   -160   -157   -168   -140    -77(9) /  -633(2)  2020:-170(7) 2021:-192(4)        nan
+                       worst -1202 best 474 median entry half-spread 1.9
+ALL-k5-X10        VAL   16( 14)    114     6     4    -1     80   0.50     68  0.12     64    113     94     78    112    +38(11) /  +173(5)  2023:-89(5) 2024:+158(11)       0.38
+                       worst -1379 best 1682 median entry half-spread 5.1
+
+## Side-signed path after the entry (bp, ln(P(te + tau) / P_entry) x side): median / mean, declared cells pooled over groups
+  k1 X5 IS n 35: +1s 0/-16  +5s -15/-29  +30s -6/1  +60s -7/-1  +300s -2/-47  +600s -22/-31  +1800s 12/-36  +3538s -29/-107
+  k1 X5 VAL n 52: +1s 0/-3  +5s 0/-4  +30s 7/13  +60s 26/36  +300s -14/-16  +600s 53/13  +1800s 5/37  +3538s -51/-35
+  k1 X10 IS n 9: +1s 3/-32  +5s -31/-57  +30s -27/-77  +60s -16/-63  +300s -2/-93  +600s -26/-61  +1800s 264/134  +3538s 228/-75
+  k1 X10 VAL n 11: +1s 0/-10  +5s 0/-19  +30s -2/-54  +60s -41/20  +300s -135/-193  +600s 2/-3  +1800s -35/65  +3538s -49/25
+  k5 X5 IS n 37: +1s 0/3  +5s -2/-7  +30s -13/-17  +60s -43/-24  +300s -31/-10  +600s -36/-34  +1800s -16/-35  +3298s -69/-85
+  k5 X5 VAL n 59: +1s 1/4  +5s 2/0  +30s 9/-7  +60s -5/-15  +300s 5/7  +600s 36/49  +1800s 22/60  +3298s 15/24
+  k5 X10 IS n 11: +1s 0/9  +5s -8/-21  +30s -18/-50  +60s -25/1  +300s 16/62  +600s 179/41  +1800s -74/-56  +3298s -68/-101
+  k5 X10 VAL n 16: +1s 0/2  +5s -4/-3  +30s -34/-28  +60s -48/-25  +300s -29/44  +600s 122/148  +1800s 38/160  +3298s 89/133
+
+## Random benchmark: same coin, days 2-30, same-sign k-min 1m move >= X, fade to u + 60 min, BTC-hedged gross (1000 draw sets)
+  pools missing / small (k, X): {(1, 0.05, 'small'): 80, (1, 0.1, 'small'): 19, (5, 0.1, 'small'): 20, (5, 0.05, 'small'): 22}
+  NEW-k1-X5         IS   n  16 event gross    -194  random mean     47  beats   3.8 %
+  NEW-k1-X5         VAL  n  33 event gross    -120  random mean     99  beats   0.1 %
+  NEW-k1-X10        IS   n   5 event gross    -282  random mean    531  beats   1.5 %
+  NEW-k1-X10        VAL  n   7 event gross    -138  random mean    106  beats   4.1 %
+  NEW-k5-X5         IS   n  15 event gross     -50  random mean    102  beats   7.2 %
+  NEW-k5-X5         VAL  n  39 event gross      18  random mean     93  beats  13.4 %
+  NEW-k5-X10        IS   n   6 event gross    -201  random mean    252  beats   5.4 %
+  NEW-k5-X10        VAL  n  10 event gross      76  random mean    301  beats   1.5 %
+  OLD-k1-X5         IS   n  19 event gross     -44  random mean    241  beats   4.1 %
+  OLD-k1-X5         VAL  n  19 event gross     115  random mean     53  beats  74.5 %
+  OLD-k1-X10        IS   n   4 event gross      89  random mean     67  beats  53.5 %
+  OLD-k1-X10        VAL  n   4 event gross     209  random mean     22  beats  84.5 %
+  OLD-k5-X5         IS   n  22 event gross    -102  random mean    220  beats   0.1 %
+  OLD-k5-X5         VAL  n  20 event gross      43  random mean     92  beats  33.4 %
+  OLD-k5-X10        IS   n   5 event gross     -49  random mean    343  beats   4.0 %
+  OLD-k5-X10        VAL  n   6 event gross     178  random mean     59  beats  69.2 %
+  ALL-k1-X5         IS   n  35 event gross    -113  random mean    159  beats   0.7 %
+  ALL-k1-X5         VAL  n  52 event gross     -34  random mean     84  beats   2.4 %
+  ALL-k1-X10        IS   n   9 event gross    -117  random mean    349  beats   3.8 %
+  ALL-k1-X10        VAL  n  11 event gross     -12  random mean     72  beats  23.7 %
+  ALL-k5-X5         IS   n  37 event gross     -81  random mean    173  beats   0.0 %
+  ALL-k5-X5         VAL  n  59 event gross      26  random mean     92  beats  11.8 %
+  ALL-k5-X10        IS   n  11 event gross    -132  random mean    290  beats   0.6 %
+  ALL-k5-X10        VAL  n  16 event gross     114  random mean    215  beats  14.9 %
+  IS: max-over-8-cells net t: real 0.31; random null median 1.95, p95 4.07
+  VAL: max-over-8-cells net t: real 0.82; random null median 2.20, p95 4.30

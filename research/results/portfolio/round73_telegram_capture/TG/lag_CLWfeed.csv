@@ -1,0 +1,43 @@
+nid,N_utc,tickers,post,lag,text,title
+6303,2026-06-19T09:00:02,RE,13,2,UPBIT Listing Notice – $RE  Detected (UTC): 2026-06-19T09:00:03.386615Z (µs precision)  Te,"리(RE) 신규 거래지원 안내 (KRW, BTC, USDT 마켓)"
+6314,2026-06-23T02:00:00,ARX,14,2,UPBIT Listing Notice – $ARX  Detected (UTC): 2026-06-23T02:00:01.261995Z (µs precision)  T,"아르키움(ARX) 신규 거래지원 안내 (KRW, BTC, USDT 마켓)"
+6335,2026-06-30T03:00:55,AI,22,1,UPBIT Listing Notice – $AI  Detected (UTC): 2026-06-30T03:00:55.886042Z (µs precision)  Te,"젠신(AI) 신규 거래지원 안내 (KRW, BTC, USDT 마켓)"
+6360,2026-07-07T04:39:48,OPG,32,2,UPBIT Listing Notice – $OPG  Detected (UTC): 2026-07-07T04:39:48.812782Z (µs precision)  T,오픈그라디언트(OPG) KRW 마켓 디지털 자산 추가
+6383,2026-07-14T05:15:02,DRV,34,4,UPBIT Listing Notice – $DRV  Detected (UTC): 2026-07-14T05:15:05.091342Z (µs precision)  T,"디라이브(DRV) 신규 거래지원 안내 (KRW, BTC, USDT 마켓)"
+6404,2026-07-23T02:15:02,O,41,2,UPBIT Listing Notice – $O  Detected (UTC): 2026-07-23T02:15:03.429346Z (µs precision)  Tel,"오원익스체인지(O) 신규 거래지원 안내 (KRW, BTC, USDT 마켓)"
+6411,2026-07-25T07:40:28,MORPHO,46,1,UPBIT Listing Notice – $MORPHO  Detected (UTC): 2026-07-25T07:40:28.832153Z (µs precision),모포(MORPHO) KRW 마켓 디지털 자산 추가
+6414,2026-07-26T00:56:01,EUL,47,2,UPBIT Listing Notice – $EUL  Detected (UTC): 2026-07-26T00:56:02.610833Z (µs precision)  T,오일러(EUL) KRW 마켓 디지털 자산 추가 (거래지원 개시 시점 변경 안내)
+6415,2026-07-27T03:22:21,GEOD,49,1,UPBIT Listing Notice – $GEOD  Detected (UTC): 2026-07-27T03:22:21.843352Z (µs precision)  ,"지오드넷(GEOD) 신규 거래지원 안내 (KRW, BTC, USDT 마켓) (거래지원 개시 시점 추가 변경 안내)"
+6418,2026-07-28T02:34:20,RLUSD,51,2,UPBIT Listing Notice – $RLUSD  Detected (UTC): 2026-07-28T02:34:21.068529Z (µs precision) ,"리플유에스디(RLUSD) 신규 거래지원 안내 (KRW, BTC, USDT 마켓)"
+6420,2026-07-29T04:16:28,META2,53,2,UPBIT Listing Notice – $META2  Detected (UTC): 2026-07-29T04:16:29.267493Z (µs precision) ,"메타다오(META2) 신규 거래지원 안내 (KRW, BTC, USDT 마켓) (거래지원 개시 시점 변경 안내)"
+6424,2026-07-30T01:10:14,USDG,57,2,UPBIT Listing Notice – $USDG  Detected (UTC): 2026-07-30T01:10:15.294934Z (µs precision)  ,"글로벌달러(USDG) 신규 거래지원 안내 (KRW, BTC, USDT 마켓) (거래지원 개시 시점 추가 변경 안내)"
+6428,2026-07-31T05:00:07,CFX,59,2,UPBIT Listing Notice – $CFX  Detected (UTC): 2026-07-31T05:00:08.409801Z (µs precision)  T,"콘플럭스(CFX) 신규 거래지원 안내 (KRW, BTC, USDT 마켓) (거래지원 개시 시점 안내)"
+6437,2026-08-04T04:30:17,HOME,63,2,UPBIT Listing Notice – $HOME  Detected (UTC): 2026-08-04T04:30:17.670787Z (µs precision)  ,"디파이앱(HOME) 신규 거래지원 안내 (KRW, USDT 마켓)"
+6440,2026-08-04T10:00:04,QUID,65,2,UPBIT Listing Notice – $QUID  Detected (UTC): 2026-08-04T10:00:05.270070Z (µs precision)  ,"스퀴드(QUID) 신규 거래지원 안내 (KRW, BTC, USDT 마켓) (매도 최저가 기준 가격 안내)"
+6441,2026-08-05T04:42:31,GRVT,67,2,UPBIT Listing Notice – $GRVT  Detected (UTC): 2026-08-05T04:42:32.202635Z (µs precision)  ,"그래비티토큰(GRVT) 신규 거래지원 안내 (KRW, BTC, USDT 마켓)"
+6446,2026-08-06T01:55:15,CAP,69,1,UPBIT Listing Notice – $CAP  Detected (UTC): 2026-08-06T01:55:15.952605Z (µs precision)  T,"캡(CAP) 신규 거래지원 안내 (KRW, BTC, USDT 마켓)"
+6450,2026-08-07T02:09:45,KMNO,70,1,UPBIT Listing Notice – $KMNO  Detected (UTC): 2026-08-07T02:09:45.690542Z (µs precision)  ,카미노파이낸스(KMNO) KRW 마켓 디지털 자산 추가 (거래지원 개시 시점 추가 변경 안내)
+6451,2026-08-07T02:55:16,BSB,72,2,UPBIT Listing Notice – $BSB  Detected (UTC): 2026-08-07T02:55:17.871568Z (µs precision)  T,"블록스트리트(BSB) 신규 거래지원 안내 (KRW, BTC, USDT 마켓) (거래지원 개시 시점 변경 안내)"
+6463,2026-08-11T02:30:36,DOS,75,1,UPBIT Listing Notice – $DOS  Detected (UTC): 2026-08-11T02:30:36.733406Z (µs precision)  T,"댑오에스(DOS) 신규 거래지원 안내 (KRW, BTC, USDT 마켓) (거래지원 개시 시점 추가 변경 안내)"
+6466,2026-08-12T02:11:38,PROM,78,2,UPBIT Listing Notice – $PROM  Detected (UTC): 2026-08-12T02:11:39.650193Z (µs precision)  ,"프롬(PROM) KRW, USDT 마켓 디지털 자산 추가"
+6490,2026-08-21T02:22:40,CRV,85,4,UPBIT Listing Notice – $CRV  Detected (UTC): 2026-08-21T02:22:41.714552Z (µs precision)  T,"커브(CRV) KRW, USDT 마켓 디지털 자산 추가"
+6503,2026-08-23T01:14:09,FOLD,89,2,UPBIT Listing Notice – $FOLD  Detected (UTC): 2026-08-23T01:14:10.065391Z (µs precision)  ,"인터폴드(FOLD) 신규 거래지원 안내 (KRW, BTC, USDT 마켓)"
+6504,2026-08-24T02:34:42,LIT,91,1,UPBIT Listing Notice – $LIT  Detected (UTC): 2026-08-24T02:34:42.567802Z (µs precision)  T,라이터(LIT) KRW 마켓 디지털 자산 추가
+6518,2026-08-26T10:32:15,NCT,92,3,UPBIT Listing Notice – $NCT  Detected (UTC): 2026-08-26T10:32:16.827904Z (µs precision)  T,폴리스웜(NCT) KRW 마켓 디지털 자산 추가
+6526,2026-08-28T01:49:45,EURC,94,3,UPBIT Listing Notice – $EURC  Detected (UTC): 2026-08-28T01:49:47.136452Z (µs precision)  ,"이유알코인(EURC) 신규 거래지원 안내 (KRW, BTC, USDT 마켓)"
+6555,2026-09-08T03:21:44,CP,105,2,UPBIT Listing Notice – $CP  Detected (UTC): 2026-09-08T03:21:45.253794Z (µs precision)  Te,"클러스터프로토콜(CP) 신규 거래지원 안내 (KRW, BTC, USDT 마켓)"
+6561,2026-09-10T04:40:00,BFC,110,2,UPBIT Listing Notice – $BFC  Detected (UTC): 2026-09-10T04:40:01.537571Z (µs precision)  T,"바이프로스트(BFC) KRW, USDT 마켓 디지털 자산 추가"
+6580,2026-09-17T00:48:01,PYUSD/JPYC,116,2,"UPBIT Listing Notice – $PYUSD, $JPYC  Detected (UTC): 2026-09-17T00:48:02.439330Z (µs prec","페이팔유에스디(PYUSD), 제이피와이코인(JPYC) 신규 거래지원 안내 (KRW, BTC, USDT 마켓) (JPYC 거래지"
+6618,2026-09-28T05:27:04,CASHCAT,125,2,UPBIT Listing Notice – $CASHCAT  Detected (UTC): 2026-09-28T05:27:05.386588Z (µs precision,"캐시캣(CASHCAT) 신규 거래지원 안내 (KRW, BTC, USDT 마켓)"
+6635,2026-10-02T04:37:21,POD,132,2,UPBIT Listing Notice – $POD  Detected (UTC): 2026-10-02T04:37:22.056679Z (µs precision)  T,"돌핀(POD) 신규 거래지원 안내 (KRW, BTC, USDT 마켓)"
+6642,2026-10-06T11:36:26,NMR,137,2,UPBIT Listing Notice – $NMR  Detected (UTC): 2026-10-06T11:36:27.025752Z (µs precision)  T,"뉴메레르(NMR) KRW, USDT 마켓 디지털 자산 추가"
+6644,2026-10-08T02:37:41,PONS,140,1,UPBIT Listing Notice – $PONS  Detected (UTC): 2026-10-08T02:37:41.756720Z (µs precision)  ,"폰즈(PONS) 신규 거래지원 안내 (KRW, BTC, USDT 마켓)"
+6645,2026-10-09T08:06:46,KAIA,145,2,UPBIT Listing Notice – $KAIA  Detected (UTC): 2026-10-09T08:06:47.105183Z (µs precision)  ,"카이아(KAIA) 신규 거래지원 안내 (KRW, BTC, USDT 마켓) (KAIA/BTC 초기 매수 제한 안내)"
+6651,2026-10-12T04:54:09,RSR,148,2,UPBIT Listing Notice – $RSR  Detected (UTC): 2026-10-12T04:54:10.360673Z (µs precision)  T,"리저브라이트(RSR) KRW, USDT 마켓 디지털 자산 추가"
+6653,2026-10-12T10:00:00,GTC,151,2,UPBIT Listing Notice – $GTC  Detected (UTC): 2026-10-12T10:00:01.356768Z (µs precision)  T,"깃코인(GTC) KRW, USDT 마켓 디지털 자산 추가"
+6659,2026-10-15T04:40:00,PUFFER,158,2,UPBIT Listing Notice – $PUFFER  Detected (UTC): 2026-10-15T04:40:01.679823Z (µs precision),퍼퍼(PUFFER) KRW 마켓 디지털 자산 추가
+6675,2026-10-19T07:40:00,CT,164,2,UPBIT Listing Notice – $CT  Detected (UTC): 2026-10-19T07:40:01.159133Z (µs precision)  Te,"콘크리트(CT) 신규 거래지원 안내 (KRW, BTC, USDT 마켓)"
+6680,2026-10-20T09:00:00,MPLX,166,2,UPBIT Listing Notice – $MPLX  Detected (UTC): 2026-10-20T09:00:01.565204Z (µs precision)  ,메타플렉스(MPLX) KRW 마켓 디지털 자산 추가
+6687,2026-10-21T11:00:00,AXIS,169,2,"UPBIT Listing Notice – $AXIS (KRW, BTC, USDT)  Detected (UTC): 2026-10-21T11:00:01.437546Z","액시스로보틱스(AXIS) 신규 거래지원 안내 (KRW, BTC, USDT 마켓) (매도 최저가 기준 가격 안내)"
+6700,2026-10-24T02:35:00,BMT,173,2,UPBIT Listing Notice – $BMT (KRW)  Detected (UTC): 2026-10-24T02:35:01.651130Z (µs precisi,버블맵스(BMT) KRW 마켓 디지털 자산 추가
+6714,2026-10-27T07:30:00,NIL,175,2,UPBIT Listing Notice – $NIL (KRW)  Detected (UTC): 2026-10-27T07:30:01.038328Z (µs precisi,닐리온(NIL) KRW 마켓 디지털 자산 추가

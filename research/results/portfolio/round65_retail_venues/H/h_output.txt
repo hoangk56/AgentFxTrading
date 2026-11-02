@@ -1,0 +1,72 @@
+/Users/hoangbk/00.code_base/105.AgentFxTrading/research/results/portfolio/round65_retail_venues/H/code/stats_h.py:45: RuntimeWarning: Mean of empty slice
+  print("   drop best:", f"{np.delete(v, o[-1]).mean()*1e4:+.0f}", " worst 3:", [(T[i]["coin"], round(NET[i]*1e4)) for i in np.where(w)[0][np.argsort(NET[w])[:3]]],
+/Users/hoangbk/00.code_base/105.AgentFxTrading/research/.venv/lib/python3.14/site-packages/numpy/_core/_methods.py:142: RuntimeWarning: invalid value encountered in scalar divide
+  ret = ret.dtype.type(ret / rcount)
+trades with fills: 99
+
+=== IS ===
+[all] H72 net: n 24 mean +432 t 1.92 median +657 sd 1067 SR 0.405 win 0.79 worst -2339 best +1905 years {2020: (7, 175), 2021: (17, 538)}
+   price: mean +471 median +739
+   fund: mean +4 median -1
+   net_x15: mean +411 median +636   | net_x15: n 24 mean +411 t 1.82 median +636 sd 1067 SR 0.386 win 0.79 worst -2360 best +1884 years {2020: (7, 154), 2021: (17, 517)}
+   net_late5: mean +416 median +622   | net_late5: n 24 mean +416 t 1.79 median +622 sd 1101 SR 0.378 win 0.75 worst -2445 best +1914 years {2020: (7, 183), 2021: (17, 512)}
+   net_late2h: mean +227 median +636   | net_late2h: n 24 mean +227 t 0.73 median +636 sd 1496 SR 0.152 win 0.75 worst -5327 best +1625 years {2020: (7, 175), 2021: (17, 248)}
+   net_h24: mean +497 median +415   | net_h24: n 24 mean +497 t 4.85 median +415 sd 495 SR 1.005 win 0.83 worst -279 best +1748 years {2020: (7, 477), 2021: (17, 505)}
+   runup: mean +546 median +457
+   drop best: +368  worst 3: [('RLC', -2339), ('ONT', -2287), ('DOT', -869)]  best 3: [('SUSHI', 1449), ('CHZ', 1612), ('ALICE', 1905)]
+[joint] H72 net: n 1
+   price: mean -830 median -830
+   fund: mean +3 median +3
+   net_x15: mean -890 median -890   | net_x15: n 1
+   net_late5: mean -896 median -896   | net_late5: n 1
+   net_late2h: mean -813 median -813   | net_late2h: n 1
+   net_h24: mean +195 median +195   | net_h24: n 1
+   runup: mean -630 median -630
+   drop best: +nan  worst 3: [('DOT', -869)]  best 3: [('DOT', -869)]
+[bithumb_only] H72 net: n 23 mean +489 t 2.15 median +662 sd 1053 SR 0.464 win 0.83 worst -2339 best +1905 years {2020: (6, 350), 2021: (17, 538)}
+   price: mean +527 median +801
+   fund: mean +4 median -2
+   net_x15: mean +468 median +641   | net_x15: n 23 mean +468 t 2.06 median +641 sd 1053 SR 0.444 win 0.83 worst -2360 best +1884 years {2020: (6, 329), 2021: (17, 517)}
+   net_late5: mean +473 median +686   | net_late5: n 23 mean +473 t 2.02 median +686 sd 1089 SR 0.434 win 0.78 worst -2445 best +1914 years {2020: (6, 362), 2021: (17, 512)}
+   net_late2h: mean +272 median +644   | net_late2h: n 23 mean +272 t 0.85 median +644 sd 1513 SR 0.180 win 0.78 worst -5327 best +1625 years {2020: (6, 339), 2021: (17, 248)}
+   net_h24: mean +510 median +463   | net_h24: n 23 mean +510 t 4.81 median +463 sd 502 SR 1.017 win 0.83 worst -279 best +1748 years {2020: (6, 524), 2021: (17, 505)}
+   runup: mean +597 median +471
+   drop best: +425  worst 3: [('RLC', -2339), ('ONT', -2287), ('DOGE', -471)]  best 3: [('SUSHI', 1449), ('CHZ', 1612), ('ALICE', 1905)]
+[bithumb_only_upbit_earlier] H72 net: n 7 mean +219 t 0.45 median +492 sd 1275 SR 0.172 win 0.71 worst -2287 best +1612 years {2020: (3, -381), 2021: (4, 669)}
+[bithumb_only_upbit_later] H72 net: n 5 mean +610 t 2.56 median +662 sd 533 SR 1.144 win 0.80 worst -48 best +1343 years {2020: (2, 1085), 2021: (3, 294)}
+[bithumb_only_upbit_none] H72 net: n 11 mean +606 t 1.78 median +917 sd 1130 SR 0.536 win 0.91 worst -2339 best +1905 years {2020: (1, 1071), 2021: (10, 559)}
+[joint_upbit_first] H72 net: n 1
+
+=== VAL ===
+[all] H72 net: n 75 mean -75 t -0.31 median +246 sd 2111 SR -0.036 win 0.64 worst -13391 best +2659 years {2022: (6, 119), 2023: (34, -459), 2024: (35, 264)}
+   price: mean -8 median +290
+   fund: mean -25 median +0
+   net_x15: mean -96 median +225   | net_x15: n 75 mean -96 t -0.40 median +225 sd 2111 SR -0.046 win 0.64 worst -13412 best +2638 years {2022: (6, 98), 2023: (34, -480), 2024: (35, 243)}
+   net_late5: mean -82 median +247   | net_late5: n 75 mean -82 t -0.34 median +247 sd 2128 SR -0.039 win 0.65 worst -13522 best +2665 years {2022: (6, 116), 2023: (34, -460), 2024: (35, 251)}
+   net_late2h: mean -97 median +152   | net_late2h: n 75 mean -97 t -0.40 median +152 sd 2134 SR -0.046 win 0.59 worst -14272 best +2805 years {2022: (6, 131), 2023: (34, -487), 2024: (35, 241)}
+   net_h24: mean -89 median +222   | net_h24: n 75 mean -89 t -0.54 median +222 sd 1410 SR -0.063 win 0.63 worst -9161 best +1342 years {2022: (6, 95), 2023: (34, -403), 2024: (35, 184)}
+   runup: mean +591 median +425
+   drop best: -112  worst 3: [('CYBER', -13391), ('BIGTIME', -9072), ('METIS', -1976)]  best 3: [('ARK', 2193), ('PONKE', 2541), ('MOODENG', 2659)]
+[joint] H72 net: n 2 mean +1382 t 8.90 median +1382 sd 219 SR 6.296 win 1.00 worst +1226 best +1537 years {2022: (1, 1226), 2024: (1, 1537)}
+   price: mean +1425 median +1425
+   fund: mean -1 median -1
+   net_x15: mean +1361 median +1361   | net_x15: n 2 mean +1361 t 8.77 median +1361 sd 219 SR 6.201 win 1.00 worst +1205 best +1516 years {2022: (1, 1205), 2024: (1, 1516)}
+   net_late5: mean +1428 median +1428   | net_late5: n 2 mean +1428 t 5.94 median +1428 sd 340 SR 4.203 win 1.00 worst +1188 best +1669 years {2022: (1, 1188), 2024: (1, 1669)}
+   net_late2h: mean +1640 median +1640   | net_late2h: n 2 mean +1640 t 10.11 median +1640 sd 229 SR 7.148 win 1.00 worst +1478 best +1803 years {2022: (1, 1478), 2024: (1, 1803)}
+   net_h24: mean +223 median +223   | net_h24: n 2 mean +223 t 0.38 median +223 sd 831 SR 0.268 win 0.50 worst -365 best +810 years {2022: (1, -365), 2024: (1, 810)}
+   runup: mean +675 median +675
+   drop best: +1226  worst 3: [('GMT', 1226), ('PYTH', 1537)]  best 3: [('GMT', 1226), ('PYTH', 1537)]
+[bithumb_only] H72 net: n 73 mean -115 t -0.47 median +215 sd 2126 SR -0.054 win 0.63 worst -13391 best +2659 years {2022: (5, -102), 2023: (34, -459), 2024: (34, 227)}
+   price: mean -47 median +271
+   fund: mean -26 median +0
+   net_x15: mean -136 median +194   | net_x15: n 73 mean -136 t -0.55 median +194 sd 2126 SR -0.064 win 0.63 worst -13412 best +2638 years {2022: (5, -123), 2023: (34, -480), 2024: (34, 206)}
+   net_late5: mean -123 median +203   | net_late5: n 73 mean -123 t -0.50 median +203 sd 2142 SR -0.058 win 0.64 worst -13522 best +2665 years {2022: (5, -99), 2023: (34, -460), 2024: (34, 209)}
+   net_late2h: mean -145 median +140   | net_late2h: n 73 mean -145 t -0.58 median +140 sd 2143 SR -0.068 win 0.58 worst -14272 best +2805 years {2022: (5, -138), 2023: (34, -487), 2024: (34, 195)}
+   net_h24: mean -98 median +222   | net_h24: n 73 mean -98 t -0.58 median +222 sd 1425 SR -0.069 win 0.63 worst -9161 best +1342 years {2022: (5, 187), 2023: (34, -403), 2024: (34, 165)}
+   runup: mean +588 median +425
+   drop best: -154  worst 3: [('CYBER', -13391), ('BIGTIME', -9072), ('METIS', -1976)]  best 3: [('ARK', 2193), ('PONKE', 2541), ('MOODENG', 2659)]
+[bithumb_only_upbit_earlier] H72 net: n 19 mean +435 t 3.33 median +340 sd 582 SR 0.746 win 0.84 worst -374 best +2193 years {2022: (2, 167), 2023: (7, 388), 2024: (10, 521)}
+[bithumb_only_upbit_later] H72 net: n 10 mean -1040 t -1.12 median -168 sd 2949 SR -0.353 win 0.50 worst -9072 best +1120 years {2022: (1, -1508), 2023: (7, -1375), 2024: (2, 364)}
+[bithumb_only_upbit_none] H72 net: n 44 mean -142 t -0.41 median +247 sd 2296 SR -0.062 win 0.57 worst -13391 best +2659 years {2022: (2, 332), 2023: (20, -435), 2024: (22, 81)}
+[joint_bithumb_first] H72 net: n 1
+[joint_same_hour] H72 net: n 1

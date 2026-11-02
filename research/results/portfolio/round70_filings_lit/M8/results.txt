@@ -1,0 +1,78 @@
+# Stream M8 results (python -I; HOLD never loaded: every event T < 2025-01-01, files <= 2024-12-31)
+events FRESH 49 by year {2020: 2, 2021: 13, 2022: 5, 2023: 6, 2024: 23} STALE 3
+
+## path FRESH IS n=15 (bp vs last trade <= T-60s) offsets s: [-540, -300, -60, -30, -10, -5, 0, 1, 2, 3, 5, 10, 30, 60, 120, 300, 600, 1800, 3600]
+median [2.3, 2.4, 0.0, 0.0, -4.3, 2.8, 0.0, 0.0, -1.5, 2.2, 1.9, -3.3, 7.2, 2.4, 2.8, 0.9, 13.9, -5.7, -25.6]
+mean   [0.2, 1.4, 0.0, 1.2, -1.9, -0.2, -0.4, -0.1, -0.2, 0.4, 0.6, -0.4, 0.9, 0.4, 1.4, -9.6, -5.3, -20.5, -24.2]
+vs T: mean +5m -9.2 (sd 31.6), +60m -23.9 (sd 85.7); T-9m..T mean -0.6
+trade count / s, ratio to [T-300,T-10]: [T,T+10) median 1.15, [T+10,T+60) median 1.22
+
+## path FRESH VAL n=34 (bp vs last trade <= T-60s) offsets s: [-540, -300, -60, -30, -10, -5, 0, 1, 2, 3, 5, 10, 30, 60, 120, 300, 600, 1800, 3600]
+median [-5.6, -2.5, 0.0, 1.4, 1.5, 1.4, 0.3, 0.6, 0.6, 0.7, 0.4, 1.1, -0.4, 0.6, -0.8, -6.8, -7.0, -7.9, -4.1]
+mean   [-6.1, -4.6, 0.0, 1.4, 1.0, 0.7, 0.4, 0.5, 0.7, 0.8, 0.8, 0.9, -0.2, -0.4, -2.5, -8.5, -13.4, -12.1, -12.4]
+vs T: mean +5m -8.9 (sd 17.3), +60m -12.8 (sd 59.0); T-9m..T mean 6.6
+trade count / s, ratio to [T-300,T-10]: [T,T+10) median 1.08, [T+10,T+60) median 1.03
+
+## path FRESH VAL MSTR n=24 (bp vs last trade <= T-60s) offsets s: [-540, -300, -60, -30, -10, -5, 0, 1, 2, 3, 5, 10, 30, 60, 120, 300, 600, 1800, 3600]
+median [-5.6, -2.5, 0.0, 1.5, 1.5, 0.9, -0.1, -0.1, -0.1, 0.3, 0.4, 1.5, 1.0, 1.8, -1.4, -8.5, -12.2, -27.6, -24.2]
+mean   [-9.4, -4.4, 0.0, 1.3, 1.2, 0.8, 0.3, 0.4, 0.7, 0.9, 1.3, 1.6, 1.0, 0.3, -4.3, -13.5, -22.7, -16.9, -27.1]
+vs T: mean +5m -13.9 (sd 16.8), +60m -27.4 (sd 52.4); T-9m..T mean 9.8
+trade count / s, ratio to [T-300,T-10]: [T,T+10) median 1.03, [T+10,T+60) median 1.09
+
+## path FRESH VAL other n=10 (bp vs last trade <= T-60s) offsets s: [-540, -300, -60, -30, -10, -5, 0, 1, 2, 3, 5, 10, 30, 60, 120, 300, 600, 1800, 3600]
+median [-0.8, -4.7, 0.0, 1.4, 1.7, 1.9, 0.7, 1.0, 1.0, 1.0, 0.0, 0.0, -2.0, -1.3, 4.1, 7.8, 8.0, 3.0, 4.7]
+mean   [1.8, -4.9, 0.0, 1.6, 0.5, 0.4, 0.6, 0.8, 0.8, 0.4, -0.3, -1.0, -3.0, -2.0, 1.7, 3.5, 8.7, -0.7, 22.8]
+vs T: mean +5m 2.9 (sd 11.9), +60m 22.2 (sd 59.0); T-9m..T mean -1.1
+trade count / s, ratio to [T-300,T-10]: [T,T+10) median 1.22, [T+10,T+60) median 0.81
+
+## path FRESH 2024 MSTR n=13 (bp vs last trade <= T-60s) offsets s: [-540, -300, -60, -30, -10, -5, 0, 1, 2, 3, 5, 10, 30, 60, 120, 300, 600, 1800, 3600]
+median [-7.9, -2.9, 0.0, 2.8, 2.1, 2.1, -0.2, -0.2, -0.2, -0.2, -0.1, 2.3, -0.7, 1.1, -6.1, -17.5, -32.7, -34.7, -26.4]
+mean   [-11.6, -2.5, 0.0, 2.0, 1.5, 0.9, -0.3, -0.0, 0.6, 0.6, 1.3, 1.5, -0.1, -0.3, -7.2, -19.9, -30.6, -20.3, -34.0]
+vs T: mean +5m -19.6 (sd 14.5), +60m -33.7 (sd 61.1); T-9m..T mean 11.4
+trade count / s, ratio to [T-300,T-10]: [T,T+10) median 0.75, [T+10,T+60) median 1.09
+
+## path STALE n=3 (bp vs last trade <= T-60s) offsets s: [-540, -300, -60, -30, -10, -5, 0, 1, 2, 3, 5, 10, 30, 60, 120, 300, 600, 1800, 3600]
+median [-8.4, 0.5, 0.0, 3.1, -1.1, -1.1, -1.0, -1.0, -0.6, -0.5, -0.0, -0.0, 4.6, 3.4, -0.3, 9.5, -2.7, -5.4, 1.4]
+mean   [-8.4, 9.4, 0.0, 1.6, -1.7, -2.8, -2.8, -4.1, -3.0, -2.6, -1.5, -0.9, 0.6, -8.3, -13.4, 2.2, 1.0, -13.0, 1.8]
+vs T: mean +5m 5.0 (sd 4.4), +60m 4.6 (sd 14.7); T-9m..T mean 5.6
+trade count / s, ratio to [T-300,T-10]: [T,T+10) median 0.92, [T+10,T+60) median 1.60
+  2020-09-15T12:25:31 MSTR MSTR 16,796 BTC completed 2020-09-14, 8-K next morning path [-27.2, -12.8, 0.0, 3.1, 9.2, 8.3, 8.3, 8.6, 8.4, 8.4, 8.9, 9.2, 10.2, 5.1, -0.3, 12.9, -2.7, -5.4, -7.7]
+  2024-06-06T20:54:10 SMLR SMLR 247 BTC 'as of June 6 we announced', 8-K 16:54 ET path [-8.4, 0.5, 0.0, -2.3, -1.1, -1.1, -1.0, -1.0, -0.6, -0.5, -0.0, -0.0, 4.6, 3.4, 6.8, 9.5, 13.3, 9.0, 11.7]
+  2024-11-12T13:01:01 MSTR MSTR 27,200 BTC announced 2024-11-11 (EDGAR holiday), 8-K 11-12 path [10.4, 40.6, 0.0, 4.0, -13.2, -15.5, -15.7, -19.8, -16.7, -15.6, -13.5, -12.0, -12.9, -33.5, -46.7, -15.9, -7.6, -42.6, 1.4]
+
+## path TSLA10K n=1 (bp vs last trade <= T-60s) offsets s: [-540, -300, -60, -30, -10, -5, 0, 1, 2, 3, 5, 10, 30, 60, 120, 300, 600, 1800, 3600]
+median [1.2, -13.4, 0.0, -4.5, -5.4, -6.3, -7.6, -9.4, -9.8, -9.8, -10.2, -6.3, -9.8, -6.4, -2.9, -26.9, -7.6, 923.1, 1318.3]
+mean   [1.2, -13.4, 0.0, -4.5, -5.4, -6.3, -7.6, -9.4, -9.8, -9.8, -10.2, -6.3, -9.8, -6.4, -2.9, -26.9, -7.6, 923.1, 1318.3]
+vs T: mean +5m -19.3 (sd 0.0), +60m 1327.0 (sd 0.0); T-9m..T mean -8.9
+trade count / s, ratio to [T-300,T-10]: [T,T+10) median 1.26, [T+10,T+60) median 1.12
+  2021-02-08T12:27:23 TSLA Tesla 10-K disclosing $1.5 bn BTC purchase path [1.2, -13.4, 0.0, -4.5, -5.4, -6.3, -7.6, -9.4, -9.8, -9.8, -10.2, -6.3, -9.8, -6.4, -2.9, -26.9, -7.6, 923.1, 1318.3]
+
+## cells (net bp/trade; fee 10 bp + spread + funding; t clustered by day)
+D5-5m IS n 15 (15d) gross -10.8 hs 0.058 fund 0.00 NET -20.9 t -2.51 med -22.6 SR -0.649 x1.5 -25.9 late -20.9 years {2020: -24.7, 2021: -20.3} lag_med_ms 5093 power -6.15
+D5-5m VAL n 34 (29d) gross -9.6 hs 0.020 fund 0.00 NET -19.6 t -6.60 med -17.2 SR -1.013 x1.5 -24.6 late -18.4 years {2022: -9.5, 2023: -25.8, 2024: -20.1} lag_med_ms 5066 power -9.61
+   D5-5m VAL MSTR-only n 24 NET -25.3 t -6.60
+   D5-5m VAL others n 10 NET -5.9 t -1.35
+D5-60m IS n 15 (15d) gross -24.8 hs 0.053 fund 0.00 NET -34.9 t -1.51 med -29.9 SR -0.391 x1.5 -39.9 late -35.4 years {2020: -18.3, 2021: -37.4} lag_med_ms 5093 power -3.71
+D5-60m VAL n 34 (29d) gross -12.8 hs 0.020 fund 0.00 NET -22.8 t -2.08 med -16.9 SR -0.376 x1.5 -27.8 late -21.7 years {2022: -13.2, 2023: -43.5, 2024: -19.5} lag_med_ms 5066 power -3.57
+   D5-60m VAL MSTR-only n 24 NET -38.2 t -3.52
+   D5-60m VAL others n 10 NET 14.1 t 0.69
+D30-5m IS n 15 (15d) gross -10.8 hs 0.100 fund 0.00 NET -20.9 t -2.90 med -22.3 SR -0.748 x1.5 -25.9 late -20.5 years {2020: -27.0, 2021: -19.9} lag_med_ms 30039 power -7.10
+D30-5m VAL n 34 (29d) gross -8.4 hs 0.020 fund 0.00 NET -18.4 t -6.50 med -18.5 SR -0.966 x1.5 -23.4 late -20.9 years {2022: -13.6, 2023: -24.5, 2024: -17.9} lag_med_ms 30080 power -9.17
+   D30-5m VAL MSTR-only n 24 NET -25.6 t -7.65
+   D30-5m VAL others n 10 NET -1.3 t -0.29
+D30-60m IS n 15 (15d) gross -25.3 hs 0.058 fund 0.00 NET -35.4 t -1.64 med -36.0 SR -0.423 x1.5 -40.4 late -33.5 years {2020: -21.5, 2021: -37.5} lag_med_ms 30039 power -4.01
+D30-60m VAL n 34 (29d) gross -11.7 hs 0.020 fund 0.00 NET -21.7 t -2.05 med -19.4 SR -0.366 x1.5 -26.8 late -21.7 years {2022: -16.3, 2023: -42.4, 2024: -17.5} lag_med_ms 30080 power -3.47
+   D30-60m VAL MSTR-only n 24 NET -37.2 t -3.52
+   D30-60m VAL others n 10 NET 15.2 t 0.77
+
+## random same-day entries (1,000 sets; gross from 1 s last price; outside [T-2h, T+2h])
+D5-5m IS obs gross (1s series) -10.3; random mean 0.1 p95 13.0; obs beats 8 %
+D5-5m VAL obs gross (1s series) -9.7; random mean -0.2 p95 4.3; obs beats 0 %
+D5-60m IS obs gross (1s series) -24.5; random mean 2.6 p95 37.5; obs beats 9 %
+D5-60m VAL obs gross (1s series) -13.1; random mean -2.4 p95 13.6; obs beats 15 %
+D30-5m IS obs gross (1s series) -11.5; random mean 0.4 p95 13.2; obs beats 4 %
+D30-5m VAL obs gross (1s series) -8.4; random mean -0.1 p95 5.1; obs beats 0 %
+D30-60m IS obs gross (1s series) -25.7; random mean 2.4 p95 34.6; obs beats 9 %
+D30-60m VAL obs gross (1s series) -11.7; random mean -3.0 p95 12.7; obs beats 19 %
+max-over-4-cells null IS: 95 % quantile of max net t = 1.49
+max-over-4-cells null VAL: 95 % quantile of max net t = 0.57

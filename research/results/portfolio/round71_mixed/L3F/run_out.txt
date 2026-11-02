@@ -1,0 +1,49 @@
+symbols ever in top 10 (+BTC/ETH): 90
+missing data: []
+pool stamps: 55039
+C1 ('u2', 5)
+  net            IS n 83 mean +66.2 bp t 1.05 sr 0.129 | VAL n 209 mean -94.4 bp t -2.82 sr -0.224
+  x1.5           IS n 83 mean +60.2 bp t 0.95 sr 0.117 | VAL n 209 mean -100.4 bp t -3.00 sr -0.239
+  late           IS n 83 mean +65.0 bp t 1.01 sr 0.123 | VAL n 209 mean -88.3 bp t -2.84 sr -0.222
+  long_upday     IS n 43 mean +117.0 bp t 1.44 sr 0.245 | VAL n 94 mean -41.9 bp t -1.14 sr -0.129
+  short_downday  IS n 40 mean +11.5 bp t 0.12 sr 0.021 | VAL n 115 mean -137.3 bp t -2.59 sr -0.285
+  gross_price    IS n 83 mean +78.9 bp t 1.25 sr 0.154 | VAL n 209 mean -82.3 bp t -2.46 sr -0.195
+  funding        IS n 83 mean -0.7 bp t -1.19 sr -0.130 | VAL n 209 mean -0.1 bp t -0.13 sr -0.009
+  years {'2020': (-72.53633595285083, 37), '2021': (177.72348836299406, 46), '2022': (-113.86276558492682, 106), '2023': (-79.6604064381663, 52), '2024': (-68.93974555031895, 51)}
+  IS rand_entry 96.2% shuffled 90.7% t_nw_book 1.218491092593275
+  VAL rand_entry 0.0% shuffled 0.6% t_nw_book -2.388503372119639
+C2 ('u2', 10)
+  net            IS n 107 mean +53.8 bp t 0.96 sr 0.105 | VAL n 303 mean -67.3 bp t -2.95 sr -0.172
+  x1.5           IS n 107 mean +47.8 bp t 0.85 sr 0.093 | VAL n 303 mean -73.3 bp t -3.21 sr -0.188
+  late           IS n 107 mean +47.3 bp t 0.83 sr 0.091 | VAL n 303 mean -65.4 bp t -3.00 sr -0.174
+  long_upday     IS n 59 mean +91.3 bp t 1.27 sr 0.182 | VAL n 129 mean -34.3 bp t -1.16 sr -0.107
+  short_downday  IS n 48 mean +7.8 bp t 0.09 sr 0.015 | VAL n 174 mean -91.8 bp t -2.67 sr -0.211
+  gross_price    IS n 107 mean +66.3 bp t 1.18 sr 0.129 | VAL n 303 mean -54.9 bp t -2.40 sr -0.140
+  funding        IS n 107 mean -0.5 bp t -1.01 sr -0.097 | VAL n 303 mean -0.4 bp t -1.68 sr -0.102
+  years {'2020': (-37.33264109401114, 52), '2021': (140.0390520931536, 55), '2022': (-80.37954663256566, 149), '2023': (-62.134858133339094, 91), '2024': (-43.93488793615372, 63)}
+  IS rand_entry 96.4% shuffled 91.0% t_nw_book 1.4056227041877365
+  VAL rand_entry 0.2% shuffled 0.6% t_nw_book -2.0103448062000293
+C3 ('u12', 5)
+  net            IS n 326 mean +23.1 bp t 0.35 sr 0.023 | VAL n 1115 mean -41.7 bp t -1.26 sr -0.054
+  x1.5           IS n 326 mean +15.6 bp t 0.23 sr 0.016 | VAL n 1115 mean -49.4 bp t -1.49 sr -0.064
+  late           IS n 326 mean +26.7 bp t 0.41 sr 0.027 | VAL n 1115 mean -35.8 bp t -1.03 sr -0.046
+  long_upday     IS n 148 mean +230.9 bp t 2.53 sr 0.225 | VAL n 455 mean -41.6 bp t -0.97 sr -0.059
+  short_downday  IS n 178 mean -149.7 bp t -1.39 sr -0.164 | VAL n 660 mean -41.9 bp t -0.81 sr -0.051
+  gross_price    IS n 326 mean +38.6 bp t 0.58 sr 0.039 | VAL n 1115 mean -27.7 bp t -0.82 sr -0.036
+  funding        IS n 326 mean -0.5 bp t -0.38 sr -0.022 | VAL n 1115 mean +1.2 bp t 0.39 sr 0.012
+  years {'2020': (85.27664691433317, 117), '2021': (-11.673282353033425, 209), '2022': (-20.52669163996342, 472), '2023': (-96.02919183053972, 273), '2024': (-28.764239323680343, 370)}
+  IS rand_entry 92.8% shuffled 74.2% t_nw_book 1.076816967729713
+  VAL rand_entry 15.4% shuffled 13.1% t_nw_book -2.2427245647948775
+C4 ('u12', 10)
+  net            IS n 477 mean -11.8 bp t -0.24 sr -0.013 | VAL n 1704 mean -41.3 bp t -1.60 sr -0.058
+  x1.5           IS n 477 mean -19.4 bp t -0.39 sr -0.021 | VAL n 1704 mean -48.9 bp t -1.89 sr -0.068
+  late           IS n 477 mean -4.6 bp t -0.09 sr -0.005 | VAL n 1704 mean -36.4 bp t -1.40 sr -0.051
+  long_upday     IS n 234 mean +137.4 bp t 2.09 sr 0.147 | VAL n 711 mean -37.9 bp t -1.15 sr -0.060
+  short_downday  IS n 243 mean -155.5 bp t -1.78 sr -0.173 | VAL n 993 mean -43.7 bp t -1.09 sr -0.056
+  gross_price    IS n 477 mean +3.2 bp t 0.07 sr 0.004 | VAL n 1704 mean -26.3 bp t -1.01 sr -0.037
+  funding        IS n 477 mean +0.1 bp t 0.06 sr 0.003 | VAL n 1704 mean +0.3 bp t 0.15 sr 0.004
+  years {'2020': (51.04736117828553, 169), '2021': (-46.29499363513872, 308), '2022': (-30.233790923164722, 750), '2023': (-83.45592427558462, 469), '2024': (-17.525000923845454, 485)}
+  IS rand_entry 76.2% shuffled 52.4% t_nw_book 0.39389431887689424
+  VAL rand_entry 11.2% shuffled 8.2% t_nw_book -2.1374463555902183
+selected C1 maxcell null pct 87.5 t95 1.4498158734916462
+pool {'IS': 20216, 'VAL': 34823}

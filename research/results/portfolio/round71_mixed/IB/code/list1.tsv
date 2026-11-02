@@ -1,0 +1,5 @@
+robots.txt	GET	https://data.binance.vision/robots.txt
+robots.txt	GET	https://api.exchange.coinbase.com/robots.txt
+robots.txt	GET	https://status.coinbase.com/robots.txt
+robots.txt	GET	https://api.hyperliquid.xyz/robots.txt
+robots.txt	GET	https://fred.stlouisfed.org/robots.txt

@@ -1,0 +1,11 @@
+HOLD n 2080 net +41.8 bp t 1.17 median +43.6 S 0.031
+  x1.5 net +28.8 t 0.80
+  2 bars late net +63.2 t 0.99 n 2080
+  mean-OHLC fills net +53.5 t 1.15 n 2080
+  2025: n 449 net +93.9 t 0.80
+  2026: n 1631 net +27.5 t 0.86
+  crash n 1181 net +50.8 / spike n 899 net +30.0
+gate1 net>0 & t>=2.0: False; gate2 x1.5 / late / mean-OHLC > 0: True; gate3 2025 & 2026 > 0: True
+FAIL
+top-5 coins share of net: 1.024 [np.str_('AKEUSDT'), np.str_('SIRENUSDT'), np.str_('ESPORTSUSDT'), np.str_('RAVEUSDT'), np.str_('LIGHTUSDT')]
+top-5 days share of net: 1.341 days 425

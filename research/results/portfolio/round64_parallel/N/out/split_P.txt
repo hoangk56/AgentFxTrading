@@ -1,0 +1,2 @@
+IS {'in_pf': np.float64(-5.73), 'in_cost': np.float64(0.33), 'out_pf': np.float64(19.42), 'out_cost': np.float64(3.78), 'b_pf': np.float64(5.09), 'b_cost': np.float64(0.74)}
+VAL {'in_pf': np.float64(-1.61), 'in_cost': np.float64(0.51), 'out_pf': np.float64(2.67), 'out_cost': np.float64(3.87), 'b_pf': np.float64(2.12), 'b_cost': np.float64(0.53)}

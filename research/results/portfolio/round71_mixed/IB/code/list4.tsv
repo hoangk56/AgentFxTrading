@@ -1,0 +1,1 @@
+ton_spot_1m_20240808.json	GET	https://api.bybit.com/v5/market/kline?category=spot&symbol=TONUSDT&interval=1&start=1723107600000&end=1723118400000&limit=200

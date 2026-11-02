@@ -1,0 +1,4 @@
+HOLD D5-L n 91 (days 87) net +780.3 bp t 3.11 median +17.8 | x1.5 +716.4 | d10 +275.9 | aggressor +780.6 (t 3.11) | worst-of-1s +540.0 (t 2.25)
+   years: {'2025': 1233.6, '2026': 274.2}
+   events 91; burst onset after N + 5 s: 0.00; median path (bp) +2s +1387, +5s +1629, +300s +1624
+PASS (DEMO bar: net > 0 and t >= 1.0)

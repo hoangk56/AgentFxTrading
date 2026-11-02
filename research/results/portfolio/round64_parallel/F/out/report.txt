@@ -1,0 +1,78 @@
+candidates 30363  IS 11956  VAL 18407
+cell | IS n | IS net | IS t | IS gross | VAL n | VAL net | VAL t | VAL gross | rand% I/V | yrs 20..24 | x1.5 t I/V | late t I/V | S_VAL | pow trade/clust
+T3 all H5 | 2219 | +9.4 | +0.65 | +34.8 | 3171 | +10.3 | +0.59 | +36.1 | 100/100 | -5 +13 +12 +17 +2 | -0.22/-0.15 | +1.43/+0.18 | +0.030 | +1.33/+0.46
+T3 all H15 | 2219 | +7.9 | +0.24 | +33.2 | 3171 | +28.7 | +1.35 | +54.5 | 100/100 | +78 -11 +32 +65 -10 | -0.15/+0.75 | +0.69/+1.28 | +0.065 | +2.87/+1.05
+T3 all H60 | 2219 | +111.3 | +3.44 | +136.6 | 3171 | +42.2 | +1.45 | +67.9 | 100/100 | +146 +102 +50 +82 -6 | +3.05/+1.00 | +3.07/+1.11 | +0.040 | +1.75/+1.13
+T3 idio H5 | 1530 | +1.8 | +0.09 | +27.4 | 2394 | +8.3 | +0.43 | +34.2 | 100/100 | +21 -3 +23 -11 +11 | -0.59/-0.24 | +0.47/+0.58 | +0.022 | +0.85/+0.34
+T3 idio H15 | 1530 | +24.6 | +0.85 | +50.3 | 2394 | +40.4 | +2.73 | +66.3 | 100/100 | +101 +6 +61 +37 +21 | +0.41/+1.86 | +0.76/+2.38 | +0.089 | +3.38/+2.13
+T3 idio H60 | 1530 | +123.6 | +3.89 | +149.3 | 2394 | +60.3 | +1.89 | +86.1 | 100/100 | +187 +108 +120 +49 +5 | +3.49/+1.49 | +4.08/+1.52 | +0.050 | +1.93/+1.48
+T5 all H5 | 530 | +73.4 | +0.95 | +98.6 | 1017 | +88.7 | +2.03 | +114.4 | 100/100 | +239 +34 +21 +92 +147 | +0.79/+1.74 | +1.08/+0.94 | +0.169 | +4.20/+1.59
+T5 all H15 | 530 | +81.8 | +1.00 | +107.0 | 1017 | +141.9 | +3.23 | +167.6 | 100/100 | +345 +18 +47 +201 +184 | +0.84/+2.94 | +0.86/+2.97 | +0.216 | +5.38/+2.53
+T5 all H60 | 530 | +251.7 | +2.92 | +276.9 | 1017 | +233.9 | +4.73 | +259.5 | 100/100 | +409 +214 +239 +249 +218 | +2.77/+4.47 | +3.01/+3.41 | +0.159 | +3.97/+3.70
+T5 idio H5 | 380 | +43.0 | +0.45 | +68.6 | 770 | +75.1 | +1.52 | +100.7 | 100/100 | +219 +9 +49 -4 +162 | +0.32/+1.26 | +2.05/+1.39 | +0.132 | +2.87/+1.19
+T5 idio H15 | 380 | +90.1 | +1.02 | +115.7 | 770 | +155.7 | +3.17 | +181.4 | 100/100 | +374 +35 +100 +120 +236 | +0.87/+2.91 | +1.37/+3.01 | +0.224 | +4.85/+2.48
+T5 idio H60 | 380 | +273.0 | +4.05 | +298.6 | 770 | +270.5 | +3.76 | +296.2 | 100/100 | +460 +236 +397 +164 +236 | +3.87/+3.58 | +6.65/+3.12 | +0.163 | +3.53/+2.93
+TZ all H5 | 4798 | -22.5 | -2.33 | +2.2 | 10213 | -18.2 | -2.94 | +7.5 | 100/100 | -34 -14 -14 -11 -35 | -3.60/-5.01 | -1.60/-2.24 | -0.093 | -7.34/-2.30
+TZ all H15 | 4798 | -13.0 | -1.07 | +11.6 | 10212 | -10.4 | -1.26 | +15.2 | 100/100 | -8 -17 -4 +2 -37 | -2.08/-2.80 | -0.56/-0.87 | -0.042 | -3.29/-0.98
+TZ all H60 | 4798 | +16.6 | +1.23 | +41.2 | 10210 | -7.2 | -0.86 | +18.5 | 100/100 | +5 +25 -7 +3 -23 | +0.32/-2.40 | +1.44/-0.97 | -0.022 | -1.74/-0.67
+TZ idio H5 | 2857 | -16.6 | -1.24 | +9.0 | 6300 | -17.5 | -2.12 | +8.5 | 100/100 | -16 -17 -5 -20 -27 | -2.19/-3.69 | -0.67/-1.70 | -0.077 | -4.75/-1.65
+TZ idio H15 | 2857 | -2.0 | -0.12 | +23.6 | 6299 | -3.2 | -0.47 | +22.9 | 100/100 | +12 -11 +5 -1 -15 | -0.90/-2.38 | +0.19/-0.30 | -0.012 | -0.75/-0.36
+TZ idio H60 | 2857 | +35.2 | +2.34 | +60.8 | 6297 | -5.3 | -0.62 | +20.8 | 100/100 | +30 +38 +1 -7 -10 | +1.49/-2.17 | +3.12/-0.86 | -0.014 | -0.89/-0.49
+
+max-over-18 IS t: real +4.05; random null median -1.19, p95 +0.28, share null >= real 0.0 %
+
+per cell detail (IS / VAL): gross, random mean net, sides, open-of-next-bar entry, drop top-3 coins, exclusions
+T3 all H5 IS: n 2219 net +9.4 gross +34.8 rand_mean -24.8 | crash 1347 +30.8 (t +1.12) spike 872 -23.6 (t -1.83) | open-entry -1.2 (t -0.07) | x1.5 -3.2 late +21.4 | drop [np.str_('FTMUSDT'), np.str_('AVAXUSDT'), np.str_('LINKUSDT')] -0.0 | excl +11.0 (t +0.74)
+T3 all H5 VAL: n 3171 net +10.3 gross +36.1 rand_mean -25.2 | crash 1938 +20.4 (t +0.71) spike 1233 -5.5 (t -0.48) | open-entry +51.6 (t +2.55) | x1.5 -2.6 late +3.7 | drop [np.str_('XRPUSDT'), np.str_('GMTUSDT'), np.str_('BCHUSDT')] +6.3 | excl +17.6 (t +0.85)
+   years n {2020: 463, 2021: 1756, 2022: 1167, 2023: 987, 2024: 1017}
+T3 all H15 IS: n 2219 net +7.9 gross +33.2 rand_mean -24.9 | crash 1347 +67.0 (t +1.40) spike 872 -83.5 (t -2.88) | open-entry -1.7 (t -0.05) | x1.5 -4.8 late +20.1 | drop [np.str_('XTZUSDT'), np.str_('DOGEUSDT'), np.str_('VETUSDT')] -0.4 | excl +8.5 (t +0.25)
+T3 all H15 VAL: n 3171 net +28.7 gross +54.5 rand_mean -25.1 | crash 1938 +52.5 (t +1.64) spike 1233 -8.6 (t -0.47) | open-entry +68.3 (t +3.08) | x1.5 +15.8 late +27.3 | drop [np.str_('XRPUSDT'), np.str_('AXSUSDT'), np.str_('GMTUSDT')] +24.2 | excl +39.6 (t +1.70)
+   years n {2020: 463, 2021: 1756, 2022: 1167, 2023: 987, 2024: 1017}
+T3 all H60 IS: n 2219 net +111.3 gross +136.6 rand_mean -23.9 | crash 1347 +249.6 (t +5.72) spike 872 -102.3 (t -2.30) | open-entry +101.0 (t +3.11) | x1.5 +98.6 late +110.9 | drop [np.str_('SUSHIUSDT'), np.str_('LINKUSDT'), np.str_('YFIUSDT')] +97.2 | excl +113.9 (t +3.46)
+T3 all H60 VAL: n 3171 net +42.2 gross +67.9 rand_mean -25.1 | crash 1938 +95.6 (t +2.42) spike 1233 -41.8 (t -1.48) | open-entry +78.7 (t +2.47) | x1.5 +29.3 late +32.1 | drop [np.str_('LUNAUSDT'), np.str_('SOLUSDT'), np.str_('XRPUSDT')] +32.3 | excl +38.2 (t +1.78)
+   years n {2020: 463, 2021: 1756, 2022: 1167, 2023: 987, 2024: 1017}
+T3 idio H5 IS: n 1530 net +1.8 gross +27.4 rand_mean -25.0 | crash 841 +32.7 (t +1.20) spike 689 -35.9 (t -2.40) | open-entry -3.0 (t -0.15) | x1.5 -11.0 late +9.9 | drop [np.str_('MATICUSDT'), np.str_('FTMUSDT'), np.str_('AVAXUSDT')] -7.7 | excl +0.4 (t +0.02)
+T3 idio H5 VAL: n 2394 net +8.3 gross +34.2 rand_mean -25.2 | crash 1308 +1.5 (t +0.05) spike 1086 +16.5 (t +1.30) | open-entry +40.9 (t +1.70) | x1.5 -4.6 late +11.6 | drop [np.str_('SOLUSDT'), np.str_('STORJUSDT'), np.str_('AVAXUSDT')] +2.9 | excl +13.4 (t +0.60)
+   years n {2020: 298, 2021: 1232, 2022: 853, 2023: 772, 2024: 769}
+T3 idio H15 IS: n 1530 net +24.6 gross +50.3 rand_mean -25.2 | crash 841 +90.9 (t +2.05) spike 689 -56.3 (t -1.96) | open-entry +19.9 (t +0.66) | x1.5 +11.8 late +23.1 | drop [np.str_('SUSHIUSDT'), np.str_('AAVEUSDT'), np.str_('SANDUSDT')] +12.7 | excl +24.4 (t +0.83)
+T3 idio H15 VAL: n 2394 net +40.4 gross +66.3 rand_mean -25.0 | crash 1308 +52.4 (t +2.03) spike 1086 +25.9 (t +1.71) | open-entry +70.6 (t +3.91) | x1.5 +27.5 late +43.8 | drop [np.str_('SOLUSDT'), np.str_('AXSUSDT'), np.str_('1000SHIBUSDT')] +33.4 | excl +43.9 (t +2.59)
+   years n {2020: 298, 2021: 1232, 2022: 853, 2023: 772, 2024: 769}
+T3 idio H60 IS: n 1530 net +123.6 gross +149.3 rand_mean -24.6 | crash 841 +312.4 (t +7.57) spike 689 -106.8 (t -1.91) | open-entry +118.7 (t +3.41) | x1.5 +110.8 late +124.8 | drop [np.str_('SUSHIUSDT'), np.str_('AAVEUSDT'), np.str_('ALICEUSDT')] +107.4 | excl +123.4 (t +3.85)
+T3 idio H60 VAL: n 2394 net +60.3 gross +86.1 rand_mean -25.2 | crash 1308 +97.3 (t +1.93) spike 1086 +15.6 (t +0.62) | open-entry +86.4 (t +2.73) | x1.5 +47.3 late +52.7 | drop [np.str_('LUNAUSDT'), np.str_('SOLUSDT'), np.str_('AXSUSDT')] +44.1 | excl +29.4 (t +1.65)
+   years n {2020: 298, 2021: 1232, 2022: 853, 2023: 772, 2024: 769}
+T5 all H5 IS: n 530 net +73.4 gross +98.6 rand_mean -24.6 | crash 345 +109.5 (t +0.90) spike 185 +6.1 (t +0.20) | open-entry +78.5 (t +1.12) | x1.5 +60.8 late +72.7 | drop [np.str_('ETCUSDT'), np.str_('VETUSDT'), np.str_('ETHUSDT')] +40.3 | excl +76.0 (t +0.94)
+T5 all H5 VAL: n 1017 net +88.7 gross +114.4 rand_mean -24.7 | crash 675 +131.7 (t +2.06) spike 342 +3.9 (t +0.10) | open-entry +162.9 (t +3.26) | x1.5 +75.9 late +32.2 | drop [np.str_('XRPUSDT'), np.str_('TIAUSDT'), np.str_('DOGEUSDT')] +77.9 | excl +106.1 (t +2.01)
+   years n {2020: 103, 2021: 427, 2022: 346, 2023: 286, 2024: 385}
+T5 all H15 IS: n 530 net +81.8 gross +107.0 rand_mean -25.0 | crash 345 +157.1 (t +1.38) spike 185 -58.5 (t -1.03) | open-entry +86.8 (t +1.19) | x1.5 +69.2 late +64.9 | drop [np.str_('ETCUSDT'), np.str_('VETUSDT'), np.str_('FTMUSDT')] +45.4 | excl +84.9 (t +0.99)
+T5 all H15 VAL: n 1017 net +141.9 gross +167.6 rand_mean -25.5 | crash 675 +198.4 (t +2.91) spike 342 +30.6 (t +0.61) | open-entry +215.6 (t +4.51) | x1.5 +129.1 late +105.8 | drop [np.str_('1000SHIBUSDT'), np.str_('TIAUSDT'), np.str_('WLDUSDT')] +128.0 | excl +172.5 (t +3.31)
+   years n {2020: 103, 2021: 427, 2022: 346, 2023: 286, 2024: 385}
+T5 all H60 IS: n 530 net +251.7 gross +276.9 rand_mean -23.9 | crash 345 +492.8 (t +5.25) spike 185 -197.8 (t -1.86) | open-entry +256.2 (t +3.38) | x1.5 +239.1 late +234.4 | drop [np.str_('VETUSDT'), np.str_('SUSHIUSDT'), np.str_('YFIUSDT')] +203.4 | excl +261.7 (t +2.90)
+T5 all H60 VAL: n 1017 net +233.9 gross +259.5 rand_mean -26.5 | crash 675 +328.7 (t +4.90) spike 342 +46.8 (t +0.56) | open-entry +304.9 (t +6.48) | x1.5 +221.0 late +171.9 | drop [np.str_('LUNAUSDT'), np.str_('TRBUSDT'), np.str_('1000PEPEUSDT')] +177.2 | excl +191.1 (t +4.52)
+   years n {2020: 103, 2021: 427, 2022: 346, 2023: 286, 2024: 385}
+T5 idio H5 IS: n 380 net +43.0 gross +68.6 rand_mean -25.1 | crash 228 +86.4 (t +0.68) spike 152 -22.1 (t -0.38) | open-entry +82.4 (t +0.93) | x1.5 +30.2 late +98.0 | drop [np.str_('ETCUSDT'), np.str_('RLCUSDT'), np.str_('FTMUSDT')] +9.8 | excl +40.5 (t +0.42)
+T5 idio H5 VAL: n 770 net +75.1 gross +100.7 rand_mean -24.4 | crash 467 +98.1 (t +1.26) spike 303 +39.6 (t +1.06) | open-entry +142.5 (t +2.35) | x1.5 +62.3 late +55.7 | drop [np.str_('TRBUSDT'), np.str_('TIAUSDT'), np.str_('SOLUSDT')] +63.2 | excl +77.2 (t +1.29)
+   years n {2020: 62, 2021: 318, 2022: 265, 2023: 223, 2024: 282}
+T5 idio H15 IS: n 380 net +90.1 gross +115.7 rand_mean -25.1 | crash 228 +180.0 (t +1.65) spike 152 -44.8 (t -0.53) | open-entry +130.1 (t +1.58) | x1.5 +77.3 late +88.7 | drop [np.str_('SUSHIUSDT'), np.str_('YFIUSDT'), np.str_('ETCUSDT')] +40.9 | excl +89.9 (t +1.00)
+T5 idio H15 VAL: n 770 net +155.7 gross +181.4 rand_mean -25.1 | crash 467 +199.3 (t +2.44) spike 303 +88.5 (t +1.59) | open-entry +222.7 (t +4.06) | x1.5 +142.9 late +135.4 | drop [np.str_('TRBUSDT'), np.str_('TIAUSDT'), np.str_('AXSUSDT')] +138.5 | excl +167.7 (t +2.94)
+   years n {2020: 62, 2021: 318, 2022: 265, 2023: 223, 2024: 282}
+T5 idio H60 IS: n 380 net +273.0 gross +298.6 rand_mean -23.1 | crash 228 +581.0 (t +6.62) spike 152 -188.9 (t -1.14) | open-entry +317.4 (t +4.81) | x1.5 +260.2 late +297.0 | drop [np.str_('SUSHIUSDT'), np.str_('YFIUSDT'), np.str_('ETCUSDT')] +212.8 | excl +270.6 (t +3.99)
+T5 idio H60 VAL: n 770 net +270.5 gross +296.2 rand_mean -26.4 | crash 467 +360.3 (t +4.08) spike 303 +132.2 (t +1.15) | open-entry +334.0 (t +4.69) | x1.5 +257.7 late +231.9 | drop [np.str_('LUNAUSDT'), np.str_('TRBUSDT'), np.str_('AXSUSDT')] +190.5 | excl +163.0 (t +3.65)
+   years n {2020: 62, 2021: 318, 2022: 265, 2023: 223, 2024: 282}
+TZ all H5 IS: n 4798 net -22.5 gross +2.2 rand_mean -24.6 | crash 3174 -18.8 (t -1.31) spike 1624 -29.7 (t -5.49) | open-entry -22.7 (t -1.90) | x1.5 -34.8 late -15.0 | drop [np.str_('MATICUSDT'), np.str_('ETHUSDT'), np.str_('VETUSDT')] -26.5 | excl -22.4 (t -2.20)
+TZ all H5 VAL: n 10213 net -18.2 gross +7.5 rand_mean -25.5 | crash 5974 -13.9 (t -1.34) spike 4239 -24.2 (t -5.30) | open-entry -10.8 (t -1.44) | x1.5 -31.0 late -15.4 | drop [np.str_('LUNAUSDT'), np.str_('BLURUSDT'), np.str_('RUNEUSDT')] -19.7 | excl -20.0 (t -3.09)
+   years n {2020: 2077, 2021: 2721, 2022: 3503, 2023: 4060, 2024: 2650}
+TZ all H15 IS: n 4798 net -13.0 gross +11.6 rand_mean -24.8 | crash 3174 -2.4 (t -0.13) spike 1624 -33.7 (t -4.14) | open-entry -13.4 (t -0.90) | x1.5 -25.3 late -6.7 | drop [np.str_('MATICUSDT'), np.str_('VETUSDT'), np.str_('SUSHIUSDT')] -18.0 | excl -13.7 (t -1.06)
+TZ all H15 VAL: n 10212 net -10.4 gross +15.2 rand_mean -25.5 | crash 5974 +4.4 (t +0.31) spike 4238 -31.3 (t -5.29) | open-entry -3.2 (t -0.36) | x1.5 -23.2 late -7.3 | drop [np.str_('LUNAUSDT'), np.str_('DYDXUSDT'), np.str_('LPTUSDT')] -12.4 | excl -13.2 (t -1.55)
+   years n {2020: 2077, 2021: 2721, 2022: 3502, 2023: 4060, 2024: 2650}
+TZ all H60 IS: n 4798 net +16.6 gross +41.2 rand_mean -24.3 | crash 3174 +44.7 (t +2.27) spike 1624 -38.3 (t -2.84) | open-entry +15.7 (t +1.04) | x1.5 +4.3 late +20.7 | drop [np.str_('SUSHIUSDT'), np.str_('MATICUSDT'), np.str_('VETUSDT')] +9.7 | excl +19.0 (t +1.33)
+TZ all H60 VAL: n 10210 net -7.2 gross +18.5 rand_mean -25.4 | crash 5972 +19.3 (t +1.40) spike 4238 -44.5 (t -5.37) | open-entry +0.1 (t +0.01) | x1.5 -20.0 late -8.4 | drop [np.str_('DYDXUSDT'), np.str_('BLURUSDT'), np.str_('LPTUSDT')] -9.1 | excl -11.9 (t -1.53)
+   years n {2020: 2077, 2021: 2721, 2022: 3500, 2023: 4060, 2024: 2650}
+TZ idio H5 IS: n 2857 net -16.6 gross +9.0 rand_mean -25.6 | crash 1525 +1.1 (t +0.06) spike 1332 -36.9 (t -4.06) | open-entry -11.3 (t -0.82) | x1.5 -29.4 late -7.4 | drop [np.str_('FTMUSDT'), np.str_('ETCUSDT'), np.str_('SANDUSDT')] -22.2 | excl -16.7 (t -1.22)
+TZ idio H5 VAL: n 6300 net -17.5 gross +8.5 rand_mean -25.9 | crash 2986 -15.8 (t -0.95) spike 3314 -19.1 (t -4.38) | open-entry -4.1 (t -0.41) | x1.5 -30.6 late -13.9 | drop [np.str_('LUNAUSDT'), np.str_('BLURUSDT'), np.str_('AVAXUSDT')] -20.3 | excl -20.1 (t -2.30)
+   years n {2020: 1096, 2021: 1761, 2022: 1967, 2023: 2542, 2024: 1791}
+TZ idio H15 IS: n 2857 net -2.0 gross +23.6 rand_mean -25.9 | crash 1525 +32.3 (t +1.29) spike 1332 -41.2 (t -2.86) | open-entry +3.0 (t +0.18) | x1.5 -14.8 late +3.1 | drop [np.str_('FTMUSDT'), np.str_('SANDUSDT'), np.str_('SUSHIUSDT')] -8.2 | excl -1.9 (t -0.12)
+TZ idio H15 VAL: n 6299 net -3.2 gross +22.9 rand_mean -25.9 | crash 2986 +21.3 (t +1.68) spike 3313 -25.2 (t -4.70) | open-entry +9.9 (t +1.28) | x1.5 -16.2 late -2.4 | drop [np.str_('LUNAUSDT'), np.str_('DYDXUSDT'), np.str_('AVAXUSDT')] -6.5 | excl -5.8 (t -0.84)
+   years n {2020: 1096, 2021: 1761, 2022: 1966, 2023: 2542, 2024: 1791}
+TZ idio H60 IS: n 2857 net +35.2 gross +60.8 rand_mean -25.4 | crash 1525 +105.2 (t +4.57) spike 1332 -45.1 (t -2.10) | open-entry +39.9 (t +2.38) | x1.5 +22.4 late +43.1 | drop [np.str_('XRPUSDT'), np.str_('SUSHIUSDT'), np.str_('ETCUSDT')] +26.5 | excl +36.0 (t +2.34)
+TZ idio H60 VAL: n 6297 net -5.3 gross +20.8 rand_mean -25.8 | crash 2984 +30.8 (t +1.79) spike 3313 -37.7 (t -4.80) | open-entry +7.9 (t +0.84) | x1.5 -18.3 late -7.6 | drop [np.str_('DYDXUSDT'), np.str_('AVAXUSDT'), np.str_('ENSUSDT')] -8.5 | excl -11.5 (t -1.62)
+   years n {2020: 1096, 2021: 1761, 2022: 1964, 2023: 2542, 2024: 1791}

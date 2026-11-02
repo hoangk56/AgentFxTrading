@@ -1,0 +1,6 @@
+main7 incl SHIB H72 IS n 32 days 22 gross -554 fund 3 net -593 t -0.80 median 347 sd 3041 SR -0.195 win 0.66 worst -11053 best 2005 runup 395 years {2020: (7, 597), 2021: (25, -926)}
+main7 incl SHIB H72 VAL n 35 days 33 gross 194 fund -0 net 151 t 0.73 median 357 sd 1257 SR 0.120 win 0.69 worst -3963 best 2163 runup 703 years {2022: (19, 398), 2023: (6, -388), 2024: (10, 5)}
+main7 incl SHIB H24 IS n 32 days 22 gross -126 fund -3 net -171 t -0.46 median 341 sd 1771 SR -0.097 win 0.62 worst -6907 best 1459 runup 395 years {2020: (7, 274), 2021: (25, -296)}
+main7 incl SHIB H24 VAL n 35 days 33 gross -134 fund -3 net -179 t -0.61 median 201 sd 1720 SR -0.104 win 0.66 worst -8381 best 1571 runup 703 years {2022: (19, 189), 2023: (6, -1199), 2024: (10, -267)}
+IS drop worst 1/2/3: [-256, 22, 294] trimmed 10%%: 102
+VAL drop worst 1/2/3: [272, 392, 448] trimmed 10%%: 307

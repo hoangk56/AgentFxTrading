@@ -145,7 +145,117 @@ algorithms:
     prereg: research/results/portfolio/round63_parallel/M/PREREG_DRAFT_M_eurjpy_quarter_end.md
     report: research/results/portfolio/round63_parallel/M/STREAM_M.md
 
+  - id: k2-upbit-listing-fade
+    name: Bán perp sau khi coin lên sàn KRW của Upbit (K2)
+    description: "Khi một coin đã có perp Binance được niêm yết thị trường KRW của Upbit, bán perp đó và mua perp BTC cùng giá trị lúc 1 giờ sau nến KRW đầu tiên, giữ 72 giờ: đón nhịp pump của nhà đầu tư nhỏ lẻ Hàn Quốc rồi xẹp."
+    market: crypto Binance (altcoin) + lịch niêm yết Upbit
+    round: R64
+    tier: cho-kiem
+    tier_reason: "Qua holdout bậc DEMO (92 lệnh, +221 bp/lệnh, t 0,88; funding -512 bp) nhưng không phải LIVE (VAL t 1,37, power ~1); chưa có bot: demo cần bot dò danh sách thị trường Upbit và bán perp Binance, chờ người dùng quyết (round64_parallel/K/PREREG_K2_upbit_listing_fade.md)."
+    research:
+      is: "2020–2021: n 11, +1.094 bp/lệnh, t 3,16"
+      val: "2022–2024: n 29, +423 bp, t 1,37"
+      hold: "2025-01..2026-10: n 92, +221 bp, t 0,88; giá +775, funding -512; 2025 -110, 2026 +539; lệnh tệ nhất -9.959 bp"
+    forward: null
+    bot: null
+    prereg: research/results/portfolio/round64_parallel/K/PREREG_K2_upbit_listing_fade.md
+    report: research/results/portfolio/round64_parallel_2026-11-01.md
+
+  - id: a2-upbit-notice-5s
+    name: Mua perp 5 giây sau thông báo niêm yết KRW của Upbit (A2-D5L)
+    description: "Khi Upbit đăng thông báo đưa một coin (đã có perp Binance ≥ 7 ngày) lên thị trường KRW, mua perp coin đó và bán perp BTC cùng giá trị ở giao dịch đầu tiên sau giờ đăng + 5 giây, thoát lúc thị trường KRW mở."
+    market: crypto Binance (altcoin perp) + thông báo Upbit
+    round: R65
+    tier: cho-kiem
+    tier_reason: "Qua holdout bậc DEMO mạnh (91 lệnh, +780 bp/lệnh, t 3,11; khớp giá xấu nhất trong 1 giây +540, t 2,25) nhưng đăng ký là DEMO vì power 2,97 < 3; lên live cần bot thấy thông báo trong ~3 giây và demo gộp t ≥ 2,5: người dùng quyết (round65_retail_venues/A2/PREREG_A2_D5L.md)."
+    research:
+      is: "2020–2021: n 12, +1.296 bp/lệnh, t 3,07"
+      val: "2022–2024: n 32, +520 bp, t 1,75"
+      hold: "2025-01..2026-10: n 91, +780 bp, t 3,11; trung vị +18, bỏ 5 lệnh lớn nhất +384; vào sau 10 giây chỉ +276; 2025 +1.234, 2026 +274"
+    forward: null
+    bot: null
+    prereg: research/results/portfolio/round65_retail_venues/A2/PREREG_A2_D5L.md
+    report: research/results/portfolio/round65_retail_venues_2026-11-01.md
+
+  - id: f0-wick-fade-bar-close
+    name: Fade cú sập / vọt 1 phút, vào ngay khi nến đóng (F0, forward)
+    description: "Luật F nhưng vào ở giao dịch đầu tiên ngay sau khi nến sự kiện đóng (không chờ hết phút kế), giữ đến đóng nến e+61."
+    market: crypto Binance (altcoin perp)
+    round: R66
+    tier: cho-kiem
+    tier_reason: "Đạt mọi ngưỡng LIVE ở IS / VAL; vì holdout của F đã biết nên chỉ test forward từ 2026-10-30, đánh giá một lần khi đủ 333 sự kiện (~3,5 tháng); F ở holdout chỉ giữ ~15 % cỡ VAL nên forward có thể không đủ power (round66_fast_execution/F0/PREREG_F0_bar_close_fade.md)."
+    research:
+      is: "2020–2021: n 380, +319,5 bp/lệnh, t 4,90"
+      val: "2022–2024: n 768, +339,2 bp, t 4,56"
+    forward: null
+    bot: null
+    prereg: research/results/portfolio/round66_fast_execution/F0/PREREG_F0_bar_close_fade.md
+    report: research/results/portfolio/round66_fast_execution/F0/STREAM_F0.md
+
+  - id: q1-cm-um-perp-gap
+    name: Chênh perp COIN-M và USDT-M cùng coin (Q1)
+    description: "Khi giá perp COIN-M (ký quỹ coin) và perp USDT-M của cùng một coin lệch quá 100 bp so với trung vị 7 ngày, mua chân rẻ và bán chân đắt, thoát khi lệch còn một nửa hoặc sau 72 giờ."
+    market: crypto Binance (perp COIN-M + USDT-M)
+    round: R64
+    tier: cho-kiem
+    tier_reason: "Qua holdout bậc DEMO (37 lệnh trên 7 ngày, +299 bp, t 2,15) nhưng là luật ngày sập: 5 ngày lớn nhất chiếm 101 % lãi (2025-10-10/11); ~4 ngày sự kiện/năm nên lên live mất nhiều năm (round64_parallel/Q/PREREG_Q1_cm_um_perp_gap.md)."
+    research:
+      is: "2020–2021: n 54, +439,8 bp/lệnh, t 2,20 (22 ngày)"
+      val: "2022–2024: n 181, +77,7 bp, t 3,82 (33 ngày)"
+      hold: "2025-01..2026-10: n 37 (7 ngày), +299 bp, t 2,15; thắng 95 %; phí x1,5 +284"
+    forward: null
+    bot: null
+    prereg: research/results/portfolio/round64_parallel/Q/PREREG_Q1_cm_um_perp_gap.md
+    report: research/results/portfolio/round64_parallel/Q/STREAM_Q.md
+
+  - id: s-peg100
+    name: Mua stablecoin bị lệch giá (peg100)
+    description: "Khi một stablecoin (USDC, BUSD, TUSD…) rẻ hơn USDT trên Binance quá 100 bp, mua nó bằng USDT và bán khi lệch còn một nửa hoặc sau 7 ngày."
+    market: crypto Binance (spot stablecoin)
+    round: R64
+    tier: cho-kiem
+    tier_reason: "Số DEMO trên giấy nhưng VAL chỉ là tuần SVB (bỏ tuần đó -8,4 bp), 4 đợt VAL, power 0,71, giữ vốn chờ thì thua lãi cash; bản nháp, không khuyến nghị mở holdout (round64_parallel/S/PREREG_DRAFT_S_peg100.md)."
+    research:
+      is: "2018-05..2021: 29 đợt, +22,1 bp/lệnh, t 6,97 theo đợt"
+      val: "2022–2024: 4 đợt, +65,4 bp, t 1,34"
+    forward: null
+    bot: null
+    prereg: research/results/portfolio/round64_parallel/S/PREREG_DRAFT_S_peg100.md
+    report: research/results/portfolio/round64_parallel/S/STREAM_S.md
+
   # ---------------------------------------------------------------- đã loại
+  - id: f-wick-fade
+    name: Fade cú sập / vọt 1 phút của altcoin perp (F)
+    description: "Altcoin perp top-40 Binance chạy ≥ 5 % trong một phút trong khi BTC đứng yên: vào ngược chiều ở giá đóng nến phút kế tiếp, thoát sau 60 phút."
+    market: crypto Binance (altcoin perp)
+    round: R64
+    tier: da-loai
+    tier_reason: "Đạt mọi ngưỡng LIVE ở IS / VAL nhưng trượt holdout đã đăng ký: 2.080 lệnh, +41,8 bp, t 1,17 (cần t ≥ 2,0); lãi còn ~15 % cỡ VAL (round64_parallel/F/PREREG_F_wick_fade.md)."
+    research:
+      is: "2020–2021: n 380, +273,0 bp/lệnh, t 4,05"
+      val: "2022–2024: n 770, +270,5 bp, t 3,76"
+      hold: "2025-01..2026-10: n 2.080, +41,8 bp, t 1,17; phí x1,5 +28,8; 2025 +93,9, 2026 +27,5; 5 coin đầu chiếm 102 % lãi"
+    forward: null
+    bot: null
+    prereg: research/results/portfolio/round64_parallel/F/PREREG_F_wick_fade.md
+    report: research/results/portfolio/round64_parallel_2026-11-01.md
+
+  - id: d2-deribit-binance-funding
+    name: Carry công thức funding Deribit vs Binance (D2-ON)
+    description: "Mua perp ngược Deribit (funding không có phần lãi) và bán perp USDT Binance (funding có phần lãi 0,01 %/8 giờ) cùng giá trị, BTC + ETH, luôn bật."
+    market: crypto Deribit + Binance (BTC, ETH)
+    round: R70
+    tier: da-loai
+    tier_reason: "Đạt LIVE ở IS / VAL theo lãi thô nhưng chấm theo phần vượt lãi cash thì chỉ DEMO; holdout lãi thô +2,64 %/năm (t 6,77) nhưng vượt cash -1,32 %/năm (t -3,48): trượt (round70_filings_lit/D2/PREREG_D2_ON.md)."
+    research:
+      is: "2020–2021: +22,70 %/năm, t 8,30"
+      val: "2022–2024: +5,32 %/năm, t 7,11; vượt cash +1,37 (t 1,83)"
+      hold: "2025-01..2026-10: +2,64 %/năm, t 6,77; vượt cash -1,32 (t -3,48)"
+    forward: null
+    bot: null
+    prereg: research/results/portfolio/round70_filings_lit/D2/PREREG_D2_ON.md
+    report: research/results/portfolio/round70_filings_lit_2026-11-01.md
+
   - id: p2-post-stamp-1s
     name: Đứng phía trả funding 1 giây sau mốc funding cực đoan (P2)
     description: "Sau mốc funding Binance có |funding| ≥ 30 bp, vào phía trả funding 1 giây sau mốc và thoát sau 60 giây."
@@ -425,6 +535,55 @@ algorithms:
     report: research/results/lab/v2/verdict.md
 
 tried:
+  # R72 (2026-11-01)
+  - {round: R73, name: "TG: kênh Telegram @upbit_news (bản xem trước t.me/s) làm nguồn bắt thông báo cho A2-D5L", reason: "Chưa kết luận: kênh chính thức đăng 100 % thông báo niêm yết KRW, năm 2026 đều ≤ 1 giây sau giờ đăng; poll 1–1,5 giây mô hình 82–97 % thấy trong 3 giây, nhưng độ trễ của bản xem trước và việc Telegram chịu poll lâu dài chưa đo (logger forward đang chạy).", report: research/results/portfolio/round73_telegram_capture/TG/STREAM_TG.md}
+  - {round: R72, name: "TRY: chênh giá USDT/TRY trên BtcTurk báo trước tỉ giá USDTRY chính thức", reason: "IS t 1,3 theo đợt, ngẫu nhiên 84–86 %; lãi đến từ hai lần lira vỡ (2021-12, 2023); carry ăn 96–151 bp mỗi lệnh 20 ngày.", report: research/results/portfolio/round72_scout_leftovers/TRY/STREAM_TRY.md}
+  # R71 (2026-11-01)
+  - {round: R71, name: "W7: cửa sổ chưa mở rút của coin mới niêm yết spot Binance (mua spot rẻ, bán perp)", reason: "IS chỉ 1 sự kiện giao dịch được (perp mở 30–300 phút sau spot); chiết khấu đóng trong ~2 giờ, không đợi giờ mở rút.", report: research/results/portfolio/round71_mixed/W7/STREAM_W7.md}
+  - {round: R71, name: "D3: carry công thức funding ở các sàn khác (OKX không có phần lãi tới 2025-04, Kraken)", reason: "Lãi thô qua t nhưng VAL thua lãi cash (BTC -2,69 %/năm t -5,6, ETH -1,94); chênh funding co từ ~3 bp/ngày còn ~0,1–0,2 bp năm 2024.", report: research/results/portfolio/round71_mixed/D3/STREAM_D3.md}
+  - {round: R71, name: "FS: fade cú sập 1 phút trên spot Binance của coin chưa có perp", reason: "Phần hồi chỉ +78..86 bp (perp ~300), phí khứ hồi 41–80 bp; VAL coin còn giảm sau 15 phút; IS t tốt nhất 0,70.", report: research/results/portfolio/round71_mixed/FS/STREAM_FS.md}
+  - {round: R71, name: "IB: rà giao dịch có rào cản gia nhập (9 ý: cửa sổ rút coin niêm yết mới, wrapper staking, margin delisting, sổ fiat địa phương, USDC cuối tuần…)", reason: "Cao nhất ~1,5 % lên LIVE; chỉ IB7 được test (W7).", report: research/results/portfolio/round71_mixed/IB/STREAM_IB.md}
+  - {round: R71, name: "CG: fade cú chạy cuối tuần của BTC / ETH khi CME mở lại (gap CME)", reason: "Gap có lấp ~một nửa nhưng gap không lấp chạy tiếp; VAL -191 bp (t -2,74), tệ hơn mọi mốc giả lập.", report: research/results/portfolio/round71_mixed/CG/STREAM_CG.md}
+  - {round: R71, name: "L3F: sau funding âm cực đoan, theo chiều ngày 24 giờ (SSRN 7520320)", reason: "IS t ≤ 1,05; VAL mọi ô âm (BTC/ETH -94 bp, t -2,82): cú chạy trong ngày đảo chiều ở 2022–24.", report: research/results/portfolio/round71_mixed/L3F/STREAM_L3F.md}
+  - {round: R71, name: "L5F: mất cân bằng lệnh taker phút đầu mỗi 15 phút (arXiv 2607.09426)", reason: "Đi tiếp chỉ ở VAL (+3–5 bp), ~1/3 phí; mọi ô net âm cả IS và VAL.", report: research/results/portfolio/round71_mixed/L5F/STREAM_L5F.md}
+  - {round: R71, name: "PX: PAXG lệch giá vàng cuối tuần, hội tụ khi thị trường vàng mở lại", reason: "Trước phí đóng lại +17..+39 bp nhưng phí khứ hồi ~25 bp; IS chỉ 5 cuối tuần PAXG rẻ.", report: research/results/portfolio/round71_mixed/PX/STREAM_PX.md}
+  # R70 (2026-11-01)
+  - {round: R70, name: "M8: công ty nộp 8-K báo đã mua BTC -> mua perp BTC 5–30 giây sau", reason: "BTC không tăng, còn giảm ~10 bp trong 5 phút; mọi ô lỗ (VAL t -6,60); không ai giao dịch theo thông báo.", report: research/results/portfolio/round70_filings_lit/M8/STREAM_M8.md}
+  # R69 (2026-11-01)
+  - {round: R69, name: "KO: thông báo niêm yết Coinone / Korbit / GOPAX ở mức giây", reason: "Không test được: Coinone robots cấm, Korbit API chỉ giữ 20 thông báo mới nhất, GOPAX 403.", report: research/results/portfolio/round69_other_notices/KO/STREAM_KO.md}
+  - {round: R69, name: "JP: thông báo niêm yết bitbank / Coincheck -> perp Binance ở mức giây", reason: "Không làm giá nhúc nhích (VAL trung vị 0 bp sau 5 giây); luật A2-D5L VAL +36 bp t 0,26.", report: research/results/portfolio/round69_other_notices/JP/STREAM_JP.md}
+  # R68 (2026-11-01)
+  - {round: R68, name: "UC: rà mọi loại thông báo Upbit khác niêm yết (tạm ngừng nạp rút, nâng cấp mạng, airdrop, cảnh báo…) ở mức giây", reason: "Chỉ loại tạm ngừng nạp rút do chuỗi đủ sự kiện và bán khống lỗ (IS -49 bp t -4,34, VAL -49 t -6,29); mọi loại đều tăng 1–3 giây sau thông báo rồi xẹp.", report: research/results/portfolio/round68_upbit_census/UC/STREAM_UC.md}
+  # R67 (2026-11-01), công bố có lịch ở mức giây
+  - {round: R67, name: "P: phần bất ngờ của tỉ giá trung tâm PBOC -> USDCNH trong vài giây sau 01:15 UTC", reason: "Đúng chiều ở mid (+0,5–1,5 bp, t 2,5–4,7) nhưng giá chỉ bắt đầu chạy sau ~20 giây và phí khứ hồi IC 1,3–1,7 bp; mọi ô net ≤ 0.", report: research/results/portfolio/round67_fix_seconds/P/STREAM_P.md}
+  - {round: R67, name: "R2: bán các altcoin nặng Upbit khi Upbit báo niêm yết KRW coin mới", reason: "VAL mạnh (+71 bp, t 3,96, power 3,09) nhưng IS t 0,74 với 9 thông báo (6 đăng đúng giờ mở); không đăng ký được nếu không hạ ngưỡng IS.", report: research/results/portfolio/round67_fix_seconds/R2/STREAM_R2.md}
+  # R66 (2026-11-01), thực thi nhanh trong phút đầu
+  - {round: R66, name: "G0: altcoin tụt sau BTC, vào trong 1–3 giây sau cú sốc", reason: "Phần hồi trong 60 giây +17 / +12 bp bị phí taker 10 bp ăn hết; IS t tốt nhất 0,48.", report: research/results/portfolio/round66_fast_execution/G0/STREAM_G0.md}
+  - {round: R66, name: "A3: thông báo niêm yết KRW Upbit -> spot Binance cho coin chưa có perp", reason: "Chỉ 5 sự kiện IS, 0 sự kiện VAL.", report: research/results/portfolio/round66_fast_execution/A3/STREAM_A3.md}
+  - {round: R66, name: "B2: thông báo niêm yết Bithumb ở mức giây", reason: "Không test được: feed.bithumb.com 403, API chỉ giữ ~20 thông báo mới nhất.", report: research/results/portfolio/round66_fast_execution/B2/STREAM_B2.md}
+  - {round: R66, name: "O2: thông báo niêm yết OKX / Bybit -> perp Binance ở mức giây", reason: "Không nhúc nhích sau 5 giây (+2 bp); giữ tới giờ mở của sàn IS t 1,88, VAL t 1,94.", report: research/results/portfolio/round66_fast_execution/O2/STREAM_O2.md}
+  - {round: R66, name: "N0: fade cú chạy đầu phiên khi Binance mở perp mới", reason: "7/8 ô lỗ ở IS; cú chạy lớn đầu phiên đi tiếp chứ không đảo.", report: research/results/portfolio/round66_fast_execution/N0/STREAM_N0.md}
+  - {round: R66, name: "A4: thông báo niêm yết KRW Upbit -> perp Bybit cho coin chưa có perp Binance", reason: "IS không có sự kiện; VAL 7 sự kiện +5.029 bp (t 3,08) chỉ là mô tả.", report: research/results/portfolio/round66_fast_execution/A4/STREAM_A4.md}
+  - {round: R66, name: "A5: thông báo niêm yết KRW Upbit -> perp Binance mới 1–7 ngày", reason: "Không có sự kiện: Upbit niêm yết trước, Binance mở perp sau.", report: research/results/portfolio/round66_fast_execution/A5/STREAM_A5.md}
+  # R65 (2026-11-01), nhà đầu tư nhỏ lẻ theo sàn
+  - {round: R65, name: "H: luật K2 cho các lần niêm yết KRW của Bithumb", reason: "IS +432 bp (t 1,92), VAL -75 (t -0,31); pump trước giờ vào chỉ +5,5 % so với +21,5 % ở Upbit.", report: research/results/portfolio/round65_retail_venues/H/STREAM_H.md}
+  - {round: R65, name: "U: dòng tiền nhỏ lẻ Hàn Quốc đổ vào coin đã niêm yết (tỉ trọng khối lượng Upbit tăng vọt)", reason: "Ô chọn ở IS t 1,03, dưới trung vị ngẫu nhiên; 2021 âm ở mọi ô; chỉ fade ở VAL.", report: research/results/portfolio/round65_retail_venues/U/STREAM_U.md}
+  - {round: R65, name: "I: rà các sàn nhỏ lẻ khác có ngày niêm yết (Bitvavo, Indodax, BtcTurk, Bitkub, CoinDCX, Coinone, bitbank)", reason: "Không sàn nào có nhịp pump trước giờ vào (trung vị -6 % đến +2,5 %); vài sàn 403 hoặc robots cấm.", report: research/results/portfolio/round65_retail_venues/I/STREAM_I.md}
+  - {round: R65, name: "W: Upbit gắn cảnh báo đầu tư / báo huỷ niêm yết -> bán perp Binance", reason: "IS không có sự kiện nào giao dịch được (coin bị cảnh báo 2020–21 chưa có perp Binance).", report: research/results/portfolio/round65_retail_venues/W/STREAM_W.md}
+  - {round: R65, name: "A: mua perp Binance ngay sau thông báo niêm yết KRW của Upbit", reason: "Nhịp tăng (+1.524 / +1.953 bp so với BTC) nằm trọn trong phút có thông báo; vào sau 1 phút không còn gì.", report: research/results/portfolio/round65_retail_venues/A/STREAM_A.md}
+  - {round: R65, name: "C: CBBC Hồng Kông bị gọi bắt buộc dồn cụm -> HK50", reason: "Không test được: lịch sử mức gọi miễn phí không có, file thuộc tính của HKEX là trả phí.", report: research/results/portfolio/round65_retail_venues/C/STREAM_C.md}
+  - {round: R65, name: "R: nhịp giờ thức / ngủ của nhà đầu tư Hàn Quốc trên coin nặng Upbit", reason: "Cả 7 ô âm mọi năm (chiều khai báo sai); chiều ngược chỉ dương nếu khớp maker và vẫn trượt IS.", report: research/results/portfolio/round65_retail_venues/R/STREAM_R.md}
+  - {round: R65, name: "E: ETF đòn bẩy / ngược Hồng Kông tái cân bằng vào phiên đóng cửa -> HK50", reason: "Không có lịch sử AUM miễn phí; vào lúc đóng cửa lỗ; khung sau đóng cửa IS t 1,90, bỏ 3–4/2020 thì về 0.", report: research/results/portfolio/round65_retail_venues/E/STREAM_E.md}
+  - {round: R65, name: "M: luật K2 cho các lần Upbit thêm coin vào thị trường BTC / USDT", reason: "IS -39 bp (t -0,08), VAL +596 (t 2,98, n 16); nhịp tăng xảy ra trước thông báo.", report: research/results/portfolio/round65_retail_venues/M/STREAM_M.md}
+  # R64 (2026-11-01), chạy song song nhiều nhánh
+  - {round: R64, name: "K1: chênh giá riêng từng coin trên Upbit so với Binance (kimchi trừ BTC)", reason: "IS t tốt nhất 1,78, VAL âm; khoảng chênh đóng lại do giá Upbit giảm, chân Binance gần như không chạy.", report: research/results/portfolio/round64_parallel/K/STREAM_K.md}
+  - {round: R64, name: "L: luật K2 cho các lần niêm yết Coinbase", reason: "IS -621 bp (t -0,81), VAL +151 (t 0,73); không có nhịp pump trước giờ vào lệnh, squeeze ở đuôi.", report: research/results/portfolio/round64_parallel/L/STREAM_L.md}
+  - {round: R64, name: "N: chạy luật B từ kho coin có sẵn (long spot / short perp) thay vì vay", reason: "VAL kho coin -6,9 %/năm so với lãi cash, gộp với B -5,5 %/năm (t -3,96); cần ~110–150 lần cỡ lệnh làm vốn.", report: research/results/portfolio/round64_parallel/N/STREAM_N.md}
+  - {round: R64, name: "V: sàn khác cho vay coin của luật B", reason: "Gate / Bybit / OKX cho vay ~6 %/năm nhưng spot của họ hụt ~40–50 bp mỗi lệnh so với spot Binance; khoá vay là ở tài khoản Binance.", report: research/results/portfolio/round64_parallel/V/STREAM_V.md}
+  - {round: R64, name: "T: perp bị huỷ niêm yết hội tụ về giá tất toán", reason: "IS chỉ 1 sự kiện; VAL perp nằm sát spot ở T-24 giờ (trung vị +5,8 bp), bán phía đắt -141 bp (t -2,15).", report: research/results/portfolio/round64_parallel/T/STREAM_T.md}
+  - {round: R64, name: "X: mua spot Binance khi rẻ hơn spot sàn khác, phòng hộ bằng perp", reason: "Mọi ô lỗ đúng bằng phí 42–50 bp (k100 H24 IS -59,5, VAL -76,3); perp cũng rẻ như spot ở các tín hiệu này.", report: research/results/portfolio/round64_parallel/X/STREAM_X.md}
+  - {round: R64, name: "G: altcoin đuổi theo BTC sau cú sốc 1 phút", reason: "IS t tốt nhất 1,56, VAL ~0; phần tụt lại hồi về chủ yếu trong phút kế tiếp không giao dịch được.", report: research/results/portfolio/round64_parallel/G/STREAM_G.md}
+  - {round: R64, name: "Q2: hợp đồng quý vs perp, hội tụ 24 giờ cuối trước giao hàng", reason: "IS t ≤ 0,4 ở mọi ô; hội tụ cuối kỳ âm ở cả IS và VAL.", report: research/results/portfolio/round64_parallel/Q/STREAM_Q.md}
   # R63 (2026-10-31), chạy song song nhiều nhánh
   - {round: R63, name: "S: cổ phiếu lớn Mỹ, qua đêm / trong phiên (MOO, MOC)", reason: "Hiệu ứng qua đêm có thật trước phí (IS t 3,31) nhưng chỉ hoà vốn khi phí 1,4 bp mỗi chiều, phí giả định 2,5 bp.", report: research/results/portfolio/round63_parallel/S/STREAM_S.md}
   - {round: R63, name: "V: bán biến động crypto (straddle Deribit có phòng hộ delta)", reason: "IS t tốt nhất 1,50; vol khớp thật chỉ 0,85–0,90 lần DVOL, phần còn lại mất vào spread, phí, phòng hộ; có tuần ETH lỗ 42 % vốn.", report: research/results/portfolio/round63_parallel/V/STREAM_V.md}

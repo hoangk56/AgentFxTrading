@@ -1,0 +1,6 @@
+J1 perp-first coins later listed on Binance spot (spot first >= perp first + 7 d), by spot-listing year
+  2023: n 2, median lag 210 d, e.g. BLURUSDT, BONKUSDT
+  2024: n 4, median lag 109 d, e.g. PYTHUSDT, TONUSDT, TURBOUSDT, WIFUSDT
+  spot and perp within 7 d of each other (not events): {2020: 15, 2021: 9, 2022: 8, 2023: 22, 2024: 47}
+J5 funding-interval switches 8h -> shorter, 385 symbols with full funding history, by year: {2022: 4, 2023: 26, 2024: 7} new gap: {4: 35, 2: 2} symbols: 30
+J5 add-on (inline script, same rule): funding_window (first 75 d of 497 other perps) switches 8h->shorter by year: {2023: 13, 2024: 5}, 17 symbols

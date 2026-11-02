@@ -1,0 +1,22 @@
+krw: 43 coin-events with a Binance perp >= 7 d old, by year {2021: 8, 2022: 2, 2023: 10, 2024: 23}
+   not in K2's survivor list: 9: MATIC 2021-10, AUDIO 2021-11, GAL 2023-01, ALT 2024-02, OMNI 2024-05, STG 2024-05, GAL 2024-07, USDC 2024-08, BONK 2024-11
+   2021-10-15 04:00Z MATIC: KRW, BTC 마켓 디지털 자산 추가 (SOL, MATIC, NU)
+   2021-12-15 04:00Z NEAR: KRW, BTC 마켓 디지털 자산 추가 (NEAR, YGG)
+   2023-04-27 01:00Z EGLD: KRW, BTC 마켓 디지털 자산 추가 (EGLD)
+   2024-02-27 02:45Z ALT: KRW, BTC 마켓 디지털 자산 추가 (ALT, PYTH)
+   2024-06-14 03:06Z ONDO: 온도파이낸스(ONDO) 신규 거래지원 안내 (KRW, BTC, USDT 마켓)
+   2024-09-13 04:36Z CKB: 너보스(CKB) 신규 거래지원 안내 (KRW, BTC, USDT 마켓) (거래지원 개시 시점 연기 안내)
+btc: 32 coin-events with a Binance perp >= 7 d old, by year {2020: 1, 2021: 5, 2022: 5, 2023: 4, 2024: 17}
+   2020-12-14 06:00Z UNI: BTC 마켓 디지털 자산 추가 (BASIC, INJ, UNI)
+   2021-12-29 04:50Z LPT: BTC 마켓 디지털 자산 추가 (CTC, LPT)
+   2022-07-14 01:25Z RAY: BTC 마켓 디지털 자산 추가 (RAY) (출금 서비스 개시 안내)
+   2024-06-17 09:45Z GAS: 가스(GAS), 게임빌드(GAME2), 네오(NEO), 솔라나(SOL), 썬더코어(TT) BTC, USDT 마켓 디지털 자산 추가 (업데이트)
+   2024-10-22 05:53Z BONK: 봉크(BONK) 신규 거래지원 안내 (USDT 마켓)
+   2024-11-13 06:15Z EGLD: USDT 마켓 디지털 자산 추가 (AGLD, AHT, ARPA, ASTR, BNT, EGLD, FIL, LWA, NEAR, OXT, RAD, XLM)
+air: 16 coin-events with a Binance perp >= 7 d old, by year {2020: 2, 2021: 9, 2022: 2, 2023: 1, 2024: 2}
+   2020-11-23 11:00Z XRP: 리플(XRP) 보유 회원 대상 스파크(SPARK) 에어드랍 지원 안내 (변경 사항 안내)
+   2021-02-10 09:30Z QTUM: 퀀텀(QTUM) 보유 회원 대상 치 토큰(QI) 에어드랍 지원 안내 (입출금 재개 안내)
+   2021-06-08 09:00Z BTT: 트론(TRX), 비트토렌트(BTT), 저스트(JST) 보유 회원 대상 에이피이앤에프티(NFT) 에어드랍 지원 안내
+   2021-09-08 05:00Z IOST: 아이오에스티(IOST) 보유 회원 대상 도니토큰(DON) 에어드랍 지원 안내 (입출금 재개 안내)
+   2021-12-03 02:30Z XLM: 스텔라루멘(XLM) 보유 회원 대상 아쿠아(AQUA) 에어드랍 지원 안내 (입출금 재개 안내)
+   2021-12-28 01:00Z ICX: 아이콘(ICX) 보유 회원 대상 ICY, ICZ 에어드랍 지원 안내 (입출금 재개 안내)

@@ -1,0 +1,68 @@
+VET      VETUSDT       notice 2020-03-27T02:00:03Z L 2020-03-27T05:00:00Z lag   3.0 h  first BTC-VET 60m candle
+XTZ      XTZUSDT       notice 2020-04-28T05:40:03Z L 2020-04-28T07:00:00Z lag   1.3 h  first BTC-XTZ 60m candle
+LINK     LINKUSDT      notice 2020-07-16T05:00:03Z L 2020-07-16T06:00:00Z lag   1.0 h  first BTC-LINK 60m candle
+COMP     COMPUSDT      notice 2020-08-24T05:30:02Z L 2020-08-24T07:00:00Z lag   1.5 h  first BTC-COMP 60m candle
+ALGO     ALGOUSDT      notice 2020-09-01T05:00:29Z L 2020-09-01T06:00:00Z lag   1.0 h  first BTC-ALGO 60m candle
+SRM      SRMUSDT       notice 2020-10-07T03:00:02Z L 2020-10-07T04:00:00Z lag   1.0 h  fallback notice + median 2020 lag 1.3 h
+FIL      FILUSDT       notice 2020-12-09T12:10:02Z L 2020-12-09T13:00:00Z lag   0.8 h  first BTC-FIL 60m candle
+UNI      UNIUSDT       notice 2020-12-14T06:00:01Z L 2020-12-14T09:00:00Z lag   3.0 h  first BTC-UNI 60m candle
+NEAR     NEARUSDT      notice 2021-03-10T07:00:00Z L 2021-03-10T08:00:00Z lag   1.0 h  first BTC-NEAR 60m candle
+GRT      GRTUSDT       notice 2021-04-14T07:00:01Z L 2021-04-14T08:00:00Z lag   1.0 h  first BTC-GRT 60m candle
+SNX      SNXUSDT       notice 2021-04-14T07:00:01Z L 2021-04-14T08:00:00Z lag   1.0 h  partner GRT first BTC 60m candle
+MASK     MASKUSDT      notice 2021-10-27T06:00:13Z L 2021-10-27T08:00:00Z lag   2.0 h  first BTC-MASK 60m candle
+AUDIO    AUDIOUSDT     notice 2021-11-18T04:25:01Z L 2021-11-18T06:00:00Z lag   1.6 h  first BTC-AUDIO 60m candle
+GTC      GTCUSDT       notice 2021-12-22T04:00:01Z L 2021-12-22T06:00:00Z lag   2.0 h  first BTC-GTC 60m candle
+OCEAN    OCEANUSDT     notice 2021-12-22T04:00:01Z L 2021-12-22T06:00:00Z lag   2.0 h  first BTC-OCEAN 60m candle
+LPT      LPTUSDT       notice 2021-12-29T04:50:01Z L 2021-12-29T06:00:00Z lag   1.2 h  first BTC-LPT 60m candle
+API3     API3USDT      notice 2022-04-21T01:25:01Z L 2022-04-21T08:00:00Z lag   6.6 h  first BTC-API3 60m candle
+ARPA     ARPAUSDT      notice 2022-05-03T01:30:01Z L 2022-05-03T08:00:00Z lag   6.5 h  first BTC-ARPA 60m candle
+ENS      ENSUSDT       notice 2022-05-03T01:30:01Z L 2022-05-03T08:00:00Z lag   6.5 h  first BTC-ENS 60m candle
+APE      APEUSDT       notice 2022-05-17T01:32:28Z L 2022-05-17T08:00:00Z lag   6.5 h  first BTC-APE 60m candle
+RAY      RAYUSDT       notice 2022-07-14T01:25:01Z L 2022-07-14T08:00:00Z lag   6.6 h  first BTC-RAY 60m candle
+GAL      GALUSDT       notice 2023-01-18T01:00:16Z L 2023-01-18T08:00:00Z lag   7.0 h  first BTC-G 60m candle
+MAGIC    MAGICUSDT     notice 2023-03-21T00:51:45Z L 2023-03-21T07:00:00Z lag   6.1 h  first BTC-MAGIC 60m candle
+MINA     MINAUSDT      notice 2023-07-11T00:00:02Z L 2023-07-11T07:00:00Z lag   7.0 h  first BTC-MINA 60m candle
+STG      STGUSDT       notice 2023-08-10T00:10:00Z L 2023-08-10T07:00:00Z lag   6.8 h  fallback notice + median 2023 lag 7.0 h
+ID       IDUSDT        notice 2023-11-30T05:00:00Z L 2023-11-30T09:00:00Z lag   4.0 h  first BTC-ID 60m candle
+ALT      ALTUSDT       notice 2024-02-27T02:45:08Z L 2024-02-27T07:00:00Z lag   4.2 h  first BTC-ALT 60m candle
+BIGTIME  BIGTIMEUSDT   notice 2024-04-23T05:32:10Z L 2024-04-23T08:00:00Z lag   2.5 h  first BTC-BIGTIME 60m candle
+PEPE     1000PEPEUSDT  notice 2024-08-20T07:37:46Z L 2024-08-20T10:00:00Z lag   2.4 h  first USDT-PEPE 60m candle
+MEW      MEWUSDT       notice 2024-09-19T06:44:52Z L 2024-09-19T10:00:00Z lag   3.3 h  first BTC-MEW 60m candle
+BONK     1000BONKUSDT  notice 2024-10-22T05:53:47Z L 2024-10-22T09:00:00Z lag   3.1 h  WebSearch opening time
+JASMY    JASMYUSDT     notice 2024-11-20T02:49:09Z L 2024-11-20T06:00:00Z lag   3.2 h  WebSearch opening time
+SWELL    SWELLUSDT     notice 2024-12-05T03:01:45Z L 2024-12-05T06:00:00Z lag   3.0 h  first BTC-SWELL 60m candle
+33 M events; skipped:
+    SOL 2021-10-15T04:00:01Z KRW added at this notice (K2 type)
+    MATIC 2021-10-15T04:00:01Z KRW in title, KRW market delisted: KRW type (survivorship check)
+    AAVE 2021-10-27T06:00:13Z KRW added at this notice (K2 type)
+    ALGO 2021-11-18T04:25:01Z earlier Upbit addition notice
+    NEAR 2021-12-15T04:00:03Z earlier Upbit addition notice
+    AVAX 2022-02-08T04:00:23Z KRW added at this notice (K2 type)
+    GMT 2022-05-04T01:00:01Z KRW added at this notice (K2 type)
+    SHIB 2023-01-18T01:00:16Z KRW added at this notice (K2 type)
+    MASK 2023-03-07T00:30:08Z earlier Upbit addition notice
+    ARB 2023-03-30T01:00:00Z KRW added at this notice (K2 type)
+    EGLD 2023-04-27T01:00:17Z KRW added at this notice (K2 type)
+    PYTH 2024-02-27T02:45:08Z KRW added at this notice (K2 type)
+    ZETA 2024-05-03T05:36:10Z KRW added at this notice (K2 type)
+    OMNI 2024-05-03T05:36:10Z KRW in title, KRW market delisted: KRW type (survivorship check)
+    ONDO 2024-06-14T03:06:53Z KRW added at this notice (K2 type)
+    GAS 2024-06-17T09:45:15Z earlier Upbit addition notice
+    NEO 2024-06-17T09:45:15Z Upbit market existed before notice
+    SOL 2024-06-17T09:45:15Z earlier Upbit addition notice
+    JUP 2024-07-04T06:42:18Z KRW added at this notice (K2 type)
+    PENDLE 2024-08-06T06:32:55Z KRW added at this notice (K2 type)
+    USDC 2024-08-30T00:17:01Z stablecoin
+    CKB 2024-09-13T04:36:18Z KRW added at this notice (K2 type)
+    INJ 2024-10-17T08:47:53Z earlier Upbit addition notice
+    UNI 2024-10-22T06:37:26Z earlier Upbit addition notice
+    AGLD 2024-11-13T06:15:00Z earlier Upbit addition notice
+    ARPA 2024-11-13T06:15:00Z earlier Upbit addition notice
+    ASTR 2024-11-13T06:15:00Z earlier Upbit addition notice
+    BNT 2024-11-13T06:15:00Z Upbit market existed before notice
+    EGLD 2024-11-13T06:15:00Z earlier Upbit addition notice
+    FIL 2024-11-13T06:15:00Z earlier Upbit addition notice
+    NEAR 2024-11-13T06:15:00Z earlier Upbit addition notice
+    OXT 2024-11-13T06:15:00Z earlier Upbit addition notice
+    XLM 2024-11-13T06:15:00Z Upbit market existed before notice
+    RENDER 2024-12-05T03:05:57Z Upbit market existed before notice

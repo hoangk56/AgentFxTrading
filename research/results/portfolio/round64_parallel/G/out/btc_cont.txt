@@ -1,0 +1,12 @@
+X1 BTC continuation H 5 IS 2.6 t 0.43 n 395
+X1 BTC continuation H 5 VAL -17.2 t -2.67 n 206
+X1 BTC continuation H 15 IS 14.1 t 1.23 n 395
+X1 BTC continuation H 15 VAL -19.9 t -2.21 n 206
+X1 BTC continuation H 60 IS 10.1 t 0.7 n 395
+X1 BTC continuation H 60 VAL 1.0 t 0.09 n 206
+X2 BTC continuation H 5 IS 13.9 t 0.45 n 77
+X2 BTC continuation H 5 VAL -49.1 t -1.83 n 36
+X2 BTC continuation H 15 IS 2.9 t 0.08 n 77
+X2 BTC continuation H 15 VAL -40.4 t -1.18 n 36
+X2 BTC continuation H 60 IS -28.3 t -0.53 n 77
+X2 BTC continuation H 60 VAL -25.5 t -0.62 n 36

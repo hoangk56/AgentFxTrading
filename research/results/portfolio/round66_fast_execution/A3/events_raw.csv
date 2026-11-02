@@ -1,0 +1,6 @@
+nid,coin,spot,N,N_utc,stated,how,src,title
+1384,HIVE,HIVEUSDT,1595315445000,2020-07-21 07:10:45,,prose,trade,원화마켓 신규 상장 (하이브 HIVE)
+1388,KAVA,KAVAUSDT,1595480431000,2020-07-23 05:00:31,,prose,trade,"원화마켓, BTC 마켓 신규 상장 (카바 KAVA)"
+1740,SAND,SANDUSDT,1611216002000,2021-01-21 08:00:02,,prose,trade,원화마켓 신규 상장 (샌드박스 SAND)
+1882,STX,STXUSDT,1617603909000,2021-04-05 06:25:09,,prose,trade,"원화 마켓 디지털 자산 추가 (AXS, STX, FLOW, DAWN)"
+2217,NU,NUUSDT,1634270401000,2021-10-15 04:00:01,,prose,trade,"KRW, BTC 마켓 디지털 자산 추가 (SOL, MATIC, NU)"

@@ -1,0 +1,45 @@
+== C1 signal 15:44 follow 15:45->15:59 q0.9
+  IS: mid -1.03 (-0.77) n139 | cost 3.09 | net -4.12 (-3.08) n139 | x1.5 -5.67 | late -4.99 (-3.44) | ex-2020MA -3.59 (-2.63) | n/yr 23.2 | power -1.69
+  VAL: mid +1.02 (+0.42) n77 | cost 2.75 | net -1.73 (-0.71) n77 | x1.5 -3.10 | late -6.02 (-2.42) | ex-2020MA -1.73 (-0.71) | n/yr 25.7 | power -0.56
+  years: 2016:-2.9/5 2017:-5.6/18 2018:-0.6/47 2019:-3.5/18 2020:-5.5/28 2021:-9.3/23 2022:-2.9/38 2023:-3.2/12 2024:+0.6/27 | positive 1/9
+  random IS: actual -4.12 random mean +1.70 beats 0.0 %
+  random VAL: actual -1.73 random mean +4.70 beats 3.4 %
+== C2 signal 15:49 follow 15:50->15:59 q0.9
+  IS: mid -1.81 (-1.91) n140 | cost 3.11 | net -4.92 (-5.20) n140 | x1.5 -6.47 | late -6.38 (-5.66) | ex-2020MA -4.58 (-5.00) | n/yr 23.3 | power -2.86
+  VAL: mid +1.87 (+1.04) n77 | cost 2.78 | net -0.91 (-0.50) n77 | x1.5 -2.30 | late -5.95 (-2.91) | ex-2020MA -0.91 (-0.50) | n/yr 25.7 | power -0.39
+  years: 2016:-3.4/5 2017:-3.8/18 2018:-3.3/48 2019:-7.2/17 2020:-6.4/30 2021:-5.8/22 2022:-3.6/39 2023:-0.1/12 2024:+2.8/26 | positive 1/9
+  random IS: actual -4.92 random mean -0.02 beats 0.0 %
+  random VAL: actual -0.91 random mean +2.17 beats 13.4 %
+== C3 signal 15:44 follow 15:45->16:09 q0.9
+  IS: mid -4.47 (-1.83) n122 | cost 2.99 | net -7.46 (-3.04) n122 | x1.5 -8.95 | late -5.66 (-2.67) | ex-2020MA -5.59 (-2.36) | n/yr 20.3 | power -1.68
+  VAL: mid -0.48 (-0.13) n77 | cost 2.79 | net -3.27 (-0.86) n77 | x1.5 -4.66 | late -4.83 (-1.41) | ex-2020MA -3.27 (-0.86) | n/yr 25.7 | power -0.67
+  years: 2016:+nan/0 2017:-5.3/6 2018:-2.9/47 2019:-6.0/18 2020:-14.4/28 2021:-10.0/23 2022:-5.2/38 2023:-4.5/12 2024:+0.1/27 | positive 1/8
+  random IS: actual -7.46 random mean +4.89 beats 0.0 %
+  random VAL: actual -3.27 random mean +9.23 beats 0.4 %
+== C4 signal 16:09 follow 16:10->16:28 q0.9
+  IS: mid +8.93 (+2.92) n86 | cost 3.24 | net +5.69 (+1.90) n86 | x1.5 +4.07 | late +7.28 (+2.55) | ex-2020MA -0.05 (-0.03) | n/yr 14.3 | power +1.05
+  VAL: mid +7.17 (+2.79) n85 | cost 2.89 | net +4.29 (+1.67) n85 | x1.5 +2.84 | late +4.18 (+1.69) | ex-2020MA +4.29 (+1.67) | n/yr 28.3 | power +1.30
+  years: 2016:+nan/0 2017:+nan/0 2018:-2.8/19 2019:-2.7/16 2020:+20.4/30 2021:-1.3/21 2022:+5.5/43 2023:-3.2/13 2024:+5.8/29 | positive 3/7
+  random IS: actual +5.69 random mean +3.55 beats 81.3 %
+  random VAL: actual +4.29 random mean +5.74 beats 35.0 %
+  non-big days same window (follow): IS net -2.11 (-5.10) n918 mid +0.69; VAL net -2.08 (-3.86) n645 mid +0.66
+  split: 2016-20 net +7.95 (+2.08) n65; 2021-24 net +3.18 (+1.49) n106
+== C5 signal 16:09 fade 16:28->17:29 q0.9
+  IS: mid -4.39 (-1.14) n86 | cost 3.65 | net -8.04 (-2.08) n86 | x1.5 -9.87 | late -6.65 (-1.75) | ex-2020MA -4.86 (-1.73) | n/yr 14.3 | power -1.14
+  VAL: mid -2.25 (-0.62) n84 | cost 3.24 | net -5.49 (-1.51) n84 | x1.5 -7.10 | late -5.45 (-1.48) | ex-2020MA -5.49 (-1.51) | n/yr 28.0 | power -1.18
+  years: 2016:+nan/0 2017:+nan/0 2018:-12.6/19 2019:-4.2/16 2020:-11.9/30 2021:-1.3/21 2022:-5.4/42 2023:-4.1/13 2024:-6.2/29 | positive 0/7
+  random IS: actual -8.04 random mean -25.04 beats 100.0 %
+  random VAL: actual -5.49 random mean -29.11 beats 99.9 %
+== C6 signal 16:09 follow 16:10->16:28 q0.8
+  IS: mid +5.32 (+3.16) n179 | cost 3.13 | net +2.19 (+1.32) n179 | x1.5 +0.63 | late +3.20 (+1.98) | ex-2020MA -0.60 (-0.57) | n/yr 29.8 | power +0.73
+  VAL: mid +3.61 (+2.23) n164 | cost 2.87 | net +0.74 (+0.46) n164 | x1.5 -0.70 | late +0.29 (+0.18) | ex-2020MA +0.74 (+0.46) | n/yr 54.7 | power +0.35
+  years: 2016:+nan/0 2017:+nan/0 2018:-1.5/34 2019:-2.6/36 2020:+9.5/64 2021:-1.6/45 2022:+2.1/75 2023:-2.5/40 2024:+1.2/49 | positive 3/7
+  random IS: actual +2.19 random mean +1.84 beats 58.4 %
+  random VAL: actual +0.74 random mean +4.41 beats 5.9 %
+  non-big days same window (follow): IS net -2.23 (-5.23) n825 mid +0.54; VAL net -1.94 (-3.47) n566 mid +0.79
+  split: 2016-20 net +3.47 (+1.62) n134; 2021-24 net +0.23 (+0.17) n209
+chance: max IS net t observed +1.90; null p50 -0.19 p95 1.16; p 0.004
+info IS C4 window 16:10-16:29 mid by |r| decile: +0.5 -0.9 +0.6 -0.4 +0.7 +1.5 +2.7 +0.4 +2.0 +6.7 (n 1004)
+info IS C1 window 15:45-16:00 mid by |r| decile: -0.2 +0.3 -0.0 +0.2 +0.8 -0.2 +0.6 +0.7 +1.1 +0.0 (n 1453)
+info VAL C4 window 16:10-16:29 mid by |r| decile: -0.7 +1.1 +1.5 -1.5 +0.6 +2.2 +3.5 -1.5 -0.2 +9.3 (n 730)
+info VAL C1 window 15:45-16:00 mid by |r| decile: -1.6 -3.2 -0.9 -0.6 +2.2 +0.3 +1.6 +1.1 +1.2 +1.5 (n 730)

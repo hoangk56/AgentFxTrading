@@ -1,0 +1,3 @@
+robots.txt	GET	https://api.bybit.com/robots.txt
+robots.txt	GET	https://www.chinamoney.com.cn/robots.txt
+SOLBRL-1d-2023-06.zip	GET	https://data.binance.vision/data/spot/monthly/klines/SOLBRL/1d/SOLBRL-1d-2023-06.zip

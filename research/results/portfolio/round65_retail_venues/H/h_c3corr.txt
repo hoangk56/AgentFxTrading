@@ -1,0 +1,2 @@
+H72 IS days 731 active 23 corr -0.037
+H72 VAL days 1096 active 67 corr +0.007

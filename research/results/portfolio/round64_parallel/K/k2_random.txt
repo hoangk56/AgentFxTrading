@@ -1,0 +1,4 @@
+random 24 IS {'n': 11, 'gross_h1': np.float64(523.9914142167763), 'pct_other_alts': 100.0, 'med_other': -22.975652991603898, 'pct_same_coin': 100.0, 'med_same': -11.362746268656025}
+random 24 VAL {'n': 29, 'gross_h1': np.float64(526.5384337934719), 'pct_other_alts': 100.0, 'med_other': 27.257090647707727, 'pct_same_coin': 100.0, 'med_same': 6.13000293497237}
+random 72 IS {'n': 11, 'gross_h1': np.float64(962.4622915604593), 'pct_other_alts': 100.0, 'med_other': -142.57566645680086, 'pct_same_coin': 100.0, 'med_same': -47.48430793754174}
+random 72 VAL {'n': 29, 'gross_h1': np.float64(588.645472785894), 'pct_other_alts': 100.0, 'med_other': -72.45985903048884, 'pct_same_coin': 100.0, 'med_same': -17.073507488395602}

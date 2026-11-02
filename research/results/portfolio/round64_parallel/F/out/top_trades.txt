@@ -1,0 +1,26 @@
+n 1150 mean +297.1 median +232.6 trim5% +245.4 win 68% sum 341639 sum top10 94309 bottom10 -42330
+LUNAUSDT       2022-05-12 09:49 r   -857 btc   -18 gross  +27427 | path vs c[e-1] (bp): -857 -1393 -1714 -2036 -3964 +22214 | n_trades 15480 qv 2904306
+LUNAUSDT       2022-05-11 12:50 r   -891 btc   -44 gross  +25724 | path vs c[e-1] (bp): -891 -757 -539 -975 +175 +23020 | n_trades 18987 qv 6967233
+LUNAUSDT       2022-05-12 10:50 r  +1549 btc   +13 gross   +6495 | path vs c[e-1] (bp): +1549 +1216 +1652 -1050 -691 -6069 | n_trades 51533 qv 11632705
+LUNAUSDT       2022-05-12 08:45 r  +1007 btc    +5 gross   +6166 | path vs c[e-1] (bp): +1007 +53 +887 +517 -1722 -6146 | n_trades 24927 qv 7488787
+RLCUSDT        2021-05-19 13:55 r   -599 btc   -35 gross   +5564 | path vs c[e-1] (bp): -599 -599 +295 +2962 +3119 +4631 | n_trades 100 qv 26194
+LUNAUSDT       2022-05-12 14:01 r  +1017 btc   -23 gross   +5379 | path vs c[e-1] (bp): +1017 +1186 +593 -678 -2881 -4831 | n_trades 4923 qv 895409
+LUNAUSDT       2022-05-11 11:48 r   -675 btc   -30 gross   -5050 | path vs c[e-1] (bp): -675 -1074 -842 -1215 -2116 -5582 | n_trades 48842 qv 20830072
+FTTUSDT        2022-11-09 20:28 r   +665 btc   +14 gross   +4749 | path vs c[e-1] (bp): +665 +929 +623 +867 -1126 -4261 | n_trades 11586 qv 3570926
+WAVESUSDT      2022-05-11 12:49 r   -935 btc   -84 gross   +4564 | path vs c[e-1] (bp): -935 -941 -981 -176 +624 +3194 | n_trades 6218 qv 2099168
+DOGEUSDT       2021-01-29 02:51 r   +522 btc    +3 gross   -4514 | path vs c[e-1] (bp): +522 +379 +255 +461 +1474 +5064 | n_trades 19940 qv 11628737
+BCHUSDT        2021-05-19 13:45 r  +2750 btc  -178 gross   -4411 | path vs c[e-1] (bp): +2750 +2333 +2545 +4510 +6268 +7774 | n_trades 2112 qv 1430668
+BCHUSDT        2021-05-19 12:43 r   -772 btc   -96 gross   -4263 | path vs c[e-1] (bp): -772 -1065 -798 -1870 -2141 -4874 | n_trades 11173 qv 11691193
+DOGEUSDT       2021-05-19 12:50 r   -592 btc   -57 gross   +4204 | path vs c[e-1] (bp): -592 -1350 -1712 -1008 -728 +2286 | n_trades 21576 qv 17431498
+VETUSDT        2021-05-19 13:57 r   +547 btc    +1 gross   -4160 | path vs c[e-1] (bp): +547 +258 +1362 +1956 +2567 +4525 | n_trades 163 qv 59429
+UNFIUSDT       2022-06-13 20:15 r   +602 btc   +12 gross   -4140 | path vs c[e-1] (bp): +602 +548 +544 +581 +495 +4915 | n_trades 9013 qv 2822669
+LUNAUSDT       2022-05-12 13:00 r  +1066 btc   -13 gross   +4037 | path vs c[e-1] (bp): +1066 +1066 +761 +203 +254 -3401 | n_trades 13658 qv 2436152
+FTMUSDT        2021-05-19 13:49 r  +1157 btc   -86 gross   -4028 | path vs c[e-1] (bp): +1157 -622 +341 -853 +1754 +3155 | n_trades 61 qv 33002
+LUNAUSDT       2022-05-12 11:51 r   -697 btc   +21 gross   -4006 | path vs c[e-1] (bp): -697 +212 +394 -1091 -970 -3879 | n_trades 15175 qv 2743847
+AXSUSDT        2022-11-13 13:39 r  +1096 btc    +7 gross   +3999 | path vs c[e-1] (bp): +1096 +8864 +2619 +3289 +2438 +1321 | n_trades 22684 qv 11300298
+LUNAUSDT       2022-05-12 01:56 r  -1032 btc   -20 gross   -3984 | path vs c[e-1] (bp): -1032 -838 -1080 -1477 -2297 -4489 | n_trades 58464 qv 23042998
+LUNAUSDT       2022-05-12 05:33 r   +605 btc    -7 gross   +3933 | path vs c[e-1] (bp): +605 +1883 +621 +86 -2154 -2791 | n_trades 82566 qv 28250768
+AAVEUSDT       2021-04-18 03:35 r   -885 btc  +127 gross   +3872 | path vs c[e-1] (bp): -885 -565 -715 +260 +1302 +3088 | n_trades 4187 qv 3887818
+LUNAUSDT       2022-05-11 10:40 r   -641 btc   -26 gross   -3773 | path vs c[e-1] (bp): -641 -425 +44 -1579 -1818 -4038 | n_trades 47083 qv 19497674
+1INCHUSDT      2021-05-19 13:11 r   -749 btc   +68 gross   +3728 | path vs c[e-1] (bp): -749 +380 -449 -1638 -1793 +4250 | n_trades 1667 qv 306166
+LUNAUSDT       2022-05-12 06:39 r   -742 btc   -55 gross   -3726 | path vs c[e-1] (bp): -742 -1021 -1007 -818 -3165 -4366 | n_trades 39976 qv 9659715

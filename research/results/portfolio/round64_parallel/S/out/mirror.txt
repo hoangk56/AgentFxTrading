@@ -1,0 +1,11 @@
+
+== mirror k=100 H=7 detail (information only, needs X inventory)
+  IS [close]: n 192, episodes 25 (pos 21), excess +32.6 bp, t_ep +4.68, Sh/ep +0.86, x1.5 +21.7
+  IS [taker]: n 192, episodes 25 (pos 20), excess +18.4 bp, t_ep +3.81, Sh/ep +0.69, x1.5 +8.4
+     taker years: 2018 +5.1 (n 40), 2019 +15.3 (n 108), 2020 +27.1 (n 40), 2021 +147.5 (n 4)
+     taker pairs: BUSDUSDT +83.7 (n 1), DAIUSDT +68.1 (n 9), PAXUSDT +21.8 (n 31), TUSDUSDT +16.1 (n 48), USDCUSDT +20.3 (n 26), USDPUSDT +330.6 (n 1), USDSBUSDT +7.7 (n 29), USDSUSDT +6.5 (n 47)
+  VAL [close]: n 61, episodes 19 (pos 16), excess +59.7 bp, t_ep +1.92, Sh/ep +0.48, x1.5 +48.8
+  VAL [taker]: n 61, episodes 19 (pos 14), excess +36.3 bp, t_ep +1.15, Sh/ep +0.29, x1.5 +26.3
+     taker years: 2022 +20.0 (n 7), 2023 +2.3 (n 14), 2024 +51.0 (n 40)
+     taker pairs: BUSDUSDT +38.3 (n 2), FDUSDUSDT +21.2 (n 1), TUSDUSDT +62.1 (n 10), USDCUSDT +24.6 (n 3), USDPUSDT +31.5 (n 45)
+     power at VAL size by episode: +1.00

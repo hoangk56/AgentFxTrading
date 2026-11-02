@@ -1,0 +1,8 @@
+T5 idio H60 IS without 2021-05-19: : n 306 net +326.5 t +5.39 S +0.350 median +301.1 win 69% (that day n 74, sum +3831 bp)
+  IS: 76 coins, max events per coin 48 (DOGEUSDT), share of coins with mean net > 0 70 %
+  VAL: 138 coins, max events per coin 35 (LUNAUSDT), share of coins with mean net > 0 78 %
+  worst trade -5072 bp, best +27405 bp, max drawdown of the cumulative sum 18672 bp (sum 312071)
+T5 all H60 IS without 2021-05-19: : n 439 net +328.2 t +4.96 S +0.358 median +357.5 win 70% (that day n 91, sum -10681 bp)
+  IS: 79 coins, max events per coin 53 (DOGEUSDT), share of coins with mean net > 0 72 %
+  VAL: 150 coins, max events per coin 35 (LUNAUSDT), share of coins with mean net > 0 76 %
+  worst trade -5072 bp, best +27405 bp, max drawdown of the cumulative sum 26604 bp (sum 371255)

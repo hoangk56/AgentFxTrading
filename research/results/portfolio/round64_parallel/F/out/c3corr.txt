@@ -1,0 +1,8 @@
+T5 idio H60 IS corr 0.048 days 523
+T5 idio H60 VAL corr -0.037 days 782
+T5 all H60 IS corr 0.054 days 523
+T5 all H60 VAL corr -0.066 days 782
+T3 idio H60 IS corr 0.021 days 523
+T3 idio H60 VAL corr -0.024 days 782
+T3 all H60 IS corr 0.011 days 523
+T3 all H60 VAL corr -0.05 days 782

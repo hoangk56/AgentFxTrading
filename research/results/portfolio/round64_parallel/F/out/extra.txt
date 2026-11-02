@@ -1,0 +1,116 @@
+
+== T5 idio H60
+IS: n 380 net +273.0 t +4.05 S +0.224 median +274.1 win 65%
+  days 120; top-5 days 2021-04-18 +19258, 2020-12-23 +9897, 2021-10-27 +7945, 2021-09-07 +6943, 2021-12-04 +5149; sum 103749 bp, without top-5 days 54556
+  without top-5 days: n 307 net +177.7 t +3.74 S +0.145 median +239.6 win 63%
+  crash: n 228 net +581.0 t +6.62 S +0.494 median +475.5 win 75%
+  spike: n 152 net -188.9 t -1.14 S -0.167 median -0.7 win 50%
+  rank < 20: n 208 net +181.1 t +2.42 S +0.156 median +273.5 win 66%
+  rank 20-39: n 172 net +384.2 t +4.41 S +0.302 median +274.1 win 64%
+  |r| >= 8%: n 81 net +353.6 t +1.63 S +0.228 median +414.8 win 65%
+  5% <= |r| < 8%: n 299 net +251.2 t +5.79 S +0.226 median +249.9 win 65%
+VAL: n 770 net +270.5 t +3.76 S +0.163 median +176.5 win 67%
+  days 258; top-5 days 2022-05-12 +46834, 2022-05-11 +33922, 2024-12-09 +17738, 2024-03-05 +15185, 2023-11-09 +14931; sum 208322 bp, without top-5 days 79712
+  without top-5 days: n 630 net +126.5 t +3.41 S +0.181 median +120.8 win 63%
+  VAL without LUNA / FTX months: n 629 net +163.0 t +3.65 S +0.257 median +171.6 win 69% -> power 5.04
+  VAL without LUNA / FTT coins: n 712 net +212.2 t +4.05 S +0.283 median +184.3 win 68%
+  crash: n 467 net +360.3 t +4.08 S +0.185 median +239.2 win 73%
+  spike: n 303 net +132.2 t +1.15 S +0.126 median +85.4 win 57%
+  rank < 20: n 420 net +329.2 t +2.90 S +0.153 median +190.6 win 64%
+  rank 20-39: n 350 net +200.1 t +3.72 S +0.286 median +167.9 win 70%
+  |r| >= 8%: n 214 net +684.1 t +2.57 S +0.247 median +268.6 win 74%
+  5% <= |r| < 8%: n 556 net +111.4 t +2.27 S +0.126 median +134.8 win 64%
+  2020: n 62 net +460.4 t +4.79 S +0.611 median +421.9 win 73% | crash +695 spike -33
+  2021: n 318 net +236.5 t +3.23 S +0.184 median +260.6 win 64% | crash +555 spike -213
+  2022: n 265 net +397.4 t +2.27 S +0.147 median +121.2 win 60% | crash +614 spike +221
+  2023: n 223 net +163.9 t +2.65 S +0.289 median +161.1 win 70% | crash +201 spike +110
+  2024: n 282 net +235.6 t +3.26 S +0.361 median +244.4 win 71% | crash +318 spike -30
+  IS break-even round-trip cost 299 bp (declared 26)
+  VAL break-even round-trip cost 296 bp (declared 26)
+
+== T5 all H60
+IS: n 530 net +251.7 t +2.92 S +0.215 median +315.0 win 67%
+  days 126; top-5 days 2021-04-18 +25792, 2021-09-07 +19454, 2020-08-02 +11946, 2021-02-22 +10554, 2021-10-27 +10379; sum 133417 bp, without top-5 days 55292
+  without top-5 days: n 411 net +134.5 t +1.87 S +0.110 median +249.9 win 63%
+  crash: n 345 net +492.8 t +5.25 S +0.448 median +493.0 win 75%
+  spike: n 185 net -197.8 t -1.86 S -0.168 median +3.7 win 50%
+  rank < 20: n 305 net +216.3 t +3.37 S +0.212 median +330.3 win 69%
+  rank 20-39: n 225 net +299.8 t +1.97 S +0.221 median +279.6 win 63%
+  |r| >= 8%: n 82 net +283.7 t +1.66 S +0.168 median +380.5 win 67%
+  5% <= |r| < 8%: n 448 net +245.9 t +3.22 S +0.233 median +311.0 win 67%
+VAL: n 1017 net +233.9 t +4.73 S +0.159 median +157.6 win 67%
+  days 269; top-5 days 2022-05-12 +36372, 2022-05-11 +30143, 2023-12-11 +21099, 2024-12-09 +17738, 2023-08-17 +15931; sum 237838 bp, without top-5 days 116553
+  without top-5 days: n 862 net +135.2 t +3.96 S +0.213 median +122.1 win 66%
+  VAL without LUNA / FTX months: n 820 net +191.1 t +4.52 S +0.328 median +178.8 win 71% -> power 7.34
+  VAL without LUNA / FTT coins: n 959 net +189.7 t +4.40 S +0.272 median +162.7 win 68%
+  crash: n 675 net +328.7 t +4.90 S +0.200 median +224.0 win 75%
+  spike: n 342 net +46.8 t +0.56 S +0.046 median +28.5 win 51%
+  rank < 20: n 544 net +274.0 t +3.55 S +0.143 median +167.6 win 65%
+  rank 20-39: n 473 net +187.7 t +4.15 S +0.287 median +147.7 win 69%
+  |r| >= 8%: n 259 net +583.5 t +2.66 S +0.230 median +277.2 win 72%
+  5% <= |r| < 8%: n 758 net +114.4 t +2.54 S +0.143 median +119.5 win 65%
+  2020: n 103 net +409.4 t +4.09 S +0.486 median +435.1 win 75% | crash +665 spike -133
+  2021: n 427 net +213.7 t +2.16 S +0.173 median +279.6 win 65% | crash +449 spike -212
+  2022: n 346 net +239.3 t +2.11 S +0.100 median +51.3 win 55% | crash +527 spike +21
+  2023: n 286 net +249.1 t +3.37 S +0.448 median +251.0 win 75% | crash +320 spike +102
+  2024: n 385 net +217.7 t +3.64 S +0.380 median +202.4 win 71% | crash +245 spike +44
+  IS break-even round-trip cost 277 bp (declared 25)
+  VAL break-even round-trip cost 260 bp (declared 26)
+
+== T3 idio H60
+IS: n 1530 net +123.6 t +3.89 S +0.147 median +132.1 win 62%
+  days 349; top-5 days 2020-12-23 +19405, 2021-02-23 +15577, 2021-04-18 +11211, 2021-04-23 +9307, 2021-10-27 +8608; sum 189115 bp, without top-5 days 125007
+  without top-5 days: n 1375 net +90.9 t +3.08 S +0.109 median +117.0 win 61%
+  crash: n 841 net +312.4 t +7.57 S +0.393 median +231.7 win 71%
+  spike: n 689 net -106.8 t -1.91 S -0.127 median +23.4 win 52%
+  rank < 20: n 822 net +139.8 t +4.63 S +0.169 median +149.3 win 64%
+  rank 20-39: n 708 net +104.8 t +2.36 S +0.122 median +112.3 win 61%
+  |r| >= 8%: n 42 net +36.5 t +0.12 S +0.018 median +250.9 win 60%
+  5% <= |r| < 8%: n 1488 net +126.1 t +4.60 S +0.161 median +131.3 win 62%
+VAL: n 2394 net +60.3 t +1.89 S +0.050 median +63.2 win 59%
+  days 639; top-5 days 2022-05-11 +68879, 2024-12-09 +14425, 2023-11-09 +11912, 2024-03-05 +11137, 2022-11-09 +9527; sum 144261 bp, without top-5 days 28382
+  without top-5 days: n 2169 net +13.1 t +0.82 S +0.017 median +50.3 win 58%
+  VAL without LUNA / FTX months: n 2008 net +29.4 t +1.65 S +0.055 median +58.7 win 59% -> power 1.94
+  VAL without LUNA / FTT coins: n 2292 net +51.5 t +2.33 S +0.091 median +63.4 win 60%
+  crash: n 1308 net +97.3 t +1.93 S +0.072 median +74.0 win 62%
+  spike: n 1086 net +15.6 t +0.62 S +0.016 median +48.3 win 55%
+  rank < 20: n 1242 net +57.2 t +1.40 S +0.036 median +52.7 win 58%
+  rank 20-39: n 1152 net +63.5 t +2.24 S +0.120 median +71.3 win 60%
+  |r| >= 8%: n 165 net +379.3 t +1.22 S +0.099 median +207.0 win 71%
+  5% <= |r| < 8%: n 2229 net +36.6 t +1.84 S +0.056 median +54.7 win 58%
+  2020: n 298 net +187.4 t +3.12 S +0.339 median +147.1 win 66% | crash +326 spike -87
+  2021: n 1232 net +108.2 t +3.05 S +0.121 median +128.9 win 61% | crash +308 spike -110
+  2022: n 853 net +120.1 t +1.55 S +0.064 median +82.3 win 61% | crash +149 spike +94
+  2023: n 772 net +49.3 t +2.07 S +0.104 median +64.0 win 62% | crash +72 spike +18
+  2024: n 769 net +4.9 t +0.14 S +0.009 median +41.7 win 55% | crash +77 spike -98
+  IS break-even round-trip cost 149 bp (declared 26)
+  VAL break-even round-trip cost 86 bp (declared 26)
+
+== T5 idio H15
+IS: n 380 net +90.1 t +1.02 S +0.098 median +111.0 win 58%
+  days 120; top-5 days 2021-10-27 +6629, 2021-04-18 +6453, 2020-12-23 +6380, 2020-11-26 +4804, 2020-08-02 +4199; sum 34229 bp, without top-5 days 5764
+  without top-5 days: n 312 net +18.5 t +0.21 S +0.020 median +66.5 win 56%
+  crash: n 228 net +180.0 t +1.65 S +0.183 median +181.3 win 62%
+  spike: n 152 net -44.8 t -0.53 S -0.056 median +34.9 win 52%
+  rank < 20: n 208 net +66.0 t +0.87 S +0.085 median +98.2 win 61%
+  rank 20-39: n 172 net +119.2 t +0.97 S +0.111 median +123.4 win 54%
+  |r| >= 8%: n 81 net +236.4 t +1.17 S +0.200 median +227.2 win 63%
+  5% <= |r| < 8%: n 299 net +50.4 t +0.72 S +0.060 median +74.4 win 57%
+VAL: n 770 net +155.7 t +3.17 S +0.224 median +158.3 win 67%
+  days 258; top-5 days 2024-12-09 +25515, 2024-03-05 +20934, 2023-11-09 +13547, 2024-01-03 +12193, 2022-11-08 +9863; sum 119900 bp, without top-5 days 37848
+  without top-5 days: n 655 net +57.8 t +2.09 S +0.087 median +102.4 win 62%
+  VAL without LUNA / FTX months: n 629 net +167.7 t +2.94 S +0.296 median +163.2 win 69% -> power 5.80
+  VAL without LUNA / FTT coins: n 712 net +184.6 t +3.52 S +0.313 median +162.9 win 68%
+  crash: n 467 net +199.3 t +2.44 S +0.287 median +205.6 win 72%
+  spike: n 303 net +88.5 t +1.59 S +0.127 median +79.1 win 59%
+  rank < 20: n 420 net +140.2 t +3.35 S +0.181 median +161.6 win 68%
+  rank 20-39: n 350 net +174.3 t +2.53 S +0.296 median +154.6 win 65%
+  |r| >= 8%: n 214 net +268.6 t +3.00 S +0.327 median +246.5 win 73%
+  5% <= |r| < 8%: n 556 net +112.3 t +2.17 S +0.176 median +126.2 win 64%
+  2020: n 62 net +373.6 t +5.36 S +0.571 median +232.1 win 73% | crash +570 spike -38
+  2021: n 318 net +34.8 t +0.38 S +0.036 median +68.5 win 55% | crash +92 spike -46
+  2022: n 265 net +100.0 t +2.18 S +0.116 median +127.8 win 66% | crash +64 spike +129
+  2023: n 223 net +120.4 t +1.93 S +0.214 median +152.6 win 65% | crash +154 spike +71
+  2024: n 282 net +236.0 t +2.05 S +0.391 median +207.2 win 69% | crash +302 spike +24
+  IS break-even round-trip cost 116 bp (declared 26)
+  VAL break-even round-trip cost 181 bp (declared 26)

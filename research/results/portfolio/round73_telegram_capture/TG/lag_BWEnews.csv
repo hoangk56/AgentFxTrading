@@ -1,0 +1,214 @@
+nid,N_utc,tickers,post,lag,text,title
+3266,2023-01-18T01:00:16,SHIB/GAL,,,,"KRW, BTC 마켓 디지털 자산 추가 (SHIB, GAL)"
+3362,2023-03-07T00:30:08,MASK/ACS,,,,"KRW, BTC 마켓 디지털 자산 추가 (MASK, ACS)"
+3420,2023-03-30T01:00:00,ARB,,,,"KRW, BTC 마켓 디지털 자산 추가 (ARB)"
+3487,2023-04-27T01:00:17,EGLD,,,,"KRW, BTC 마켓 디지털 자산 추가 (EGLD)"
+3502,2023-05-03T01:10:18,SUI,,,,"KRW, BTC 마켓 디지털 자산 추가 (SUI) (매도 주문 제한 기준 가격 안내)"
+3550,2023-06-01T04:30:02,GRT,,,,KRW 마켓 디지털 자산 추가 (GRT)
+3596,2023-06-27T05:00:00,BLUR,,,,KRW 마켓 디지털 자산 추가 (BLUR)
+3654,2023-07-28T02:30:00,IMX,,,,KRW 마켓 디지털 자산 추가 (IMX)
+3683,2023-08-14T09:30:03,SEI,,,,"KRW, BTC 마켓 디지털 자산 추가 (SEI) (매도 주문 제한 기준 가격 변경 안내)"
+3797,2023-10-24T04:25:01,MINA,,,,KRW 마켓 디지털 자산 추가 (MINA)
+3920,2023-12-12T08:00:20,CTC,,,,KRW 마켓 디지털 자산 추가 (CTC)
+3934,2023-12-18T07:30:00,ASTR,,,,KRW 마켓 디지털 자산 추가 (ASTR) (거래지원 개시 시점 연기 안내)
+4032,2024-02-07T04:13:10,ID,,,,KRW 마켓 디지털 자산 추가 (ID)
+4070,2024-02-27T02:45:08,ALT/PYTH,,,,"KRW, BTC 마켓 디지털 자산 추가 (ALT, PYTH)"
+4133,2024-03-27T05:13:24,MNT/POKT,,,,"KRW, BTC, USDT 마켓 디지털 자산 추가 (MNT, POKT) (POKT 거래지원 개시 시점 연기 안내)"
+4172,2024-04-23T05:32:10,BIGTIME/AKT,,,,"빅타임(BIGTIME), 아카시네트워크(AKT) 신규 거래지원 안내 (KRW, BTC, USDT 마켓) (AKT 거래지원 개시"
+4192,2024-05-03T05:36:10,ZETA/OMNI,,,,"제타체인(ZETA), 옴니네트워크(OMNI) 신규 거래지원 안내 (KRW, BTC, USDT 마켓)"
+4253,2024-05-29T09:15:13,AUCTION,,,,바운스토큰(AUCTION) KRW 마켓 디지털 자산 추가
+4257,2024-05-30T07:29:55,STG,11775,2,UPBIT LISTING: [거래] 스타게이트파이낸스(STG) KRW 마켓 디지털 자산 추가 Upbit 上新: 【交易】新增Stargate Finance (STG),스타게이트파이낸스(STG) KRW 마켓 디지털 자산 추가
+4261,2024-05-31T06:28:25,BEAM,11784,2,"UPBIT LISTING: [거래] 빔(BEAM) 신규 거래지원 안내 (KRW, BTC, USDT 마켓) Upbit 上新: [交易] BEAM新增交易支持信息（KRW","빔(BEAM) 신규 거래지원 안내 (KRW, BTC, USDT 마켓) (거래지원 개시 시점 안내)"
+4268,2024-06-05T09:34:51,TAIKO,11798,2,"UPBIT LISTING: [거래] 타이코(TAIKO) 신규 거래지원 안내 (KRW, BTC, USDT 마켓) Upbit 上新: [交易] TAIKO新增交易支持信息","타이코(TAIKO) 신규 거래지원 안내 (KRW, BTC, USDT 마켓) (거래지원 개시 시점 안내)"
+4288,2024-06-14T03:06:53,ONDO,11835,3,"UPBIT LISTING: [거래] 온도파이낸스(ONDO) 신규 거래지원 안내 (KRW, BTC, USDT 마켓) Upbit 上新: 【交易】Ondo Finance","온도파이낸스(ONDO) 신규 거래지원 안내 (KRW, BTC, USDT 마켓)"
+4307,2024-06-20T06:02:42,ZRO,11863,3,"UPBIT LISTING: [거래] 레이어제로(ZRO) 신규 거래지원 안내 (KRW, BTC, USDT 마켓) Upbit 上新: 【交易】零层（ZRO）新交易支持信息","레이어제로(ZRO) 신규 거래지원 안내 (KRW, BTC, USDT 마켓) (거래지원 개시 시점 연기 안내)"
+4317,2024-06-24T09:23:05,BLAST,11886,2,"UPBIT LISTING: [거래] 블라스트(BLAST) 신규 거래지원 안내 (KRW, BTC, USDT 마켓) Upbit 上新: 【交易】BLAST新增交易支持信息","블라스트(BLAST) 신규 거래지원 안내 (KRW, BTC, USDT 마켓) (매도 주문 제한 기준 가격 변경 안내)"
+4346,2024-07-04T06:42:18,JUP,11926,2,"UPBIT LISTING: [거래] 주피터(JUP) 신규 거래지원 안내 (KRW, BTC, USDT 마켓) Upbit 上新: 【交易】木星（JUP）新增交易支持信息（","주피터(JUP) 신규 거래지원 안내 (KRW, BTC, USDT 마켓) (거래지원 개시 시점 연기 안내)"
+4355,2024-07-09T08:40:30,ENS,11941,2,UPBIT LISTING: [거래] 이더리움네임서비스(ENS) KRW 마켓 디지털 자산 추가 Upbit 上新: [交易]添加以太坊名称服务（ENS）韩元市场数字资产  ,이더리움네임서비스(ENS) KRW 마켓 디지털 자산 추가
+4363,2024-07-11T02:22:28,GAL,11952,3,UPBIT LISTING: [거래] 갤럭시(GAL) KRW 마켓 디지털 자산 추가 Upbit 上新: [交易] Galaxy (GAL)韩元市场数字资产新增  —————,갤럭시(GAL) KRW 마켓 디지털 자산 추가
+4419,2024-08-06T06:32:55,PENDLE,12070,5,"UPBIT LISTING: [거래] 펜들(PENDLE) 신규 거래지원 안내 (KRW, BTC 마켓) Upbit 上新: [交易] PENDLE新增交易支持信息（韩元、B","펜들(PENDLE) 신규 거래지원 안내 (KRW, BTC 마켓) (가상자산 정보 제공 강화에 관한 안내)"
+4434,2024-08-14T02:21:07,ATH,12095,3,"UPBIT LISTING: [거래] 에이셔(ATH) 신규 거래지원 안내 (KRW, BTC 마켓) Upbit 上新: [交易] Aisher (ATH)新增交易支持信息（","에이셔(ATH) 신규 거래지원 안내 (KRW, BTC 마켓)"
+4465,2024-08-30T00:17:01,USDC,12182,3,"UPBIT LISTING: [거래] 유에스디코인(USDC) 신규 거래지원 안내 (KRW, BTC, USDT 마켓) Upbit 上新: [交易] USDCoin (US","유에스디코인(USDC) 신규 거래지원 안내 (KRW, BTC, USDT 마켓)"
+4477,2024-09-03T10:04:34,UXLINK,12190,4,"UPBIT LISTING: [거래] 유엑스링크(UXLINK) 신규 거래지원 안내 (KRW, BTC, USDT 마켓) Upbit 上新: 【交易】UXLINK新增交易支","유엑스링크(UXLINK) 신규 거래지원 안내 (KRW, BTC, USDT 마켓)"
+4482,2024-09-05T06:02:21,BIGTIME,12207,4,UPBIT LISTING: [거래] 빅타임(BIGTIME) KRW 마켓 디지털 자산 추가 Upbit 上新: [交易]BIGTIME KRW市场数字资产新增  —————,빅타임(BIGTIME) KRW 마켓 디지털 자산 추가
+4496,2024-09-13T04:36:18,CKB,12243,5,"UPBIT LISTING: [거래] 너보스(CKB) 신규 거래지원 안내 (KRW, BTC, USDT 마켓) Upbit 上新: 【交易】Nervos（CKB）新增交易支","너보스(CKB) 신규 거래지원 안내 (KRW, BTC, USDT 마켓) (거래지원 개시 시점 연기 안내)"
+4537,2024-10-02T06:37:01,W,12340,3,"UPBIT LISTING: [거래] 웜홀(W) 신규 거래지원 안내 (KRW, BTC, USDT 마켓) Upbit 上新: 【交易】Wormhole(W)新增交易支持信息","웜홀(W) 신규 거래지원 안내 (KRW, BTC, USDT 마켓)"
+4557,2024-10-15T03:06:17,CARV,12425,5,"UPBIT LISTING: [거래] 카브(CARV) 신규 거래지원 안내 (KRW, BTC, USDT 마켓) Upbit 上新: [交易] CARV新增交易支持信息（KR","카브(CARV) 신규 거래지원 안내 (KRW, BTC, USDT 마켓)"
+4562,2024-10-17T08:47:53,INJ,12456,4,"UPBIT LISTING: [거래] 인젝티브(INJ) KRW, USDT 마켓 디지털 자산 추가 Upbit 上新: 【交易】新增Injective (INJ) KRW、U","인젝티브(INJ) KRW, USDT 마켓 디지털 자산 추가"
+4569,2024-10-21T06:25:01,MEW,12479,6,UPBIT LISTING: 캣인어독스월드(MEW) KRW 마켓 디지털 자산 추가 Upbit 上新: 新增猫狗世界（MEW）韩元市场数字资产  ———————————— 2,캣인어독스월드(MEW) KRW 마켓 디지털 자산 추가
+4575,2024-10-22T06:37:26,UNI,12485,7,"UPBIT LISTING: 유니스왑(UNI) KRW, USDT 마켓 디지털 자산 추가 Upbit 上新: Uniswap (UNI) 新增 KRW、USDT 市场数字资产","유니스왑(UNI) KRW, USDT 마켓 디지털 자산 추가"
+4581,2024-10-24T06:32:30,SAFE,12501,4,"UPBIT LISTING: 세이프(SAFE) 신규 거래지원 안내 (KRW, BTC, USDT 마켓) Upbit 上新: SAFE新交易支持信息（韩元、BTC、USDT市","세이프(SAFE) 신규 거래지원 안내 (KRW, BTC, USDT 마켓)"
+4625,2024-11-08T05:44:59,DRIFT,12589,2,"UPBIT LISTING: [거래] 드리프트(DRIFT) 신규 거래지원 안내 (KRW, BTC, USDT 마켓) Upbit 上新: 【交易】DRIFT新增交易支持信息","드리프트(DRIFT) 신규 거래지원 안내 (KRW, BTC, USDT 마켓)"
+4641,2024-11-13T06:20:00,AGLD,12627,4,UPBIT LISTING: 어드벤처골드(AGLD) KRW 마켓 디지털 자산 추가 Upbit 上新: Adventure Gold (AGLD) 新增韩元市场数字资产   ,어드벤처골드(AGLD) KRW 마켓 디지털 자산 추가
+4642,2024-11-14T01:52:34,PEPE,12652,2,UPBIT LISTING: [거래] 페페(PEPE) KRW 마켓 디지털 자산 추가 Upbit 上新: 【交易】新增 Pepe (PEPE) 韩元市场数字资产   $PEP,페페(PEPE) KRW 마켓 디지털 자산 추가
+4656,2024-11-20T02:55:38,BONK,12739,4,UPBIT LISTING: [Trade] Market Support for Bonk(BONK) (KRW Market) Upbit 上新: [交易] Bonk(BONK,봉크(BONK) KRW 마켓 디지털 자산 추가
+4696,2024-12-05T03:05:57,RENDER,12888,4,"UPBIT LISTING: [거래] 렌더토큰(RENDER) KRW, USDT 마켓 디지털 자산 추가 Upbit 上新: 【交易】新增RENDER KRW、USDT市场数","렌더토큰(RENDER) KRW, USDT 마켓 디지털 자산 추가"
+4706,2024-12-09T05:04:18,MOVE,12919,34,"UPBIT LISTING: [Trade] Market Support for Movement(MOVE) (KRW, BTC, USDT Market) Upbit 上新:","무브먼트(MOVE) 신규 거래지원 안내 (KRW, BTC, USDT 마켓) (거래지원 개시 시점 안내)"
+4713,2024-12-10T09:24:15,ME,12947,2,"UPBIT LISTING: [거래] 매직에덴(ME) 신규 거래지원 안내 (KRW, BTC, USDT 마켓) Upbit 上新: [交易] Magic Eden (ME)","매직에덴(ME) 신규 거래지원 안내 (KRW, BTC, USDT 마켓) (매수 대기 기간 연장 안내)"
+4723,2024-12-16T01:56:48,MOCA,13008,3,"UPBIT LISTING: [Trade] Market Support for Moca Network(MOCA) (KRW, BTC, USDT Market) Upbit","모카버스(MOCA) 신규 거래지원 안내 (KRW, BTC, USDT 마켓) (명칭 변경 안내)"
+4729,2024-12-16T08:11:35,VANA,13010,2,"UPBIT LISTING: [거래] 바나(VANA) 신규 거래지원 안내 (KRW, BTC, USDT 마켓) Upbit 上新: [交易] VANA新增交易支持信息（KR","바나(VANA) 신규 거래지원 안내 (KRW, BTC, USDT 마켓) (매수 대기 기간 연장 및 최저 매도가 기준 가격 추가"
+4778,2025-01-07T07:31:24,SONIC,13156,3,"UPBIT LISTING: [거래] 소닉SVM(SONIC) 신규 거래지원 안내 (KRW, BTC, USDT 마켓) Upbit 上新: [交易] SonicSVM (S","소닉SVM(SONIC) 신규 거래지원 안내 (KRW, BTC, USDT 마켓) (거래지원 개시 시점 및 매도 최저가 기준 가격"
+4811,2025-01-21T10:00:01,VTHO,13323,6,"UPBIT LISTING: [거래] 비토르토큰(VTHO) 신규 거래지원 안내 (KRW, USDT 마켓) Upbit 上新: [交易] Bithor Token (VTH","비토르토큰(VTHO) 신규 거래지원 안내 (KRW, USDT 마켓)"
+4822,2025-01-23T09:36:04,ANIME,13367,2,"UPBIT LISTING: [거래] 애니메코인(ANIME) 신규 거래지원 안내 (KRW, BTC, USDT 마켓) Upbit 上新: [交易] ANIME新增交易支持","애니메코인(ANIME) 신규 거래지원 안내 (KRW, BTC, USDT 마켓) (거래지원 개시 시점 및 매도 최저가 기준 가격"
+4836,2025-01-31T08:17:39,VIRTUAL,13450,3,"UPBIT LISTING: [Trade] Market Support for Virtuals Protocol(VIRTUAL) (KRW, BTC, USDT Marke","버추얼프로토콜(VIRTUAL) 신규 거래지원 안내 (KRW, BTC, USDT 마켓)"
+4849,2025-02-06T04:56:42,BERA,13487,2,"UPBIT LISTING: [거래] 베라체인(BERA) 신규 거래지원 안내 (KRW, BTC, USDT 마켓) Upbit 上新: [交易] Verachain (BE","베라체인(BERA) 신규 거래지원 안내 (KRW, BTC, USDT 마켓) (거래지원 개시 시점 및 매도 최저가 기준 가격 안"
+4863,2025-02-11T07:21:13,LAYER,13532,3,"UPBIT LISTING: [거래] 솔레이어(LAYER) 신규 거래지원 안내 (KRW, BTC, USDT 마켓) Upbit 上新: [交易] Solaire (LAY","솔레이어(LAYER) 신규 거래지원 안내 (KRW, BTC, USDT 마켓) (거래지원 개시 시점 및 매도 최저가 기준 가격 "
+4870,2025-02-13T06:24:06,TRUMP,13564,3,"UPBIT LISTING: [거래] 오피셜트럼프(TRUMP) 신규 거래지원 안내 (KRW, BTC, USDT 마켓) Upbit 上新: [交易] OfficialTr","오피셜트럼프(TRUMP) 신규 거래지원 안내 (KRW, BTC, USDT 마켓)"
+4894,2025-02-21T05:00:00,JTO,13695,3,UPBIT LISTING: [거래] 지토(JTO) KRW 마켓 디지털 자산 추가 Upbit 上新: [交易] JTO KRW市场新增数字资产   $JTO ———————,지토(JTO) KRW 마켓 디지털 자산 추가
+4906,2025-02-25T08:39:55,COW,13744,2,"UPBIT LISTING: [거래] 카우프로토콜(COW) 신규 거래지원 안내 (KRW, BTC, USDT 마켓) Upbit 上新: [交易] Cow Protocol","카우프로토콜(COW) 신규 거래지원 안내 (KRW, BTC, USDT 마켓)"
+4928,2025-03-05T02:47:19,KAITO,13814,2,"UPBIT LISTING: [거래] 카이토(KAITO) 신규 거래지원 안내 (KRW, BTC, USDT 마켓)  Upbit 上新: [交易] KAITO新交易支持指南","카이토(KAITO) 신규 거래지원 안내 (KRW, BTC, USDT 마켓)"
+4944,2025-03-11T06:15:05,ARKM,13853,1,UPBIT LISTING: [거래] 아캄(ARKM) KRW 마켓 디지털 자산 추가  Upbit 上新: [交易] ARKM KRW 市场新增数字资产  —————————,아캄(ARKM) KRW 마켓 디지털 자산 추가
+4973,2025-03-21T04:57:29,ORCA,13938,3,"UPBIT LISTING: [Trade] Market Support for Orca(ORCA) (KRW, BTC, USDT Market)  Upbit 上新: [交","오르카(ORCA) 신규 거래지원 안내 (KRW, BTC, USDT 마켓)"
+4992,2025-03-27T06:55:55,WAL,13993,2,"UPBIT LISTING: [거래] 월러스(WAL) 신규 거래지원 안내 (KRW, BTC, USDT 마켓)  Upbit 上新: [交易] Wallace (WAL) ","월러스(WAL) 신규 거래지원 안내 (KRW, BTC, USDT 마켓) (거래지원 개시 시점 및 매도 최저가 기준 가격 안내)"
+5007,2025-04-01T07:05:00,COMP,14018,2,UPBIT LISTING: [거래] 컴파운드(COMP) KRW 마켓 디지털 자산 추가  Upbit 上新: [交易] Compound (COMP) KRW 市场新增数字,컴파운드(COMP) KRW 마켓 디지털 자산 추가
+5015,2025-04-04T07:04:42,FIL,14053,2,UPBIT LISTING: [거래] 파일코인(FIL) KRW 마켓 디지털 자산 추가  Upbit 上新: [交易] Filecoin (FIL) KRW 市场数字资产增发,파일코인(FIL) KRW 마켓 디지털 자산 추가
+5041,2025-04-16T05:39:10,WCT,14127,2,"UPBIT LISTING: [거래] 월렛커넥트(WCT) 신규 거래지원 안내 (KRW, BTC, USDT 마켓)  Upbit 上新: [交易] Wallet Conne","월렛커넥트(WCT) 신규 거래지원 안내 (KRW, BTC, USDT 마켓)"
+5055,2025-04-22T04:58:32,DEEP,14165,2,UPBIT LISTING: [Trade] Market Support for DeepBook(DEEP) (KRW Market)  Upbit 上新: [交易] Deep,딥북(DEEP) KRW 마켓 디지털 자산 추가
+5076,2025-04-29T06:25:02,SIGN,14224,3,"UPBIT LISTING: [거래] 사인(SIGN) 신규 거래지원 안내 (KRW, BTC, USDT 마켓)  Upbit 上新: [交易] 全新SIGN交易支持指南（K","사인(SIGN) 신규 거래지원 안내 (KRW, BTC, USDT 마켓) (거래지원 개시 시점 안내)"
+5100,2025-05-08T07:26:15,TIA/IO,14294,2,"UPBIT LISTING: [거래] 셀레스티아(TIA)(KRW, BTC, USDT 마켓), 아이오넷(IO)(BTC, USDT 마켓) 신규 거래지원 안내  Upbi","셀레스티아(TIA)(KRW, BTC, USDT 마켓), 아이오넷(IO)(BTC, USDT 마켓) 신규 거래지원 안내 (주문 타"
+5104,2025-05-09T06:00:00,PENGU,14305,2,"UPBIT LISTING: [거래] 펏지펭귄(PENGU) 신규 거래지원 안내 (KRW, BTC, USDT 마켓)  Upbit 上新: [交易] PENGU（KRW、B","펏지펭귄(PENGU) 신규 거래지원 안내 (KRW, BTC, USDT 마켓)"
+5118,2025-05-14T01:48:42,NXPC,14335,2,"UPBIT LISTING: [Trade] 넥스페이스(NXPC) 신규 거래지원 안내 (KRW, BTC, USDT 마켓)  Upbit 上新: [交易] Nexspace","넥스페이스(NXPC) 신규 거래지원 안내 (KRW, BTC, USDT 마켓) (매도 최저가 기준 가격 변경 안내)"
+5144,2025-05-21T02:45:29,OM,14374,3,"UPBIT LISTING: [거래] 만트라(OM) 신규 거래지원 안내 (KRW, BTC, USDT 마켓)  Upbit 上新: [交易]新增Mantra (OM)交易支","만트라(OM) 신규 거래지원 안내 (KRW, BTC, USDT 마켓)"
+5171,2025-05-27T08:02:01,SOPH,14423,4,"UPBIT LISTING: [거래] 소폰(SOPH) 신규 거래지원 안내 (KRW, BTC, USDT 마켓)  Upbit 上新: [交易] Sophon (SOPH) ","소폰(SOPH) 신규 거래지원 안내 (KRW, BTC, USDT 마켓) (거래지원 개시 시점 및 매도 최저가 기준 가격 안내)"
+5183,2025-05-30T03:15:00,LPT/POKT,14453,2,"UPBIT LISTING: [Trade] Market Support for Livepeer(LPT)(KRW, USDT Market), Pocket Network(","라이브피어(LPT)(KRW, USDT 마켓), 포켓네트워크(POKT)(KRW 마켓) 디지털 자산 추가"
+5204,2025-06-05T07:03:21,RVN,14504,3,UPBIT LISTING: [Trade] Market Support for Ravencoin(RVN) (KRW Market)  Upbit 上新: [交易] Rave,레이븐코인(RVN) KRW 마켓 디지털 자산 추가
+5218,2025-06-10T04:41:12,AXL,14541,2,"UPBIT LISTING: [거래] 엑셀라(AXL) KRW, USDT 마켓 디지털 자산 추가  Upbit 上新: 【交易】Exela (AXL) KRW、USDT市场新","엑셀라(AXL) KRW, USDT 마켓 디지털 자산 추가"
+5239,2025-06-16T09:04:45,ALT,14584,2,"UPBIT LISTING: [Trade] Market Support for Altlayer(ALT) (KRW, USDT Market)  Upbit 上新: 【交易】","알트레이어(ALT) KRW, USDT 마켓 디지털 자산 추가"
+5248,2025-06-19T00:35:03,RAY,14615,2,"UPBIT LISTING: [거래] 레이디움(RAY) KRW, USDT 마켓 디지털 자산 추가  Upbit 上新: 【交易】Raydium (RAY) KRW、USDT","레이디움(RAY) KRW, USDT 마켓 디지털 자산 추가"
+5268,2025-06-24T07:25:53,NEWT,14648,2,"UPBIT LISTING: [거래] 뉴턴프로토콜(NEWT) 신규 거래지원 안내 (KRW, BTC, USDT 마켓)  Upbit 上新: 【交易】新增Newton Pr","뉴턴프로토콜(NEWT) 신규 거래지원 안내 (KRW, BTC, USDT 마켓) (매도 최저가 기준 가격 안내)"
+5272,2025-06-26T02:40:04,SAHARA,14663,2,"UPBIT LISTING: [거래] 사하라에이아이(SAHARA) 신규 거래지원 안내 (KRW, BTC, USDT 마켓)  Upbit 上新: 【交易】关于Sahara","사하라에이아이(SAHARA) 신규 거래지원 안내 (KRW, BTC, USDT 마켓) (매도 최저가 기준 가격 변경 안내)"
+5285,2025-07-03T04:47:01,MOODENG,14691,3,"UPBIT LISTING: [거래] 무뎅(MOODENG) 신규 거래지원 안내 (KRW, BTC, USDT 마켓)  Upbit 上新: 【交易】关于上线MOODENG的","무뎅(MOODENG) 신규 거래지원 안내 (KRW, BTC, USDT 마켓)"
+5305,2025-07-10T03:30:01,HYPER,14727,2,UPBIT LISTING: [Trade] Market Support for Hyperlane(HYPER) (KRW Market)  Upbit 上新: 【交易】Hyp,하이퍼레인(HYPER) KRW 마켓 디지털 자산 추가
+5314,2025-07-11T04:42:59,ENA,14732,2,"UPBIT LISTING: [거래] 에테나(ENA) 신규 거래지원 안내 (KRW, BTC, USDT 마켓)  Upbit 上新: 【交易】关于新增Ethena (ENA","에테나(ENA) 신규 거래지원 안내 (KRW, BTC, USDT 마켓)"
+5333,2025-07-17T09:01:37,ERA,14765,2,"UPBIT LISTING: [거래] 칼데라(ERA) 신규 거래지원 안내 (KRW, BTC, USDT 마켓)  Upbit 上新: [交易]Caldera(ERA)新增交","칼데라(ERA) 신규 거래지원 안내 (KRW, BTC, USDT 마켓) (매도 최저가 기준 가격 안내)"
+5363,2025-07-25T02:19:50,SYRUP,14813,2,"UPBIT LISTING: [거래] 메이플파이낸스(SYRUP) 신규 거래지원 안내 (KRW, BTC, USDT 마켓)  Upbit 上新: [交易] Maple Fi","메이플파이낸스(SYRUP) 신규 거래지원 안내 (KRW, BTC, USDT 마켓)"
+5368,2025-07-28T04:24:25,OP,14821,1,"UPBIT LISTING: [거래] 옵티미즘(OP) 신규 거래지원 안내 (KRW, BTC, USDT 마켓)  Upbit 上新: [交易] Optimism (OP) ","옵티미즘(OP) 신규 거래지원 안내 (KRW, BTC, USDT 마켓)"
+5375,2025-07-29T08:50:00,OMNI,14834,3,UPBIT LISTING: [거래] 옴니네트워크(OMNI) KRW 마켓 디지털 자산 추가  Upbit 上新: [交易] Omni Network (OMNI) 韩元市场,옴니네트워크(OMNI) KRW 마켓 디지털 자산 추가
+5394,2025-08-06T03:21:00,PROVE,14886,3,"UPBIT LISTING: [거래] 서싱트(PROVE) 신규 거래지원 안내 (KRW, BTC, USDT 마켓)  Upbit 上新: [交易] PROVE 新增交易对公","서싱트(PROVE) 신규 거래지원 안내 (KRW, BTC, USDT 마켓) (거래지원 개시 시점 변경 안내)"
+5397,2025-08-08T02:09:39,IP,14899,3,"UPBIT LISTING: [거래] 스토리(IP) 신규 거래지원 안내 (KRW, BTC, USDT 마켓)  Upbit 上新: [交易] STORY (IP) 新交易支","스토리(IP) 신규 거래지원 안내 (KRW, BTC, USDT 마켓)"
+5409,2025-08-12T07:30:00,CYBER,14913,2,"UPBIT LISTING: [거래] 사이버(CYBER) KRW, USDT 마켓 디지털 자산 추가  Upbit 上新: [交易] CYBER（CYBER）数字资产上线KR","사이버(CYBER) KRW, USDT 마켓 디지털 자산 추가"
+5429,2025-08-19T07:30:00,API3,14938,1,"UPBIT LISTING: [] 에이피아이쓰리(API3) KRW, USDT 마켓 디지털 자산 추가  Upbit 上新: [] 上线 API3 (API3) KRW、US","에이피아이쓰리(API3) KRW, USDT 마켓 디지털 자산 추가"
+5442,2025-08-22T00:30:00,AERO,14954,3,"UPBIT LISTING: [거래] 에어로드롬파이낸스(AERO) 신규 거래지원 안내 (KRW, BTC, USDT 마켓)  Upbit 上新: [交易] AirDrop","에어로드롬파이낸스(AERO) 신규 거래지원 안내 (KRW, BTC, USDT 마켓)"
+5456,2025-08-28T05:00:00,TREE,14990,3,"UPBIT LISTING: [거래] 트리하우스(TREE) 신규 거래지원 안내 (KRW, BTC, USDT 마켓)  Upbit 上新: [交易] Treehouse (","트리하우스(TREE) 신규 거래지원 안내 (KRW, BTC, USDT 마켓)"
+5462,2025-09-01T04:09:10,WLFI,15011,2,"UPBIT LISTING: [거래] 월드리버티파이낸셜(WLFI) 신규 거래지원 안내 (KRW, BTC, USDT 마켓)  Upbit 上新: [交易] World L","월드리버티파이낸셜(WLFI) 신규 거래지원 안내 (KRW, BTC, USDT 마켓) (매도 최저가 기준 가격 안내)"
+5463,2025-09-01T04:09:11,USD1,15012,2,"UPBIT LISTING: [거래] 월드리버티파이낸셜유에스디(USD1) 신규 거래지원 안내 (KRW, BTC, USDT 마켓)  Upbit 上新: 【交易】Worl","월드리버티파이낸셜유에스디(USD1) 신규 거래지원 안내 (KRW, BTC, USDT 마켓)"
+5486,2025-09-05T07:45:00,RED,15041,2,UPBIT LISTING: [거래] 레드스톤(RED) KRW 마켓 디지털 자산 추가  Upbit 上新: [交易] KRW市场新增Redstone(RED)数字资产  $,레드스톤(RED) KRW 마켓 디지털 자산 추가
+5494,2025-09-09T02:40:00,FLOCK,15064,1,UPBIT LISTING: [] 플록(FLOCK) KRW 마켓 디지털 자산 추가  Upbit 上新: [] FLOCK KRW市场新增数字资产  $FLOCK  Mark,플록(FLOCK) KRW 마켓 디지털 자산 추가
+5497,2025-09-09T10:21:09,WLD,15067,1,"UPBIT LISTING: [] 월드코인(WLD) 신규 거래지원 안내 (KRW, BTC, USDT 마켓)  Upbit 上新: 关于支持 Worldcoin (WLD)","월드코인(WLD) 신규 거래지원 안내 (KRW, BTC, USDT 마켓)"
+5498,2025-09-10T04:22:36,OPEN,15077,2,"UPBIT LISTING: [] 오픈렛저(OPEN) 신규 거래지원 안내 (KRW, BTC, USDT 마켓)  Upbit 上新: [] OpenLedger (OPEN","오픈렛저(OPEN) 신규 거래지원 안내 (KRW, BTC, USDT 마켓)"
+5503,2025-09-10T07:40:05,LINEA,15079,2,"UPBIT LISTING: [] 리네아(LINEA) 신규 거래지원 안내 (KRW, BTC, USDT 마켓)  Upbit 上新: [] 关于支持 LINEA (리네아)","리네아(LINEA) 신규 거래지원 안내 (KRW, BTC, USDT 마켓) (매도 최저가 기준 가격 안내)"
+5508,2025-09-11T09:23:45,HOLO,15085,2,"UPBIT LISTING: [] 홀로월드에이아이(HOLO) 신규 거래지원 안내 (KRW, BTC, USDT 마켓)  Upbit 上新: 关于支持 HOLOWorldA","홀로월드에이아이(HOLO) 신규 거래지원 안내 (KRW, BTC, USDT 마켓) (매도 최저가 기준 가격 안내)"
+5509,2025-09-11T10:15:27,PUMP,15088,1,"UPBIT LISTING: [] 펌프펀(PUMP) 신규 거래지원 안내 (KRW, USDT 마켓)  Upbit 上新: [] PUMP 支持新交易公告（KRW、USDT ","펌프펀(PUMP) 신규 거래지원 안내 (KRW, USDT 마켓) (거래지원 개시 시점 변경 안내)"
+5519,2025-09-15T02:30:00,AVNT,15101,3,"UPBIT LISTING: [] 아반티스(AVNT) 신규 거래지원 안내 (KRW, BTC, USDT 마켓)  Upbit 上新: [] Avantis (AVNT) 新","아반티스(AVNT) 신규 거래지원 안내 (KRW, BTC, USDT 마켓) (거래지원 개시 시점 변경 안내)"
+5522,2025-09-15T09:25:00,ZKC,15104,1,"UPBIT LISTING: [] 바운드리스(ZKC) 신규 거래지원 안내 (KRW, BTC, USDT 마켓)  Upbit 上新: [] Boundless (ZKC) ","바운드리스(ZKC) 신규 거래지원 안내 (KRW, BTC, USDT 마켓) (매도 최저가 기준 가격 안내)"
+5526,2025-09-17T02:30:22,TOSHI,15127,2,"UPBIT LISTING: [] 토시(TOSHI) 신규 거래지원 안내 (KRW, USDT 마켓)  Upbit 上新: [] TOSHI新增交易支持公告（KRW、USDT","토시(TOSHI) 신규 거래지원 안내 (KRW, USDT 마켓)"
+5536,2025-09-18T09:50:06,BARD,15141,2,"UPBIT LISTING: [] 롬바드(BARD) 신규 거래지원 안내 (KRW, BTC, USDT 마켓)  Upbit 上新: [] Lombard(BARD) 新增交","롬바드(BARD) 신규 거래지원 안내 (KRW, BTC, USDT 마켓) (유통량 계획표 수정 안내)"
+5537,2025-09-18T10:02:31,LA,15142,1,UPBIT LISTING: [] 라그랑주(LA) KRW 마켓 디지털 자산 추가  Upbit 上新: [] 拉格朗日(LA) KRW 市场新增数字资产  $LA  Mark,라그랑주(LA) KRW 마켓 디지털 자산 추가
+5549,2025-09-22T02:30:00,SUN,15165,2,"UPBIT LISTING: [] 썬(SUN) KRW, USDT 마켓 디지털 자산 추가  Upbit 上新: [] SUN (썬) KRW、USDT市场新增数字资产  $S","썬(SUN) KRW, USDT 마켓 디지털 자산 추가"
+5551,2025-09-22T04:50:00,0G,15167,3,"UPBIT LISTING: [] 제로지(0G) 신규 거래지원 안내 (KRW, BTC, USDT 마켓)  Upbit 上新: [] 新增0G交易支持公告（KRW、BTC、","제로지(0G) 신규 거래지원 안내 (KRW, BTC, USDT 마켓) (거래지원 개시 시점 및 매도 최저가 기준 가격 안내)"
+5570,2025-09-24T08:10:00,FLUID,15202,2,"UPBIT LISTING: [] 플루이드(FLUID) 신규 거래지원 안내 (KRW, BTC, USDT 마켓)  Upbit 上新: 关于新增支持 FLUID(FLUID","플루이드(FLUID) 신규 거래지원 안내 (KRW, BTC, USDT 마켓)"
+5572,2025-09-25T01:57:18,XPL,15210,1,"UPBIT LISTING: [] 플라즈마(XPL) 신규 거래지원 안내 (KRW, BTC, USDT 마켓)  Upbit 上新: 关于支持 Plasma (XPL) 新币","플라즈마(XPL) 신규 거래지원 안내 (KRW, BTC, USDT 마켓) (매도 최저가 기준 가격 안내)"
+5585,2025-09-26T09:31:16,MIRA,15227,2,"UPBIT LISTING: [] 미라네트워크(MIRA) 신규 거래지원 안내 (KRW, BTC, USDT 마켓)  Upbit 上新: [] MiraNetwork (M","미라네트워크(MIRA) 신규 거래지원 안내 (KRW, BTC, USDT 마켓) (매도 최저가 기준 가격 안내)"
+5589,2025-09-29T08:53:51,SUPER,15241,1,"UPBIT LISTING: [] 슈퍼버스(SUPER) 신규 거래지원 안내 (KRW, BTC, USDT 마켓)  Upbit 上新: [] SUPERVERSE (SUP","슈퍼버스(SUPER) 신규 거래지원 안내 (KRW, BTC, USDT 마켓)"
+5592,2025-09-29T09:34:32,FF,15244,2,"UPBIT LISTING: [거래] 팔콘파이낸스(FF) 신규 거래지원 안내 (KRW, USDT 마켓)  Upbit 上新: [交易] FalconFinance(FF)","팔콘파이낸스(FF) 신규 거래지원 안내 (KRW, USDT 마켓) (매도 최저가 기준 가격 안내)"
+5599,2025-10-01T04:26:21,SOMI,15254,1,"UPBIT LISTING: [] 솜니아(SOMI) 신규 거래지원 안내 (KRW, BTC, USDT 마켓)  Upbit 上新: [] Somnia (SOMI) 新增交","솜니아(SOMI) 신규 거래지원 안내 (KRW, BTC, USDT 마켓) (거래지원 개시 시점 변경 안내)"
+5606,2025-10-02T00:15:30,2Z,15259,2,"UPBIT LISTING: [] 더블제로(2Z) 신규 거래지원 안내 (KRW, BTC, USDT 마켓)  Upbit 上新: [] DoubleZero (2Z) 新增","더블제로(2Z) 신규 거래지원 안내 (KRW, BTC, USDT 마켓) (매도 최저가 기준 가격 안내)"
+5624,2025-10-07T04:35:00,DOOD,15276,2,"UPBIT LISTING: [] 두들즈(DOOD) 신규 거래지원 안내 (KRW, USDT 마켓)  Upbit 上新: 关于支持新的Doodles(DOOD)交易对（KR","두들즈(DOOD) 신규 거래지원 안내 (KRW, USDT 마켓)"
+5628,2025-10-10T06:00:00,IN,15310,1,UPBIT LISTING: [] 인피닛(IN) KRW 마켓 디지털 자산 추가  Upbit 上新: [] 在 KRW 市场新增数字资产 INFINIT(IN)  —————,인피닛(IN) KRW 마켓 디지털 자산 추가
+5644,2025-10-15T05:00:00,YGG,15363,1,"UPBIT LISTING: [거래] 일드길드게임즈(YGG) KRW, USDT 마켓 디지털 자산 추가  Upbit 上新: [交易] Yield Guild Games ","일드길드게임즈(YGG) KRW, USDT 마켓 디지털 자산 추가"
+5648,2025-10-17T02:30:00,ZORA,15388,1,"UPBIT LISTING: [거래] 조라(ZORA) 신규 거래지원 안내 (KRW, BTC, USDT 마켓)  Upbit 上新: [交易] ZORA新上线交易支持公告（","조라(ZORA) 신규 거래지원 안내 (KRW, BTC, USDT 마켓)"
+5654,2025-10-17T09:00:06,ZBT,15392,2,"UPBIT LISTING: [거래] 제로베이스(ZBT) 신규 거래지원 안내 (KRW, BTC, USDT 마켓)  Upbit 上新: [交易] ZeroBase (ZB","제로베이스(ZBT) 신규 거래지원 안내 (KRW, BTC, USDT 마켓) (매도 최저가 기준 가격 안내)"
+5662,2025-10-20T06:35:00,BIO,15402,2,"UPBIT LISTING: [거래] 바이오프로토콜(BIO) 신규 거래지원 안내 (KRW, BTC, USDT 마켓)  Upbit 上新: [交易] BioProtoco","바이오프로토콜(BIO) 신규 거래지원 안내 (KRW, BTC, USDT 마켓)"
+5666,2025-10-21T05:10:00,F,15415,3,"UPBIT LISTING: [거래] 신퓨처스(F) 신규 거래지원 안내 (KRW, USDT 마켓)  Upbit 上新: [交易] 新期货 (F) 交易支持 (KRW, U","신퓨처스(F) 신규 거래지원 안내 (KRW, USDT 마켓)"
+5671,2025-10-22T05:20:00,CPOOL,15426,2,"UPBIT LISTING: [거래] 클리어풀(CPOOL) 신규 거래지원 안내 (KRW, BTC, USDT 마켓)  Upbit 上新: [交易] Clearpool (","클리어풀(CPOOL) 신규 거래지원 안내 (KRW, BTC, USDT 마켓)"
+5681,2025-10-24T06:15:00,ORDER,15448,3,UPBIT LISTING: [거래] 오덜리(ORDER) KRW 마켓 디지털 자산 추가  Upbit 上新: [交易] 韩元市场新增 Orderly (ORDER)  $O,오덜리(ORDER) KRW 마켓 디지털 자산 추가
+5693,2025-10-28T07:00:00,KERNEL,15473,2,UPBIT LISTING: [거래] 커널다오(KERNEL) KRW 마켓 디지털 자산 추가  Upbit 上新: [交易] KERNELDAO(KERNEL) KRW市场数,커널다오(KERNEL) KRW 마켓 디지털 자산 추가
+5697,2025-10-29T06:30:56,ENSO,15485,2,"UPBIT LISTING: [Trade] Market Support for Enso(ENSO) (KRW, BTC, USDT Market)  Upbit 上新: [交","엔소(ENSO) 신규 거래지원 안내 (KRW, BTC, USDT 마켓)"
+5716,2025-11-03T08:11:21,KITE,15515,2,"UPBIT LISTING: [Trade] Market Support for Kite(KITE) (KRW, BTC, USDT Market)  Upbit 上新: [交","카이트(KITE) 신규 거래지원 안내 (KRW, BTC, USDT 마켓) (매도 최저가 기준 가격 안내)"
+5724,2025-11-05T05:47:59,MMT,15530,1,UPBIT LISTING: [Trade] Market Support for Momentum(MMT) (KRW Market)  Upbit 上新: [交易] 动量币 (,모멘텀(MMT) KRW 마켓 디지털 자산 추가
+5727,2025-11-05T08:44:16,TRUST,15531,2,"UPBIT LISTING: [거래] 인튜이션(TRUST) 신규 거래지원 안내 (KRW, BTC, USDT 마켓)  Upbit 上新: [交易] TRUST (TRUS","인튜이션(TRUST) 신규 거래지원 안내 (KRW, BTC, USDT 마켓) (매도 최저가 기준 가격 안내)"
+5769,2025-11-18T06:20:00,MET2,15597,1,"UPBIT LISTING: [거래] 메테오라(MET2) 신규 거래지원 안내 (KRW, BTC, USDT 마켓)  Upbit 上新: [交易] Meteora (MET","메테오라(MET2) 신규 거래지원 안내 (KRW, BTC, USDT 마켓)"
+5790,2025-11-24T09:01:33,MON,15632,1,"UPBIT LISTING: [거래] 모나드(MON) 신규 거래지원 안내 (KRW, BTC, USDT 마켓)  Upbit 上新: [交易] MONAD (MON) 新交","모나드(MON) 신규 거래지원 안내 (KRW, BTC, USDT 마켓) (매도 최저가 기준 가격 안내)"
+5796,2025-11-26T05:30:02,PLUME,15647,2,UPBIT LISTING: [거래] 플룸(PLUME) KRW 마켓 디지털 자산 추가  Upbit 上新: [交易] PLUME KRW 市场数字资产上线  $PLUME ,플룸(PLUME) KRW 마켓 디지털 자산 추가
+5860,2025-12-15T07:00:00,WET,15721,2,"UPBIT LISTING: [거래] 휴미디파이(WET) 신규 거래지원 안내 (KRW, BTC, USDT 마켓)  Upbit 上新: [交易] Humidify (WE","휴미디파이(WET) 신규 거래지원 안내 (KRW, BTC, USDT 마켓) (추가 안내)"
+5885,2025-12-26T06:19:43,ZKP,15756,1,"UPBIT LISTING: [Trade] Market Support for zkPass(ZKP) (KRW, BTC, USDT Market)  Upbit 上新: [","지케이패스(ZKP) 신규 거래지원 안내 (KRW, BTC, USDT 마켓)"
+5900,2026-01-01T04:00:00,XAUT,15764,2,"UPBIT LISTING: [Trade] Market Support for Tether Gold(XAUT) (KRW, BTC, USDT Market)  Upbit","테더골드(XAUT) 신규 거래지원 안내 (KRW, BTC, USDT 마켓)"
+5913,2026-01-06T07:30:15,ZK,15777,1,"UPBIT LISTING: [거래] 지케이싱크(ZK) 신규 거래지원 안내 (KRW, BTC, USDT 마켓)  Upbit 上新: [交易] ZKSync (ZK) 新","지케이싱크(ZK) 신규 거래지원 안내 (KRW, BTC, USDT 마켓)"
+5914,2026-01-07T02:20:01,BREV,15784,1,"UPBIT LISTING: [거래] 브레비스(BREV) 신규 거래지원 안내 (KRW, BTC, USDT 마켓)  Upbit 上新: [交易] BREV 新交易对上线通","브레비스(BREV) 신규 거래지원 안내 (KRW, BTC, USDT 마켓)"
+5934,2026-01-14T06:55:47,USDE,15813,2,"UPBIT LISTING: [거래] 유에스디이(USDE) 신규 거래지원 안내 (KRW, BTC, USDT 마켓)  Upbit 上新: [交易] USDE 新交易支持指","유에스디이(USDE) 신규 거래지원 안내 (KRW, BTC, USDT 마켓)"
+5953,2026-01-22T05:30:00,ELSA,15856,2,"UPBIT LISTING: [거래] 헤이엘사(ELSA) 신규 거래지원 안내 (KRW, BTC, USDT 마켓)  Upbit 上新: [交易] Heyelsa (ELS","헤이엘사(ELSA) 신규 거래지원 안내 (KRW, BTC, USDT 마켓)"
+5973,2026-01-29T06:15:07,SENT,15890,3,"UPBIT LISTING: [Trade] Market Support for Sentient(SENT) (KRW, BTC, USDT Market)  Upbit 上新","센티언트(SENT) 신규 거래지원 안내 (KRW, BTC, USDT 마켓)"
+5990,2026-02-03T07:00:00,BIRB,15915,2,"UPBIT LISTING: [거래] 문버드(BIRB) 신규 거래지원 안내 (KRW, BTC, USDT 마켓)  Upbit 上新: [交易] Moonbird (BIR","문버드(BIRB) 신규 거래지원 안내 (KRW, BTC, USDT 마켓)"
+6021,2026-02-16T05:00:00,TAO,15962,2,"UPBIT LISTING: 비트텐서(TAO) 신규 거래지원 안내 (KRW, BTC, USDT 마켓)  Upbit 上新: 关于上线 Bittensor (TAO) 的公","비트텐서(TAO) 신규 거래지원 안내 (KRW, BTC, USDT 마켓)"
+6025,2026-02-20T05:00:00,AZTEC,15970,1,"UPBIT LISTING: 아즈텍(AZTEC) 신규 거래지원 안내 (KRW, BTC, USDT 마켓)  Upbit 上新: 阿兹特克 (AZTEC) 新交易支持公告 (","아즈텍(AZTEC) 신규 거래지원 안내 (KRW, BTC, USDT 마켓)"
+6037,2026-02-24T05:00:00,SKR,15978,1,"UPBIT LISTING: 시커(SKR) 신규 거래지원 안내 (KRW, BTC, USDT 마켓)  Upbit 上新: 关于SKR（Seeker）新交易支持的公告（韩元、","시커(SKR) 신규 거래지원 안내 (KRW, BTC, USDT 마켓)"
+6038,2026-02-24T06:04:04,ESP,15980,1,"UPBIT LISTING: [거래] 에스프레소(ESP) 신규 거래지원 안내 (KRW, BTC, USDT 마켓)  Upbit 上新: [交易] Espresso (ES","에스프레소(ESP) 신규 거래지원 안내 (KRW, BTC, USDT 마켓)"
+6043,2026-02-26T03:00:00,CFG,15984,1,"UPBIT LISTING: [거래] 센트리퓨즈(CFG) 신규 거래지원 안내 (KRW, BTC, USDT 마켓)  Upbit 上新: [交易] Centrifuge (","센트리퓨즈(CFG) 신규 거래지원 안내 (KRW, BTC, USDT 마켓)"
+6057,2026-03-04T05:50:00,EDGE,15997,1,"UPBIT LISTING: [Trade] Market Support for Definitive(EDGE) (KRW, BTC, USDT Market)  Upbit ","디피니티브(EDGE) 신규 거래지원 안내 (KRW, BTC, USDT 마켓)"
+6069,2026-03-11T06:00:00,ICP,16012,2,"UPBIT LISTING: [거래] 인터넷컴퓨터(ICP) 신규 거래지원 안내 (KRW, BTC, USDT 마켓)  Upbit 上新: [交易] Internet Co","인터넷컴퓨터(ICP) 신규 거래지원 안내 (KRW, BTC, USDT 마켓)"
+6079,2026-03-19T02:50:00,ETHFI,16037,2,UPBIT LISTING: [거래] 이더파이(ETHFI) KRW 마켓 디지털 자산 추가  Upbit 上新: [交易] Ether.fi (ETHFI) 韩元市场新增数字,이더파이(ETHFI) KRW 마켓 디지털 자산 추가
+6097,2026-03-26T08:07:50,KAT,16053,2,"UPBIT LISTING: [Trade] Market Support for Katana Network(KAT) (KRW, BTC, USDT Market)  Upb","카타나(KAT) 신규 거래지원 안내 (KRW, BTC, USDT 마켓) (명칭 변경 안내)"
+6102,2026-03-31T02:30:01,SKY/USDS,16066,2,"UPBIT LISTING: [거래] 스카이프로토콜(SKY), 유에스디에스(USDS) KRW, USDT 마켓 디지털 자산 추가  Upbit 上新: [交易] SkyP","스카이프로토콜(SKY), 유에스디에스(USDS) KRW, USDT 마켓 디지털 자산 추가 (USDS 거래지원 개시 시점 변경 "
+6144,2026-04-14T05:00:00,CC,16092,1,"UPBIT LISTING: 캔톤(CC) 신규 거래지원 안내 (KRW, BTC, USDT 마켓)  Upbit 上新: Canton (CC) 新交易支持通知 (KRW, ","캔톤(CC) 신규 거래지원 안내 (KRW, BTC, USDT 마켓) (입출금 서비스 개시 안내 및 거래지원 개시 시점 안내)"
+6146,2026-04-14T07:48:40,ZAMA,16094,1,"UPBIT LISTING: [Trade] Market Support for Zama(ZAMA) (KRW, BTC, USDT Market)  Upbit 上新: [交","자마(ZAMA) 신규 거래지원 안내 (KRW, BTC, USDT 마켓)"
+6150,2026-04-17T05:00:02,SOON,16102,2,UPBIT LISTING: [거래] 쑨(SOON) KRW 마켓 디지털 자산 추가  Upbit 上新: [交易] 孙 (SOON) 韩元市场数字资产新增  $SOON  M,쑨(SOON) KRW 마켓 디지털 자산 추가
+6154,2026-04-20T05:00:00,PIEVERSE,16112,1,"UPBIT LISTING: [거래] 파이버스(PIEVERSE) 신규 거래지원 안내 (KRW, BTC, USDT 마켓)  Upbit 上新: [交易] PIEVERSE","파이버스(PIEVERSE) 신규 거래지원 안내 (KRW, BTC, USDT 마켓)"
+6158,2026-04-21T06:16:24,CHIP,16116,1,"UPBIT LISTING: [Trade] 유에스디에이아이(CHIP) 신규 거래지원 안내 (KRW, BTC, USDT 마켓)  Upbit 上新: [交易] USDT ","유에스디에이아이(CHIP) 신규 거래지원 안내 (KRW, BTC, USDT 마켓) (매도 최저가 기준 가격 안내)"
+6162,2026-04-23T02:20:00,SPK,16121,1,UPBIT LISTING: [거래] 스파크(SPK) KRW 마켓 디지털 자산 추가  Upbit 上新: [交易] Spark (SPK) KRW 市场新增数字资产  SP,스파크(SPK) KRW 마켓 디지털 자산 추가
+6171,2026-04-27T05:00:00,XCN,16128,2,"UPBIT LISTING: [Trade] Market Support for Onyxcoin(XCN) (KRW, USDT Market)  Upbit 上新: [交易]","오닉스코인(XCN) 신규 거래지원 안내 (KRW, USDT 마켓)"
+6173,2026-04-27T06:30:00,PRL,16130,1,"UPBIT LISTING: [거래] 펄(PRL) 신규 거래지원 안내 (KRW, BTC, USDT 마켓)  Upbit 上新: [交易] Pearl (PRL) 新增交易","펄(PRL) 신규 거래지원 안내 (KRW, BTC, USDT 마켓) (유통량 이슈에 대한 소명 및 거래지원 개시 시점 안내)"
+6178,2026-04-29T02:23:31,BLEND,16135,1,"UPBIT LISTING: [Trade] Market Support for Fluent(BLEND) (KRW, BTC, USDT Market)  Upbit 上新:","플루언트(BLEND) 신규 거래지원 안내 (KRW, BTC, USDT 마켓)"
+6184,2026-04-30T02:30:06,MEGA,16139,1,"UPBIT LISTING: [거래] 메가이더(MEGA) 신규 거래지원 안내 (KRW, BTC, USDT 마켓)  Upbit 上新: [交易] MEGA (메가이더) ","메가이더(MEGA) 신규 거래지원 안내 (KRW, BTC, USDT 마켓) (매도 최저가 기준 가격 안내)"
+6197,2026-05-06T05:00:00,WIF,16151,2,"UPBIT LISTING: [거래] 도그위프햇(WIF) 신규 거래지원 안내 (KRW, BTC, USDT 마켓)  Upbit 上新: [交易] Dogwifhat (W","도그위프햇(WIF) 신규 거래지원 안내 (KRW, BTC, USDT 마켓)"
+6201,2026-05-07T03:50:00,B3,16156,1,UPBIT LISTING: [거래] 비쓰리(B3) KRW 마켓 디지털 자산 추가  Upbit 上新: [交易] B3韩元市场新增数字资产  B3  MarketCap: ,비쓰리(B3) KRW 마켓 디지털 자산 추가 (거래지원 개시 시점 변경 안내)
+6207,2026-05-08T09:30:00,PROS,16159,2,"UPBIT LISTING: [거래] 파로스(PROS) 신규 거래지원 안내 (KRW, BTC, USDT 마켓)  Upbit 上新: [交易] Pharos (PROS)","파로스(PROS) 신규 거래지원 안내 (KRW, BTC, USDT 마켓)"
+6215,2026-05-12T05:00:00,VVV,16167,1,"UPBIT LISTING: 베니스토큰(VVV) 신규 거래지원 안내 (KRW, BTC, USDT 마켓)  Upbit 上新: Venice Token (VVV) 新增交","베니스토큰(VVV) 신규 거래지원 안내 (KRW, BTC, USDT 마켓)"
+6218,2026-05-13T09:27:21,UP2,16171,1,"UPBIT LISTING: [거래] 슈퍼폼(UP2) 신규 거래지원 안내 (KRW, BTC, USDT 마켓)  Upbit 上新: [交易] Superform (UP2","슈퍼폼(UP2) 신규 거래지원 안내 (KRW, BTC, USDT 마켓) (거래지원 일정 정정 안내)"
+6222,2026-05-15T08:41:07,IRYS,16183,1,"UPBIT LISTING: [Trade] Market Support for Irys(IRYS) (KRW, BTC, USDT Market)  Upbit 上新: [交","아이리스(IRYS) 신규 거래지원 안내 (KRW, BTC, USDT 마켓) (거래지원 개시 시점 변경 안내)"
+6226,2026-05-18T05:07:21,TRAC,16187,3,"UPBIT LISTING: [거래] 오리진트레일(TRAC) 신규 거래지원 안내 (KRW, BTC, USDT 마켓)  Upbit 上新: 【交易】新起源轨迹（TRAC）","오리진트레일(TRAC) 신규 거래지원 안내 (KRW, BTC, USDT 마켓) (거래지원 개시 시점 변경 안내)"
+6255,2026-05-29T09:00:00,IO,16218,3,UPBIT LISTING: [거래] 아이오넷(IO) KRW 마켓 디지털 자산 추가  Upbit 上新: 【交易】IO 将数字资产添加到韩元市场  IO  MarketCa,아이오넷(IO) KRW 마켓 디지털 자산 추가
+6258,2026-06-01T02:45:00,SLX,16223,1,"UPBIT LISTING: [Trade] Market Support for Solstice(SLX) (KRW, BTC, USDT Market)  Upbit 上新:","솔스티스(SLX) 신규 거래지원 안내 (KRW, BTC, USDT 마켓) (거래지원 개시 시점 추가 변경 안내)"
+6274,2026-06-05T09:30:00,BABY,16236,2,UPBIT LISTING: [거래] 바빌론(BABY) KRW 마켓 디지털 자산 추가  Upbit 上新: [交易] Babylon (BABY) KRW 市场新增数字资产,바빌론(BABY) KRW 마켓 디지털 자산 추가
+6294,2026-06-16T02:12:26,SPX,16262,8,"UPBIT LISTING: [거래] 에스피엑스6900(SPX) 신규 거래지원 안내 (KRW, BTC, USDT 마켓)  Upbit 上新: [交易] SPX6900 ","에스피엑스6900(SPX) 신규 거래지원 안내 (KRW, BTC, USDT 마켓)"
+6303,2026-06-19T09:00:02,RE,16274,3,"UPBIT LISTING: [거래] 리(RE) 신규 거래지원 안내 (KRW, BTC, USDT 마켓)  Upbit 上新: [交易] RE 新币上线公告 (韩元、BTC","리(RE) 신규 거래지원 안내 (KRW, BTC, USDT 마켓)"
+6314,2026-06-23T02:00:00,ARX,16278,2,"UPBIT LISTING: [거래] 아르키움(ARX) 신규 거래지원 안내 (KRW, BTC, USDT 마켓)  Upbit 上新: [交易] Archylium (AR","아르키움(ARX) 신규 거래지원 안내 (KRW, BTC, USDT 마켓)"
+6335,2026-06-30T03:00:55,AI,16298,2,"UPBIT LISTING: [거래] 젠신(AI) 신규 거래지원 안내 (KRW, BTC, USDT 마켓)  Upbit 上新: [交易] Genshin (AI) 新交易","젠신(AI) 신규 거래지원 안내 (KRW, BTC, USDT 마켓)"
+6360,2026-07-07T04:39:48,OPG,16319,2,UPBIT LISTING: [거래] 오픈그라디언트(OPG) KRW 마켓 디지털 자산 추가  Upbit 上新: [交易] OpenGradient (OPG) 韩元市场数,오픈그라디언트(OPG) KRW 마켓 디지털 자산 추가
+6383,2026-07-14T05:15:02,DRV,16327,4,"UPBIT LISTING: [거래] 디라이브(DRV) 신규 거래지원 안내 (KRW, BTC, USDT 마켓)  Upbit 上新: [交易] DLive (DRV) 新","디라이브(DRV) 신규 거래지원 안내 (KRW, BTC, USDT 마켓)"
+6404,2026-07-23T02:15:02,O,16345,3,"UPBIT LISTING: [거래] 오원익스체인지(O) 신규 거래지원 안내 (KRW, BTC, USDT 마켓)  Upbit 上新: [交易] Owen Exchang","오원익스체인지(O) 신규 거래지원 안내 (KRW, BTC, USDT 마켓)"
+6411,2026-07-25T07:40:28,MORPHO,16350,2,UPBIT LISTING: [거래] 모포(MORPHO) KRW 마켓 디지털 자산 추가  Upbit 上新: [交易] MORPHO KRW 市场新增数字资产  MORPH,모포(MORPHO) KRW 마켓 디지털 자산 추가
+6414,2026-07-26T00:56:01,EUL,16351,3,UPBIT LISTING: [거래] 오일러(EUL) KRW 마켓 디지털 자산 추가  Upbit 上新: [交易] Euler (EUL) KRW 市场新增数字资产  EU,오일러(EUL) KRW 마켓 디지털 자산 추가 (거래지원 개시 시점 변경 안내)
+6415,2026-07-27T03:22:21,GEOD,16354,2,"UPBIT LISTING: [거래] 지오드넷(GEOD) 신규 거래지원 안내 (KRW, BTC, USDT 마켓)  Upbit 上新: [交易] 关于上线 GEOD (G","지오드넷(GEOD) 신규 거래지원 안내 (KRW, BTC, USDT 마켓) (거래지원 개시 시점 추가 변경 안내)"
+6418,2026-07-28T02:34:20,RLUSD,16359,2,"UPBIT LISTING: [거래] 리플유에스디(RLUSD) 신규 거래지원 안내 (KRW, BTC, USDT 마켓)  Upbit 上新: [交易] 关于上线 Ripp","리플유에스디(RLUSD) 신규 거래지원 안내 (KRW, BTC, USDT 마켓)"
+6420,2026-07-29T04:16:28,META2,16361,3,"UPBIT LISTING: [거래] 메타다오(META2) 신규 거래지원 안내 (KRW, BTC, USDT 마켓)  Upbit 上新: [交易] 关于上线 META2 ","메타다오(META2) 신규 거래지원 안내 (KRW, BTC, USDT 마켓) (거래지원 개시 시점 변경 안내)"
+6424,2026-07-30T01:10:14,USDG,16366,2,"UPBIT LISTING: [거래] 글로벌달러(USDG) 신규 거래지원 안내 (KRW, BTC, USDT 마켓)  Upbit 上新: [交易] 关于上线全球美元 (U","글로벌달러(USDG) 신규 거래지원 안내 (KRW, BTC, USDT 마켓) (거래지원 개시 시점 추가 변경 안내)"
+6428,2026-07-31T05:00:07,CFX,16368,3,"UPBIT LISTING: [거래] 콘플럭스(CFX) 신규 거래지원 안내 (KRW, BTC, USDT 마켓)  Upbit 上新: [交易] 关于 Conflux (C","콘플럭스(CFX) 신규 거래지원 안내 (KRW, BTC, USDT 마켓) (거래지원 개시 시점 안내)"
+6437,2026-08-04T04:30:17,HOME,16373,2,"UPBIT LISTING: [거래] 디파이앱(HOME) 신규 거래지원 안내 (KRW, USDT 마켓)  Upbit 上新: [交易] 关于 HOME 新增交易支持的公告","디파이앱(HOME) 신규 거래지원 안내 (KRW, USDT 마켓)"
+6440,2026-08-04T10:00:04,QUID,16375,2,"UPBIT LISTING: [거래] 스퀴드(QUID) 신규 거래지원 안내 (KRW, BTC, USDT 마켓)  Upbit 上新: [交易] 关于 QUID 新增交易支","스퀴드(QUID) 신규 거래지원 안내 (KRW, BTC, USDT 마켓) (매도 최저가 기준 가격 안내)"
+6441,2026-08-05T04:42:31,GRVT,16377,4,"UPBIT LISTING: [거래] 그래비티토큰(GRVT) 신규 거래지원 안내 (KRW, BTC, USDT 마켓)  Upbit 上新: 【交易】Gravity Tok","그래비티토큰(GRVT) 신규 거래지원 안내 (KRW, BTC, USDT 마켓)"
+6446,2026-08-06T01:55:15,CAP,16379,2,"UPBIT LISTING: [거래] 캡(CAP) 신규 거래지원 안내 (KRW, BTC, USDT 마켓)  Upbit 上新: [交易] 关于上线 CAP 的公告（KRW","캡(CAP) 신규 거래지원 안내 (KRW, BTC, USDT 마켓)"
+6450,2026-08-07T02:09:45,KMNO,16383,2,UPBIT LISTING: [거래] 카미노파이낸스(KMNO) KRW 마켓 디지털 자산 추가  Upbit 上新: [交易] Kamino Finance (KMNO) 在,카미노파이낸스(KMNO) KRW 마켓 디지털 자산 추가 (거래지원 개시 시점 추가 변경 안내)
+6451,2026-08-07T02:55:16,BSB,16385,3,"UPBIT LISTING: [거래] 블록스트리트(BSB) 신규 거래지원 안내 (KRW, BTC, USDT 마켓)  Upbit 上新: [交易] BlockStreet","블록스트리트(BSB) 신규 거래지원 안내 (KRW, BTC, USDT 마켓) (거래지원 개시 시점 변경 안내)"
+6463,2026-08-11T02:30:36,DOS,16392,2,"UPBIT LISTING: [거래] 댑오에스(DOS) 신규 거래지원 안내 (KRW, BTC, USDT 마켓)  Upbit 上新: [交易] 关于 DOS 新增交易支持","댑오에스(DOS) 신규 거래지원 안내 (KRW, BTC, USDT 마켓) (거래지원 개시 시점 추가 변경 안내)"
+6466,2026-08-12T02:11:38,PROM,16396,3,"UPBIT LISTING: [거래] 프롬(PROM) KRW, USDT 마켓 디지털 자산 추가  Upbit 上新: [交易] PROM 增加 KRW、USDT 市场数字资","프롬(PROM) KRW, USDT 마켓 디지털 자산 추가"
+6490,2026-08-21T02:22:40,CRV,16414,3,"UPBIT LISTING: [거래] 커브(CRV) KRW, USDT 마켓 디지털 자산 추가  Upbit 上新: 【交易】Curve (CRV) 增设 KRW、USDT ","커브(CRV) KRW, USDT 마켓 디지털 자산 추가"
+6503,2026-08-23T01:14:09,FOLD,16416,2,"UPBIT LISTING: [거래] 인터폴드(FOLD) 신규 거래지원 안내 (KRW, BTC, USDT 마켓)  Upbit 上新: [交易] FOLD 新币上线公告 ","인터폴드(FOLD) 신규 거래지원 안내 (KRW, BTC, USDT 마켓)"
+6504,2026-08-24T02:34:42,LIT,16418,2,UPBIT LISTING: [거래] 라이터(LIT) KRW 마켓 디지털 자산 추가  Upbit 上新: [交易] LIT KRW 交易对新增数字资产  LIT  Mark,라이터(LIT) KRW 마켓 디지털 자산 추가
+6518,2026-08-26T10:32:15,NCT,16421,3,UPBIT LISTING: [거래] 폴리스웜(NCT) KRW 마켓 디지털 자산 추가  Upbit 上新: [交易] PolySwarm (NCT) KRW 市场新增数字资,폴리스웜(NCT) KRW 마켓 디지털 자산 추가
+6526,2026-08-28T01:49:45,EURC,16424,3,"UPBIT LISTING: [거래] 이유알코인(EURC) 신규 거래지원 안내 (KRW, BTC, USDT 마켓)  Upbit 上新: [交易] 关于上线 EURC（E","이유알코인(EURC) 신규 거래지원 안내 (KRW, BTC, USDT 마켓)"
+6555,2026-09-08T03:21:44,CP,16446,8,"UPBIT LISTING: 클러스터프로토콜(CP) 신규 거래지원 안내 (KRW, BTC, USDT 마켓)  Upbit 上新: ClusterProtocol (CP)","클러스터프로토콜(CP) 신규 거래지원 안내 (KRW, BTC, USDT 마켓)"
+6561,2026-09-10T04:40:00,BFC,16458,3,"UPBIT LISTING: 바이프로스트(BFC) KRW, USDT 마켓 디지털 자산 추가  Upbit 上新: Bifrost (BFC) 增加 KRW 和 USDT 交","바이프로스트(BFC) KRW, USDT 마켓 디지털 자산 추가"
+6580,2026-09-17T00:48:01,PYUSD/JPYC,16468,2,"UPBIT LISTING: 페이팔유에스디(PYUSD), 제이피와이코인(JPYC) 신규 거래지원 안내 (KRW, BTC, USDT 마켓)  Upbit 上新: Pay","페이팔유에스디(PYUSD), 제이피와이코인(JPYC) 신규 거래지원 안내 (KRW, BTC, USDT 마켓) (JPYC 거래지"
+6618,2026-09-28T05:27:04,CASHCAT,16498,3,"UPBIT LISTING: 캐시캣(CASHCAT) 신규 거래지원 안내 (KRW, BTC, USDT 마켓)  Upbit 上新: 关于上线 CASHCAT (CASHCA","캐시캣(CASHCAT) 신규 거래지원 안내 (KRW, BTC, USDT 마켓)"
+6635,2026-10-02T04:37:21,POD,16507,2,"UPBIT LISTING: 돌핀(POD) 신규 거래지원 안내 (KRW, BTC, USDT 마켓)  Upbit 上新: 关于Dolphin (POD) 新增交易支持的公告","돌핀(POD) 신규 거래지원 안내 (KRW, BTC, USDT 마켓)"
+6642,2026-10-06T11:36:26,NMR,16512,2,"UPBIT LISTING: 뉴메레르(NMR) KRW, USDT 마켓 디지털 자산 추가  Upbit 上新: NMR添加至KRW和USDT交易对数字资产  NMR  Mar","뉴메레르(NMR) KRW, USDT 마켓 디지털 자산 추가"
+6644,2026-10-08T02:37:41,PONS,16522,2,"UPBIT LISTING: 폰즈(PONS) 신규 거래지원 안내 (KRW, BTC, USDT 마켓)  Upbit 上新: PONS 新上币公告（KRW、BTC、USDT ","폰즈(PONS) 신규 거래지원 안내 (KRW, BTC, USDT 마켓)"
+6645,2026-10-09T08:06:46,KAIA,16527,2,"UPBIT LISTING: 카이아(KAIA) 신규 거래지원 안내 (KRW, BTC, USDT 마켓)  Upbit 上新: 关于上线 KAIA (KAIA) 新交易对的公","카이아(KAIA) 신규 거래지원 안내 (KRW, BTC, USDT 마켓) (KAIA/BTC 초기 매수 제한 안내)"
+6651,2026-10-12T04:54:09,RSR,16531,2,"UPBIT LISTING: 리저브라이트(RSR) KRW, USDT 마켓 디지털 자산 추가  Upbit 上新: Reserve Rights (RSR) 在 KRW 和 ","리저브라이트(RSR) KRW, USDT 마켓 디지털 자산 추가"
+6653,2026-10-12T10:00:00,GTC,16534,2,"UPBIT LISTING: 깃코인(GTC) KRW, USDT 마켓 디지털 자산 추가  Upbit 上新: Gitcoin (GTC) 在 KRW 和 USDT 市场上线新","깃코인(GTC) KRW, USDT 마켓 디지털 자산 추가"
+6659,2026-10-15T04:40:00,PUFFER,16542,3,UPBIT LISTING: 퍼퍼(PUFFER) KRW 마켓 디지털 자산 추가  Upbit 上新: PUFFER上线KRW交易对  PUFFER  MarketCap: 1,퍼퍼(PUFFER) KRW 마켓 디지털 자산 추가
+6675,2026-10-19T07:40:00,CT,16548,2,"UPBIT LISTING: 콘크리트(CT) 신규 거래지원 안내 (KRW, BTC, USDT 마켓)  Upbit 上新: 关于新增支持 CT (Concrete) 交易的","콘크리트(CT) 신규 거래지원 안내 (KRW, BTC, USDT 마켓)"
+6680,2026-10-20T09:00:00,MPLX,16552,2,UPBIT LISTING: 메타플렉스(MPLX) KRW 마켓 디지털 자산 추가  Upbit 上新: Metaplex (MPLX) 增加韩元交易对数字资产  MPLX  ,메타플렉스(MPLX) KRW 마켓 디지털 자산 추가
+6687,2026-10-21T11:00:00,AXIS,16557,2,"UPBIT LISTING: 액시스로보틱스(AXIS) 신규 거래지원 안내 (KRW, BTC, USDT 마켓)  Upbit 上新: 关于上线 AXIS Robotics ","액시스로보틱스(AXIS) 신규 거래지원 안내 (KRW, BTC, USDT 마켓) (매도 최저가 기준 가격 안내)"
+6700,2026-10-24T02:35:00,BMT,16563,3,UPBIT LISTING: 버블맵스(BMT) KRW 마켓 디지털 자산 추가  Upbit 上新: Bubblemaps (BMT) 将上线韩元 (KRW) 交易对  BMT,버블맵스(BMT) KRW 마켓 디지털 자산 추가
+6714,2026-10-27T07:30:00,NIL,16567,2,UPBIT LISTING: 닐리온(NIL) KRW 마켓 디지털 자산 추가  Upbit 上新: Nilillion (NIL) 将上线 KRW 交易对数字资产  NIL  ,닐리온(NIL) KRW 마켓 디지털 자산 추가
