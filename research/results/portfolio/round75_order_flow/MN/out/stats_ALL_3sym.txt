@@ -1,0 +1,80 @@
+symbols: BTCUSDT ETHUSDT SOLUSDT
+
+=== era IS (pooled) ===
+n2_TPV                       n  2347  net   -8.03 bp -0.076R  t -2.40  sd  156.1  win 0.44  stop/tp/time 0.55/0.44/0.00  R 102bp  rand pct  74.0 (rand t med -3.05, 95% -1.47, rand n med 2125)
+                             stress x1.5 net  -11.22 t -3.33 | one step late net   -9.56 t -2.87
+   BTCUSDT                      n   882  net   -3.28 bp -0.066R  t -0.91
+   ETHUSDT                      n   891  net   -7.28 bp -0.078R  t -1.53
+   SOLUSDT                      n   574  net  -16.50 bp -0.088R  t -1.70
+n2_2R                        n  2164  net   -9.92 bp -0.079R  t -2.44  sd  190.8  win 0.33  stop/tp/time 0.66/0.33/0.01  R 103bp  rand pct  59.0 (rand t med -2.70, 95% -0.95, rand n med 1977)
+                             stress x1.5 net  -13.35 t -3.27 | one step late net  -11.25 t -2.78
+   BTCUSDT                      n   813  net   -6.24 bp -0.076R  t -1.28
+   ETHUSDT                      n   817  net   -7.60 bp -0.065R  t -1.24
+   SOLUSDT                      n   534  net  -19.09 bp -0.105R  t -1.63
+n3_TPV                       n   154  net  -20.31 bp -0.191R  t -1.79  sd  139.4  win 0.40  stop/tp/time 0.60/0.40/0.00  R 98bp  rand pct  37.0 (rand t med -1.42, 95% +0.29, rand n med 152)
+                             stress x1.5 net  -23.59 t -2.06 | one step late net  -18.74 t -1.69
+   BTCUSDT                      n    63  net  -16.06 bp -0.219R  t -1.28
+   ETHUSDT                      n    56  net   -9.20 bp -0.132R  t -0.54
+   SOLUSDT                      n    35  net  -45.75 bp -0.234R  t -1.30
+n3_2R                        n   153  net  -19.57 bp -0.198R  t -1.33  sd  174.8  win 0.29  stop/tp/time 0.70/0.29/0.01  R 99bp  rand pct  42.0 (rand t med -1.18, 95% +0.30, rand n med 152)
+                             stress x1.5 net  -23.07 t -1.56 | one step late net  -17.86 t -1.22
+   BTCUSDT                      n    62  net  -16.26 bp -0.203R  t -1.03
+   ETHUSDT                      n    56  net  -19.76 bp -0.198R  t -0.97
+   SOLUSDT                      n    35  net  -25.11 bp -0.187R  t -0.53
+best cell n3_2R t -1.33; max-over-4-cells random null: median -0.91, 95% +0.45; real best beats 32.5% of draws
+
+=== era VAL (pooled) ===
+n2_TPV                       n  5008  net   -5.42 bp -0.081R  t -3.34  sd  111.6  win 0.45  stop/tp/time 0.55/0.44/0.01  R 75bp  rand pct  67.0 (rand t med -3.76, 95% -2.45, rand n med 4775)
+                             stress x1.5 net   -8.63 t -5.28 | one step late net   -9.01 t -5.57
+                             power at VAL size = -0.0486 x sqrt(3060) = -2.69; HOLD t at 1/4 of VAL size ~ -0.67
+   BTCUSDT                      n  1493  net   -3.67 bp -0.072R  t -1.97
+   ETHUSDT                      n  1677  net   -5.31 bp -0.084R  t -2.43
+   SOLUSDT                      n  1838  net   -6.95 bp -0.085R  t -2.01
+n2_2R                        n  4526  net   -5.06 bp -0.071R  t -2.40  sd  136.6  win 0.35  stop/tp/time 0.65/0.33/0.02  R 75bp  rand pct  80.0 (rand t med -3.19, 95% -1.81, rand n med 4330)
+                             stress x1.5 net   -8.51 t -4.01 | one step late net   -8.69 t -4.13
+                             power at VAL size = -0.0370 x sqrt(2766) = -1.95; HOLD t at 1/4 of VAL size ~ -0.49
+   BTCUSDT                      n  1365  net   -4.53 bp -0.091R  t -1.86
+   ETHUSDT                      n  1496  net   -2.61 bp -0.040R  t -0.88
+   SOLUSDT                      n  1665  net   -7.70 bp -0.082R  t -1.72
+n3_TPV                       n   544  net   -7.09 bp -0.086R  t -1.58  sd  103.4  win 0.44  stop/tp/time 0.54/0.44/0.02  R 69bp  rand pct  67.5 (rand t med -2.02, 95% -0.40, rand n med 531)
+                             stress x1.5 net  -10.31 t -2.27 | one step late net  -10.67 t -2.34
+                             power at VAL size = -0.0686 x sqrt(332) = -1.25; HOLD t at 1/4 of VAL size ~ -0.31
+   BTCUSDT                      n   159  net   -4.66 bp -0.054R  t -0.88
+   ETHUSDT                      n   189  net   -4.98 bp -0.131R  t -0.80
+   SOLUSDT                      n   196  net  -11.10 bp -0.067R  t -1.12
+n3_2R                        n   535  net   -2.10 bp -0.038R  t -0.37  sd  127.1  win 0.36  stop/tp/time 0.62/0.33/0.04  R 70bp  rand pct  93.5 (rand t med -1.57, 95% -0.28, rand n med 516)
+                             stress x1.5 net   -5.52 t -0.97 | one step late net   -5.65 t -0.99
+                             power at VAL size = -0.0165 x sqrt(327) = -0.30; HOLD t at 1/4 of VAL size ~ -0.07
+   BTCUSDT                      n   155  net   -1.30 bp -0.043R  t -0.19
+   ETHUSDT                      n   184  net   -4.87 bp -0.108R  t -0.65
+   SOLUSDT                      n   196  net   -0.13 bp +0.033R  t -0.01
+best cell n3_2R t -0.37; max-over-4-cells random null: median -1.46, 95% -0.13; real best beats 91.0% of draws
+
+=== era ALL (pooled) ===
+n2_TPV                       n  7355  net   -6.26 bp -0.079R  t -4.07  sd  127.5  win 0.45  stop/tp/time 0.55/0.44/0.01  R 83bp  rand pct  77.0 (rand t med -4.79, 95% -3.35, rand n med 6896)
+                             stress x1.5 net   -9.46 t -6.11 | one step late net   -9.18 t -6.01
+   BTCUSDT                      n  2375  net   -3.53 bp -0.070R  t -1.98
+   ETHUSDT                      n  2568  net   -6.00 bp -0.082R  t -2.75
+   SOLUSDT                      n  2412  net   -9.22 bp -0.086R  t -2.63
+n2_2R                        n  6690  net   -6.63 bp -0.073R  t -3.42  sd  156.2  win 0.34  stop/tp/time 0.65/0.33/0.02  R 83bp  rand pct  77.5 (rand t med -4.14, 95% -2.65, rand n med 6304)
+                             stress x1.5 net  -10.07 t -5.17 | one step late net   -9.52 t -4.92
+   BTCUSDT                      n  2178  net   -5.17 bp -0.086R  t -2.18
+   ETHUSDT                      n  2313  net   -4.37 bp -0.049R  t -1.51
+   SOLUSDT                      n  2199  net  -10.46 bp -0.087R  t -2.37
+n3_TPV                       n   698  net  -10.01 bp -0.109R  t -2.32  sd  112.5  win 0.43  stop/tp/time 0.56/0.43/0.02  R 75bp  rand pct  52.5 (rand t med -2.43, 95% -0.73, rand n med 683)
+                             stress x1.5 net  -13.24 t -3.05 | one step late net  -12.45 t -2.88
+   BTCUSDT                      n   222  net   -7.89 bp -0.101R  t -1.51
+   ETHUSDT                      n   245  net   -5.94 bp -0.131R  t -0.96
+   SOLUSDT                      n   231  net  -16.35 bp -0.093R  t -1.64
+n3_2R                        n   688  net   -5.98 bp -0.073R  t -1.09  sd  139.3  win 0.35  stop/tp/time 0.64/0.32/0.04  R 75bp  rand pct  82.0 (rand t med -1.91, 95% -0.33, rand n med 667)
+                             stress x1.5 net   -9.42 t -1.70 | one step late net   -8.37 t -1.52
+   BTCUSDT                      n   217  net   -5.58 bp -0.089R  t -0.85
+   ETHUSDT                      n   240  net   -8.35 bp -0.129R  t -1.12
+   SOLUSDT                      n   231  net   -3.91 bp -0.001R  t -0.31
+best cell n3_2R t -1.09; max-over-4-cells random null: median -1.82, 95% -0.33; real best beats 79.5% of draws
+
+=== years (pooled net bp, t) ===
+n2_TPV   2020: -11.79 (-2.85, 1116)  2021:  -4.63 (-0.90, 1231)  2022:  -5.20 (-1.39, 1526)  2023:  -5.88 (-2.79, 1876)  2024:  -5.10 (-1.94, 1606)  positive 0/5
+n2_2R    2020: -10.76 (-2.15, 1015)  2021:  -9.18 (-1.47, 1149)  2022:  -6.78 (-1.43, 1395)  2023:  -4.10 (-1.43, 1673)  2024:  -4.51 (-1.35, 1458)  positive 0/5
+n3_TPV   2020:  -5.57 (-0.37, 80)  2021: -36.25 (-2.13, 74)  2022:  -9.99 (-0.87, 146)  2023:  -5.05 (-0.96, 254)  2024:  -7.73 (-0.95, 144)  positive 0/5
+n3_2R    2020:  -0.49 (-0.02, 79)  2021: -39.92 (-1.86, 74)  2022:  -1.17 (-0.08, 144)  2023:  -5.31 (-0.78, 249)  2024:  +2.58 (+0.26, 142)  positive 1/5

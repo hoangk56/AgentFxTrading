@@ -1,0 +1,38 @@
+{
+ "trend_c2": {
+  "legs": 1028,
+  "no_cluster": 6,
+  "extreme": 1,
+  "zones": 1021,
+  "hole_dropped": 19,
+  "tested": 782,
+  "filled": 691
+ },
+ "trend_c3": {
+  "legs": 1028,
+  "no_cluster": 211,
+  "extreme": 1,
+  "zones": 816,
+  "hole_dropped": 17,
+  "tested": 620,
+  "filled": 541
+ },
+ "rej_c2": {
+  "legs": 1577,
+  "no_cluster": 22,
+  "extreme": 2,
+  "zones": 1553,
+  "hole_dropped": 25,
+  "tested": 1182,
+  "filled": 1057
+ },
+ "rej_c3": {
+  "legs": 1577,
+  "no_cluster": 368,
+  "extreme": 2,
+  "zones": 1207,
+  "hole_dropped": 24,
+  "tested": 915,
+  "filled": 815
+ }
+}

@@ -1,0 +1,105 @@
+symbols pooled: BTCUSDT, ETHUSDT, SOLUSDT
+random draws: 200
+
+Pooled (base costs; x1.5 = fees x1.5; late = one step late; rnd% = percentile of real t among random levels)
+cell           | IS:     n  net bp      R     t x1.5 t   late late t  rnd% rnd med t | VAL:     n  net bp      R     t x1.5 t   late late t  rnd% rnd med t
+C1_m4_TPV      | IS:  1072  -10.13 -0.102 -2.38  -3.37 -13.79  -3.18  60.0     -2.59| VAL:  2004   -9.76 -0.145 -4.26  -6.09 -10.67  -4.68  17.0     -3.43
+C1_m4_2R       | IS:  1022  -12.65 -0.096 -2.22  -3.00 -11.91  -2.02  35.5     -1.82| VAL:  1911   -9.96 -0.161 -3.29  -4.76  -9.98  -3.32  35.0     -2.95
+C1_m8_TPV      | IS:   136   -6.34 -0.047 -0.48  -0.80  -3.51  -0.26  81.0     -1.43| VAL:   239   -2.93 -0.079 -0.43  -1.04  -5.37  -0.79  82.0     -1.29
+C1_m8_2R       | IS:   132    2.93  0.068  0.18  -0.09   2.66   0.16  87.0     -1.00| VAL:   234   -6.33 -0.134 -0.70  -1.19  -6.95  -0.77  72.5     -1.25
+C2_m4_TPV      | IS:   218   -4.60 -0.107 -0.52  -1.00   2.13   0.24  71.0     -1.21| VAL:   637  -12.10 -0.170 -3.22  -4.33 -12.73  -3.38   9.0     -2.01
+C2_m4_2R       | IS:   216   -5.28 -0.069 -0.45  -0.82  -0.79  -0.07  55.5     -0.61| VAL:   630  -10.95 -0.174 -2.21  -3.11 -11.73  -2.36  30.0     -1.77
+C2_m8_TPV      | IS:    10  -68.42 -0.540 -1.63  -1.73 -33.06  -0.72   4.5     -0.03| VAL:    44  -23.33 -0.195 -1.35  -1.59 -27.69  -1.62  34.5     -0.97
+C2_m8_2R       | IS:    10  -51.19 -0.550 -0.94  -1.02 -51.08  -0.94  18.5      0.03| VAL:    43  -29.06 -0.295 -1.41  -1.63 -21.24  -1.01  30.0     -0.85
+BON_m4_TPV     | IS:   957  -11.78 -0.112 -2.84  -3.85 -11.48  -2.69  42.0     -2.64| VAL:  1889   -8.71 -0.128 -3.64  -5.39  -8.77  -3.75  47.0     -3.57
+BON_m4_2R      | IS:   913  -14.76 -0.122 -2.49  -3.24 -11.78  -2.01  29.5     -2.07| VAL:  1801  -10.12 -0.167 -3.24  -4.66 -10.85  -3.55  28.5     -2.76
+BON_m8_TPV     | IS:   116   -8.28  0.005 -0.70  -1.05   5.68   0.45  60.0     -0.86| VAL:   208   -3.49 -0.008 -0.47  -1.03  -4.50  -0.61  77.0     -1.07
+BON_m8_2R      | IS:   114    6.94  0.175  0.44   0.16  12.41   0.76  90.0     -0.56| VAL:   204   -5.82 -0.064 -0.59  -1.04  -6.87  -0.71  74.5     -1.23
+N0_TPV         | IS:  2750   -8.77 -0.077 -2.78  -3.66  -9.71  -3.13  48.0     -2.75| VAL:  4438   -3.94 -0.075 -2.29  -3.89  -5.27  -3.03  61.0     -2.58
+N0_2R          | IS:  2481   -7.14 -0.067 -1.68  -2.39  -9.91  -2.41  61.0     -2.04| VAL:  4006   -5.47 -0.099 -2.41  -3.72  -7.35  -3.22  56.5     -2.61
+N0m_TPV        | IS:  3209  -11.97 -0.119 -4.18  -5.66 -12.60  -4.34  33.5     -3.82| VAL:  5284   -5.61 -0.098 -3.40  -5.96  -7.11  -4.27  90.0     -4.53
+N0m_2R         | IS:  2877   -9.68 -0.097 -2.45  -3.59  -7.06  -1.76  56.5     -2.67| VAL:  4766   -8.62 -0.137 -4.04  -6.13  -9.08  -4.24  63.5     -4.31
+
+Max-over-cells null (12 verdict cells): real max t vs the distribution of max t across random draws
+  IS: real max t 0.44; random max t median 0.59, 95th 2.25; real max beats 42.0 % of draws
+  VAL: real max t -0.43; random max t median -0.23, 95th 1.09; real max beats 41.5 % of draws
+
+Per symbol (base): n / net bp / t
+C1_m4_TPV      | IS BTC   437   -7.96 -1.75 | IS ETH   460  -11.99 -1.87 | IS SOL   175  -10.65 -0.69 | VAL BTC   704   -6.83 -2.58 | VAL ETH   714  -12.41 -3.93 | VAL SOL   586  -10.05 -1.88 
+C1_m4_2R       | IS BTC   415  -11.15 -1.83 | IS ETH   434   -9.36 -1.13 | IS SOL   173  -24.49 -1.24 | VAL BTC   671  -11.40 -3.16 | VAL ETH   684  -11.79 -2.75 | VAL SOL   556   -5.97 -0.83 
+C1_m8_TPV      | IS BTC    41  -14.16 -1.07 | IS ETH    80    5.54  0.30 | IS SOL    15  -48.32 -0.89 | VAL BTC    95   -5.57 -0.77 | VAL ETH    85   -4.71 -0.54 | VAL SOL    59    3.88  0.19 
+C1_m8_2R       | IS BTC    41  -25.15 -1.54 | IS ETH    76   27.93  1.27 | IS SOL    15  -47.01 -0.63 | VAL BTC    92  -11.39 -1.14 | VAL ETH    83   -3.93 -0.32 | VAL SOL    59   -1.83 -0.07 
+C2_m4_TPV      | IS BTC    97    0.99  0.09 | IS ETH    90  -10.59 -0.95 | IS SOL    31   -4.70 -0.12 | VAL BTC   206  -11.73 -2.49 | VAL ETH   240  -15.23 -3.03 | VAL SOL   191   -8.57 -0.93 
+C2_m4_2R       | IS BTC    97    1.06  0.07 | IS ETH    88  -10.55 -0.70 | IS SOL    31  -10.18 -0.19 | VAL BTC   204  -12.81 -2.05 | VAL ETH   237  -13.91 -2.10 | VAL SOL   189   -5.24 -0.43 
+C2_m8_TPV      | IS BTC     4  -44.33 -1.88 | IS ETH     3  -39.15 -0.57 | IS SOL     3 -129.82 -0.97 | VAL BTC    18  -26.51 -1.88 | VAL ETH    16   -4.06 -0.24 | VAL SOL    10  -48.43 -0.71 
+C2_m8_2R       | IS BTC     4  -61.67 -7.45 | IS ETH     3   -7.27 -0.07 | IS SOL     3  -81.13 -0.45 | VAL BTC    17  -39.44 -2.36 | VAL ETH    16  -11.19 -0.48 | VAL SOL    10  -39.99 -0.51 
+BON_m4_TPV     | IS BTC   391   -6.47 -1.35 | IS ETH   415  -14.33 -2.29 | IS SOL   151  -18.49 -1.13 | VAL BTC   657   -7.25 -2.54 | VAL ETH   678   -6.18 -1.91 | VAL SOL   554  -13.54 -2.47 
+BON_m4_2R      | IS BTC   374  -13.23 -2.03 | IS ETH   390  -15.05 -1.81 | IS SOL   149  -17.84 -0.84 | VAL BTC   627  -13.04 -3.50 | VAL ETH   647   -6.92 -1.56 | VAL SOL   527  -10.59 -1.46 
+BON_m8_TPV     | IS BTC    39  -11.97 -0.88 | IS ETH    67    4.26  0.28 | IS SOL    10  -77.93 -1.12 | VAL BTC    79   -0.66 -0.08 | VAL ETH    74    6.58  0.70 | VAL SOL    55  -21.10 -1.05 
+BON_m8_2R      | IS BTC    39  -10.05 -0.55 | IS ETH    65   31.08  1.50 | IS SOL    10  -83.66 -0.94 | VAL BTC    78   -3.81 -0.35 | VAL ETH    72    7.46  0.56 | VAL SOL    54  -26.42 -1.04 
+N0_TPV         | IS BTC  1013    0.02  0.00 | IS ETH  1064  -15.55 -3.47 | IS SOL   673  -11.27 -1.38 | VAL BTC  1411   -3.73 -1.87 | VAL ETH  1476   -5.03 -2.06 | VAL SOL  1551   -3.09 -0.86 
+N0_2R          | IS BTC   906   -0.24 -0.05 | IS ETH   951  -12.93 -2.09 | IS SOL   624   -8.32 -0.74 | VAL BTC  1264   -7.20 -2.65 | VAL ETH  1333   -4.02 -1.22 | VAL SOL  1409   -5.29 -1.07 
+N0m_TPV        | IS BTC  1205   -7.55 -2.45 | IS ETH  1253  -19.25 -4.61 | IS SOL   751   -6.93 -0.87 | VAL BTC  1738   -5.34 -3.08 | VAL ETH  1762   -6.29 -2.88 | VAL SOL  1784   -5.21 -1.51 
+N0m_2R         | IS BTC  1064   -4.22 -0.97 | IS ETH  1133  -13.91 -2.44 | IS SOL   680  -11.18 -1.04 | VAL BTC  1563   -8.24 -3.39 | VAL ETH  1590   -8.40 -2.88 | VAL SOL  1613   -9.20 -2.01 
+
+Years (pooled base net bp per trade; n)
+C1_m4_TPV      2020:   -9.13 ( 577) 2021:  -11.30 ( 495) 2022:  -13.09 ( 591) 2023:   -7.88 ( 667) 2024:   -8.81 ( 746)  pos 0/5
+C1_m4_2R       2020:   -5.35 ( 543) 2021:  -20.92 ( 479) 2022:  -16.95 ( 572) 2023:   -8.09 ( 626) 2024:   -6.00 ( 713)  pos 0/5
+C1_m8_TPV      2020:   -3.18 ( 101) 2021:  -15.47 (  35) 2022:   11.60 (  74) 2023:  -11.90 (  81) 2024:   -7.09 (  84)  pos 1/5
+C1_m8_2R       2020:    2.71 (  97) 2021:    3.53 (  35) 2022:    6.99 (  72) 2023:  -18.30 (  80) 2024:   -6.35 (  82)  pos 3/5
+C2_m4_TPV      2020:  -14.33 ( 112) 2021:    5.67 ( 106) 2022:  -25.98 ( 150) 2023:   -7.94 ( 245) 2024:   -7.70 ( 242)  pos 1/5
+C2_m4_2R       2020:   -9.85 ( 111) 2021:   -0.45 ( 105) 2022:  -26.92 ( 149) 2023:   -9.06 ( 242) 2024:   -2.91 ( 239)  pos 0/5
+C2_m8_TPV      2020:  -56.83 (   7) 2021:  -95.48 (   3) 2022: -100.57 (   9) 2023:   -9.00 (  22) 2024:    5.89 (  13)  pos 1/5
+C2_m8_2R       2020:  -53.07 (   7) 2021:  -46.79 (   3) 2022:  -83.99 (   9) 2023:  -21.43 (  22) 2024:   -1.84 (  12)  pos 0/5
+BON_m4_TPV     2020:  -11.18 ( 513) 2021:  -12.46 ( 444) 2022:  -10.07 ( 558) 2023:   -8.23 ( 622) 2024:   -8.06 ( 709)  pos 0/5
+BON_m4_2R      2020:  -13.71 ( 479) 2021:  -15.92 ( 434) 2022:  -16.05 ( 536) 2023:  -11.02 ( 586) 2024:   -4.68 ( 679)  pos 0/5
+BON_m8_TPV     2020:   -8.24 (  86) 2021:   -8.40 (  30) 2022:   -7.21 (  64) 2023:   -8.69 (  69) 2024:    4.48 (  75)  pos 1/5
+BON_m8_2R      2020:    5.29 (  84) 2021:   11.56 (  30) 2022:  -11.05 (  63) 2023:  -12.45 (  67) 2024:    4.65 (  74)  pos 3/5
+N0_TPV         2020:  -12.01 (1162) 2021:   -6.40 (1588) 2022:   -0.23 (1423) 2023:   -6.47 (1466) 2024:   -4.95 (1549)  pos 0/5
+N0_2R          2020:   -7.41 (1040) 2021:   -6.94 (1441) 2022:   -0.24 (1292) 2023:   -6.14 (1306) 2024:   -9.64 (1408)  pos 0/5
+N0m_TPV        2020:  -14.10 (1388) 2021:  -10.35 (1821) 2022:   -3.11 (1661) 2023:   -6.03 (1808) 2024:   -7.48 (1815)  pos 0/5
+N0m_2R         2020:  -10.42 (1230) 2021:   -9.13 (1647) 2022:   -4.27 (1527) 2023:   -6.65 (1601) 2024:  -14.61 (1638)  pos 0/5
+
+Power at VAL size (net mean / sd x sqrt(n_VAL x 22 / 36)); entry-slip variant net
+C1_m4_TPV      VAL n  2004 mean   -9.76 sd    96.1 power -3.56 (HOLD t at 1/4 VAL size ~-0.89) | entry-slip net IS -11.29 VAL -11.05
+C1_m4_2R       VAL n  1911 mean   -9.96 sd   126.4 power -2.69 (HOLD t at 1/4 VAL size ~-0.67) | entry-slip net IS -13.82 VAL -11.25
+C1_m8_TPV      VAL n   239 mean   -2.93 sd    99.2 power -0.36 (HOLD t at 1/4 VAL size ~-0.09) | entry-slip net IS  -7.45 VAL  -4.18
+C1_m8_2R       VAL n   234 mean   -6.33 sd   130.3 power -0.58 (HOLD t at 1/4 VAL size ~-0.15) | entry-slip net IS   1.82 VAL  -7.58
+C2_m4_TPV      VAL n   637 mean  -12.10 sd    91.7 power -2.60 (HOLD t at 1/4 VAL size ~-0.65) | entry-slip net IS  -5.75 VAL -13.40
+C2_m4_2R       VAL n   630 mean  -10.95 sd   121.9 power -1.76 (HOLD t at 1/4 VAL size ~-0.44) | entry-slip net IS  -6.43 VAL -12.25
+C2_m8_TPV      VAL n    44 mean  -23.33 sd   111.7 power -1.08 (HOLD t at 1/4 VAL size ~-0.27) | entry-slip net IS -69.72 VAL -24.56
+C2_m8_2R       VAL n    43 mean  -29.06 sd   132.3 power -1.13 (HOLD t at 1/4 VAL size ~-0.28) | entry-slip net IS -52.49 VAL -30.29
+BON_m4_TPV     VAL n  1889 mean   -8.71 sd    97.3 power -3.04 (HOLD t at 1/4 VAL size ~-0.76) | entry-slip net IS -12.93 VAL -10.00
+BON_m4_2R      VAL n  1801 mean  -10.12 sd   126.3 power -2.66 (HOLD t at 1/4 VAL size ~-0.66) | entry-slip net IS -15.93 VAL -11.42
+BON_m8_TPV     VAL n   208 mean   -3.49 sd   101.9 power -0.39 (HOLD t at 1/4 VAL size ~-0.10) | entry-slip net IS  -9.37 VAL  -4.75
+BON_m8_2R      VAL n   204 mean   -5.82 sd   132.0 power -0.49 (HOLD t at 1/4 VAL size ~-0.12) | entry-slip net IS   5.86 VAL  -7.08
+N0_TPV         VAL n  4438 mean   -3.94 sd   109.4 power -1.87 (HOLD t at 1/4 VAL size ~-0.47) | entry-slip net IS  -8.77 VAL  -3.94
+N0_2R          VAL n  4006 mean   -5.47 sd   141.2 power -1.92 (HOLD t at 1/4 VAL size ~-0.48) | entry-slip net IS  -7.15 VAL  -5.49
+N0m_TPV        VAL n  5284 mean   -5.61 sd   107.5 power -2.97 (HOLD t at 1/4 VAL size ~-0.74) | entry-slip net IS -13.21 VAL  -6.95
+N0m_2R         VAL n  4766 mean   -8.62 sd   138.4 power -3.36 (HOLD t at 1/4 VAL size ~-0.84) | entry-slip net IS -10.92 VAL  -9.96
+
+By level (0 POC, 1 VAH, 2 VAL) and side, base net bp / t
+C1_m4_TPV      | IS L0   380 -10.34 -1.35 | IS L1   367 -14.10 -2.02 | IS L2   325  -5.40 -0.73 | IS long   598  -5.95 -1.10 | IS short   474 -15.40 -2.25 | VAL L0   684  -8.92 -2.29 | VAL L1   657  -8.36 -2.17 | VAL L2   663 -12.03 -3.13 | VAL long  1006  -8.36 -2.47 | VAL short   998 -11.17 -3.61 
+C1_m4_2R       | IS L0   361 -18.02 -1.88 | IS L1   350 -12.95 -1.33 | IS L2   311  -6.07 -0.57 | IS long   573  -7.70 -0.98 | IS short   449 -18.97 -2.13 | VAL L0   647  -9.44 -1.85 | VAL L1   624  -7.40 -1.42 | VAL L2   640 -12.98 -2.53 | VAL long   968  -5.79 -1.27 | VAL short   943 -14.25 -3.49 
+BON_m4_TPV     | IS L0   334 -17.42 -2.46 | IS L1   333 -15.20 -2.08 | IS L2   290  -1.34 -0.17 | IS long   524 -11.48 -2.03 | IS short   433 -12.14 -1.91 | VAL L0   636  -8.07 -2.00 | VAL L1   625  -8.10 -1.96 | VAL L2   628  -9.96 -2.50 | VAL long   947  -5.44 -1.52 | VAL short   942 -12.00 -3.75 
+C2_m4_TPV      | IS L0    74  -7.59 -0.54 | IS L1    73  -7.92 -0.57 | IS L2    71   1.93  0.11 | IS long   119  -1.07 -0.09 | IS short    99  -8.86 -0.72 | VAL L0   204 -13.69 -1.98 | VAL L1   228 -12.38 -2.08 | VAL L2   205 -10.21 -1.66 | VAL long   302  -7.65 -1.32 | VAL short   335 -16.11 -3.42 
+N0_TPV         | IS L0   998 -11.88 -2.35 | IS L1   889  -9.95 -1.84 | IS L2   863  -3.95 -0.70 | IS long  1429  -7.67 -1.65 | IS short  1321  -9.96 -2.20 | VAL L0  1589  -2.97 -1.05 | VAL L1  1420  -5.37 -1.80 | VAL L2  1429  -3.59 -1.22 | VAL long  2156  -5.90 -2.16 | VAL short  2282  -2.08 -0.87 
+N0m_TPV        | IS L0  1175 -11.07 -2.47 | IS L1  1042 -15.38 -3.22 | IS L2   992  -9.45 -1.74 | IS long  1675 -11.90 -2.73 | IS short  1534 -12.05 -2.83 | VAL L0  1947  -3.72 -1.46 | VAL L1  1638  -6.61 -2.31 | VAL L2  1699  -6.82 -2.50 | VAL long  2597  -5.60 -2.17 | VAL short  2687  -5.63 -2.45 
+
+Exit mix pooled ALL eras (stop / tp / time) and mean R size bp
+C1_m4_TPV      stop 0.52 tp 0.48 time 0.00 R   91.5 bp
+C1_m4_2R       stop 0.66 tp 0.32 time 0.02 R   92.0 bp
+C1_m8_TPV      stop 0.48 tp 0.52 time 0.00 R   89.5 bp
+C1_m8_2R       stop 0.63 tp 0.35 time 0.03 R   90.1 bp
+C2_m4_TPV      stop 0.52 tp 0.48 time 0.00 R   85.0 bp
+C2_m4_2R       stop 0.66 tp 0.32 time 0.02 R   85.1 bp
+C2_m8_TPV      stop 0.56 tp 0.44 time 0.00 R   85.0 bp
+C2_m8_2R       stop 0.72 tp 0.26 time 0.02 R   85.7 bp
+BON_m4_TPV     stop 0.52 tp 0.48 time 0.01 R   91.1 bp
+BON_m4_2R      stop 0.66 tp 0.32 time 0.02 R   91.5 bp
+BON_m8_TPV     stop 0.45 tp 0.54 time 0.01 R   89.1 bp
+BON_m8_2R      stop 0.60 tp 0.37 time 0.03 R   89.5 bp
+N0_TPV         stop 0.53 tp 0.47 time 0.00 R  102.1 bp
+N0_2R          stop 0.66 tp 0.32 time 0.02 R  102.5 bp
+N0m_TPV        stop 0.52 tp 0.47 time 0.00 R  100.3 bp
+N0m_2R         stop 0.66 tp 0.32 time 0.02 R  100.4 bp

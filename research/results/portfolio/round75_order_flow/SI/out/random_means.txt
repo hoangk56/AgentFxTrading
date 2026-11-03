@@ -1,0 +1,8 @@
+IS f0_TPV random pooled mean net bp: median -5.14 p5 -7.92 p95 -2.57, n median 6828
+IS f0_2R random pooled mean net bp: median -5.96 p5 -9.52 p95 -2.16, n median 5801
+IS fmed_TPV random pooled mean net bp: median -9.90 p5 -16.13 p95 -2.87, n median 1463
+IS fmed_2R random pooled mean net bp: median -10.57 p5 -18.94 p95 -1.24, n median 1331
+VAL f0_TPV random pooled mean net bp: median -4.06 p5 -5.93 p95 -1.94, n median 7114
+VAL f0_2R random pooled mean net bp: median -3.80 p5 -6.66 p95 -0.82, n median 6345
+VAL fmed_TPV random pooled mean net bp: median -7.36 p5 -12.35 p95 -2.33, n median 897
+VAL fmed_2R random pooled mean net bp: median -6.63 p5 -13.39 p95 -0.13, n median 873
