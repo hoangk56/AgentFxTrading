@@ -535,6 +535,14 @@ algorithms:
     report: research/results/lab/v2/verdict.md
 
 tried:
+  # R75 (2026-11-03)
+  - {round: R75, name: "U: unfinished auction (đỉnh / đáy nến 30 phút chưa xong) kéo giá quay lại (sách Trader Dale, setup 5)", reason: "Không có nam châm: khớp khoảng cách và biến động thì chưa xong và đã xong bị quay lại như nhau (~57 % trong 6 giờ, chênh t ≤ 1,3); vào lệnh về mức chưa xong lỗ 12–19 bp, 0/5 năm.", report: research/results/portfolio/round75_order_flow/U/STREAM_U.md}
+  - {round: R75, name: "SI: vùng stacked imbalance (≥ 3 ô imbalance chéo 300 %), đánh lần chạm lại đầu trên perp BTC / ETH / SOL", reason: "IS -1,1 bp (t -0,56), VAL -3,3 bp (t -2,30), 0/5 năm; hơn mức ngẫu nhiên ~1–4 bp trước phí nhưng dưới một lượt phí.", report: research/results/portfolio/round75_order_flow/SI/STREAM_SI.md}
+  - {round: R75, name: "MN: multiple node (POC của ≥ 2–3 nến 30 phút liền cùng một ô), lần chạm lại đầu", reason: "Mọi ô lỗ ở IS và VAL trên cả ba mã; ô tốt nhất IS t -1,33, chỉ hơn 32,5 % ngẫu nhiên.", report: research/results/portfolio/round75_order_flow/MN/STREAM_MN.md}
+  - {round: R75, name: "VC: cụm khối lượng trong chân trend hoặc cú từ chối giá, lần chạm lại đầu", reason: "Trend thua mức ngẫu nhiên; từ chối giá IS +4,1 bp (t 0,76), VAL +1,0 (t 0,35), phí x1,5 thành âm.", report: research/results/portfolio/round75_order_flow/VC/STREAM_VC.md}
+  - {round: R75, name: "TF: lệnh khớp lớn (trades filter, 5–10 lệnh mỗi ngày) làm vùng giá", reason: "IS t tốt nhất +0,23, VAL -3,6 bp (t -1,98); trước phí như mức ngẫu nhiên (+2 bp).", report: research/results/portfolio/round75_order_flow/TF/STREAM_TF.md}
+  - {round: R75, name: "CF: delta chủ động / phân kỳ CVD tại POC, VAH, VAL ngày trước", reason: "8 ô đều lỗ ở IS và VAL (VAL tới -17 bp); mức VP ngày trước như mức ngẫu nhiên, xác nhận không thêm gì.", report: research/results/portfolio/round75_order_flow/CF/STREAM_CF.md}
+  - {round: R75, name: "AB: lệnh limit lớn / hấp thụ trên footprint 5 phút tại POC, VAH, VAL ngày trước", reason: "12 ô: trước phí ~0 bp, phí 8,5–9 bp; ô tốt nhất IS t 0,44 (114 lệnh), VAL âm.", report: research/results/portfolio/round75_order_flow/AB/STREAM_AB.md}
   # R72 (2026-11-01)
   - {round: R73, name: "TG: kênh Telegram @upbit_news (bản xem trước t.me/s) làm nguồn bắt thông báo cho A2-D5L", reason: "Chưa kết luận: kênh chính thức đăng 100 % thông báo niêm yết KRW, năm 2026 đều ≤ 1 giây sau giờ đăng; poll 1–1,5 giây mô hình 82–97 % thấy trong 3 giây, nhưng độ trễ của bản xem trước và việc Telegram chịu poll lâu dài chưa đo (logger forward đang chạy).", report: research/results/portfolio/round73_telegram_capture/TG/STREAM_TG.md}
   - {round: R72, name: "TRY: chênh giá USDT/TRY trên BtcTurk báo trước tỉ giá USDTRY chính thức", reason: "IS t 1,3 theo đợt, ngẫu nhiên 84–86 %; lãi đến từ hai lần lira vỡ (2021-12, 2023); carry ăn 96–151 bp mỗi lệnh 20 ngày.", report: research/results/portfolio/round72_scout_leftovers/TRY/STREAM_TRY.md}
