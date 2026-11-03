@@ -1,0 +1,68 @@
+symbols pooled: BTCUSDT, ETHUSDT, SOLUSDT
+random draws: 200
+
+Pooled (base costs; x1.5 = fees x1.5; late = one step late; rnd% = percentile of real t among random levels)
+cell           | IS:     n  net bp      R     t x1.5 t   late late t  rnd% rnd med t
+C1_m4_TPV      | IS:  1072  -10.13 -0.102 -2.38  -3.37 -13.79  -3.18  60.0     -2.59
+C1_m4_2R       | IS:  1022  -12.65 -0.096 -2.22  -3.00 -11.91  -2.02  35.5     -1.82
+C1_m8_TPV      | IS:   136   -6.34 -0.047 -0.48  -0.80  -3.51  -0.26  81.0     -1.43
+C1_m8_2R       | IS:   132    2.93  0.068  0.18  -0.09   2.66   0.16  87.0     -1.00
+C2_m4_TPV      | IS:   218   -4.60 -0.107 -0.52  -1.00   2.13   0.24  71.0     -1.21
+C2_m4_2R       | IS:   216   -5.28 -0.069 -0.45  -0.82  -0.79  -0.07  55.5     -0.61
+C2_m8_TPV      | IS:    10  -68.42 -0.540 -1.63  -1.73 -33.06  -0.72   4.5     -0.03
+C2_m8_2R       | IS:    10  -51.19 -0.550 -0.94  -1.02 -51.08  -0.94  18.5      0.03
+BON_m4_TPV     | IS:   957  -11.78 -0.112 -2.84  -3.85 -11.48  -2.69  42.0     -2.64
+BON_m4_2R      | IS:   913  -14.76 -0.122 -2.49  -3.24 -11.78  -2.01  29.5     -2.07
+BON_m8_TPV     | IS:   116   -8.28  0.005 -0.70  -1.05   5.68   0.45  60.0     -0.86
+BON_m8_2R      | IS:   114    6.94  0.175  0.44   0.16  12.41   0.76  90.0     -0.56
+N0_TPV         | IS:  2750   -8.77 -0.077 -2.78  -3.66  -9.71  -3.13  48.0     -2.75
+N0_2R          | IS:  2481   -7.14 -0.067 -1.68  -2.39  -9.91  -2.41  61.0     -2.04
+N0m_TPV        | IS:  3209  -11.97 -0.119 -4.18  -5.66 -12.60  -4.34  33.5     -3.82
+N0m_2R         | IS:  2877   -9.68 -0.097 -2.45  -3.59  -7.06  -1.76  56.5     -2.67
+
+Max-over-cells null (12 verdict cells): real max t vs the distribution of max t across random draws
+  IS: real max t 0.44; random max t median 0.59, 95th 2.25; real max beats 42.0 % of draws
+
+Per symbol (base): n / net bp / t
+C1_m4_TPV      | IS BTC   437   -7.96 -1.75 | IS ETH   460  -11.99 -1.87 | IS SOL   175  -10.65 -0.69 
+C1_m4_2R       | IS BTC   415  -11.15 -1.83 | IS ETH   434   -9.36 -1.13 | IS SOL   173  -24.49 -1.24 
+C1_m8_TPV      | IS BTC    41  -14.16 -1.07 | IS ETH    80    5.54  0.30 | IS SOL    15  -48.32 -0.89 
+C1_m8_2R       | IS BTC    41  -25.15 -1.54 | IS ETH    76   27.93  1.27 | IS SOL    15  -47.01 -0.63 
+C2_m4_TPV      | IS BTC    97    0.99  0.09 | IS ETH    90  -10.59 -0.95 | IS SOL    31   -4.70 -0.12 
+C2_m4_2R       | IS BTC    97    1.06  0.07 | IS ETH    88  -10.55 -0.70 | IS SOL    31  -10.18 -0.19 
+C2_m8_TPV      | IS BTC     4  -44.33 -1.88 | IS ETH     3  -39.15 -0.57 | IS SOL     3 -129.82 -0.97 
+C2_m8_2R       | IS BTC     4  -61.67 -7.45 | IS ETH     3   -7.27 -0.07 | IS SOL     3  -81.13 -0.45 
+BON_m4_TPV     | IS BTC   391   -6.47 -1.35 | IS ETH   415  -14.33 -2.29 | IS SOL   151  -18.49 -1.13 
+BON_m4_2R      | IS BTC   374  -13.23 -2.03 | IS ETH   390  -15.05 -1.81 | IS SOL   149  -17.84 -0.84 
+BON_m8_TPV     | IS BTC    39  -11.97 -0.88 | IS ETH    67    4.26  0.28 | IS SOL    10  -77.93 -1.12 
+BON_m8_2R      | IS BTC    39  -10.05 -0.55 | IS ETH    65   31.08  1.50 | IS SOL    10  -83.66 -0.94 
+N0_TPV         | IS BTC  1013    0.02  0.00 | IS ETH  1064  -15.55 -3.47 | IS SOL   673  -11.27 -1.38 
+N0_2R          | IS BTC   906   -0.24 -0.05 | IS ETH   951  -12.93 -2.09 | IS SOL   624   -8.32 -0.74 
+N0m_TPV        | IS BTC  1205   -7.55 -2.45 | IS ETH  1253  -19.25 -4.61 | IS SOL   751   -6.93 -0.87 
+N0m_2R         | IS BTC  1064   -4.22 -0.97 | IS ETH  1133  -13.91 -2.44 | IS SOL   680  -11.18 -1.04 
+
+By level (0 POC, 1 VAH, 2 VAL) and side, base net bp / t
+C1_m4_TPV      | IS L0   380 -10.34 -1.35 | IS L1   367 -14.10 -2.02 | IS L2   325  -5.40 -0.73 | IS long   598  -5.95 -1.10 | IS short   474 -15.40 -2.25 
+C1_m4_2R       | IS L0   361 -18.02 -1.88 | IS L1   350 -12.95 -1.33 | IS L2   311  -6.07 -0.57 | IS long   573  -7.70 -0.98 | IS short   449 -18.97 -2.13 
+BON_m4_TPV     | IS L0   334 -17.42 -2.46 | IS L1   333 -15.20 -2.08 | IS L2   290  -1.34 -0.17 | IS long   524 -11.48 -2.03 | IS short   433 -12.14 -1.91 
+C2_m4_TPV      | IS L0    74  -7.59 -0.54 | IS L1    73  -7.92 -0.57 | IS L2    71   1.93  0.11 | IS long   119  -1.07 -0.09 | IS short    99  -8.86 -0.72 
+N0_TPV         | IS L0   998 -11.88 -2.35 | IS L1   889  -9.95 -1.84 | IS L2   863  -3.95 -0.70 | IS long  1429  -7.67 -1.65 | IS short  1321  -9.96 -2.20 
+N0m_TPV        | IS L0  1175 -11.07 -2.47 | IS L1  1042 -15.38 -3.22 | IS L2   992  -9.45 -1.74 | IS long  1675 -11.90 -2.73 | IS short  1534 -12.05 -2.83 
+
+Exit mix pooled ALL eras (stop / tp / time) and mean R size bp
+C1_m4_TPV      stop 0.52 tp 0.48 time 0.00 R   91.5 bp
+C1_m4_2R       stop 0.66 tp 0.32 time 0.02 R   92.0 bp
+C1_m8_TPV      stop 0.48 tp 0.52 time 0.00 R   89.5 bp
+C1_m8_2R       stop 0.63 tp 0.35 time 0.03 R   90.1 bp
+C2_m4_TPV      stop 0.52 tp 0.48 time 0.00 R   85.0 bp
+C2_m4_2R       stop 0.66 tp 0.32 time 0.02 R   85.1 bp
+C2_m8_TPV      stop 0.56 tp 0.44 time 0.00 R   85.0 bp
+C2_m8_2R       stop 0.72 tp 0.26 time 0.02 R   85.7 bp
+BON_m4_TPV     stop 0.52 tp 0.48 time 0.01 R   91.1 bp
+BON_m4_2R      stop 0.66 tp 0.32 time 0.02 R   91.5 bp
+BON_m8_TPV     stop 0.45 tp 0.54 time 0.01 R   89.1 bp
+BON_m8_2R      stop 0.60 tp 0.37 time 0.03 R   89.5 bp
+N0_TPV         stop 0.53 tp 0.47 time 0.00 R  102.1 bp
+N0_2R          stop 0.66 tp 0.32 time 0.02 R  102.5 bp
+N0m_TPV        stop 0.52 tp 0.47 time 0.00 R  100.3 bp
+N0m_2R         stop 0.66 tp 0.32 time 0.02 R  100.4 bp

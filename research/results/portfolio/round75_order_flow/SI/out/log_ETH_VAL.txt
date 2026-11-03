@@ -1,0 +1,35 @@
+ETHUSDT VAL: prep 4s, bars 87359, k 4
+  f0 n3: zones in era 6083, tested 11311, filled 10188
+    f0_n3_TPV_base: trades 2623, dropped for holes zone 25 trade 0
+    f0_n3_2R_base: trades 2336, dropped for holes zone 25 trade 0
+  f0 n4: zones in era 2260, tested 4276, filled 3867
+    f0_n4_TPV_base: trades 1225, dropped for holes zone 10 trade 0
+    f0_n4_2R_base: trades 1155, dropped for holes zone 10 trade 0
+  fmed n3: zones in era 577, tested 1210, filled 1075
+    fmed_n3_TPV_base: trades 358, dropped for holes zone 1 trade 0
+    fmed_n3_2R_base: trades 352, dropped for holes zone 1 trade 0
+  fmed n4: zones in era 103, tested 249, filled 216
+    fmed_n4_TPV_base: trades 66, dropped for holes zone 0 trade 0
+    fmed_n4_2R_base: trades 66, dropped for holes zone 0 trade 0
+  real done 6s
+  draw 10/200 8s
+  draw 20/200 11s
+  draw 30/200 14s
+  draw 40/200 17s
+  draw 50/200 19s
+  draw 60/200 22s
+  draw 70/200 24s
+  draw 80/200 27s
+  draw 90/200 30s
+  draw 100/200 33s
+  draw 110/200 35s
+  draw 120/200 38s
+  draw 130/200 40s
+  draw 140/200 43s
+  draw 150/200 46s
+  draw 160/200 48s
+  draw 170/200 51s
+  draw 180/200 53s
+  draw 190/200 56s
+  draw 200/200 58s
+  random done 58s

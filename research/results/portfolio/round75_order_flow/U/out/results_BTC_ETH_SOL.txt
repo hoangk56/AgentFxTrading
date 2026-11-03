@@ -1,0 +1,129 @@
+symbols ['BTCUSDT', 'ETHUSDT', 'SOLUSDT'] turns 49223 unfinished share 0.724
+  BTCUSDT: turns 17195, unf share 0.774, touched row before confirmation 0.054, median dist 1.09 ATR30 / 55.7 bp, median ATR30 54.2 bp
+  ETHUSDT: turns 17472, unf share 0.744, touched row before confirmation 0.054, median dist 1.08 ATR30 / 72.3 bp, median ATR30 69.3 bp
+  SOLUSDT: turns 14556, unf share 0.639, touched row before confirmation 0.065, median dist 1.09 ATR30 / 116.0 bp, median ATR30 110.0 bp
+  unf: median dist 1.055 ATR30, mean ATR30 78.7 bp
+  fin: median dist 1.167 ATR30, mean ATR30 118.0 bp
+
+== 1. Revisit statistic: P(trade back into the level row within H bars), matched unf - fin ==
+group | H | n_unf n_fin | P(unf) | P(fin matched) | D (pts) | t(day)
+pooled IS | 12 | 11270 6706 | 57.3 | 57.6 | -0.21 | -0.27
+pooled IS | 48 | 11270 6706 | 78.0 | 78.1 | -0.03 | -0.05
+pooled VAL | 12 | 24353 6894 | 57.3 | 58.1 | -0.79 | -1.11
+pooled VAL | 48 | 24353 6894 | 78.7 | 77.9 | +0.76 | 1.29
+BTCUSDT IS | 12 | 4642 2056 | 57.1 | 58.7 | -1.57 | -1.17
+BTCUSDT IS | 48 | 4642 2056 | 78.0 | 79.7 | -1.75 | -1.67
+ETHUSDT IS | 12 | 4512 2417 | 58.0 | 56.3 | +1.73 | 1.46
+ETHUSDT IS | 48 | 4512 2417 | 78.4 | 76.7 | +1.70 | 1.75
+SOLUSDT IS | 12 | 2116 2233 | 56.4 | 57.7 | -1.36 | -0.96
+SOLUSDT IS | 48 | 2116 2233 | 77.3 | 77.3 | +0.04 | 0.03
+highs IS | 12 | 6188 2880 | 59.1 | 58.1 | +1.00 | 0.89
+highs IS | 48 | 6188 2880 | 80.2 | 79.3 | +0.90 | 0.96
+lows IS | 12 | 5082 3826 | 55.2 | 56.8 | -1.68 | -1.50
+lows IS | 48 | 5082 3826 | 75.4 | 76.6 | -1.18 | -1.18
+BTCUSDT VAL | 12 | 8673 1824 | 56.5 | 57.7 | -1.18 | -0.95
+BTCUSDT VAL | 48 | 8673 1824 | 78.5 | 78.8 | -0.24 | -0.23
+ETHUSDT VAL | 12 | 8489 2054 | 57.2 | 58.6 | -1.43 | -1.18
+ETHUSDT VAL | 48 | 8489 2054 | 78.4 | 78.3 | +0.11 | 0.11
+SOLUSDT VAL | 12 | 7191 3016 | 58.3 | 57.9 | +0.43 | 0.40
+SOLUSDT VAL | 48 | 7191 3016 | 79.1 | 76.4 | +2.72 | 2.97
+highs VAL | 12 | 12585 3139 | 58.3 | 58.7 | -0.35 | -0.33
+highs VAL | 48 | 12585 3139 | 79.3 | 78.2 | +1.08 | 1.26
+lows VAL | 12 | 11768 3755 | 56.1 | 57.4 | -1.27 | -1.30
+lows VAL | 48 | 11768 3755 | 78.0 | 77.6 | +0.41 | 0.51
+year 2020 | 12 | 4373 3303 | 57.4 | 57.5 | -0.11 | -0.09
+year 2020 | 48 | 4373 3303 | 78.1 | 78.4 | -0.29 | -0.28
+year 2021 | 12 | 6897 3380 | 57.3 | 58.4 | -1.12 | -0.98
+year 2021 | 48 | 6897 3380 | 78.0 | 78.5 | -0.57 | -0.60
+year 2022 | 12 | 6941 3085 | 56.5 | 57.9 | -1.40 | -1.22
+year 2022 | 48 | 6941 3085 | 78.9 | 78.2 | +0.62 | 0.63
+year 2023 | 12 | 8635 1992 | 57.5 | 57.5 | +0.05 | 0.04
+year 2023 | 48 | 8635 1992 | 78.8 | 76.8 | +2.07 | 1.91
+year 2024 | 12 | 8681 1817 | 57.7 | 58.5 | -0.88 | -0.67
+year 2024 | 48 | 8681 1817 | 78.4 | 78.3 | +0.07 | 0.07
+info: beyond the extreme (high > swing high / low < swing low)
+ext pooled IS | 12 | 11270 6706 | 56.5 | 57.1 | -0.62 | -0.78
+ext pooled IS | 48 | 11270 6706 | 77.6 | 77.9 | -0.28 | -0.42
+ext pooled VAL | 12 | 24353 6894 | 55.9 | 57.5 | -1.57 | -2.20
+ext pooled VAL | 48 | 24353 6894 | 77.9 | 77.5 | +0.41 | 0.69
+info: excluding turns that touched the row before confirmation
+no-pretouch IS | 12 | 10623 6566 | 56.5 | 56.7 | -0.21 | -0.26
+no-pretouch IS | 48 | 10623 6566 | 77.5 | 77.6 | -0.10 | -0.14
+no-pretouch VAL | 12 | 22409 6801 | 56.0 | 57.0 | -1.01 | -1.41
+no-pretouch VAL | 48 | 22409 6801 | 77.9 | 77.1 | +0.83 | 1.38
+permutation (labels shuffled within strata, 200 draws): percentile of real D
+  IS H12: D -0.21 pts, null sd 0.78, percentile 42.5
+  IS H48: D -0.03 pts, null sd 0.66, percentile 46.5
+  VAL H12: D -0.79 pts, null sd 0.67, percentile 9.5
+  VAL H48: D +0.76 pts, null sd 0.56, percentile 92.5
+raw revisit rate by distance decile (pooled, H48): decile | P(unf) n | P(fin) n
+  0 | 94.8 3977 | 93.4 1077
+  1 | 90.6 3635 | 90.3 1202
+  2 | 87.1 3635 | 85.0 1248
+  3 | 84.1 3673 | 81.1 1278
+  4 | 81.4 3546 | 78.9 1305
+  5 | 78.1 3471 | 78.4 1352
+  6 | 74.8 3410 | 74.2 1326
+  7 | 71.5 3431 | 69.5 1448
+  8 | 66.0 3555 | 63.7 1597
+  9 | 51.3 3290 | 47.4 1767
+
+== 2. Trade cells: enter toward the level at confirmation, TP one row before it, symmetric stop ==
+cell label | era | n | net bp | t | net R | median TP bp | win | x1.5 net (t) | late net (t)
+H12-D0 unf | IS | 8108 | -14.76 | -8.89 | -0.299 | 87.6 | 0.461 | -19.14 (-11.49) | -15.92 (-9.34)
+H12-D0 unf | VAL | 16511 | -12.37 | -13.72 | -0.478 | 62.3 | 0.453 | -16.76 (-18.50) | -12.37 (-13.49)
+H12-D0 fin | IS | 5349 | -12.01 | -4.58 | -0.193 | 118.4 | 0.481 | -16.39 (-6.23) | -13.74 (-5.13)
+H12-D0 fin | VAL | 6046 | -10.91 | -5.70 | -0.211 | 89.2 | 0.468 | -15.31 (-7.97) | -11.13 (-5.88)
+H12-D0 unf-fin | IS | diff -2.75 bp | t -0.89
+H12-D0 unf-fin | VAL | diff -1.46 bp | t -0.69
+H12-D1 unf | IS | 4644 | -15.25 | -6.76 | -0.144 | 113.2 | 0.466 | -19.64 (-8.67) | -16.48 (-7.34)
+H12-D1 unf | VAL | 9058 | -12.21 | -10.22 | -0.157 | 84.9 | 0.468 | -16.61 (-13.82) | -12.63 (-10.65)
+H12-D1 fin | IS | 3056 | -10.29 | -3.12 | -0.087 | 135.7 | 0.483 | -14.65 (-4.43) | -11.77 (-3.63)
+H12-D1 fin | VAL | 3414 | -12.83 | -5.75 | -0.132 | 102.6 | 0.470 | -17.21 (-7.68) | -12.90 (-5.79)
+H12-D1 unf-fin | IS | diff -4.96 bp | t -1.24
+H12-D1 unf-fin | VAL | diff +0.62 bp | t 0.25
+H48-D0 unf | IS | 6781 | -16.58 | -7.89 | -0.297 | 90.9 | 0.464 | -20.89 (-9.91) | -17.96 (-8.30)
+H48-D0 unf | VAL | 12975 | -12.60 | -10.55 | -0.449 | 68.7 | 0.467 | -16.90 (-14.08) | -12.54 (-10.31)
+H48-D0 fin | IS | 4551 | -10.62 | -2.64 | -0.193 | 121.0 | 0.488 | -14.90 (-3.70) | -12.51 (-3.05)
+H48-D0 fin | VAL | 5465 | -10.84 | -4.27 | -0.209 | 91.0 | 0.483 | -15.14 (-5.94) | -11.09 (-4.41)
+H48-D0 unf-fin | IS | diff -5.97 bp | t -1.31
+H48-D0 unf-fin | VAL | diff -1.76 bp | t -0.63
+H48-D1 unf | IS | 4328 | -18.70 | -7.50 | -0.164 | 115.0 | 0.464 | -23.01 (-9.19) | -20.05 (-8.07)
+H48-D1 unf | VAL | 8412 | -11.92 | -8.79 | -0.151 | 85.7 | 0.483 | -16.20 (-11.88) | -12.34 (-9.16)
+H48-D1 fin | IS | 2950 | -10.34 | -2.75 | -0.087 | 135.9 | 0.494 | -14.60 (-3.88) | -11.89 (-3.22)
+H48-D1 fin | VAL | 3331 | -12.87 | -5.21 | -0.131 | 102.7 | 0.486 | -17.15 (-6.90) | -12.95 (-5.25)
+H48-D1 unf-fin | IS | diff -8.36 bp | t -1.86
+H48-D1 unf-fin | VAL | diff +0.95 bp | t 0.34
+by year (net bp per trade, n) and by symbol, unfinished cells and controls
+H12-D0 unf: years+ 0/5 | 2020: -11.99 (3189) ; 2021: -16.55 (4919) ; 2022: -15.38 (4845) ; 2023: -10.93 (5787) ; 2024: -11.31 (5879)
+   BTC IS -13.26 t -7.18 n 3219 ; BTC VAL -12.45 t -13.70 n 5692 ; ETH IS -16.16 t -7.38 n 3250 ; ETH VAL -12.61 t -10.95 n 5712 ; SOL IS -14.90 t -3.02 n 1639 ; SOL VAL -12.02 t -5.75 n 5107
+H12-D0 fin: years+ 0/5 | 2020: -6.06 (2541) ; 2021: -17.39 (2808) ; 2022: -9.56 (2611) ; 2023: -11.88 (1773) ; 2024: -12.00 (1662)
+   BTC IS -5.52 t -1.89 n 1685 ; BTC VAL -8.15 t -3.72 n 1624 ; ETH IS -13.63 t -3.95 n 1938 ; ETH VAL -8.86 t -3.39 n 1851 ; SOL IS -16.52 t -2.92 n 1726 ; SOL VAL -14.12 t -3.89 n 2571
+H12-D1 unf: years+ 0/5 | 2020: -12.82 (1704) ; 2021: -16.66 (2940) ; 2022: -13.08 (2696) ; 2023: -11.15 (3014) ; 2024: -12.46 (3348)
+   BTC IS -13.97 t -6.19 n 1869 ; BTC VAL -11.22 t -8.57 n 3051 ; ETH IS -14.02 t -4.70 n 1876 ; ETH VAL -12.07 t -7.39 n 3135 ; SOL IS -20.49 t -2.98 n 899 ; SOL VAL -13.41 t -5.36 n 2872
+H12-D1 fin: years+ 0/5 | 2020: -5.53 (1408) ; 2021: -14.36 (1648) ; 2022: -14.77 (1542) ; 2023: -14.59 (992) ; 2024: -7.45 (880)
+   BTC IS -6.98 t -1.67 n 982 ; BTC VAL -8.67 t -3.27 n 867 ; ETH IS -14.58 t -3.53 n 1120 ; ETH VAL -16.03 t -4.96 n 1041 ; SOL IS -8.67 t -1.16 n 954 ; SOL VAL -13.01 t -3.34 n 1506
+H48-D0 unf: years+ 0/5 | 2020: -10.51 (2653) ; 2021: -20.48 (4128) ; 2022: -16.10 (3989) ; 2023: -10.33 (4385) ; 2024: -11.73 (4601)
+   BTC IS -14.54 t -5.87 n 2613 ; BTC VAL -13.87 t -9.96 n 4284 ; ETH IS -15.66 t -5.58 n 2724 ; ETH VAL -13.43 t -8.42 n 4420 ; SOL IS -22.02 t -3.66 n 1444 ; SOL VAL -10.47 t -4.09 n 4271
+H48-D0 fin: years+ 0/5 | 2020: -2.39 (2056) ; 2021: -17.39 (2495) ; 2022: -6.96 (2337) ; 2023: -14.46 (1583) ; 2024: -12.99 (1545)
+   BTC IS -3.84 t -0.88 n 1433 ; BTC VAL -6.47 t -2.09 n 1466 ; ETH IS -14.22 t -2.79 n 1640 ; ETH VAL -6.59 t -1.96 n 1695 ; SOL IS -13.19 t -1.63 n 1478 ; SOL VAL -16.75 t -3.75 n 2304
+H48-D1 unf: years+ 0/5 | 2020: -12.99 (1598) ; 2021: -22.05 (2730) ; 2022: -12.61 (2511) ; 2023: -11.25 (2792) ; 2024: -11.98 (3109)
+   BTC IS -17.22 t -6.53 n 1732 ; BTC VAL -10.99 t -7.08 n 2793 ; ETH IS -16.81 t -5.02 n 1759 ; ETH VAL -12.30 t -6.62 n 2904 ; SOL IS -25.76 t -3.31 n 837 ; SOL VAL -12.48 t -4.41 n 2715
+H48-D1 fin: years+ 0/5 | 2020: -4.64 (1352) ; 2021: -15.16 (1598) ; 2022: -16.24 (1501) ; 2023: -14.93 (964) ; 2024: -4.75 (866)
+   BTC IS -8.72 t -1.86 n 954 ; BTC VAL -8.75 t -2.87 n 847 ; ETH IS -15.13 t -3.02 n 1075 ; ETH VAL -15.57 t -4.42 n 1022 ; SOL IS -6.43 t -0.76 n 921 ; SOL VAL -13.38 t -3.11 n 1462
+permutation benchmark (1000 draws, labels shuffled within symbol x era x side x distance decile x ATR tercile): percentile of real unf-cell t, and of real unf - fin diff
+  IS H12-D0: real t -8.89 pct 8.3 | real diff -2.75 pct 9.8 | null t 95th -6.67
+  IS H12-D1: real t -6.76 pct 11.9 | real diff -4.96 pct 12.8 | null t 95th -4.76
+  IS H48-D0: real t -7.89 pct 0.7 | real diff -5.97 pct 3.5 | null t 95th -4.88
+  IS H48-D1: real t -7.50 pct 2.9 | real diff -8.36 pct 5.7 | null t 95th -4.80
+  IS max-over-4-cells: real max t -6.76, null 95th -4.55, pct 5.7
+  VAL H12-D0: real t -13.72 pct 44.5 | real diff -1.46 pct 31.5 | null t 95th -11.87
+  VAL H12-D1: real t -10.22 pct 57.8 | real diff +0.62 pct 62.6 | null t 95th -9.41
+  VAL H48-D0: real t -10.55 pct 20.7 | real diff -1.76 pct 36.1 | null t 95th -8.63
+  VAL H48-D1: real t -8.79 pct 63.5 | real diff +0.95 pct 68.5 | null t 95th -8.10
+  VAL max-over-4-cells: real max t -8.79, null 95th -8.07, pct 61.3
+power at VAL size (unf cells): mean / sd x sqrt(n_VAL x 22 / 36)
+  H12-D0: -12.12
+  H12-D1: -8.99
+  H48-D0: -8.80
+  H48-D1: -7.60

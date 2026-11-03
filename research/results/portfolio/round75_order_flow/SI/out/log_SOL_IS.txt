@@ -1,0 +1,35 @@
+SOLUSDT IS: prep 2s, bars 22737, k 7
+  f0 n3: zones in era 5861, tested 4881, filled 4588
+    f0_n3_TPV_base: trades 1807, dropped for holes zone 2 trade 0
+    f0_n3_2R_base: trades 1541, dropped for holes zone 2 trade 0
+  f0 n4: zones in era 2140, tested 1766, filled 1650
+    f0_n4_TPV_base: trades 929, dropped for holes zone 1 trade 0
+    f0_n4_2R_base: trades 832, dropped for holes zone 1 trade 0
+  fmed n3: zones in era 2027, tested 1667, filled 1551
+    fmed_n3_TPV_base: trades 661, dropped for holes zone 0 trade 0
+    fmed_n3_2R_base: trades 584, dropped for holes zone 0 trade 0
+  fmed n4: zones in era 620, tested 506, filled 469
+    fmed_n4_TPV_base: trades 261, dropped for holes zone 0 trade 0
+    fmed_n4_2R_base: trades 238, dropped for holes zone 0 trade 0
+  real done 3s
+  draw 10/200 6s
+  draw 20/200 8s
+  draw 30/200 10s
+  draw 40/200 13s
+  draw 50/200 15s
+  draw 60/200 18s
+  draw 70/200 20s
+  draw 80/200 23s
+  draw 90/200 25s
+  draw 100/200 27s
+  draw 110/200 30s
+  draw 120/200 32s
+  draw 130/200 34s
+  draw 140/200 36s
+  draw 150/200 38s
+  draw 160/200 40s
+  draw 170/200 42s
+  draw 180/200 44s
+  draw 190/200 46s
+  draw 200/200 49s
+  random done 49s

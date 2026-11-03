@@ -1,0 +1,35 @@
+BTCUSDT IS: prep 3s, bars 34257, k 3
+  f0 n3: zones in era 7443, tested 6043, filled 5456
+    f0_n3_TPV_base: trades 2582, dropped for holes zone 85 trade 0
+    f0_n3_2R_base: trades 2160, dropped for holes zone 84 trade 0
+  f0 n4: zones in era 3077, tested 2508, filled 2257
+    f0_n4_TPV_base: trades 1480, dropped for holes zone 41 trade 0
+    f0_n4_2R_base: trades 1333, dropped for holes zone 41 trade 0
+  fmed n3: zones in era 477, tested 374, filled 326
+    fmed_n3_TPV_base: trades 291, dropped for holes zone 5 trade 0
+    fmed_n3_2R_base: trades 287, dropped for holes zone 5 trade 0
+  fmed n4: zones in era 87, tested 68, filled 57
+    fmed_n4_TPV_base: trades 55, dropped for holes zone 1 trade 0
+    fmed_n4_2R_base: trades 54, dropped for holes zone 1 trade 0
+  real done 5s
+  draw 10/200 8s
+  draw 20/200 11s
+  draw 30/200 15s
+  draw 40/200 18s
+  draw 50/200 21s
+  draw 60/200 24s
+  draw 70/200 27s
+  draw 80/200 30s
+  draw 90/200 33s
+  draw 100/200 35s
+  draw 110/200 38s
+  draw 120/200 41s
+  draw 130/200 44s
+  draw 140/200 47s
+  draw 150/200 50s
+  draw 160/200 53s
+  draw 170/200 56s
+  draw 180/200 59s
+  draw 190/200 62s
+  draw 200/200 65s
+  random done 65s

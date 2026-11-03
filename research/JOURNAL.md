@@ -6,6 +6,16 @@ detail. The numbers are copied from those files, and the file wins if the two ev
 When you write a new result file, add a row to that day's entry (or start a new entry) and link the file. Don't
 repeat its tables here.
 
+## 2026-11-03: round 75, footprint / order-flow setups of Trader Dale's book on Binance perps (U, SI, MN, VC, TF, CF, AB). No LIVE or DEMO candidate
+
+| tested | verdict | detail |
+|---|---|---|
+| Book setups 1-5 (volume clusters, multiple nodes, trades filter, stacked imbalance, unfinished auction) and confirmations 1-4 (big limit, absorption, aggressive delta, CVD divergence) at prior-day POC / VAH / VAL; BTC / ETH / SOL aggTrades 2020-24, first retest of each zone, random-level control | **none**: 44 cells all net < 0 in IS and VAL pooled (best IS t +0.76); random first retests lose 3-6 bp, footprint zones beat them by 1-5 bp gross at most (< one fee leg); no unfinished-auction magnet; confirmations add nothing | [round75 report](results/portfolio/round75_order_flow_2026-11-03.md) |
+
+Also: shared footprint cache + loader (`round75_order_flow/coord/code/`), method note `research/methods/order-flow-footprint.md`; BTC key-overflow bug found and fixed before any return was read.
+
+Standing: C3 is the only LIVE algorithm.
+
 ## 2026-11-02: F0 forward runner written (pull / progress / eval gate). No grade
 
 | tested | verdict | detail |

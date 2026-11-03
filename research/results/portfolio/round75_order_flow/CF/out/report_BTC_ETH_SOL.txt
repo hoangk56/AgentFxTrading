@@ -1,0 +1,100 @@
+Stream CF report, symbols BTCUSDT, ETHUSDT, SOLUSDT; net bp per trade after fees, slippage, funding; t clustered by UTC day
+
+== Pooled, base execution (200 random draws) ==
+cell           era      n      bp       R      t   win  x1.5 bp x1.5 t  late bp late t rand pct rand t med
+C3_0.2|TPV     IS    1949   -9.67  -0.103  -2.79  0.47   -13.97  -4.01   -10.90  -3.18     69.0      -3.29
+C3_0.2|TPV     VAL   3296  -10.68  -0.151  -5.45  0.46   -15.00  -7.60   -10.23  -5.31     26.0      -4.86
+C3_0.2|2R      IS    1801   -7.22  -0.098  -1.58  0.34   -11.73  -2.56    -6.15  -1.33     72.0      -1.99
+C3_0.2|2R      VAL   3059  -14.86  -0.209  -6.04  0.32   -19.41  -7.85   -13.56  -5.53      3.0      -4.56
+C3_0.4|TPV     IS     522  -17.44  -0.158  -2.53  0.43   -21.79  -3.15   -15.70  -2.27     18.0      -1.71
+C3_0.4|TPV     VAL    736  -10.80  -0.187  -3.24  0.44   -15.15  -4.51   -10.24  -2.99      4.5      -1.78
+C3_0.4|2R      IS     507   -6.02  -0.051  -0.67  0.36   -10.51  -1.17    -9.63  -1.07     38.5      -0.35
+C3_0.4|2R      VAL    713  -17.29  -0.288  -4.32  0.29   -21.88  -5.43   -15.82  -3.90      1.0      -2.19
+C4|TPV         IS     909   -6.53  -0.120  -1.18  0.45   -10.84  -1.95    -3.23  -0.55     68.0      -1.57
+C4|TPV         VAL   1371   -4.85  -0.068  -1.45  0.49    -9.12  -2.71    -5.60  -1.64     85.5      -2.39
+C4|2R          IS     878   -9.16  -0.130  -1.25  0.32   -13.68  -1.86    -6.34  -0.85     39.5      -1.03
+C4|2R          VAL   1318   -3.97  -0.068  -0.92  0.36    -8.46  -1.95    -5.05  -1.18     97.5      -2.65
+none|TPV       IS    2706   -8.50  -0.074  -2.67  0.46   -11.31  -3.54   -10.42  -3.29     51.5      -2.71
+none|TPV       VAL   4352   -3.77  -0.070  -2.15  0.48    -6.56  -3.71    -6.67  -3.69     63.5      -2.42
+none|2R        IS    2445   -6.15  -0.056  -1.44  0.34    -9.15  -2.13    -9.36  -2.19     74.0      -1.90
+none|2R        VAL   3929   -5.39  -0.097  -2.31  0.34    -8.41  -3.58    -8.52  -3.61     58.0      -2.43
+nonemkt|TPV    IS    2959  -10.64  -0.099  -3.49  0.47   -14.94  -4.88   -11.52  -3.95      nan        nan
+nonemkt|TPV    VAL   4831   -5.97  -0.103  -3.49  0.48   -10.26  -5.96    -6.83  -3.95      nan        nan
+nonemkt|2R     IS    2632   -9.28  -0.087  -2.25  0.34   -13.79  -3.33   -10.02  -2.46      nan        nan
+nonemkt|2R     VAL   4325   -7.48  -0.136  -3.32  0.34   -12.00  -5.30    -7.92  -3.59      nan        nan
+
+Best real cell on IS: C3_0.4|2R t -0.67; max-over-8-cells random IS t: median -0.15, 95th 1.15; real best beats 30.0 %
+
+== Power at VAL size (mean / sd per trade x sqrt(VAL n x 22 / 36)) and years ==
+C3_0.2|TPV     power  -4.68  years +0/5  2020: -12.5 (936)  2021: -7.1 (1013)  2022: -10.5 (1024)  2023: -14.9 (992)  2024: -7.5 (1280)
+C3_0.2|2R      power  -5.04  years +0/5  2020: -14.1 (850)  2021: -1.1 (951)  2022: -15.7 (967)  2023: -17.4 (913)  2024: -12.2 (1179)
+C3_0.4|TPV     power  -2.62  years +0/5  2020: -20.0 (362)  2021: -11.7 (160)  2022: -8.0 (195)  2023: -20.5 (231)  2024: -5.3 (310)
+C3_0.4|2R      power  -3.34  years +1/5  2020: -13.5 (349)  2021: +10.5 (158)  2022: -16.2 (193)  2023: -26.6 (224)  2024: -11.0 (296)
+C4|TPV         power  -1.20  years +1/5  2020: -26.1 (344)  2021: +5.4 (565)  2022: -4.9 (428)  2023: -10.6 (380)  2024: -0.9 (563)
+C4|2R          power  -0.75  years +1/5  2020: -29.6 (332)  2021: +3.3 (546)  2022: -3.0 (420)  2023: -7.6 (370)  2024: -2.2 (528)
+none|TPV       power  -1.77  years +0/5  2020: -12.0 (1136)  2021: -6.0 (1570)  2022: -1.2 (1410)  2023: -5.7 (1425)  2024: -4.3 (1517)
+none|2R        power  -1.86  years +0/5  2020: -6.8 (1018)  2021: -5.7 (1427)  2022: -0.6 (1281)  2023: -5.6 (1269)  2024: -9.7 (1379)
+nonemkt|TPV    power  -2.99  years +0/5  2020: -13.6 (1266)  2021: -8.4 (1693)  2022: -3.5 (1528)  2023: -6.5 (1617)  2024: -7.7 (1686)
+nonemkt|2R     power  -2.73  years +0/5  2020: -10.0 (1115)  2021: -8.8 (1517)  2022: -2.5 (1389)  2023: -7.1 (1426)  2024: -12.4 (1510)
+
+== Per symbol, base ==
+BTCUSDT  C3_0.2|TPV     IS n   743 bp   -3.78 t  -1.00  |  VAL n  1184 bp   -6.75 t  -3.22
+BTCUSDT  C3_0.2|2R      IS n   679 bp   -3.01 t  -0.59  |  VAL n  1092 bp  -12.63 t  -4.49
+BTCUSDT  C3_0.4|TPV     IS n   153 bp  -10.66 t  -1.48  |  VAL n   321 bp   -6.49 t  -1.60
+BTCUSDT  C3_0.4|2R      IS n   147 bp   -0.61 t  -0.06  |  VAL n   305 bp  -13.30 t  -2.68
+BTCUSDT  C4|TPV         IS n   284 bp   -2.11 t  -0.31  |  VAL n   381 bp   -6.83 t  -1.78
+BTCUSDT  C4|2R          IS n   276 bp    2.07 t   0.23  |  VAL n   371 bp   -7.18 t  -1.46
+BTCUSDT  none|TPV       IS n   998 bp    0.47 t   0.14  |  VAL n  1379 bp   -3.77 t  -1.86
+BTCUSDT  none|2R        IS n   892 bp    1.47 t   0.31  |  VAL n  1235 bp   -7.19 t  -2.58
+BTCUSDT  nonemkt|TPV    IS n  1110 bp   -3.30 t  -1.00  |  VAL n  1580 bp   -5.67 t  -3.09
+BTCUSDT  nonemkt|2R     IS n   965 bp   -0.77 t  -0.17  |  VAL n  1410 bp   -9.21 t  -3.54
+ETHUSDT  C3_0.2|TPV     IS n   749 bp  -14.36 t  -2.98  |  VAL n  1186 bp  -11.07 t  -4.15
+ETHUSDT  C3_0.2|2R      IS n   693 bp  -13.81 t  -2.11  |  VAL n  1096 bp  -12.86 t  -3.79
+ETHUSDT  C3_0.4|TPV     IS n   199 bp  -17.74 t  -2.14  |  VAL n   277 bp  -13.14 t  -2.63
+ETHUSDT  C3_0.4|2R      IS n   194 bp   -1.67 t  -0.14  |  VAL n   272 bp  -16.91 t  -2.72
+ETHUSDT  C4|TPV         IS n   335 bp  -18.79 t  -2.39  |  VAL n   423 bp    0.80 t   0.17
+ETHUSDT  C4|2R          IS n   327 bp  -22.83 t  -2.35  |  VAL n   406 bp    5.52 t   0.86
+ETHUSDT  none|TPV       IS n  1049 bp  -15.33 t  -3.41  |  VAL n  1447 bp   -4.82 t  -1.95
+ETHUSDT  none|2R        IS n   939 bp  -12.04 t  -1.92  |  VAL n  1308 bp   -4.31 t  -1.29
+ETHUSDT  nonemkt|TPV    IS n  1150 bp  -17.91 t  -4.06  |  VAL n  1608 bp   -7.83 t  -3.39
+ETHUSDT  nonemkt|2R     IS n  1031 bp  -16.09 t  -2.68  |  VAL n  1438 bp  -10.04 t  -3.27
+SOLUSDT  C3_0.2|TPV     IS n   457 bp  -11.56 t  -1.17  |  VAL n   926 bp  -15.21 t  -3.28
+SOLUSDT  C3_0.2|2R      IS n   429 bp   -3.25 t  -0.24  |  VAL n   871 bp  -20.18 t  -3.43
+SOLUSDT  C3_0.4|TPV     IS n   170 bp  -23.18 t  -1.34  |  VAL n   138 bp  -16.14 t  -1.51
+SOLUSDT  C3_0.4|2R      IS n   166 bp  -15.90 t  -0.74  |  VAL n   136 bp  -27.01 t  -2.05
+SOLUSDT  C4|TPV         IS n   290 bp    3.33 t   0.26  |  VAL n   567 bp   -7.73 t  -1.21
+SOLUSDT  C4|2R          IS n   275 bp   -4.17 t  -0.24  |  VAL n   541 bp   -8.89 t  -1.06
+SOLUSDT  none|TPV       IS n   659 bp  -11.21 t  -1.37  |  VAL n  1526 bp   -2.77 t  -0.76
+SOLUSDT  none|2R        IS n   614 bp   -8.19 t  -0.73  |  VAL n  1386 bp   -4.82 t  -0.96
+SOLUSDT  nonemkt|TPV    IS n   699 bp  -10.33 t  -1.32  |  VAL n  1643 bp   -4.45 t  -1.23
+SOLUSDT  nonemkt|2R     IS n   636 bp  -11.18 t  -1.03  |  VAL n  1477 bp   -3.33 t  -0.65
+
+== Exit mix (pooled ALL, base): stop / TP / time ==
+C3_0.2|TPV     stop 0.54 tp 0.46 time 0.01  median R 82.1 bp
+C3_0.2|2R      stop 0.67 tp 0.31 time 0.02  median R 82.4 bp
+C3_0.4|TPV     stop 0.55 tp 0.43 time 0.02  median R 73.9 bp
+C3_0.4|2R      stop 0.67 tp 0.30 time 0.03  median R 74.7 bp
+C4|TPV         stop 0.52 tp 0.47 time 0.01  median R 93.4 bp
+C4|2R          stop 0.65 tp 0.33 time 0.02  median R 93.4 bp
+none|TPV       stop 0.53 tp 0.47 time 0.00  median R 88.4 bp
+none|2R        stop 0.66 tp 0.33 time 0.02  median R 88.7 bp
+nonemkt|TPV    stop 0.52 tp 0.47 time 0.00  median R 86.9 bp
+nonemkt|2R     stop 0.66 tp 0.33 time 0.02  median R 87.0 bp
+
+== Random benchmark per cell: pooled t distribution (median / 90th / 95th) ==
+C3_0.2|TPV     IS   median  -3.29  p90  -2.04  p95  -1.83
+C3_0.2|TPV     VAL  median  -4.86  p90  -3.87  p95  -3.54
+C3_0.2|2R      IS   median  -1.99  p90  -1.01  p95  -0.77
+C3_0.2|2R      VAL  median  -4.56  p90  -3.51  p95  -3.03
+C3_0.4|TPV     IS   median  -1.71  p90  -0.45  p95   0.11
+C3_0.4|TPV     VAL  median  -1.78  p90  -0.72  p95  -0.46
+C3_0.4|2R      IS   median  -0.35  p90   0.79  p95   1.07
+C3_0.4|2R      VAL  median  -2.19  p90  -1.21  p95  -0.90
+C4|TPV         IS   median  -1.57  p90  -0.31  p95   0.02
+C4|TPV         VAL  median  -2.39  p90  -1.16  p95  -0.87
+C4|2R          IS   median  -1.03  p90   0.05  p95   0.43
+C4|2R          VAL  median  -2.65  p90  -1.56  p95  -1.24
+none|TPV       IS   median  -2.71  p90  -1.42  p95  -1.14
+none|TPV       VAL  median  -2.42  p90  -1.33  p95  -1.23
+none|2R        IS   median  -1.90  p90  -0.86  p95  -0.71
+none|2R        VAL  median  -2.43  p90  -1.40  p95  -1.00
