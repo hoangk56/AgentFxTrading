@@ -17,6 +17,12 @@ RECENT_RESTART_SECONDS = 3600
 _LIVE_TOKEN = re.compile(r"(^|[-_])live([-_]|$)", re.IGNORECASE)
 
 
+def is_forex_weekend(now_utc: datetime.datetime) -> bool:
+    """Forex is closed from Friday 21:00 UTC to Sunday 21:00 UTC."""
+    weekday, hour = now_utc.weekday(), now_utc.hour
+    return (weekday == 4 and hour >= 21) or weekday == 5 or (weekday == 6 and hour < 21)
+
+
 def bot_mode(bot_id: str) -> str:
     """'live' or 'demo' from a bot id (cbot-live-live-eurusd-..., cbot-demo-demo-...), as the Bots tab does by name."""
     return "live" if _LIVE_TOKEN.search(bot_id or "") else "demo"

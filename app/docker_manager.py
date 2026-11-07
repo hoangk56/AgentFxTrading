@@ -168,12 +168,28 @@ class DockerManager:
         lines = [line.strip() for line in logs.strip().splitlines() if line.strip()]
         all_retry_idx = -1
         logged_in_idx = -1
+        self_stopped = False
         for idx, l in enumerate(lines):
             l_low = l.lower()
             if "all login retry attempts failed" in l_low or "connection failed, moving to reconnection state" in l_low:
                 all_retry_idx = idx
             if "logged in" in l_low or "cbot instance [" in l_low:
                 logged_in_idx = idx
+            if "cbot stopped itself" in l_low:
+                self_stopped = True
+            elif "running cbot with parameters" in l_low:
+                self_stopped = False
+
+        # The CLI can outlive its cBot: on 2026-11-07 it logged this during a broker outage, then kept running in
+        # silence, so nothing below fired and a live bot sat idle looking healthy. No preset stops itself on purpose.
+        if self_stopped:
+            return {
+                "name": name,
+                "status": status,
+                "healthy": False,
+                "stuck": True,
+                "reason": "cBot stopped itself but the container is still running"
+            }
 
         if all_retry_idx != -1 and logged_in_idx < all_retry_idx:
             return {

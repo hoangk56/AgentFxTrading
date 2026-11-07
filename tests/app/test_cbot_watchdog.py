@@ -345,3 +345,145 @@ def test_status_exposes_each_bots_allowance():
     watchdog = CbotWatchdog(stale_feed_seconds=2400)
     watchdog._bar_stall_reason(H1_BOT, H1_RUN_COMMAND)
     assert watchdog.get_status()["bar_telemetry"][H1_BOT]["allowance"] == 5100
+
+
+# ---------------------------------------------------------------------------
+# A cBot that stopped while the cTrader CLI kept running. On 2026-11-07 (broker maintenance) a restart landed on a
+# flapping connection: GBPJPY logged "cBot stopped itself", the process stayed alive and the log went quiet, so every
+# log check passed and, with no ticks, the bar heartbeat never fired.
+# ---------------------------------------------------------------------------
+
+SELF_STOPPED_LOG = """
+Running cBot with parameters:
+07/11/2026 06:24:25.654 | The connection has been established.
+Login to 6182960...
+Logged in.
+Starting cBot...
+Info | CBot instance [GotobiBot, GBPJPY, m15] started.
+Info | CBot instance [GotobiBot, GBPJPY, m15] stopped.
+cBot stopped itself
+"""
+
+
+def _health_for_log(log):
+    dm = DockerManager()
+    dm.is_available = True
+    dm.get_container_status = MagicMock(return_value={"status": "running", "id": "12345"})
+    dm.get_container_logs = MagicMock(return_value=log)
+    return dm.check_cbot_health("cbot-gbpjpy")
+
+
+def test_check_cbot_health_flags_a_cbot_that_stopped_itself():
+    health = _health_for_log(SELF_STOPPED_LOG)
+    assert health["stuck"] is True
+    assert health["healthy"] is False
+    assert health["reason"] == "cBot stopped itself but the container is still running"
+
+
+def test_check_cbot_health_flags_a_self_stop_followed_by_connection_noise():
+    health = _health_for_log(SELF_STOPPED_LOG + "07/11/2026 06:30:00.000 | The connection has been restored.\n")
+    assert health["stuck"] is True
+
+
+def test_check_cbot_health_forgets_a_self_stop_once_the_bot_is_launched_again():
+    # A restart during an outage has not reached "Starting cBot" yet, and the old line is still inside the tail.
+    health = _health_for_log(SELF_STOPPED_LOG + "Running cBot with parameters:\n| ApiUrl | http://x | cmd arg |\n")
+    assert health["stuck"] is False
+
+
+# ---------------------------------------------------------------------------
+# A broker outage with the market closed and nothing open costs nothing: heal it, keep the log lines, stay off Telegram.
+# ---------------------------------------------------------------------------
+
+RECONNECT_REASON = "Reconnect loop: 20 'connection has been lost' in the last 40 lines without re-establishing"
+SELF_STOP_REASON = "cBot stopped itself but the container is still running"
+QUIET_BOT = "cbot-live-live-usdjpy-fix-gotobi"
+QUIET_CONFIG = {"name": QUIET_BOT, "run_command": f'docker run --BotId="{QUIET_BOT}"'}
+
+
+@pytest.mark.parametrize("moment, closed", [
+    (datetime(2026, 11, 6, 20, 59, tzinfo=timezone.utc), False),  # Friday, before the close
+    (datetime(2026, 11, 6, 21, 0, tzinfo=timezone.utc), True),    # Friday close
+    (datetime(2026, 11, 7, 7, 0, tzinfo=timezone.utc), True),     # Saturday
+    (datetime(2026, 11, 8, 20, 59, tzinfo=timezone.utc), True),   # Sunday, before the open
+    (datetime(2026, 11, 8, 21, 0, tzinfo=timezone.utc), False),   # Sunday open
+    (datetime(2026, 11, 9, 7, 0, tzinfo=timezone.utc), False),    # Monday
+])
+def test_is_forex_weekend(moment, closed):
+    from app.dashboard_alerts import is_forex_weekend
+    assert is_forex_weekend(moment) is closed
+
+
+def _run_cycle(mock_dm, mock_get_pm, reason, *, weekend, open_counts, restart_ok=True, watchdog=None):
+    """One watchdog cycle for a stuck bot; returns the Telegram texts it sent and its actions."""
+    mock_dm.is_available = True
+    mock_dm.check_cbot_health.return_value = {"status": "running", "stuck": True, "reason": reason}
+    mock_dm.restart_container.return_value = {"success": restart_ok, "message": "restarted"}
+    mock_pm = MagicMock()
+    mock_pm.get_cbot_configs.return_value = [QUIET_CONFIG]
+    if isinstance(open_counts, Exception):
+        mock_pm.open_position_counts.side_effect = open_counts
+    else:
+        mock_pm.open_position_counts.return_value = open_counts
+    mock_get_pm.return_value = mock_pm
+    with patch("app.cbot_watchdog.is_forex_weekend", return_value=weekend), \
+            patch("app.cbot_watchdog.alerts.notify") as notify:
+        actions = (watchdog or CbotWatchdog()).check_and_heal()
+    return [call.args[0] for call in notify.call_args_list], actions
+
+
+@patch("app.cbot_watchdog.docker_manager")
+@patch("app.cbot_watchdog.get_portfolio_manager")
+def test_weekend_outage_restarts_without_a_telegram_message(mock_get_pm, mock_dm):
+    sent, actions = _run_cycle(mock_dm, mock_get_pm, RECONNECT_REASON, weekend=True, open_counts={})
+    assert sent == []
+    assert [a["success"] for a in actions] == [True]
+    mock_dm.restart_container.assert_called_once()
+
+
+@patch("app.cbot_watchdog.docker_manager")
+@patch("app.cbot_watchdog.get_portfolio_manager")
+def test_weekend_outage_backoff_sends_no_telegram_message(mock_get_pm, mock_dm):
+    watchdog = CbotWatchdog()
+    watchdog._restart_history[QUIET_BOT] = [time.time() - 10] * 3
+    sent, actions = _run_cycle(mock_dm, mock_get_pm, RECONNECT_REASON, weekend=True, open_counts={}, watchdog=watchdog)
+    assert sent == []
+    assert actions == []
+
+
+@patch("app.cbot_watchdog.docker_manager")
+@patch("app.cbot_watchdog.get_portfolio_manager")
+def test_outage_alerts_with_the_market_open(mock_get_pm, mock_dm):
+    sent, _ = _run_cycle(mock_dm, mock_get_pm, RECONNECT_REASON, weekend=False, open_counts={})
+    assert len(sent) == 1 and QUIET_BOT in sent[0]
+
+
+@patch("app.cbot_watchdog.docker_manager")
+@patch("app.cbot_watchdog.get_portfolio_manager")
+def test_backoff_alerts_with_the_market_open(mock_get_pm, mock_dm):
+    watchdog = CbotWatchdog()
+    watchdog._restart_history[QUIET_BOT] = [time.time() - 10] * 3
+    sent, _ = _run_cycle(mock_dm, mock_get_pm, RECONNECT_REASON, weekend=False, open_counts={}, watchdog=watchdog)
+    assert len(sent) == 1 and sent[0].startswith("🔴")
+
+
+@patch("app.cbot_watchdog.docker_manager")
+@patch("app.cbot_watchdog.get_portfolio_manager")
+def test_weekend_outage_alerts_when_the_bot_holds_a_position(mock_get_pm, mock_dm):
+    sent, _ = _run_cycle(mock_dm, mock_get_pm, RECONNECT_REASON, weekend=True, open_counts={QUIET_BOT: 1})
+    assert len(sent) == 1
+
+
+@patch("app.cbot_watchdog.docker_manager")
+@patch("app.cbot_watchdog.get_portfolio_manager")
+def test_weekend_outage_alerts_when_positions_cannot_be_read(mock_get_pm, mock_dm):
+    sent, actions = _run_cycle(mock_dm, mock_get_pm, RECONNECT_REASON, weekend=True, open_counts=RuntimeError("db down"))
+    assert len(sent) == 1
+    assert [a["success"] for a in actions] == [True]
+
+
+@patch("app.cbot_watchdog.docker_manager")
+@patch("app.cbot_watchdog.get_portfolio_manager")
+def test_weekend_self_stop_still_alerts(mock_get_pm, mock_dm):
+    sent, _ = _run_cycle(mock_dm, mock_get_pm, SELF_STOP_REASON, weekend=True, open_counts={})
+    assert len(sent) == 1 and QUIET_BOT in sent[0]

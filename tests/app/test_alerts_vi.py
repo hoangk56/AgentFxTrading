@@ -26,6 +26,7 @@ def test_log_alerts_read_in_vietnamese(logged, sent):
      "vẫn nhận giá 42 phút nhưng không xử lý nến nào từ 2026-10-29 12:30 (chu kỳ nến M15)"),
     ("Backoff active (3 restarts in 10m). Wait 299s", "tạm ngừng tự khởi động lại (3 lần trong 10 phút), chờ 299 giây"),
     ("Cooldown active. Wait 99s", "vừa khởi động lại, chờ 99 giây"),
+    ("cBot stopped itself but the container is still running", "cBot đã tự dừng nhưng container vẫn chạy, bot không còn giao dịch"),
     ("Login failed", "Login failed"),
 ])
 def test_watchdog_reasons_read_in_vietnamese(reason, sent):
