@@ -6,14 +6,18 @@ import time
 from typing import Dict, List, Optional, Any
 from app import alerts
 from app.alerts_vi import watchdog_reason_vi
+from app.dashboard_alerts import is_forex_weekend
 from app.docker_manager import docker_manager
 from app.portfolio import get_portfolio_manager
+from app.bot_controls import bot_id_for_config
 
 logger = logging.getLogger("AgentFxTrading.Watchdog")
 
 DEFAULT_STALE_FEED_SECONDS = 2400  # 40 min for an M15 bot: > one bar, < two bars
 M15_SECONDS = 900
 _PERIOD_UNIT_SECONDS = {"m": 60, "h": 3600, "d": 86400, "w": 604800}
+# Health reasons (app/docker_manager.py) that mean the broker cannot be reached or refuses the login.
+CONNECTION_REASONS = ("Reconnect loop:", "Login retries exhausted", "Continuous login error loop")
 
 
 def reset_tick_telemetry() -> None:
@@ -180,7 +184,8 @@ class CbotWatchdog:
 
                 # Only heal running containers that are stuck
                 if health.get("stuck"):
-                    self._restart_bot(name, health.get("reason", "Container stuck"), actions)
+                    reason = health.get("reason", "Container stuck")
+                    self._restart_bot(name, reason, actions, quiet=self._is_idle_outage(config, reason))
                     continue
 
                 feed_reason = self._bar_stall_reason(name, config.get("run_command"))
@@ -195,10 +200,23 @@ class CbotWatchdog:
         return actions
 
     @staticmethod
+    def _is_idle_outage(config: Dict[str, Any], reason: str) -> bool:
+        """A connection failure with the market closed and no position on the bot, so nothing is at risk: IC's monthly
+        cTrader maintenance takes a whole Saturday and made 61 restarts on 2026-11-07. The alerts return by themselves
+        when the market opens. Positions that cannot be read count as open."""
+        if not reason.startswith(CONNECTION_REASONS) or not is_forex_weekend(datetime.datetime.now(datetime.timezone.utc)):
+            return False
+        try:
+            return get_portfolio_manager().open_position_counts().get(bot_id_for_config(config), 0) == 0
+        except Exception as e:
+            logger.warning(f"[CBOT WATCHDOG] Could not read open positions for '{config.get('name')}': {e}")
+            return False
+
+    @staticmethod
     def _alert_restarts(actions: List[Dict[str, Any]]) -> None:
         """One Telegram message per cycle, however many bots it restarted (a failed restart is logged as an error,
         which alerts on its own)."""
-        restarted = [a for a in actions if a["success"]]
+        restarted = [a for a in actions if a["success"] and not a.get("quiet")]
         if len(restarted) == 1:
             alerts.notify(f"🟠 Watchdog đã khởi động lại {restarted[0]['name']}: {watchdog_reason_vi(restarted[0]['reason'])}"
                           + alerts.bot_link(restarted[0]['name']))
@@ -211,8 +229,8 @@ class CbotWatchdog:
         """check_cbot_health() result for `name` from the latest cycle, or None before the first one."""
         return self._last_health.get(name)
 
-    def _restart_bot(self, name: str, reason: str, actions: List[Dict[str, Any]]) -> None:
-        """Restart `name` unless rate-limited, then record the healing event."""
+    def _restart_bot(self, name: str, reason: str, actions: List[Dict[str, Any]], quiet: bool = False) -> None:
+        """Restart `name` unless rate-limited, then record the healing event. `quiet` keeps it off Telegram."""
         can_restart, limit_reason = self._can_restart(name)
 
         if not can_restart:
@@ -222,7 +240,7 @@ class CbotWatchdog:
             )
             # The cooldown right after a restart is routine (the bot is still logging in); the backoff means
             # several restarts did not help.
-            if limit_reason.startswith("Backoff"):
+            if limit_reason.startswith("Backoff") and not quiet:
                 alerts.notify(f"🔴 Watchdog ngừng tự khởi động lại {name} ({watchdog_reason_vi(reason)}): {watchdog_reason_vi(limit_reason)}"
                               + alerts.bot_link(name),
                               key=("watchdog-backoff", name))
@@ -251,7 +269,8 @@ class CbotWatchdog:
             "name": name,
             "reason": reason,
             "success": success,
-            "message": msg
+            "message": msg,
+            "quiet": quiet
         })
 
     def bar_allowance_seconds(self, run_command: Optional[str]) -> int:

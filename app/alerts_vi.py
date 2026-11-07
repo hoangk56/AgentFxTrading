@@ -42,6 +42,8 @@ _REASON_RULES = _rules((
     (r"^Continuous login error loop without successful recovery$", lambda m: "lỗi đăng nhập lặp liên tục, không tự hồi phục"),
     (r"^Reconnect loop: (\d+) 'connection has been lost' in the last (\d+) lines without re-establishing$",
      lambda m: f"mất kết nối {m[1]} lần trong {m[2]} dòng log cuối mà không kết nối lại được"),
+    (r"^cBot stopped itself but the container is still running$",
+     lambda m: "cBot đã tự dừng nhưng container vẫn chạy, bot không còn giao dịch"),
     (r"^Ticks streaming for (\d+) min but no bar handled since (.+?) \(bar cycle is (.+)\)$",
      lambda m: f"vẫn nhận giá {m[1]} phút nhưng không xử lý nến nào từ {m[2]} (chu kỳ nến {m[3]})"),
     (r"^Backoff active \((\d+) restarts in 10m\)\. Wait (\d+)s$",

@@ -17,7 +17,7 @@ from typing import Dict, List, Optional, Any
 from app.accounts import get_account_registry
 from app.auth import login_enabled
 from app.close_reasons import close_reason_vi
-from app.dashboard_alerts import build_alerts, filter_by_mode, tag_modes
+from app.dashboard_alerts import build_alerts, filter_by_mode, is_forex_weekend as is_forex_weekend_at, tag_modes
 from app.leaderboard import InvalidDateRange, compute_bot_leaderboard, compute_profit_factor
 import logging
 
@@ -444,8 +444,7 @@ def get_market_sessions_info() -> Dict:
     minute = now_utc.minute
     current_time_dec = hour + (minute / 60.0)
 
-    # Forex market schedule: Closes Friday 21:00 UTC, Opens Sunday 21:00 UTC
-    is_forex_weekend = (weekday == 4 and current_time_dec >= 21.0) or (weekday == 5) or (weekday == 6 and current_time_dec < 21.0)
+    is_forex_weekend = is_forex_weekend_at(now_utc)
 
     # Trading Sessions (UTC)
     # Sydney: 21:00 - 06:00 UTC
