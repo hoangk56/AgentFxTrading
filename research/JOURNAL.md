@@ -6,6 +6,12 @@ detail. The numbers are copied from those files, and the file wins if the two ev
 When you write a new result file, add a row to that day's entry (or start a new entry) and link the file. Don't
 repeat its tables here.
 
+## 2026-11-05: GotobiBot sending every order one minute early. Not worth changing
+
+| tested | verdict | detail |
+|---|---|---|
+| Post-hoc, owner's question: open and close every Gotobi leg 60 s early, focus 2026 (IC ticks to 10-30, m1 with stops to 09-24), plus sending a few seconds early | **keep the times**. 2026 +2.05 pip per pair-day (t_day +1.3, CI −0.94..+5.21; with stops +1.12, +0.09 without 09-18), 2016-2025 −1.07 (t_day −2.65), 3/11 years up. Early orders keep the same ~0.2 s latency and slippage. No early offset of a few seconds is stably positive. Short opens hit `TechnicalError` at 00:55:00 on 5/19 first tries, about 0.1 pip per short | [gotobi_one_min_early_2026-11-05.md](results/portfolio/gotobi_one_min_early_2026-11-05.md) |
+
 ## 2026-11-03: round 75, footprint / order-flow setups of Trader Dale's book on Binance perps (U, SI, MN, VC, TF, CF, AB). No LIVE or DEMO candidate
 
 | tested | verdict | detail |
