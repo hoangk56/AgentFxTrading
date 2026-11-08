@@ -6,6 +6,23 @@ detail. The numbers are copied from those files, and the file wins if the two ev
 When you write a new result file, add a row to that day's entry (or start a new entry) and link the file. Don't
 repeat its tables here.
 
+## 2026-11-08: A2-D5L capture by active pull (`tg_pull.py`, 11-02 15:57 to 11-08 21:30 UTC). Latency passes, listings too few
+
+| tested | verdict | detail |
+|---|---|---|
+| `tg_pull.py` (getChannelDifference every 2 s) on agentFx, all @upbit_news posts | **latency passes**: 30 posts, receive - post median 1.42 s, p80 2.34, p90 2.44, max 3.06; <= 3 s 29 / 30 (97 %, bar 80 %). Passive push on the same posts: median 38.3 s, 0 within 2 s | `tg_pull.py report` on agentFx |
+| the registered gate counts KRW-listing notices only | **not gradable yet**: 1 listing (CARDS 11-05, seen +1.94 s, no Binance USDT-M perp, so no paper entry). User approved 11-08: `tg_pull.py` now runs under cron (`# tg-pull-a2`) until 2027-01-01 and writes the paper entry (`pull_paper.csv`, long alt ask / short BTC bid at N + 5 s), same rule as tg_push | [tg_pull.py](results/portfolio/round74_tg_stamps/TG2/code/tg_pull.py) |
+
+Standing: C3 is the only LIVE algorithm. Nearest to LIVE: A2-D5L; grade the gate when >= 5 KRW listings are logged, then real fills need a Binance trade key (user).
+
+## 2026-11-06: review of OrbRE2Bot (kienphan upstream). No edge, not a candidate
+
+| tested | verdict | detail |
+|---|---|---|
+| `cBot/OrbRE2Bot.cs` at 94901a1 replayed on 2016-2026 ticks (XAUUSD, US30, USTEC; DE40, GBPJPY on M1), not pre-registered | **none**: XAUUSD -0.045 R (t -2.31), US30 -0.008, USTEC +0.010; the filters and the entry delay do not change the per-trade result beyond noise; the commit's +$1,607 / PF 3.73 on 23 sessions is within the luck of a rule with no edge; 11 code defects listed | [orb_re2_review](results/portfolio/orb_re2_review_2026-11-06.md) |
+
+Standing: C3 is the only LIVE algorithm.
+
 ## 2026-11-05: GotobiBot sending every order one minute early. Not worth changing
 
 | tested | verdict | detail |
@@ -21,6 +38,18 @@ repeat its tables here.
 Also: shared footprint cache + loader (`round75_order_flow/coord/code/`), method note `research/methods/order-flow-footprint.md`; BTC key-overflow bug found and fixed before any return was read.
 
 Standing: C3 is the only LIVE algorithm.
+
+## 2026-11-02: round 74, Telegram channel history as announcement times (TG2, BL, BD, CL, WA). No LIVE or DEMO candidate
+
+| tested | verdict | detail |
+|---|---|---|
+| BL Binance listings, BD Binance delistings / monitoring tag (@binance_announcements), CL Bithumb / Coinbase / Robinhood listings (@coin_listing, @newlistingsfeed), WA Whale Alert transfers / mints | **none at the standard bars**. Relay stamps come minutes after the move (Binance listings median 246 s after the perp's half-move in VAL). BD S-24h (short the perp 24 h after a spot-delisting notice) is VAL-only: +1,418 bp, t 3.60, n 14 on 7 days, power 3.6; IS has 0 trades, so it needs a new-era split (user decision). CL best IS t 1.32; WA best IS t 0.66 | [round74 report](results/portfolio/round74_tg_stamps_2026-11-02.md) |
+| TG2: a <= 3 s capture route for A2-D5L | **not passed yet**: passive MTProto push is late by design (11-58 s), keyless t.me forms 4-63 s; active `tg_pull.py` (getChannelDifference every 2 s) is written and tested, deploying it on agentFx is a user step | [STREAM_TG2](results/portfolio/round74_tg_stamps/TG2/STREAM_TG2.md) |
+
+| BD S-24h new-era test (user-approved; design 2022-24, HOLD opened once 16:08 UTC) | **FAIL**: HOLD n 57 (18 days), net +547 bp, median +1,190, but t 0.98 (bar 2.5): squeezes (ALPACA -14,897, VIC -12,294). Dropped | [PREREG_BD_S24h](results/portfolio/round74_tg_stamps/BD/PREREG_BD_S24h.md), [hold_results.txt](results/portfolio/round74_tg_stamps/BD/hold_results.txt) |
+| `tg_pull.py` deployed on agentFx (user-approved, runs until 2026-11-09) | first post received +2.1 s (passive push +22.0, t.me/s +33.8); A2's capture gate is graded after >= 5 posts | [round74 report](results/portfolio/round74_tg_stamps_2026-11-02.md) |
+
+Standing: C3 is the only LIVE algorithm. Nearest to LIVE: A2-D5L, if `tg_pull.py` passes the capture gate and the user allows real fills.
 
 ## 2026-11-02: F0 forward runner written (pull / progress / eval gate). No grade
 

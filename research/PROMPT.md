@@ -40,7 +40,7 @@ mỗi bot, lot không theo vốn, và không bắt buộc IC / cTrader (sàn kh�
 bên dưới giữ nguyên. Luật nào chiếm vốn (chân spot, lệnh trả đủ tiền) phải chấm theo lợi suất VƯỢT lãi suất cash
 (Fed funds, research/data/rates/DFF.csv) trên vốn đã dùng (bài học vòng 58).
 
-Đọc trước để không test lại (73 vòng đã chạy, chỉ C3 đạt bậc live; vòng mới nhất ở đầu JOURNAL; tạm dừng sau vòng 29
+Đọc trước để không test lại (74 vòng đã chạy, chỉ C3 đạt bậc live; vòng mới nhất ở đầu JOURNAL; tạm dừng sau vòng 29
 theo yêu cầu của tôi, rồi ngày 2026-10-18 tôi duyệt quyết định 1, 2, 4: luật vàng chạy demo, vòng 30 trên 6 mã FX mới,
 chạy lại log forward; ngày 2026-10-27 tôi cho research tiếp và cho tìm các nguồn khác (vòng 31 trở đi: dữ liệu công
 khai không phải giá); hiện trạng ở cuối báo cáo vòng mới nhất):
@@ -409,6 +409,19 @@ Những họ đã cạn, đừng quét lại kiểu cũ (chỉ làm lại nếu 
   không đổi User-Agent. Sau vòng 64-72, mọi hướng miễn phí không cần tôi quyết đã test hoặc rà với P(LIVE) <= ~1-2 %;
   vòng tiếp theo nên bắt đầu từ một quyết định trong bảng xếp hạng ở round71_mixed_2026-11-01.md (bot A2-D5L, vay cho B,
   bot K2, bộ dữ liệu L1, kỷ mới cho họ thông báo Upbit), hoặc chạy lại các log forward A2 / K2.
+- vòng 74 (round74_tg_stamps_2026-11-02.md): lịch sử kênh Telegram (t.me/s, không cần key) làm giờ thông báo chính xác tới
+  giây: niêm yết Binance (BL), huỷ niêm yết / thẻ theo dõi Binance (BD), niêm yết Bithumb / Coinbase / Robinhood qua
+  @coin_listing (CL), Whale Alert (WA): không có ứng viên ở ngưỡng chuẩn. Kênh trung chuyển đăng sau khi giá chạy (Binance
+  niêm yết trễ trung vị 246 s; chỉ @upbit_news đi trước cú nhảy), nên chỉ dùng được cho drift chậm. BD S-24h (bán perp 24 h
+  sau thông báo huỷ niêm yết spot) mạnh ở VAL (+1.418 bp, t 3,60, n 14 / 7 ngày); tôi duyệt chia kỷ mới, holdout mở một lần
+  2026-11-02 và TRƯỢT (n 57, net +547 bp, t 0,98 vì squeeze ALPACA / VIC): bỏ hẳn, đừng chọn stop sau khi xem. Bắt tin A2 (TG2):
+  push MTProto thụ động trễ 11-58 s theo thiết kế của Telegram, mọi dạng t.me không key trễ 4-60 s; tg_pull.py
+  (getChannelDifference 2 s) tôi duyệt cài trên agentFx 2026-11-02 15:57 UTC (đọc `tg_pull.py report`, dừng
+  `touch STOP_PULL`): tới 11-08 bắt 30 bài, trung vị 1,42 s, 29 / 30 <= 3 s, nhưng mới 1 thông báo niêm yết KRW (CARDS,
+  không có perp). 2026-11-08 tôi cho chạy tiếp dưới cron `# tg-pull-a2` tới 2027-01-01, có lệnh giấy (pull_paper.csv);
+  chấm cổng A2 khi đủ >= 5 thông báo niêm yết KRW, đạt thì việc còn lại là lệnh thật (key Binance). Fetcher t.me dùng chung một khoá: round74_tg_stamps/coord/tg.py
+  (1,5 s, coord/pull_loop.sh thử lại khi lỗi mạng); lịch sử đã kéo ở research/data/telegram_hist/raw/ (binance_announcements
+  đủ từ 2017, OKXAnnouncements, whale_alert_io lấy mẫu) và research/data/telegram_upbit/raw/ (coin_listing của vòng 73).
 
 Kết luận chung của các vòng 3-9: các dòng lệnh có thật ngoài gotobi chỉ 0.02-3 bp, cỡ spread + commission của IC;
 premia nhiều tuần thua phí qua đêm (financing markup) của IC; thông tin giữa các mã được định giá trong phút đầu;
