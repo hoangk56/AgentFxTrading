@@ -1,0 +1,61 @@
+
+XAUUSD 2026-09-15 open 2026-09-15 12:00:00 OR [4275.97,4285.00] live from 2026-09-15 12:45:00 first bid 4281.32 EMA 4377.34 ATR 108.21 D1 closed 2026-09-14 22:00:00
+  no trade
+
+XAUUSD 2026-09-16 open 2026-09-16 12:00:00 OR [4340.65,4348.30] live from 2026-09-16 12:45:00 first bid 4343.76 EMA 4362.16 ATR 105.74 D1 closed 2026-09-15 22:00:00
+  no trade
+
+XAUUSD 2024-05-08 open 2024-05-08 12:00:00 OR [2314.37,2319.09] live from 2024-05-08 12:45:00 first bid 2316.12 EMA 2318.68 ATR 39.02 D1 closed 2024-05-07 22:00:00
+  SHORT 2024-05-08 12:55:06 bid 2314.36 ask 2314.41 SL 2333.87 TP 2275.34 -> eod R +0.290 overshoot 0.000
+  brute force exit eod at 2024-05-08 20:00:00 px 2308.45 R +0.290
+
+USTEC 2026-09-15 open 2026-09-15 13:30:00 OR [29057.40,29125.90] live from 2026-09-15 14:00:00 first bid 29113.10 EMA 29332.30 ATR 366.85 D1 closed 2026-09-14 22:00:00
+  SHORT 2026-09-15 14:10:29 bid 29057.10 ask 29058.00 SL 29240.52 TP 28690.25 -> eod R +0.623 overshoot 0.001
+  brute force exit eod at 2026-09-15 20:00:00 px 28942.80 R +0.623
+
+USTEC 2025-03-11 open 2025-03-11 13:30:00 OR [19355.30,19519.60] live from 2025-03-11 14:00:00 first bid 19489.30 EMA 20462.58 ATR 542.96 D1 closed 2025-03-10 22:00:00
+  no trade
+
+=== D1 roll sensitivity (base, tick): 22:00 UTC vs 00:00 UTC vs 21:00 UTC
+XAUUSD 22:00 n 1806 win 45.2% avg -0.045 t -2.31 PF 0.87 tot -81.3
+XAUUSD 00:00 n 1766 win 45.1% avg -0.051 t -2.53 PF 0.86 tot -89.7
+XAUUSD 21:00 n 1804 win 45.2% avg -0.045 t -2.31 PF 0.87 tot -81.1
+US30 22:00 n 1748 win 47.3% avg -0.008 t -0.40 PF 0.98 tot -13.8
+US30 00:00 n 1730 win 46.5% avg -0.015 t -0.72 PF 0.96 tot -25.7
+US30 21:00 n 1748 win 47.3% avg -0.008 t -0.38 PF 0.98 tot -13.3
+USTEC 22:00 n 1833 win 50.0% avg +0.010 t +0.52 PF 1.03 tot +18.2
+USTEC 00:00 n 1793 win 50.1% avg +0.021 t +1.05 PF 1.06 tot +38.0
+USTEC 21:00 n 1833 win 50.0% avg +0.011 t +0.55 PF 1.03 tot +19.2
+
+=== Benchmarks without any range (tick)
+XAUUSD delay0 {'always_long': 'n 2728 win 46.0% avg -0.044 t -2.68 PF 0.88 tot -118.7', 'always_with_trend': 'n 2728 win 45.3% avg -0.036 t -2.18 PF 0.90 tot -98.1'}
+XAUUSD delay30 {'always_long': 'n 2728 win 46.7% avg -0.042 t -2.66 PF 0.88 tot -113.4', 'always_with_trend': 'n 2728 win 46.6% avg -0.036 t -2.29 PF 0.90 tot -99.1'}
+US30 delay0 {'always_long': 'n 2726 win 49.8% avg -0.007 t -0.45 PF 0.98 tot -19.5', 'always_with_trend': 'n 2726 win 47.0% avg -0.024 t -1.48 PF 0.93 tot -64.8'}
+US30 delay30 {'always_long': 'n 2726 win 50.7% avg +0.010 t +0.67 PF 1.03 tot +28.1', 'always_with_trend': 'n 2726 win 48.3% avg -0.006 t -0.40 PF 0.98 tot -16.9'}
+USTEC delay0 {'always_long': 'n 2726 win 51.1% avg +0.012 t +0.74 PF 1.03 tot +31.8', 'always_with_trend': 'n 2726 win 50.1% avg +0.013 t +0.83 PF 1.04 tot +36.5'}
+USTEC delay30 {'always_long': 'n 2726 win 51.9% avg +0.017 t +1.09 PF 1.05 tot +45.7', 'always_with_trend': 'n 2726 win 50.5% avg +0.016 t +1.00 PF 1.05 tot +42.8'}
+
+=== USTEC delay0 split
+all n 1813 win 51.8% avg +0.043 t +2.16 PF 1.13 tot +78.3 | flip n 1813 win 42.3% avg -0.061 t -3.19 PF 0.83 tot -111.3
+side 1 n 1134 win 55.1% avg +0.053 t +2.39 PF 1.19 tot +60.4
+side -1 n 679 win 46.4% avg +0.026 t +0.69 PF 1.07 tot +17.9
+2016 n 153 win 47.1% avg -0.028 t -0.41 PF 0.92 tot -4.3
+2017 n 177 win 46.3% avg -0.005 t -0.08 PF 0.99 tot -0.8
+2018 n 174 win 47.7% avg +0.116 t +1.57 PF 1.34 tot +20.1
+2019 n 161 win 49.1% avg +0.014 t +0.22 PF 1.04 tot +2.2
+2020 n 165 win 53.9% avg +0.011 t +0.18 PF 1.04 tot +1.9
+2021 n 180 win 53.9% avg +0.050 t +0.80 PF 1.15 tot +9.1
+2022 n 168 win 56.5% avg +0.105 t +1.57 PF 1.33 tot +17.7
+2023 n 180 win 52.8% avg +0.070 t +1.02 PF 1.20 tot +12.5
+2024 n 161 win 53.4% avg +0.102 t +1.42 PF 1.31 tot +16.5
+2025 n 162 win 54.3% avg +0.033 t +0.52 PF 1.11 tot +5.3
+2026 n 132 win 56.1% avg -0.014 t -0.23 PF 0.95 tot -1.9
+2016 2020 n 665 win 47.5% avg +0.026 t +0.78 PF 1.08 tot +17.3
+2021 2024 n 528 win 54.4% avg +0.074 t +1.95 PF 1.22 tot +39.2
+2025 2027 n 294 win 55.1% avg +0.012 t +0.26 PF 1.04 tot +3.4
+
+=== Odds of a 23-session total at or above X R under the base config (tick)
+XAUUSD {2: 20.6, 3: 12.0, 4: 6.3, 5: 3.5, 6: 1.6, 8: 0.1}
+US30 {2: 24.3, 3: 15.2, 4: 9.0, 5: 5.1, 6: 2.4, 8: 0.3}
+USTEC {2: 23.6, 3: 14.5, 4: 9.4, 5: 5.8, 6: 3.5, 8: 1.4}
+XAU stop in $/0.1 lot: last 20 trades mean 512 2025+ mean 438

@@ -1,0 +1,11 @@
+rule l2 events 61 (with edited: False); rows 336
+X5 IS n 61 (53 d) gross +63 gap 6 fund +0.0 net +43 t 2.43 med +27 SR 0.31 x1.5 +30 late +39 | 2019 -22(2) 2020 +12(35) 2021 +95(24) | rand 100.0% (sec-level event gross +64) | src {'bspot': 61}
+X5 VAL n 0
+X60 IS n 59 (52 d) gross +94 gap 6 fund +0.0 net +74 t 2.04 med +30 SR 0.27 x1.5 +62 late +69 | 2019 -1(2) 2020 +67(34) 2021 +92(23) | rand 100.0% (sec-level event gross +96) | src {'bspot': 59}
+X60 VAL n 0
+XP IS n 48 (46 d) gross -42 gap 5 fund +0.0 net -62 t -0.57 med +7 SR -0.08 x1.5 -75 late -68 | 2020 -38(29) 2021 -99(19) | rand 44.8% (sec-level event gross -41) | src {'bspot': 48}
+XP VAL n 0
+max-over-cells null IS: median t -0.10 p95 1.01
+path IS n 61 median bp vs N-60s: -3600s +19 -600s -6 -60s +0 +0s +56 +1s +56 +2s +59 +3s +59 +5s +58 +10s +73 +30s +87 +60s +128 +300s +123 +3600s +128
+  onset (>= thr) n 53 of 61: median -21.8 s, q10 -352.4, q90 +136.4, share before N 0.62
+  share of +60 s move done by N+5 s: median 0.56 (n 43); of +5 min: 0.40 (n 46)

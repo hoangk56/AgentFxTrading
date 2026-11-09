@@ -1,0 +1,27 @@
+l1 IS: n 4; half-move time vs N (n 4): median -84 s, q25 -105, q75 -42, share < 0 0.75, share < -60 s 0.75
+   largest 10 s rise (>= 100 bp, n 4) starts: median -124 s, share before N 1.00
+   2021-10-05 AGLD       M  +2760 half     -79 s  max10s +1470 at    -89 s
+   2021-12-09 BICO       M  +2277 half     -88 s  max10s +1677 at    -97 s
+   2021-12-23 PEOPLE     M  +2632 half     +70 s  max10s  +574 at   -187 s
+   2021-12-24 SPELL      M  +2015 half    -155 s  max10s +1008 at   -151 s
+l1 VAL: n 19; half-move time vs N (n 18): median -246 s, q25 -511, q75 -115, share < 0 1.00, share < -60 s 1.00
+   largest 10 s rise (>= 100 bp, n 18) starts: median -163 s, share before N 0.94
+   2022-01-10 IMX        M  +1658 half    -233 s  max10s +1245 at   -234 s
+   2022-01-25 ANC        M  +2470 half    -155 s  max10s +1416 at   -165 s
+   2022-02-08 WOO        M  +2098 half    -106 s  max10s +1119 at   -100 s
+   2023-05-05 FLOKI      M  +5243 half    -491 s  max10s +1321 at   -567 s
+   2023-05-05 PEPE       M  +3492 half    -518 s  max10s +1014 at   -527 s
+   2023-11-07 ORDI       M  +2805 half    -154 s  max10s +1409 at   -161 s
+   2023-11-24 BLUR       M  +1817 half    -531 s  max10s +1695 at   -534 s
+   2023-12-15 BONK       M  +1732 half    -101 s  max10s +1275 at   -103 s
+   2024-02-02 PYTH       M  +1856 half    -108 s  max10s +1621 at   -115 s
+   2024-03-01 AXL        M  +2056 half     -89 s  max10s +1373 at    -94 s
+   2024-03-05 WIF        M  +1913 half    -134 s  max10s +1406 at   -135 s
+   2024-03-11 METIS      M  +2619 half     -69 s  max10s +1379 at    -69 s
+   2024-04-11 TAO        M  +1367 half    -260 s  max10s  +768 at   -269 s
+   2024-08-08 TON        M   +646 half    -600 s  max10s  +169 at   -431 s
+   2024-09-16 TURBO      M  +1117 half    -574 s  max10s   +97 at   -298 s
+   2024-09-30 EIGEN      M  +1302 half    -488 s  max10s  +850 at   -498 s
+   2024-11-06 CETUS      M  +6488 half    -460 s  max10s +2525 at   -474 s
+   2024-12-06 ORCA       M   +104 half    +nan s  max10s  +164 at    -17 s
+   2024-12-10 ME         M  +2419 half    -600 s  max10s  +254 at   +241 s

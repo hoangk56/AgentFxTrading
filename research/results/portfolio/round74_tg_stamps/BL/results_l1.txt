@@ -1,0 +1,15 @@
+rule l1 events 23 (with edited: False); rows 138
+X5 IS n 4 (4 d) gross +388 gap 11 fund +0.0 net +377 t 2.00 med +346 SR 0.86 x1.5 +366 late +369 | 2021 +377(4) | rand 100.0% (sec-level event gross +388) | src {'okx': 2, 'bybit': 2}
+X5 VAL n 19 (18 d) gross +229 gap 51 fund +0.0 net +218 t 1.48 med +70 SR 0.43 x1.5 +187 late +243 | 2022 -50(3) 2023 +564(5) 2024 +134(11) | rand 100.0% (sec-level event gross +230) | src {'bybit': 12, 'okx': 1, 'bum': 6}
+X60 IS n 4 (4 d) gross +650 gap 5 fund +0.0 net +639 t 2.76 med +809 SR 1.19 x1.5 +632 late +631 | 2021 +639(4) | rand 100.0% (sec-level event gross +650) | src {'okx': 2, 'bybit': 2}
+X60 VAL n 19 (18 d) gross +244 gap 40 fund +0.1 net +233 t 1.32 med +238 SR 0.33 x1.5 +208 late +258 | 2022 -177(3) 2023 +777(5) 2024 +98(11) | rand 97.5% (sec-level event gross +245) | src {'bybit': 12, 'okx': 1, 'bum': 6}
+XO IS n 4 (4 d) gross +780 gap 6 fund +3.2 net +766 t 2.34 med +703 SR 1.01 x1.5 +758 late +758 | 2021 +766(4) | rand 92.2% (sec-level event gross +780) | src {'okx': 2, 'bybit': 2}
+XO VAL n 19 (18 d) gross +544 gap 42 fund -8.1 net +542 t 1.94 med +88 SR 0.42 x1.5 +516 late +567 | 2022 -117(3) 2023 +1503(5) 2024 +285(11) | rand 58.9% (sec-level event gross +549) | src {'bybit': 12, 'okx': 1, 'bum': 6}
+max-over-cells null IS: median t 0.62 p95 2.35
+max-over-cells null VAL: median t 1.38 p95 2.73
+path IS n 4 median bp vs N-60s: -3600s -1358 -600s -1477 -60s +0 +0s +31 +1s +55 +2s +51 +3s +83 +5s +110 +10s +103 +30s +241 +60s +420 +300s +479 +3600s +1010
+  onset (>= thr) n 4 of 4: median -36.3 s, q10 -111.2, q90 +118.8, share before N 0.75
+  share of +60 s move done by N+5 s: median 0.27 (n 3); of +5 min: 0.32 (n 3)
+path VAL n 19 median bp vs N-60s: -3600s -1581 -600s -1183 -60s +0 +0s +66 +1s +57 +2s +74 +3s +78 +5s +83 +10s +71 +30s +32 +60s +51 +300s +176 +3600s +526
+  onset (>= thr) n 18 of 19: median -177.9 s, q10 -520.6, q90 -13.3, share before N 0.89
+  share of +60 s move done by N+5 s: median 0.56 (n 10); of +5 min: 0.34 (n 14)

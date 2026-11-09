@@ -1,0 +1,539 @@
+ch,pid,T,cls,coin,edited,head,perp,era,year,day
+coin_listing,3929,1578561049,BH,SOC,False,SOC/KRW listed on Bithumb,,IS,2020,2020-01-09
+coin_listing,3939,1579075851,BH,WPX,False,WPX/KRW listed on Bithumb,,IS,2020,2020-01-15
+coin_listing,3954,1579684259,BH,BNP,False,BNP/KRW listed on Bithumb,,IS,2020,2020-01-22
+coin_listing,3963,1580375451,BH,SXP,False,SXP/KRW listed on Bithumb,,IS,2020,2020-01-30
+coin_listing,3985,1584091069,BH,COSM,False,🔥Bithumb will list: #COSM ,,IS,2020,2020-03-13
+coin_listing,4014,1584695413,BH,EL,False,🔥Bithumb will list: #EL ,,IS,2020,2020-03-20
+coin_listing,4053,1585299631,BH,BASIC,False,🔥Bithumb will list: #BASIC ,,IS,2020,2020-03-27
+coin_listing,4181,1587956443,BH,XPR,False,🔥Bithumb will list: #XPR ,,IS,2020,2020-04-27
+coin_listing,4225,1588734062,BH,META,False,🔥Bithumb will list: #META ,,IS,2020,2020-05-06
+coin_listing,4252,1589245240,BH,ARPA,True,🔥Bithumb will list: #ARPA ,,IS,2020,2020-05-12
+coin_listing,4269,1589468684,CBA,OMG,True,🔥Coinbase Pro will list: (OMG),,IS,2020,2020-05-14
+coin_listing,4335,1590758018,CBA,MKR,False,🔥Coinbase Pro will list: (MKR),,IS,2020,2020-05-29
+coin_listing,4344,1591019745,OTH,OXT,True,🔥Kraken listing: Orchid (OXT) Trading is Coming to Kraken on June 2 ,,IS,2020,2020-06-01
+coin_listing,4401,1591897075,CBL,MKR,False,🔥 Maker (MKR) is now available on Coinbase ,,IS,2020,2020-06-11
+coin_listing,4436,1592485416,CBA,COMP,False,🔥 Compound (COMP) is launching on Coinbase Pro ,,IS,2020,2020-06-18
+coin_listing,4473,1593106586,CBL,COMP,True,🔥Coinbase will list: #COMP,,IS,2020,2020-06-25
+coin_listing,4610,1594921047,CBL,ALGO,False,🔥Coinbase will list: (ALGO),ALGOUSDT,IS,2020,2020-07-16
+coin_listing,4701,1596071186,BH,ALGO,False,🔥Bithumb listing/airdrop event: #ALGO ,ALGOUSDT,IS,2020,2020-07-30
+coin_listing,4745,1596589531,BH,BORA,False,🔥Bithumb listing/airdrop event: #BORA #BTC ,,IS,2020,2020-08-05
+coin_listing,4757,1596662823,CBA,BAND,False,🔥Coinbase Pro will list: (BAND),BANDUSDT,IS,2020,2020-08-05
+coin_listing,4801,1597194328,BH,ANW,False,🔥Bithumb listing/airdrop event: #ANW #BTC ,,IS,2020,2020-08-12
+coin_listing,4812,1597261850,CBA,NMR,False,🔥Coinbase Pro will list: (NMR),,IS,2020,2020-08-12
+coin_listing,4881,1597945053,CBL,NMR,False,🔥Coinbase listing: (NMR),,IS,2020,2020-08-20
+coin_listing,4938,1598454020,CBA,CELO,False,🔥Coinbase Pro will list: (CELO),,IS,2020,2020-08-26
+coin_listing,4943,1598494537,BH,MLK,False,🔥Bithumb listing/airdrop event: #MLK ,,IS,2020,2020-08-27
+coin_listing,4971,1598942286,OTH,GMT,False,🔥Huobi will list: (YFV) (YAMV) (YAM) (GMT),,IS,2020,2020-09-01
+coin_listing,4971,1598942286,OTH,YAM,False,🔥Huobi will list: (YFV) (YAMV) (YAM) (GMT),,IS,2020,2020-09-01
+coin_listing,4971,1598942286,OTH,YAMV,False,🔥Huobi will list: (YFV) (YAMV) (YAM) (GMT),,IS,2020,2020-09-01
+coin_listing,4971,1598942286,OTH,YFV,False,🔥Huobi will list: (YFV) (YAMV) (YAM) (GMT),,IS,2020,2020-09-01
+coin_listing,4974,1598947832,OTH,SUSHI,False,🔥Huobi will list: (SUSHI) (GMT),,IS,2020,2020-09-01
+coin_listing,4996,1599070348,CBA,UMA,False,🔥Coinbase Pro will list: (UMA),,IS,2020,2020-09-02
+coin_listing,5006,1599102149,OTH,DKA,False,🔥Huobi will list: (PEARL) (XRT) (DKA) (GMT),,IS,2020,2020-09-03
+coin_listing,5006,1599102149,OTH,PEARL,False,🔥Huobi will list: (PEARL) (XRT) (DKA) (GMT),,IS,2020,2020-09-03
+coin_listing,5006,1599102149,OTH,XRT,False,🔥Huobi will list: (PEARL) (XRT) (DKA) (GMT),,IS,2020,2020-09-03
+coin_listing,5014,1599154796,CBL,CELO,True,🔥Coinbase will list: #CELO #CGLD,,IS,2020,2020-09-03
+coin_listing,5014,1599154796,CBL,CGLD,True,🔥Coinbase will list: #CELO #CGLD,,IS,2020,2020-09-03
+coin_listing,5049,1599617135,BH,ONG,False,🔥Bithumb listing/airdrop event: #ONT #ONG ,,IS,2020,2020-09-09
+coin_listing,5049,1599617135,BH,ONT,False,🔥Bithumb listing/airdrop event: #ONT #ONG ,ONTUSDT,IS,2020,2020-09-09
+coin_listing,5083,1599746504,CBA,LRC,False,🔥Coinbase Pro will list: (LRC),,IS,2020,2020-09-10
+coin_listing,5087,1599768042,CBA,YFI,False,🔥Coinbase Pro will list: (YFI),YFIUSDT,IS,2020,2020-09-10
+coin_listing,5111,1600135516,BH,MCI,False,🔥Bithumb will list: #MCI ,,IS,2020,2020-09-15
+coin_listing,5139,1600308309,BH,CENNZ,False,🔥Bithumb listing/airdrop event: #MCI #CENNZ ,,IS,2020,2020-09-17
+coin_listing,5145,1600323692,CBA,UNI,False,🔥Coinbase Pro will list: (UNI),,IS,2020,2020-09-17
+coin_listing,5156,1600383865,CBL,UNI,False,🔥Coinbase will list: (UNI),,IS,2020,2020-09-17
+coin_listing,5218,1600998323,BH,APM,False,🔥Bithumb listing/airdrop event: #APM ,,IS,2020,2020-09-25
+coin_listing,5275,1601571522,CBA,BAL,False,📣Coinbase article: Balancer (BAL) and Ren (REN) are launching on Coinbase Pro ,BALUSDT,IS,2020,2020-10-01
+coin_listing,5275,1601571522,CBA,REN,False,📣Coinbase article: Balancer (BAL) and Ren (REN) are launching on Coinbase Pro ,,IS,2020,2020-10-01
+coin_listing,5323,1602587714,OTH,FIL,False,🔥Huobi will list: (FIL) (USDT),,IS,2020,2020-10-13
+coin_listing,5329,1602648594,OTH,NEAR,False,🔥Huobi will list: (NEAR),,IS,2020,2020-10-14
+coin_listing,5392,1603332315,BH,GOM,False,🔥Bithumb listing/airdrop event: #GOM #QTCON ,,IS,2020,2020-10-22
+coin_listing,5392,1603332315,BH,QTCON,False,🔥Bithumb listing/airdrop event: #GOM #QTCON ,,IS,2020,2020-10-22
+coin_listing,5425,1603850709,BH,WEMIX,False,🔥Bithumb listing/airdrop event: #WEMIX ,,IS,2020,2020-10-28
+coin_listing,5498,1605146707,BH,SAND,False,🔥Bithumb listing/airdrop event: #SAND ,,IS,2020,2020-11-12
+coin_listing,5525,1605578710,BH,POLA,False,🔥Bithumb will list: #POLA ,,IS,2020,2020-11-17
+coin_listing,5539,1605751518,BH,BCHA,False,🔥Bithumb listing/airdrop event: #POLA #BCHA ,,IS,2020,2020-11-19
+coin_listing,5565,1606183515,BH,ADP,False,🔥Bithumb will list: #ADP ,,IS,2020,2020-11-24
+coin_listing,5593,1606356315,BH,ATOM,False,🔥Bithumb listing/airdrop event: #ADP #ATOM ,ATOMUSDT,IS,2020,2020-11-26
+coin_listing,5619,1606759525,CBA,NU,False,🔥Coinbase Pro will list: ((NU)),,IS,2020,2020-11-30
+coin_listing,5622,1606788307,BH,JST,False,🔥Bithumb listing/airdrop event: #SUN #JST ,,IS,2020,2020-12-01
+coin_listing,5622,1606788307,BH,SUN,False,🔥Bithumb listing/airdrop event: #SUN #JST ,,IS,2020,2020-12-01
+coin_listing,5640,1607021860,CBL,NU,False,🔥Coinbase will list: ((NU)),,IS,2020,2020-12-03
+coin_listing,5665,1607363805,CBA,FIL,False,🔥Coinbase Pro will list: ((FIL)),FILUSDT,IS,2020,2020-12-07
+coin_listing,5689,1607625586,CBL,FIL,False,🔥Coinbase will list: ((FIL)),FILUSDT,IS,2020,2020-12-10
+coin_listing,5704,1607913904,BH,FIT,False,🔥Bithumb will list: #FIT ,,IS,2020,2020-12-14
+coin_listing,5706,1607979868,CBA,AAVE,False,🔥Coinbase Pro will list: ((AAVE)) ((BNT)) ((SNX)),AAVEUSDT,IS,2020,2020-12-14
+coin_listing,5706,1607979868,CBA,BNT,False,🔥Coinbase Pro will list: ((AAVE)) ((BNT)) ((SNX)),,IS,2020,2020-12-14
+coin_listing,5706,1607979868,CBA,SNX,False,🔥Coinbase Pro will list: ((AAVE)) ((BNT)) ((SNX)),SNXUSDT,IS,2020,2020-12-14
+coin_listing,5721,1608070669,CBL,AAVE,False,🔥Coinbase will list: ((AAVE)) ((BNT)) ((SNX)),AAVEUSDT,IS,2020,2020-12-15
+coin_listing,5721,1608070669,CBL,BNT,False,🔥Coinbase will list: ((AAVE)) ((BNT)) ((SNX)),,IS,2020,2020-12-15
+coin_listing,5721,1608070669,CBL,SNX,False,🔥Coinbase will list: ((AAVE)) ((BNT)) ((SNX)),SNXUSDT,IS,2020,2020-12-15
+coin_listing,5722,1608080833,BH,UMA,False,🔥Bithumb listing/airdrop event: #FIT #UMA ,,IS,2020,2020-12-16
+coin_listing,5735,1608225135,CBA,GRT,False,🔥Coinbase Pro will list: ((GRT)),,IS,2020,2020-12-17
+coin_listing,5741,1608249983,CBL,GRT,False,🔥Coinbase will list: ((GRT)),,IS,2020,2020-12-18
+coin_listing,5763,1608552169,OTH,ECO,False,🔥Huobi will list: (ECO),,IS,2020,2020-12-21
+coin_listing,5766,1608603010,OTH,POND,False,🔥Huobi will list: (POND),,IS,2020,2020-12-22
+coin_listing,5768,1608620586,OTH,API3,True,🔥Huobi will list: (API3),,IS,2020,2020-12-22
+coin_listing,5774,1608685532,BH,AWO,False,🔥Bithumb listing/airdrop event: #AWO ,,IS,2020,2020-12-23
+coin_listing,5788,1608855924,OTH,INCH,False,🔥Huobi will list: (INCH) (USDT),,IS,2020,2020-12-25
+coin_listing,5793,1608879753,OTH,DOT,False,🔥Huobi will list: (DOT) (FIL) (ECO),DOTUSDT,IS,2020,2020-12-25
+coin_listing,5798,1609208479,OTH,LINA,False,🔥Huobi will list: (LINA),,IS,2020,2020-12-29
+coin_listing,5800,1609223710,BH,MIR,False,🔥Bithumb listing/airdrop event: #MIR ,,IS,2020,2020-12-29
+coin_listing,5809,1609376714,BH,DVC,False,🔥Bithumb listing/airdrop event: #WOZX #DVC ,,IS,2020,2020-12-31
+coin_listing,5809,1609376714,BH,WOZX,False,🔥Bithumb listing/airdrop event: #WOZX #DVC ,,IS,2020,2020-12-31
+coin_listing,5815,1609814137,BH,ANV,False,🔥Bithumb will list: #ANV ,,IS,2021,2021-01-05
+coin_listing,5850,1611025324,OTH,INJ,False,🔥Huobi will list: (INJ) (USDT),,IS,2021,2021-01-19
+coin_listing,5859,1611109608,BH,XNO,False,🔥Bithumb will list: #XNO ,,IS,2021,2021-01-20
+coin_listing,5862,1611122518,OTH,BADGER,False,🔥Huobi will list: (BADGER),,IS,2021,2021-01-20
+coin_listing,5867,1611198523,OTH,MASS,False,🔥Huobi will list: (MASS),,IS,2021,2021-01-21
+coin_listing,5908,1611795734,OTH,IOTX,False,🔥Huobi will list: (IOTX),,IS,2021,2021-01-28
+coin_listing,6159,1615312549,CBA,MATIC,False,🔥Coinbase Pro will list: ((MATIC)) ((SKL)) ((SUSHI)),MATICUSDT,IS,2021,2021-03-09
+coin_listing,6159,1615312549,CBA,SKL,False,🔥Coinbase Pro will list: ((MATIC)) ((SKL)) ((SUSHI)),SKLUSDT,IS,2021,2021-03-09
+coin_listing,6159,1615312549,CBA,SUSHI,False,🔥Coinbase Pro will list: ((MATIC)) ((SKL)) ((SUSHI)),SUSHIUSDT,IS,2021,2021-03-09
+coin_listing,6173,1615496708,CBL,MATIC,False,🔥Coinbase will list: ((MATIC)) ((SKL)) ((SUSHI)),MATICUSDT,IS,2021,2021-03-11
+coin_listing,6173,1615496708,CBL,SKL,False,🔥Coinbase will list: ((MATIC)) ((SKL)) ((SUSHI)),SKLUSDT,IS,2021,2021-03-11
+coin_listing,6173,1615496708,CBL,SUSHI,False,🔥Coinbase will list: ((MATIC)) ((SKL)) ((SUSHI)),SUSHIUSDT,IS,2021,2021-03-11
+coin_listing,6174,1615914091,CBA,ADA,False,🔥Coinbase Pro will list: ((ADA)),ADAUSDT,IS,2021,2021-03-16
+coin_listing,6188,1616176952,CBL,ADA,False,🔥Coinbase will list: ((ADA)),ADAUSDT,IS,2021,2021-03-19
+coin_listing,6200,1616519010,CBA,ANKR,False,🔥Coinbase Pro will list: ((ANKR)) ((CRV)) ((STORJ)),ANKRUSDT,IS,2021,2021-03-23
+coin_listing,6200,1616519010,CBA,CRV,False,🔥Coinbase Pro will list: ((ANKR)) ((CRV)) ((STORJ)),CRVUSDT,IS,2021,2021-03-23
+coin_listing,6200,1616519010,CBA,STORJ,False,🔥Coinbase Pro will list: ((ANKR)) ((CRV)) ((STORJ)),STORJUSDT,IS,2021,2021-03-23
+coin_listing,6216,1616702575,CBL,ANKR,False,🔥Coinbase will list: ((ANKR)) ((CRV)) ((STORJ)),ANKRUSDT,IS,2021,2021-03-25
+coin_listing,6216,1616702575,CBL,CRV,False,🔥Coinbase will list: ((ANKR)) ((CRV)) ((STORJ)),CRVUSDT,IS,2021,2021-03-25
+coin_listing,6216,1616702575,CBL,STORJ,False,🔥Coinbase will list: ((ANKR)) ((CRV)) ((STORJ)),STORJUSDT,IS,2021,2021-03-25
+coin_listing,6270,1617814934,CBA,ENJ,False,🔥Coinbase Pro will list: ((ENJ)) ((NKN)) ((OGN)),ENJUSDT,IS,2021,2021-04-07
+coin_listing,6270,1617814934,CBA,NKN,False,🔥Coinbase Pro will list: ((ENJ)) ((NKN)) ((OGN)),,IS,2021,2021-04-07
+coin_listing,6270,1617814934,CBA,OGN,False,🔥Coinbase Pro will list: ((ENJ)) ((NKN)) ((OGN)),,IS,2021,2021-04-07
+coin_listing,6290,1617998581,CBL,ENJ,False,🔥Coinbase will list: ((ENJ)) ((NKN)) ((OGN)),ENJUSDT,IS,2021,2021-04-09
+coin_listing,6290,1617998581,CBL,NKN,False,🔥Coinbase will list: ((ENJ)) ((NKN)) ((OGN)),,IS,2021,2021-04-09
+coin_listing,6290,1617998581,CBL,OGN,False,🔥Coinbase will list: ((ENJ)) ((NKN)) ((OGN)),OGNUSDT,IS,2021,2021-04-09
+coin_listing,6338,1619024513,CBA,FORTH,False,🔥Coinbase Pro will list: ((FORTH)),,IS,2021,2021-04-21
+coin_listing,6341,1619042605,CBL,FORTH,False,🔥Coinbase will list: ((FORTH)),,IS,2021,2021-04-21
+coin_listing,6389,1620147979,CBA,CTSI,False,🔥Coinbase Pro will list: ((CTSI)) ((RLC)) ((MIR)) ((TRB)),,IS,2021,2021-05-04
+coin_listing,6389,1620147979,CBA,MIR,False,🔥Coinbase Pro will list: ((CTSI)) ((RLC)) ((MIR)) ((TRB)),,IS,2021,2021-05-04
+coin_listing,6389,1620147979,CBA,RLC,False,🔥Coinbase Pro will list: ((CTSI)) ((RLC)) ((MIR)) ((TRB)),RLCUSDT,IS,2021,2021-05-04
+coin_listing,6389,1620147979,CBA,TRB,False,🔥Coinbase Pro will list: ((CTSI)) ((RLC)) ((MIR)) ((TRB)),TRBUSDT,IS,2021,2021-05-04
+coin_listing,6391,1620156536,CBA,ICP,False,🔥Coinbase Pro will list: ((ICP)),,IS,2021,2021-05-04
+coin_listing,6397,1620331410,CBL,CTSI,False,🔥Coinbase will list: ((CTSI)) ((RLC)) ((MIR)) ((TRB)),,IS,2021,2021-05-06
+coin_listing,6397,1620331410,CBL,MIR,False,🔥Coinbase will list: ((CTSI)) ((RLC)) ((MIR)) ((TRB)),,IS,2021,2021-05-06
+coin_listing,6397,1620331410,CBL,RLC,False,🔥Coinbase will list: ((CTSI)) ((RLC)) ((MIR)) ((TRB)),RLCUSDT,IS,2021,2021-05-06
+coin_listing,6397,1620331410,CBL,TRB,False,🔥Coinbase will list: ((CTSI)) ((RLC)) ((MIR)) ((TRB)),TRBUSDT,IS,2021,2021-05-06
+coin_listing,6408,1620682346,CBL,ICP,False,🔥Coinbase will list: ((ICP)),,IS,2021,2021-05-10
+coin_listing,6440,1620972308,BH,DOGE,False,🔥Bithumb will list: #KLAY #DOGE #BTC ,DOGEUSDT,IS,2021,2021-05-14
+coin_listing,6440,1620972308,BH,KLAY,False,🔥Bithumb will list: #KLAY #DOGE #BTC ,,IS,2021,2021-05-14
+coin_listing,6460,1621530115,CBA,SOL,False,🔥Coinbase Pro will list: ((SOL)),SOLUSDT,IS,2021,2021-05-20
+coin_listing,6465,1621573518,BH,AQT,False,🔥Bithumb will list: #AQT #NU #COLA ,,IS,2021,2021-05-21
+coin_listing,6465,1621573518,BH,COLA,False,🔥Bithumb will list: #AQT #NU #COLA ,,IS,2021,2021-05-21
+coin_listing,6465,1621573518,BH,NU,False,🔥Bithumb will list: #AQT #NU #COLA ,,IS,2021,2021-05-21
+coin_listing,6483,1621908326,BH,KSM,False,🔥Bithumb will list: #KSM #MSB ,KSMUSDT,IS,2021,2021-05-25
+coin_listing,6483,1621908326,BH,MSB,False,🔥Bithumb will list: #KSM #MSB ,,IS,2021,2021-05-25
+coin_listing,6503,1622574466,CBA,DOGE,False,🔥Coinbase Pro will list: ((DOGE)),DOGEUSDT,IS,2021,2021-06-01
+coin_listing,6510,1622689250,BH,CELR,False,🔥Bithumb will list: (DAI) (REN) (CELR) ,CELRUSDT,IS,2021,2021-06-03
+coin_listing,6510,1622689250,BH,REN,False,🔥Bithumb will list: (DAI) (REN) (CELR) ,RENUSDT,IS,2021,2021-06-03
+coin_listing,6515,1622753485,CBL,DOGE,False,🔥Coinbase will list: ((DOGE)),DOGEUSDT,IS,2021,2021-06-03
+coin_listing,6516,1622773241,BH,BLY,False,🔥Bithumb will list: (GHX) (BLY) ,,IS,2021,2021-06-04
+coin_listing,6516,1622773241,BH,GHX,False,🔥Bithumb will list: (GHX) (BLY) ,,IS,2021,2021-06-04
+coin_listing,6522,1623043266,BH,MATIC,False,🔥Bithumb will list: (MATIC) (BTC) ,MATICUSDT,IS,2021,2021-06-07
+coin_listing,6527,1623142854,BH,WIKEN,False,🔥Bithumb will list: (WIKEN) ,,IS,2021,2021-06-08
+coin_listing,6531,1623171663,CBA,AMP,False,🔥Coinbase Pro will list: ((GTC)) ((MLN)) ((AMP)),,IS,2021,2021-06-08
+coin_listing,6531,1623171663,CBA,GTC,False,🔥Coinbase Pro will list: ((GTC)) ((MLN)) ((AMP)),,IS,2021,2021-06-08
+coin_listing,6531,1623171663,CBA,MLN,False,🔥Coinbase Pro will list: ((GTC)) ((MLN)) ((AMP)),,IS,2021,2021-06-08
+coin_listing,6534,1623214841,BH,HIBS,False,🔥Bithumb will list: (HIBS) ,,IS,2021,2021-06-09
+coin_listing,6542,1623290455,BH,CAKE,False,🔥Bithumb will list: (CAKE) (XVS) (BTC) ,,IS,2021,2021-06-10
+coin_listing,6542,1623290455,BH,XVS,False,🔥Bithumb will list: (CAKE) (XVS) (BTC) ,,IS,2021,2021-06-10
+coin_listing,6546,1623355386,CBL,AMP,False,🔥Coinbase will list: ((GTC)) ((MLN)) ((AMP)),,IS,2021,2021-06-10
+coin_listing,6546,1623355386,CBL,GTC,False,🔥Coinbase will list: ((GTC)) ((MLN)) ((AMP)),,IS,2021,2021-06-10
+coin_listing,6546,1623355386,CBL,MLN,False,🔥Coinbase will list: ((GTC)) ((MLN)) ((AMP)),,IS,2021,2021-06-10
+coin_listing,6553,1623689883,CBA,DOT,False,🔥Coinbase Pro will list: ((DOT)),DOTUSDT,IS,2021,2021-06-14
+coin_listing,6559,1623776351,CBA,CHZ,False,🔥Coinbase Pro will list: ((CHZ)) ((KEEP)) ((SHIB)),CHZUSDT,IS,2021,2021-06-15
+coin_listing,6559,1623776351,CBA,KEEP,False,🔥Coinbase Pro will list: ((CHZ)) ((KEEP)) ((SHIB)),,IS,2021,2021-06-15
+coin_listing,6559,1623776351,CBA,SHIB,False,🔥Coinbase Pro will list: ((CHZ)) ((KEEP)) ((SHIB)),1000SHIBUSDT,IS,2021,2021-06-15
+coin_listing,6563,1623873752,CBL,DOT,False,🔥Coinbase will list: ((DOT)),DOTUSDT,IS,2021,2021-06-16
+coin_listing,6574,1623966351,CBL,CHZ,False,🔥Coinbase will list: ((SOL)) ((CHZ)) ((KEEP)),CHZUSDT,IS,2021,2021-06-17
+coin_listing,6574,1623966351,CBL,KEEP,False,🔥Coinbase will list: ((SOL)) ((CHZ)) ((KEEP)),,IS,2021,2021-06-17
+coin_listing,6574,1623966351,CBL,SOL,False,🔥Coinbase will list: ((SOL)) ((CHZ)) ((KEEP)),SOLUSDT,IS,2021,2021-06-17
+coin_listing,6578,1624327243,BH,RSR,False,🔥Bithumb will list: (RSR) ,RSRUSDT,IS,2021,2021-06-22
+coin_listing,6595,1624478316,CBA,BOND,False,🔥Coinbase Pro will list: ((BOND)) ((LPT)) ((QNT)),,IS,2021,2021-06-23
+coin_listing,6595,1624478316,CBA,LPT,False,🔥Coinbase Pro will list: ((BOND)) ((LPT)) ((QNT)),,IS,2021,2021-06-23
+coin_listing,6595,1624478316,CBA,QNT,False,🔥Coinbase Pro will list: ((BOND)) ((LPT)) ((QNT)),,IS,2021,2021-06-23
+coin_listing,6598,1624500057,BH,BAL,False,🔥Bithumb will list: (BAL) ,BALUSDT,IS,2021,2021-06-24
+coin_listing,6600,1624568651,CBL,BOND,False,🔥Coinbase will list: ((BOND)) ((LPT)),,IS,2021,2021-06-24
+coin_listing,6600,1624568651,CBL,LPT,False,🔥Coinbase will list: ((BOND)) ((LPT)),,IS,2021,2021-06-24
+coin_listing,6616,1624931464,BH,BNT,False,🔥Bithumb will list: (BNT) (BTC) ,,IS,2021,2021-06-29
+coin_listing,6641,1625106644,BH,CTK,False,🔥Bithumb will list: (CTK) (BTC) ,CTKUSDT,IS,2021,2021-07-01
+coin_listing,6670,1625724043,BH,XYM,False,🔥Bithumb will list: (XYM) (BTC) ,,IS,2021,2021-07-08
+coin_listing,6699,1626314880,BH,PCI,False,🔥Bithumb will list: (PCI) (BTC) ,,IS,2021,2021-07-15
+coin_listing,6706,1626374865,CBA,CLV,False,🔥Coinbase Pro will list: ((CLV)),,IS,2021,2021-07-15
+coin_listing,6707,1626374911,CBL,MASK,False,🔥Coinbase will list: ((MASK)) ((RLY)),,IS,2021,2021-07-15
+coin_listing,6707,1626374911,CBL,RLY,False,🔥Coinbase will list: ((MASK)) ((RLY)),,IS,2021,2021-07-15
+coin_listing,6709,1626391938,CBL,CLV,False,🔥Coinbase will list: ((CLV)),,IS,2021,2021-07-15
+coin_listing,6757,1627315756,CBA,FARM,True,🔥🔥🔥Coinbase lists: (POLY) (FET) (FARM),,IS,2021,2021-07-26
+coin_listing,6757,1627315756,CBA,FET,True,🔥🔥🔥Coinbase lists: (POLY) (FET) (FARM),,IS,2021,2021-07-26
+coin_listing,6757,1627315756,CBA,POLY,True,🔥🔥🔥Coinbase lists: (POLY) (FET) (FARM),,IS,2021,2021-07-26
+coin_listing,6795,1627920107,CBA,ACH,True,"🔥🔥🔥Coinbase will list: ACH, PLA, RAI",,IS,2021,2021-08-02
+coin_listing,6795,1627920107,CBA,PLA,True,"🔥🔥🔥Coinbase will list: ACH, PLA, RAI",,IS,2021,2021-08-02
+coin_listing,6795,1627920107,CBA,RAI,True,"🔥🔥🔥Coinbase will list: ACH, PLA, RAI",,IS,2021,2021-08-02
+coin_listing,6796,1627956047,BH,NMR,False,🔥Bithumb will list: (NMR) ,,IS,2021,2021-08-03
+coin_listing,6799,1628022889,CBL,ACH,False,🔥Coinbase will list: ((ACH)) ((RAI)),,IS,2021,2021-08-03
+coin_listing,6799,1628022889,CBL,RAI,False,🔥Coinbase will list: ((ACH)) ((RAI)),,IS,2021,2021-08-03
+coin_listing,6805,1628102027,CBL,PLA,False,🔥Coinbase will list: ((PLA)),,IS,2021,2021-08-04
+coin_listing,6832,1628611493,CBA,IOTX,True,"🔥Coinbase Pro will List: IoTeX (IOTX), Orion Protocol (ORN), Quickswap (QUICK), Tribe (TRIBE) and TerraUSD (UST)",,IS,2021,2021-08-10
+coin_listing,6832,1628611493,CBA,ORN,True,"🔥Coinbase Pro will List: IoTeX (IOTX), Orion Protocol (ORN), Quickswap (QUICK), Tribe (TRIBE) and TerraUSD (UST)",,IS,2021,2021-08-10
+coin_listing,6832,1628611493,CBA,QUICK,True,"🔥Coinbase Pro will List: IoTeX (IOTX), Orion Protocol (ORN), Quickswap (QUICK), Tribe (TRIBE) and TerraUSD (UST)",,IS,2021,2021-08-10
+coin_listing,6832,1628611493,CBA,TRIBE,True,"🔥Coinbase Pro will List: IoTeX (IOTX), Orion Protocol (ORN), Quickswap (QUICK), Tribe (TRIBE) and TerraUSD (UST)",,IS,2021,2021-08-10
+coin_listing,6844,1628711451,CBA,AXS,False,🔥Coinbase Pro will list: ((AXS)) ((REQ)) ((TRU)) ((WLUNA)),AXSUSDT,IS,2021,2021-08-11
+coin_listing,6844,1628711451,CBA,REQ,False,🔥Coinbase Pro will list: ((AXS)) ((REQ)) ((TRU)) ((WLUNA)),,IS,2021,2021-08-11
+coin_listing,6844,1628711451,CBA,TRU,False,🔥Coinbase Pro will list: ((AXS)) ((REQ)) ((TRU)) ((WLUNA)),,IS,2021,2021-08-11
+coin_listing,6845,1628718026,CBL,IOTX,False,🔥Coinbase will list: ((IOTX)) ((ORN)) ((TRIBE)) ((UST)),,IS,2021,2021-08-11
+coin_listing,6845,1628718026,CBL,ORN,False,🔥Coinbase will list: ((IOTX)) ((ORN)) ((TRIBE)) ((UST)),,IS,2021,2021-08-11
+coin_listing,6845,1628718026,CBL,TRIBE,False,🔥Coinbase will list: ((IOTX)) ((ORN)) ((TRIBE)) ((UST)),,IS,2021,2021-08-11
+coin_listing,6847,1628735448,BH,AXS,False,🔥Bithumb will list: (AXS) (BTC) ,AXSUSDT,IS,2021,2021-08-12
+coin_listing,6903,1629343508,BH,SOL,False,🔥Bithumb will list: (SOL) (VELO) (BTC) ,SOLUSDT,IS,2021,2021-08-19
+coin_listing,6903,1629343508,BH,VELO,False,🔥Bithumb will list: (SOL) (VELO) (BTC) ,,IS,2021,2021-08-19
+coin_listing,6936,1629770441,BH,BFC,False,🔥Bithumb will list: (BFC) (UOS) ,,IS,2021,2021-08-24
+coin_listing,6936,1629770441,BH,UOS,False,🔥Bithumb will list: (BFC) (UOS) ,,IS,2021,2021-08-24
+coin_listing,6950,1629934801,CBA,COTI,False,🔥Coinbase Pro will list: ((COTI)),COTIUSDT,IS,2021,2021-08-25
+coin_listing,6977,1630078544,CBL,COTI,False,🔥Coinbase will list: ((COTI)),COTIUSDT,IS,2021,2021-08-27
+coin_listing,6998,1630436552,CBA,DDX,False,🔥Coinbase Pro will list: ((DDX)) ((YFII)) ((RAD)),,IS,2021,2021-08-31
+coin_listing,6998,1630436552,CBA,RAD,False,🔥Coinbase Pro will list: ((DDX)) ((YFII)) ((RAD)),,IS,2021,2021-08-31
+coin_listing,6998,1630436552,CBA,YFII,False,🔥Coinbase Pro will list: ((DDX)) ((YFII)) ((RAD)),YFIIUSDT,IS,2021,2021-08-31
+coin_listing,7008,1630528710,CBL,DDX,False,🔥Coinbase will list: ((DDX)) ((YFII)) ((RAD)),,IS,2021,2021-09-01
+coin_listing,7008,1630528710,CBL,RAD,False,🔥Coinbase will list: ((DDX)) ((YFII)) ((RAD)),,IS,2021,2021-09-01
+coin_listing,7008,1630528710,CBL,YFII,False,🔥Coinbase will list: ((DDX)) ((YFII)) ((RAD)),YFIIUSDT,IS,2021,2021-09-01
+coin_listing,7054,1631116396,CBA,RGT,False,🔥Coinbase Pro will list: ((RGT)) ((XYO)),,IS,2021,2021-09-08
+coin_listing,7054,1631116396,CBA,XYO,False,🔥Coinbase Pro will list: ((RGT)) ((XYO)),,IS,2021,2021-09-08
+coin_listing,7079,1631289826,CBL,RGT,False,🔥Coinbase will list: ((RGT)) ((XYO)),,IS,2021,2021-09-10
+coin_listing,7079,1631289826,CBL,XYO,False,🔥Coinbase will list: ((RGT)) ((XYO)),,IS,2021,2021-09-10
+coin_listing,7112,1631722402,CBA,BTRST,False,🔥Coinbase Pro will list: ((BTRST)),,IS,2021,2021-09-15
+coin_listing,7113,1631731806,CBA,ZEN,False,🔥Coinbase Pro will list: ((ZEN)),ZENUSDT,IS,2021,2021-09-15
+coin_listing,7115,1631741545,CBL,BTRST,False,🔥Coinbase will list: ((BTRST)),,IS,2021,2021-09-15
+coin_listing,7127,1631809387,CBL,SHIB,False,🔥Coinbase will list: ((SHIB)),1000SHIBUSDT,IS,2021,2021-09-16
+coin_listing,7132,1631829901,CBL,ZEN,False,🔥Coinbase will list: ((ZEN)),ZENUSDT,IS,2021,2021-09-16
+coin_listing,7143,1631931937,OTH,SPA,False,🔥Huobi will list: #SPA,,IS,2021,2021-09-18
+coin_listing,7149,1632153302,CBA,AGLD,False,🔥Coinbase Pro will list: ((AGLD)),,IS,2021,2021-09-20
+coin_listing,7162,1632245949,CBL,AGLD,False,🔥Coinbase will list: ((AGLD)),,IS,2021,2021-09-21
+coin_listing,7174,1632379538,OTH,GAL,False,🔥Huobi will list: #GAL,,IS,2021,2021-09-23
+coin_listing,7215,1632930879,CBA,AVAX,False,🔥Coinbase Pro will list: ((AVAX)),AVAXUSDT,IS,2021,2021-09-29
+coin_listing,7226,1633033078,CBL,AVAX,False,🔥Coinbase will list: ((AVAX)),AVAXUSDT,IS,2021,2021-09-30
+coin_listing,7238,1633549126,CBA,FX,False,🔥Coinbase Pro will list: ((FX)) ((JASMY)) ((TBTC)) ((WCFG)),,IS,2021,2021-10-06
+coin_listing,7238,1633549126,CBA,JASMY,False,🔥Coinbase Pro will list: ((FX)) ((JASMY)) ((TBTC)) ((WCFG)),,IS,2021,2021-10-06
+coin_listing,7248,1633643496,CBL,FX,False,🔥Coinbase will list: ((FX)) ((WCFG)),,IS,2021,2021-10-07
+coin_listing,7257,1633721539,CBL,JASMY,False,🔥Coinbase will list: ((JASMY)),,IS,2021,2021-10-08
+coin_listing,7289,1634155568,CBA,BADGER,False,🔥Coinbase Pro will list: ((BADGER)) ((RARI)),,IS,2021,2021-10-13
+coin_listing,7289,1634155568,CBA,RARI,False,🔥Coinbase Pro will list: ((BADGER)) ((RARI)),,IS,2021,2021-10-13
+coin_listing,7299,1634249264,CBL,BADGER,False,🔥Coinbase will list: ((BADGER)) ((RARI)),,IS,2021,2021-10-14
+coin_listing,7299,1634249264,CBL,RARI,False,🔥Coinbase will list: ((BADGER)) ((RARI)),,IS,2021,2021-10-14
+coin_listing,7316,1634583109,CBA,ARPA,False,🔥Coinbase Pro will list: ((ARPA)) ((AUCTION)) ((PERP)),,IS,2021,2021-10-18
+coin_listing,7316,1634583109,CBA,AUCTION,False,🔥Coinbase Pro will list: ((ARPA)) ((AUCTION)) ((PERP)),,IS,2021,2021-10-18
+coin_listing,7316,1634583109,CBA,PERP,False,🔥Coinbase Pro will list: ((ARPA)) ((AUCTION)) ((PERP)),,IS,2021,2021-10-18
+coin_listing,7322,1634677403,CBL,ARPA,False,🔥Coinbase will list: ((ARPA)) ((PERP)),,IS,2021,2021-10-19
+coin_listing,7322,1634677403,CBL,PERP,False,🔥Coinbase will list: ((ARPA)) ((PERP)),,IS,2021,2021-10-19
+coin_listing,7330,1634745512,CBA,ASM,False,🔥Coinbase Pro will list: ((ASM)),,IS,2021,2021-10-20
+coin_listing,7346,1634839668,CBL,ASM,False,🔥Coinbase will list: ((ASM)),,IS,2021,2021-10-21
+coin_listing,7376,1635360829,CBA,KRL,False,🔥Coinbase Pro will list: ((KRL)) ((LCX)) ((SUKU)) ((TRAC)),,IS,2021,2021-10-27
+coin_listing,7376,1635360829,CBA,LCX,False,🔥Coinbase Pro will list: ((KRL)) ((LCX)) ((SUKU)) ((TRAC)),,IS,2021,2021-10-27
+coin_listing,7376,1635360829,CBA,SUKU,False,🔥Coinbase Pro will list: ((KRL)) ((LCX)) ((SUKU)) ((TRAC)),,IS,2021,2021-10-27
+coin_listing,7376,1635360829,CBA,TRAC,False,🔥Coinbase Pro will list: ((KRL)) ((LCX)) ((SUKU)) ((TRAC)),,IS,2021,2021-10-27
+coin_listing,7435,1635882866,CBA,CRO,False,🔥Coinbase Pro will list: ((CRO)),,IS,2021,2021-11-02
+coin_listing,7535,1637006080,CBA,ALCX,False,🔥Coinbase Pro will list: ((ALCX)) ((ENS)) ((GALA)) ((MUSD)) ((POWR)),,IS,2021,2021-11-15
+coin_listing,7535,1637006080,CBA,ENS,False,🔥Coinbase Pro will list: ((ALCX)) ((ENS)) ((GALA)) ((MUSD)) ((POWR)),,IS,2021,2021-11-15
+coin_listing,7535,1637006080,CBA,GALA,False,🔥Coinbase Pro will list: ((ALCX)) ((ENS)) ((GALA)) ((MUSD)) ((POWR)),GALAUSDT,IS,2021,2021-11-15
+coin_listing,7535,1637006080,CBA,POWR,False,🔥Coinbase Pro will list: ((ALCX)) ((ENS)) ((GALA)) ((MUSD)) ((POWR)),,IS,2021,2021-11-15
+coin_listing,7547,1637128840,OTH,FTM,False,🔥Huobi will list: (FTM),FTMUSDT,IS,2021,2021-11-17
+coin_listing,7552,1637181678,CBA,VGX,False,🔥Coinbase Pro will list: ((VGX)),,IS,2021,2021-11-17
+coin_listing,7556,1637220955,OTH,UNIC,False,🔥Huobi will list: (UNIC),,IS,2021,2021-11-18
+coin_listing,7595,1637735440,OTH,IOI,False,🔥Huobi will list: (IOI) (QORPO),,IS,2021,2021-11-24
+coin_listing,7595,1637735440,OTH,QORPO,False,🔥Huobi will list: (IOI) (QORPO),,IS,2021,2021-11-24
+coin_listing,7607,1637906420,OTH,PYR,False,🔥Huobi will list: (PYR),,IS,2021,2021-11-26
+coin_listing,7642,1638377593,CBA,BICO,False,🔥Coinbase Pro will list: ((BICO)),,IS,2021,2021-12-01
+coin_listing,7645,1638410446,OTH,ALICE,False,🔥Huobi will list: (ALICE),ALICEUSDT,IS,2021,2021-12-02
+coin_listing,7659,1638496859,OTH,LITH,False,🔥Huobi will list: (LITH),,IS,2021,2021-12-03
+coin_listing,7667,1638756044,OTH,OPUL,False,🔥Huobi will list: (OPUL),,IS,2021,2021-12-06
+coin_listing,7674,1638809927,CBA,COVAL,False,🔥Coinbase Pro will list: ((COVAL)) ((IDEX)) ((POLS)) ((FOX)) ((SPELL)) ((SUPER)),,IS,2021,2021-12-06
+coin_listing,7674,1638809927,CBA,FOX,False,🔥Coinbase Pro will list: ((COVAL)) ((IDEX)) ((POLS)) ((FOX)) ((SPELL)) ((SUPER)),,IS,2021,2021-12-06
+coin_listing,7674,1638809927,CBA,IDEX,False,🔥Coinbase Pro will list: ((COVAL)) ((IDEX)) ((POLS)) ((FOX)) ((SPELL)) ((SUPER)),,IS,2021,2021-12-06
+coin_listing,7674,1638809927,CBA,POLS,False,🔥Coinbase Pro will list: ((COVAL)) ((IDEX)) ((POLS)) ((FOX)) ((SPELL)) ((SUPER)),,IS,2021,2021-12-06
+coin_listing,7674,1638809927,CBA,SPELL,False,🔥Coinbase Pro will list: ((COVAL)) ((IDEX)) ((POLS)) ((FOX)) ((SPELL)) ((SUPER)),,IS,2021,2021-12-06
+coin_listing,7674,1638809927,CBA,SUPER,False,🔥Coinbase Pro will list: ((COVAL)) ((IDEX)) ((POLS)) ((FOX)) ((SPELL)) ((SUPER)),,IS,2021,2021-12-06
+coin_listing,7687,1638955838,OTH,XTM,False,🔥Huobi will list: (XTM),,IS,2021,2021-12-08
+coin_listing,7693,1639002957,CBA,BLZ,False,🔥Coinbase Pro will list: ((BLZ)) ((GODS)) ((IMX)) ((MDT)) ((RBN)),BLZUSDT,IS,2021,2021-12-08
+coin_listing,7693,1639002957,CBA,GODS,False,🔥Coinbase Pro will list: ((BLZ)) ((GODS)) ((IMX)) ((MDT)) ((RBN)),,IS,2021,2021-12-08
+coin_listing,7693,1639002957,CBA,IMX,False,🔥Coinbase Pro will list: ((BLZ)) ((GODS)) ((IMX)) ((MDT)) ((RBN)),,IS,2021,2021-12-08
+coin_listing,7693,1639002957,CBA,MDT,False,🔥Coinbase Pro will list: ((BLZ)) ((GODS)) ((IMX)) ((MDT)) ((RBN)),,IS,2021,2021-12-08
+coin_listing,7693,1639002957,CBA,RBN,False,🔥Coinbase Pro will list: ((BLZ)) ((GODS)) ((IMX)) ((MDT)) ((RBN)),,IS,2021,2021-12-08
+coin_listing,7707,1639101635,OTH,AURY,False,🔥Huobi will list: (AURY),,IS,2021,2021-12-10
+coin_listing,7715,1639227651,OTH,SOL,False,🔥Huobi will list: (SOL),SOLUSDT,IS,2021,2021-12-11
+coin_listing,7726,1639421535,CBA,DESO,False,🔥Coinbase Pro will list: ((DESO)),,IS,2021,2021-12-13
+coin_listing,7730,1639503040,OTH,RADAR,False,🔥Huobi will list: (RADAR) (15) (2021),,IS,2021,2021-12-14
+coin_listing,7752,1639634434,OTH,LPT,False,🔥Huobi will list: (LPT) (16) (2021),LPTUSDT,IS,2021,2021-12-16
+coin_listing,7799,1640168149,OTH,PEOPLE,False,🔥Huobi will list: (PEOPLE) (DAO),,IS,2021,2021-12-22
+coin_listing,7816,1640273450,OTH,ELON,False,🔥Huobi will list: (ELON),,IS,2021,2021-12-23
+coin_listing,7819,1640314834,OTH,NT,False,🔥Huobi will list: (NT),,IS,2021,2021-12-24
+coin_listing,7830,1640421044,OTH,SOS,False,🔥Huobi will list: (SOS) (DAO),,IS,2021,2021-12-25
+coin_listing,7883,1641799744,OTH,XYO,False,🔥Huobi will list: (XYO),,VAL,2022,2022-01-10
+coin_listing,7885,1641823660,OTH,LOOKS,False,🔥Huobi will list: (LOOKS),,VAL,2022,2022-01-10
+coin_listing,7890,1641895245,OTH,TRAC,False,🔥Huobi will list: (TRAC),,VAL,2022,2022-01-11
+coin_listing,7892,1641907988,OTH,POKT,False,🔥Huobi will list: (POKT),,VAL,2022,2022-01-11
+coin_listing,7893,1641920606,CBA,GFI,False,🔥Coinbase Pro will list: ((GFI)),,VAL,2022,2022-01-11
+coin_listing,7899,1641981631,OTH,LOVE,False,🔥Huobi will list: (LOVE),,VAL,2022,2022-01-12
+coin_listing,7900,1642007209,CBA,INV,False,🔥Coinbase Pro will list: ((INV)) ((LQTY)) ((NCT)) ((PRO)),,VAL,2022,2022-01-12
+coin_listing,7900,1642007209,CBA,LQTY,False,🔥Coinbase Pro will list: ((INV)) ((LQTY)) ((NCT)) ((PRO)),,VAL,2022,2022-01-12
+coin_listing,7900,1642007209,CBA,NCT,False,🔥Coinbase Pro will list: ((INV)) ((LQTY)) ((NCT)) ((PRO)),,VAL,2022,2022-01-12
+coin_listing,7900,1642007209,CBA,PRO,False,🔥Coinbase Pro will list: ((INV)) ((LQTY)) ((NCT)) ((PRO)),,VAL,2022,2022-01-12
+coin_listing,7907,1642057234,OTH,INV,False,🔥Huobi will list: (INV) (LQTY) (NCT),,VAL,2022,2022-01-13
+coin_listing,7907,1642057234,OTH,LQTY,False,🔥Huobi will list: (INV) (LQTY) (NCT),,VAL,2022,2022-01-13
+coin_listing,7907,1642057234,OTH,NCT,False,🔥Huobi will list: (INV) (LQTY) (NCT),,VAL,2022,2022-01-13
+coin_listing,7918,1642125669,OTH,OCEAN,False,🔥Huobi will list: (OCEAN),OCEANUSDT,VAL,2022,2022-01-14
+coin_listing,7921,1642338036,OTH,ASTR,False,🔥Huobi will list: (ASTR),,VAL,2022,2022-01-16
+coin_listing,7927,1642429231,OTH,GARI,False,🔥Huobi will list: (GARI),,VAL,2022,2022-01-17
+coin_listing,7929,1642471234,OTH,SCRT,False,🔥Huobi will list: (SCRT),,VAL,2022,2022-01-18
+coin_listing,7950,1642735836,OTH,VRA,False,🔥Huobi will list: (VRA),,VAL,2022,2022-01-21
+coin_listing,7958,1642769405,OTH,SUKU,False,🔥Huobi will list: (SUKU),,VAL,2022,2022-01-21
+coin_listing,7961,1643018431,OTH,LOOT,False,🔥Huobi will list: (LOOT),,VAL,2022,2022-01-24
+coin_listing,7969,1643077528,OTH,ACA,False,🔥Huobi will list: (ACA),,VAL,2022,2022-01-25
+coin_listing,7973,1643089830,OTH,ATS,False,🔥Huobi will list: (ATS),,VAL,2022,2022-01-25
+coin_listing,7978,1643099431,OTH,CTX,False,🔥Huobi will list: (CTX),,VAL,2022,2022-01-25
+coin_listing,7979,1643099431,OTH,DIA,False,🔥Huobi will list: (DIA),,VAL,2022,2022-01-25
+coin_listing,7980,1643099431,OTH,MPL,False,🔥Huobi will list: (MPL),,VAL,2022,2022-01-25
+coin_listing,7981,1643099431,OTH,PLU,False,🔥Huobi will list: (PLU),,VAL,2022,2022-01-25
+coin_listing,7982,1643099431,OTH,UNFI,False,🔥Huobi will list: (UNFI),UNFIUSDT,VAL,2022,2022-01-25
+coin_listing,7992,1643191231,OTH,STORE,False,🔥Huobi will list: (STORE),,VAL,2022,2022-01-26
+coin_listing,8568,1654098596,CBA,DAR,False,📣Coinbase tweet: Assets added to the roadmap today: Mines of Dalarnia (DAR) ,DARUSDT,VAL,2022,2022-06-01
+coin_listing,8588,1654187357,CBL,KSM,False,📣Coinbase tweet: Kusama (KSM) is now live on https://t.co/CD3RBjtMAO & in the Coinbase iOS & Android apps. Coinbase cust,KSMUSDT,VAL,2022,2022-06-02
+coin_listing,8600,1654530851,CBA,BIT,False,📣Coinbase tweet: Coinbase will add support for BitDAO (BIT) & Coin98 (C98) on the ETH network (ERC-20 token). Do not sen,,VAL,2022,2022-06-06
+coin_listing,8600,1654530851,CBA,C98,False,📣Coinbase tweet: Coinbase will add support for BitDAO (BIT) & Coin98 (C98) on the ETH network (ERC-20 token). Do not sen,C98USDT,VAL,2022,2022-06-06
+coin_listing,8607,1654614360,CBA,ATA,False,"📣Coinbase tweet: Assets added to the roadmap today: Automata Network (ATA), Chain (XCN), DeFi Yield Protocol (DYP), Marl",ATAUSDT,VAL,2022,2022-06-07
+coin_listing,8607,1654614360,CBA,DYP,False,"📣Coinbase tweet: Assets added to the roadmap today: Automata Network (ATA), Chain (XCN), DeFi Yield Protocol (DYP), Marl",,VAL,2022,2022-06-07
+coin_listing,8607,1654614360,CBA,POND,False,"📣Coinbase tweet: Assets added to the roadmap today: Automata Network (ATA), Chain (XCN), DeFi Yield Protocol (DYP), Marl",,VAL,2022,2022-06-07
+coin_listing,8607,1654614360,CBA,XCN,False,"📣Coinbase tweet: Assets added to the roadmap today: Automata Network (ATA), Chain (XCN), DeFi Yield Protocol (DYP), Marl",,VAL,2022,2022-06-07
+coin_listing,8610,1654619860,CBL,BIT,False,📣Coinbase tweet: BitDAO (BIT) and Coin98 (C98) are now live on https://t.co/CD3RBjtMAO & in the Coinbase iOS and Android,,VAL,2022,2022-06-07
+coin_listing,8610,1654619860,CBL,C98,False,📣Coinbase tweet: BitDAO (BIT) and Coin98 (C98) are now live on https://t.co/CD3RBjtMAO & in the Coinbase iOS and Android,C98USDT,VAL,2022,2022-06-07
+coin_listing,8624,1654703370,CBA,INDEX,False,📣Coinbase tweet: Coinbase will add support for Wrapped Ampleforth (WAMPL) and Index Cooperative (INDEX) on the Ethereum ,,VAL,2022,2022-06-08
+coin_listing,8624,1654703370,CBA,WAMPL,False,📣Coinbase tweet: Coinbase will add support for Wrapped Ampleforth (WAMPL) and Index Cooperative (INDEX) on the Ethereum ,,VAL,2022,2022-06-08
+coin_listing,8642,1654791789,CBL,INDEX,False,📣Coinbase tweet: Wrapped Ampleforth (WAMPL) & Index Cooperative (INDEX) are now live on https://t.co/CD3RBjtMAO & in the,,VAL,2022,2022-06-09
+coin_listing,8642,1654791789,CBL,WAMPL,False,📣Coinbase tweet: Wrapped Ampleforth (WAMPL) & Index Cooperative (INDEX) are now live on https://t.co/CD3RBjtMAO & in the,,VAL,2022,2022-06-09
+coin_listing,8665,1655135256,CBA,FIS,False,"📣Coinbase tweet: Coinbase will add support for Mines of Dalarnia (DAR), Marlin (POND), Automata Network (ATA), and StaFi",,VAL,2022,2022-06-13
+coin_listing,8679,1655314839,CBL,FORT,False,📣Coinbase tweet: Forta (FORT) is now live on https://t.co/CD3RBjtMAO & in the Coinbase iOS & Android apps with the Exper,,VAL,2022,2022-06-15
+coin_listing,8680,1655321605,CBA,AST,False,"📣Coinbase tweet: Assets added to the roadmap today: AirSwap (AST), MetisDAO (METIS) https://t.co/zu1IBdrD7X",,VAL,2022,2022-06-15
+coin_listing,8680,1655321605,CBA,METIS,False,"📣Coinbase tweet: Assets added to the roadmap today: AirSwap (AST), MetisDAO (METIS) https://t.co/zu1IBdrD7X",,VAL,2022,2022-06-15
+coin_listing,8686,1655399119,CBL,ATA,False,"📣Coinbase tweet: Mines of Dalarnia (DAR), Marlin (POND), Automata Network (ATA), and StaFi (FIS) are now live on https:/",ATAUSDT,VAL,2022,2022-06-16
+coin_listing,8686,1655399119,CBL,DAR,False,"📣Coinbase tweet: Mines of Dalarnia (DAR), Marlin (POND), Automata Network (ATA), and StaFi (FIS) are now live on https:/",DARUSDT,VAL,2022,2022-06-16
+coin_listing,8686,1655399119,CBL,FIS,False,"📣Coinbase tweet: Mines of Dalarnia (DAR), Marlin (POND), Automata Network (ATA), and StaFi (FIS) are now live on https:/",,VAL,2022,2022-06-16
+coin_listing,8686,1655399119,CBL,POND,False,"📣Coinbase tweet: Mines of Dalarnia (DAR), Marlin (POND), Automata Network (ATA), and StaFi (FIS) are now live on https:/",,VAL,2022,2022-06-16
+coin_listing,8709,1655827327,CBA,ALEPH,False,"📣Coinbase tweet: Coinbase will add support for DeFi Yield Protocol (DYP), https://t.co/NHuJ3NUhfX (ALEPH), HOPR (HOPR), ",,VAL,2022,2022-06-21
+coin_listing,8709,1655827327,CBA,ELA,False,"📣Coinbase tweet: Coinbase will add support for DeFi Yield Protocol (DYP), https://t.co/NHuJ3NUhfX (ALEPH), HOPR (HOPR), ",,VAL,2022,2022-06-21
+coin_listing,8709,1655827327,CBA,HOPR,False,"📣Coinbase tweet: Coinbase will add support for DeFi Yield Protocol (DYP), https://t.co/NHuJ3NUhfX (ALEPH), HOPR (HOPR), ",,VAL,2022,2022-06-21
+coin_listing,8709,1655827327,CBA,MATH,False,"📣Coinbase tweet: Coinbase will add support for DeFi Yield Protocol (DYP), https://t.co/NHuJ3NUhfX (ALEPH), HOPR (HOPR), ",,VAL,2022,2022-06-21
+coin_listing,8709,1655827327,CBA,PRQ,False,"📣Coinbase tweet: Coinbase will add support for DeFi Yield Protocol (DYP), https://t.co/NHuJ3NUhfX (ALEPH), HOPR (HOPR), ",,VAL,2022,2022-06-21
+coin_listing,8714,1655849068,CBA,BOBA,False,📣Coinbase tweet: Assets added to the roadmap today: Boba Network (BOBA) https://t.co/zu1IBdrD7X,,VAL,2022,2022-06-21
+coin_listing,8722,1655913306,CBA,DEXT,False,"📣Coinbase tweet: Coinbase will add support for Chrono .tech (TIME), DEXTools (DEXT), Drepnew (DREP), Jupiter (JUP), and ",,VAL,2022,2022-06-22
+coin_listing,8722,1655913306,CBA,DREP,False,"📣Coinbase tweet: Coinbase will add support for Chrono .tech (TIME), DEXTools (DEXT), Drepnew (DREP), Jupiter (JUP), and ",,VAL,2022,2022-06-22
+coin_listing,8722,1655913306,CBA,JUP,False,"📣Coinbase tweet: Coinbase will add support for Chrono .tech (TIME), DEXTools (DEXT), Drepnew (DREP), Jupiter (JUP), and ",,VAL,2022,2022-06-22
+coin_listing,8722,1655913306,CBA,MUSE,False,"📣Coinbase tweet: Coinbase will add support for Chrono .tech (TIME), DEXTools (DEXT), Drepnew (DREP), Jupiter (JUP), and ",,VAL,2022,2022-06-22
+coin_listing,8722,1655913306,CBA,TIME,False,"📣Coinbase tweet: Coinbase will add support for Chrono .tech (TIME), DEXTools (DEXT), Drepnew (DREP), Jupiter (JUP), and ",,VAL,2022,2022-06-22
+coin_listing,8726,1655916369,CBL,DYP,False,"📣Coinbase tweet: DeFi Yield Protocol (DYP), HOPR (HOPR), Math (MATH), PARSIQ (PRQ) are now live on https://t.co/CD3RBjtM",,VAL,2022,2022-06-22
+coin_listing,8726,1655916369,CBL,HOPR,False,"📣Coinbase tweet: DeFi Yield Protocol (DYP), HOPR (HOPR), Math (MATH), PARSIQ (PRQ) are now live on https://t.co/CD3RBjtM",,VAL,2022,2022-06-22
+coin_listing,8726,1655916369,CBL,MATH,False,"📣Coinbase tweet: DeFi Yield Protocol (DYP), HOPR (HOPR), Math (MATH), PARSIQ (PRQ) are now live on https://t.co/CD3RBjtM",,VAL,2022,2022-06-22
+coin_listing,8726,1655916369,CBL,PRQ,False,"📣Coinbase tweet: DeFi Yield Protocol (DYP), HOPR (HOPR), Math (MATH), PARSIQ (PRQ) are now live on https://t.co/CD3RBjtM",,VAL,2022,2022-06-22
+coin_listing,8728,1655916667,CBL,ALEPH,False,📣Coinbase tweet: https://t.co/NHuJ3NUhfX (ALEPH) is now live on https://t.co/CD3RBjtMAO & in the Coinbase iOS & Android ,,VAL,2022,2022-06-22
+coin_listing,8730,1655926509,CBL,ELA,False,📣Coinbase tweet: Elastos (ELA) is now live on https://t.co/CD3RBjtMAO & in the Coinbase iOS & Android apps with the Expe,,VAL,2022,2022-06-22
+coin_listing,8743,1656002582,CBL,JUP,False,📣Coinbase tweet: Jupiter (JUP) and Muse (MUSE) are now live on https://t.co/CD3RBjtMAO & in the Coinbase iOS & Android a,,VAL,2022,2022-06-23
+coin_listing,8743,1656002582,CBL,MUSE,False,📣Coinbase tweet: Jupiter (JUP) and Muse (MUSE) are now live on https://t.co/CD3RBjtMAO & in the Coinbase iOS & Android a,,VAL,2022,2022-06-23
+coin_listing,8745,1656016572,CBL,DREP,False,📣Coinbase tweet: Drep new (DREP) is now live on https://t.co/CD3RBjtMAO & in the Coinbase iOS & Android apps. Coinbase c,,VAL,2022,2022-06-23
+coin_listing,8746,1656016610,CBL,DEXT,False,📣Coinbase tweet: Chrono tech (TIME) & DEXTools (DEXT) are now live on https://t.co/CD3RBjtMAO & in the Coinbase iOS & An,,VAL,2022,2022-06-23
+coin_listing,8746,1656016610,CBL,TIME,False,📣Coinbase tweet: Chrono tech (TIME) & DEXTools (DEXT) are now live on https://t.co/CD3RBjtMAO & in the Coinbase iOS & An,,VAL,2022,2022-06-23
+coin_listing,8760,1656353949,CBA,RARE,False,📣Coinbase tweet: Asset added to the roadmap today: SuperRare (RARE) https://t.co/zu1IBdrD7X,,VAL,2022,2022-06-27
+coin_listing,8761,1656355410,CBA,MEDIA,False,"📣Coinbase tweet: Coinbase will add support for Chain (XCN), MetisDAO (METIS), Monavale (MONA), and AirSwap (AST) on the ",,VAL,2022,2022-06-27
+coin_listing,8761,1656355410,CBA,MONA,False,"📣Coinbase tweet: Coinbase will add support for Chain (XCN), MetisDAO (METIS), Monavale (MONA), and AirSwap (AST) on the ",,VAL,2022,2022-06-27
+coin_listing,8775,1656449212,CBL,AST,False,🔥Coinbase trades are live: ((MONA)) ((MEDIA)) ((AST)),,VAL,2022,2022-06-28
+coin_listing,8775,1656449212,CBL,MEDIA,False,🔥Coinbase trades are live: ((MONA)) ((MEDIA)) ((AST)),,VAL,2022,2022-06-28
+coin_listing,8775,1656449212,CBL,MONA,False,🔥Coinbase trades are live: ((MONA)) ((MEDIA)) ((AST)),,VAL,2022,2022-06-28
+coin_listing,8786,1656518385,CBL,METIS,False,📣Coinbase tweet: MetisDAO (METIS) now live on https://t.co/CD3RBjtMAO & in the Coinbase iOS & Android apps with the Expe,,VAL,2022,2022-06-29
+coin_listing,8788,1656518404,CBL,XCN,False,📣Coinbase tweet: Chain (XCN) is now live on https://t.co/CD3RBjtMAO & in the Coinbase iOS & Android apps. Coinbase custo,,VAL,2022,2022-06-29
+coin_listing,8806,1656606082,CBL,BOBA,False,📣Coinbase tweet: Boba Network (BOBA) is now live on https://t.co/CD3RBjtMAO & in the Coinbase iOS & Android apps with th,,VAL,2022,2022-06-30
+coin_listing,8893,1657916371,CBA,GNO,False,"📣Coinbase tweet: Assets added to the roadmap today: Metal (MTL), Gnosis (GNO), and Raydium (RAY)",,VAL,2022,2022-07-15
+coin_listing,8893,1657916371,CBA,MTL,False,"📣Coinbase tweet: Assets added to the roadmap today: Metal (MTL), Gnosis (GNO), and Raydium (RAY)",MTLUSDT,VAL,2022,2022-07-15
+coin_listing,8893,1657916371,CBA,RAY,False,"📣Coinbase tweet: Assets added to the roadmap today: Metal (MTL), Gnosis (GNO), and Raydium (RAY)",RAYUSDT,VAL,2022,2022-07-15
+coin_listing,8912,1658332439,CBA,ABT,False,"📣Coinbase tweet: Coinbase will add support for Gnosis (GNO), Metal (MTL), SwftCoin (SWFTC), Sylo (SYLO), and Arcblock (A",,VAL,2022,2022-07-20
+coin_listing,8912,1658332439,CBA,SWFTC,False,"📣Coinbase tweet: Coinbase will add support for Gnosis (GNO), Metal (MTL), SwftCoin (SWFTC), Sylo (SYLO), and Arcblock (A",,VAL,2022,2022-07-20
+coin_listing,8912,1658332439,CBA,SYLO,False,"📣Coinbase tweet: Coinbase will add support for Gnosis (GNO), Metal (MTL), SwftCoin (SWFTC), Sylo (SYLO), and Arcblock (A",,VAL,2022,2022-07-20
+coin_listing,8921,1658425762,CBL,SWFTC,False,🔥Coinbase trades are live: ((SWFTC)) ((SYLO)),,VAL,2022,2022-07-21
+coin_listing,8921,1658425762,CBL,SYLO,False,🔥Coinbase trades are live: ((SWFTC)) ((SYLO)),,VAL,2022,2022-07-21
+coin_listing,8924,1658432487,CBL,GNO,False,🔥Coinbase trades are live: ((GNO)) ((MTL)),,VAL,2022,2022-07-21
+coin_listing,8924,1658432487,CBL,MTL,False,🔥Coinbase trades are live: ((GNO)) ((MTL)),MTLUSDT,VAL,2022,2022-07-21
+coin_listing,8925,1658432776,CBL,ABT,False,🔥Coinbase trades are live: ((ABT)),,VAL,2022,2022-07-21
+coin_listing,8940,1658758639,CBA,CELR,False,📣Coinbase tweet: Assets added to the roadmap today: Celer Network (CELR) and Stargate Finance (STG) https://t.co/zu1IBdr,CELRUSDT,VAL,2022,2022-07-25
+coin_listing,8940,1658758639,CBA,STG,False,📣Coinbase tweet: Assets added to the roadmap today: Celer Network (CELR) and Stargate Finance (STG) https://t.co/zu1IBdr,,VAL,2022,2022-07-25
+coin_listing,8941,1658775936,CBA,NEST,False,📣Coinbase tweet: Coinbase will add support for Nest Protocol (NEST) on the Ethereum network (ERC-20 token). Do not send ,,VAL,2022,2022-07-25
+coin_listing,8945,1658852569,CBL,NEST,False,📣Coinbase tweet: Nest Protocol (NEST) is now live on https://t.co/CD3RBjtMAO & in the Coinbase iOS & Android apps with t,,VAL,2022,2022-07-26
+coin_listing,8969,1659035964,CBA,LOKA,False,📣Coinbase tweet: Assets added to the roadmap today: League of Kingdoms Arena (LOKA) https://t.co/zu1IBdrD7X,,VAL,2022,2022-07-28
+coin_listing,8983,1659369271,CBA,TONE,False,📣Coinbase tweet: Coinbase will add support for SuperRare (RARE) and TE-Food (TONE) on the Ethereum network (ERC-20 token,,VAL,2022,2022-08-01
+coin_listing,8996,1659458741,CBL,TONE,False,📣Coinbase tweet: TE-Food (TONE) is now live on https://t.co/CD3RBjtMAO & in the Coinbase iOS & Android apps with the Exp,,VAL,2022,2022-08-02
+coin_listing,8998,1659458903,CBL,RARE,False,📣Coinbase tweet: SuperRare (RARE) is now live on https://t.co/CD3RBjtMAO & in the Coinbase iOS & Android apps. Coinbase ,,VAL,2022,2022-08-02
+coin_listing,9020,1659630899,CBL,LOKA,False,🔥Coinbase trades are live: ((STG)) ((LOKA)),,VAL,2022,2022-08-04
+coin_listing,9020,1659630899,CBL,STG,False,🔥Coinbase trades are live: ((STG)) ((LOKA)),,VAL,2022,2022-08-04
+coin_listing,9054,1660140898,CBA,NEAR,False,📣Coinbase tweet: Asset added to the roadmap today: Near Protocol (NEAR),NEARUSDT,VAL,2022,2022-08-10
+coin_listing,9068,1660325477,CBA,OOKI,False,📣Coinbase tweet: Assets added to the roadmap today: Ooki Protocol (OOKI) https://t.co/zu1IBdrD7X,,VAL,2022,2022-08-12
+coin_listing,9079,1660666940,CBL,CELR,False,📣Coinbase tweet: Celer Network (CELR) is now live on https://t.co/CD3RBjtMAO & in the Coinbase iOS & Android apps. Coinb,CELRUSDT,VAL,2022,2022-08-16
+coin_listing,9105,1661174507,CBA,AURORA,False,📣Coinbase tweet: Assets added to the roadmap today: Aurora (AURORA) and MXC (MXC) https://t.co/zu1IBdrD7X,,VAL,2022,2022-08-22
+coin_listing,9105,1661174507,CBA,MXC,False,📣Coinbase tweet: Assets added to the roadmap today: Aurora (AURORA) and MXC (MXC) https://t.co/zu1IBdrD7X,,VAL,2022,2022-08-22
+coin_listing,9147,1661469935,CBA,HBAR,False,📣Coinbase tweet: Asset added to the roadmap today: Hedera (HBAR) https://t.co/zu1IBdsaXv,HBARUSDT,VAL,2022,2022-08-25
+coin_listing,9174,1661959693,CBL,OOKI,False,📣Coinbase tweet: Ooki Protocol (OOKI) is now live on https://t.co/CD3RBjtMAO & in the Coinbase iOS & Android apps. Coinb,,VAL,2022,2022-08-31
+coin_listing,9178,1661963035,CBL,MXC,False,📣Coinbase tweet: MXC (MXC) is now live on https://t.co/CD3RBjtMAO & in the Coinbase iOS & Android apps with the Experime,,VAL,2022,2022-08-31
+coin_listing,9191,1662053005,CBL,NEAR,False,📣Coinbase tweet: NEAR Protocol (NEAR) is now live on https://t.co/CD3RBjtMAO & in the Coinbase iOS & Android apps. Coinb,NEARUSDT,VAL,2022,2022-09-01
+coin_listing,9216,1662492785,CBA,CVX,False,"📣Coinbase tweet: Assets added to the roadmap today: Convex Finance (CVX), Ocean Protocol (OCEAN), ",,VAL,2022,2022-09-06
+coin_listing,9216,1662492785,CBA,OCEAN,False,"📣Coinbase tweet: Assets added to the roadmap today: Convex Finance (CVX), Ocean Protocol (OCEAN), ",OCEANUSDT,VAL,2022,2022-09-06
+coin_listing,9223,1662566320,CBL,AURORA,False,📣Coinbase tweet: Aurora (AURORA) is now live on https://t.co/CD3RBjtMAO & in the Coinbase iOS & Android apps with the Ex,,VAL,2022,2022-09-07
+coin_listing,9240,1662654976,CBL,CVX,False,📣Coinbase tweet: Convex Finance (CVX) is now live on https://t.co/CD3RBjtMAO & in the Coinbase iOS & Android apps with t,,VAL,2022,2022-09-08
+coin_listing,9241,1662656456,CBL,OCEAN,False,📣Coinbase tweet: Ocean Protocol (OCEAN) is now live on https://t.co/CD3RBjtMAO & in the Coinbase iOS & Android apps with,OCEANUSDT,VAL,2022,2022-09-08
+coin_listing,9259,1662991688,CBA,PNG,False,📣Coinbase tweet: Assets added to the roadmap today: Pangolin (PNG) https://t.co/zu1IBdrD7X,,VAL,2022,2022-09-12
+coin_listing,9295,1663267328,CBA,ILV,False,📣Coinbase tweet: Asset added to the roadmap today: Illuvium (ILV) https://t.co/zu1IBdrD7X,,VAL,2022,2022-09-15
+coin_listing,9312,1663602898,CBA,INJ,False,"📣Coinbase tweet: Coinbase will add support for Injective (INJ), Pundi X (PUNDIX), and XMON (XMON) on the Ethereum networ",INJUSDT,VAL,2022,2022-09-19
+coin_listing,9312,1663602898,CBA,PUNDIX,False,"📣Coinbase tweet: Coinbase will add support for Injective (INJ), Pundi X (PUNDIX), and XMON (XMON) on the Ethereum networ",,VAL,2022,2022-09-19
+coin_listing,9312,1663602898,CBA,XMON,False,"📣Coinbase tweet: Coinbase will add support for Injective (INJ), Pundi X (PUNDIX), and XMON (XMON) on the Ethereum networ",,VAL,2022,2022-09-19
+coin_listing,9320,1663692409,CBL,PUNDIX,False,📣Coinbase tweet: Pundi X (PUNDIX) is now live on https://t.co/CD3RBjtMAO & in the Coinbase iOS & Android apps. Coinbase ,,VAL,2022,2022-09-20
+coin_listing,9321,1663693129,CBL,INJ,False,📣Coinbase tweet: Injective (INJ) is now live on https://t.co/CD3RBjtMAO & in the Coinbase iOS & Android apps. Coinbase c,INJUSDT,VAL,2022,2022-09-20
+coin_listing,9383,1664927558,CBA,STSOL,False,"📣Coinbase tweet: Assets added to the roadmap today: Lido Staked SOL (STSOL), Wrapped Axelar (WAXL)",,VAL,2022,2022-10-04
+coin_listing,9383,1664927558,CBA,WAXL,False,"📣Coinbase tweet: Assets added to the roadmap today: Lido Staked SOL (STSOL), Wrapped Axelar (WAXL)",,VAL,2022,2022-10-04
+coin_listing,9396,1665073454,CBL,PNG,False,📣Coinbase tweet: Pangolin (PNG) is now live on https://t.co/CD3RBjtMAO & in the Coinbase iOS & Android apps with the Exp,,VAL,2022,2022-10-06
+coin_listing,9445,1665678362,CBL,HBAR,False,📣Coinbase tweet: Hedera (HBAR) is now live on https://t.co/CD3RBjcbce & in the Coinbase iOS & Android apps. Coinbase cus,HBARUSDT,VAL,2022,2022-10-13
+coin_listing,9446,1665678461,CBL,ILV,False,📣Coinbase tweet: Illuvium (ILV) is now live on https://t.co/CD3RBjcbce & in the Coinbase iOS & Android apps. Coinbase cu,,VAL,2022,2022-10-13
+coin_listing,9455,1665764039,CBA,LDO,False,📣Coinbase tweet: Asset added to the roadmap today: Lido DAO (LDO),LDOUSDT,VAL,2022,2022-10-14
+coin_listing,9462,1666056111,CBA,APT,False,📣Coinbase tweet: Coinbase will add support for Aptos (APT) on the Aptos network. Do not send this asset over other netwo,,VAL,2022,2022-10-18
+coin_listing,9483,1666205506,CBL,APT,False,📣Coinbase tweet: Aptos (APT) is now live on https://t.co/CD3RBjukqm & in the Coinbase iOS & Android apps with the Experi,,VAL,2022,2022-10-19
+coin_listing,9490,1666280076,CBA,MNDE,False,📣Coinbase tweet: Assets added to the roadmap today: Marinade (MNDE) and Marinade Staked SOL (MSOL) https://t.co/zu1IBda1,,VAL,2022,2022-10-20
+coin_listing,9515,1666714690,CBL,WAXL,False,📣Coinbase tweet: Wrapped Axelar (WAXL) is now live on https://t.co/CD3RBjtMAO & in the Coinbase iOS & Android apps with ,,VAL,2022,2022-10-25
+coin_listing,9584,1667492820,CBL,MNDE,False,🔥Coinbase trades are live: ((MNDE)) ((MSOL)),,VAL,2022,2022-11-03
+coin_listing,9599,1667597961,CBA,HFT,False,📣Coinbase tweet: Assets added to the roadmap today: Hashflow Token (HFT) https://t.co/zu1IBdrD7X,,VAL,2022,2022-11-04
+coin_listing,9612,1667837711,CBL,HFT,False,📣Coinbase tweet: Hashflow (HFT) is now live on https://t.co/CD3RBjtMAO & in the Coinbase iOS & Android apps with the Exp,,VAL,2022,2022-11-07
+coin_listing,9637,1668089218,CBA,PYR,False,📣Coinbase tweet: Asset added to the roadmap today: Vulcan Forged PYR (PYR),,VAL,2022,2022-11-10
+coin_listing,9661,1668636527,CBA,EGLD,False,📣Coinbase tweet: Assets added to the roadmap today: MultiversX (Previously Elrond) (EGLD)  https://t.co/zu1IBdsaXv,EGLDUSDT,VAL,2022,2022-11-16
+coin_listing,9673,1668706035,CBL,LDO,False,📣Coinbase tweet: Lido DAO (LDO) is now live on https://t.co/CD3RBjcbce & in the Coinbase iOS & Android apps. Coinbase cu,LDOUSDT,VAL,2022,2022-11-17
+coin_listing,9690,1669045822,CBA,KAVA,False,📣Coinbase tweet: Assets added to the roadmap today: Benji (QI) and Kava (KAVA)  https://t.co/zu1IBda1Jn,KAVAUSDT,VAL,2022,2022-11-21
+coin_listing,9690,1669045822,CBA,QI,False,📣Coinbase tweet: Assets added to the roadmap today: Benji (QI) and Kava (KAVA)  https://t.co/zu1IBda1Jn,,VAL,2022,2022-11-21
+coin_listing,9708,1669227720,CBL,QI,False,📣Coinbase tweet: BENQI (QI) is now live on https://t.co/CD3RBjtMAO & in the Coinbase iOS & Android apps. Coinbase custom,,VAL,2022,2022-11-23
+coin_listing,9733,1669742498,CBL,PYR,False,📣Coinbase tweet: Vulcan Forged PYR (PYR) is now live on https://t.co/CD3RBjtMAO & in the Coinbase iOS & Android apps. Co,,VAL,2022,2022-11-29
+coin_listing,9734,1669743702,CBA,GHST,False,📣Coinbase tweet: Assets added to the roadmap today: Aavegotchi (GHST) and Litentry (LIT) https://t.co/zu1IBdrD7X,,VAL,2022,2022-11-29
+coin_listing,9734,1669743702,CBA,LIT,False,📣Coinbase tweet: Assets added to the roadmap today: Aavegotchi (GHST) and Litentry (LIT) https://t.co/zu1IBdrD7X,,VAL,2022,2022-11-29
+coin_listing,9763,1670001056,CBA,ANT,False,"📣Coinbase tweet: Assets added to the roadmap today: Magic (MAGIC), Rocket Pool (RPL), and Aragon (ANT) https://t.co/zu1I",ANTUSDT,VAL,2022,2022-12-02
+coin_listing,9763,1670001056,CBA,MAGIC,False,"📣Coinbase tweet: Assets added to the roadmap today: Magic (MAGIC), Rocket Pool (RPL), and Aragon (ANT) https://t.co/zu1I",,VAL,2022,2022-12-02
+coin_listing,9763,1670001056,CBA,RPL,False,"📣Coinbase tweet: Assets added to the roadmap today: Magic (MAGIC), Rocket Pool (RPL), and Aragon (ANT) https://t.co/zu1I",,VAL,2022,2022-12-02
+coin_listing,9783,1670347750,CBL,GHST,False,📣Coinbase tweet: Aavegotchi (GHST) is now live on https://t.co/CD3RBjtMAO & in the Coinbase iOS & Android apps. Coinbase,,VAL,2022,2022-12-06
+coin_listing,9784,1670348126,CBL,LIT,False,📣Coinbase tweet: Litentry (LIT) is now live on https://t.co/CD3RBjtMAO & in the Coinbase iOS & Android apps. Coinbase cu,,VAL,2022,2022-12-06
+coin_listing,9803,1670433445,CBL,EGLD,False,📣Coinbase tweet: MultiversX (Previously Elrond) (EGLD) is now live on https://t.co/CD3RBjtMAO & in the Coinbase iOS & An,EGLDUSDT,VAL,2022,2022-12-07
+coin_listing,9808,1670520545,CBL,ANT,False,📣Coinbase tweet: Aragon (ANT) is now live on https://t.co/CD3RBjtMAO & in the Coinbase iOS & Android apps. Coinbase cust,ANTUSDT,VAL,2022,2022-12-08
+coin_listing,9809,1670520574,CBL,MAGIC,False,📣Coinbase tweet: Magic (MAGIC) is now live on https://t.co/CD3RBjtMAO & in the Coinbase iOS & Android apps with the Expe,,VAL,2022,2022-12-08
+coin_listing,9843,1671054081,CBA,AXL,False,📣Coinbase tweet: Assets added to the roadmap today: Axelar (AXL) https://t.co/zu1IBdrD7X,,VAL,2022,2022-12-14
+coin_listing,9953,1674149416,CBL,KAVA,False,📣Coinbase tweet: Kava (KAVA) is now live on https://t.co/CD3RBjtMAO & in the Coinbase iOS & Android apps. Coinbase custo,KAVAUSDT,VAL,2023,2023-01-19
+coin_listing,9966,1674492856,CBA,AUDIO,False,📣Coinbase tweet: Asset added to the roadmap today: Audius (AUDIO) https://t.co/zu1IBdrD7X,AUDIOUSDT,VAL,2023,2023-01-23
+coin_listing,9985,1674758143,CBL,AUDIO,False,📣Coinbase tweet: Audius (AUDIO) is now live on https://t.co/CD3RBjtMAO & in the Coinbase iOS & Android apps. Coinbase cu,AUDIOUSDT,VAL,2023,2023-01-26
+coin_listing,10016,1675700859,CBA,VOXEL,False,📣Coinbase article: Coinbase Roadmap: Voxies (VOXEL) Added ,,VAL,2023,2023-02-06
+coin_listing,10022,1675713390,CBL,RPL,False,📣Coinbase tweet: Rocket Pool (RPL) is now live on https://t.co/CD3RBjtMAO & in the Coinbase iOS & Android apps with the ,,VAL,2023,2023-02-06
+coin_listing,10031,1675790577,CBL,AXL,False,📣Coinbase tweet: Axelar (AXL) is now live on https://t.co/CD3RBjtMAO & in the Coinbase iOS & Android apps. Coinbase cust,,VAL,2023,2023-02-07
+coin_listing,10047,1675963030,CBL,VOXEL,False,📣Coinbase tweet: Voxies (VOXEL) is now live on https://t.co/CD3RBjukqm & in the Coinbase iOS & Android apps. Coinbase cu,,VAL,2023,2023-02-09
+coin_listing,10065,1676307034,CBA,BLUR,False,📣Coinbase tweet: Coinbase will add support for Blur (BLUR) on the Ethereum network (ERC-20 token). Do not send this asse,,VAL,2023,2023-02-13
+coin_listing,10077,1676401184,CBA,ACS,False,📣Coinbase tweet: Coinbase will add support for Access Protocol (ACS) on the Solana network. Do not send this asset over ,,VAL,2023,2023-02-14
+coin_listing,10079,1676401670,CBL,BLUR,False,📣Coinbase tweet: Blur (BLUR) is now live on https://t.co/CD3RBjtMAO & in the Coinbase iOS & Android apps with the Experi,,VAL,2023,2023-02-14
+coin_listing,10085,1676482239,CBL,ACS,False,📣Coinbase tweet: Access Protocol (ACS) is now live on https://t.co/CD3RBjtMAO & in the Coinbase iOS & Android apps with ,,VAL,2023,2023-02-15
+coin_listing,10148,1677688267,CBA,PRIME,False,📣Coinbase tweet: Coinbase will add support for PRIME (PRIME) on the Ethereum network (ERC-20 token). Do not send this as,,VAL,2023,2023-03-01
+coin_listing,10152,1677698379,CBL,PRIME,False,📣Coinbase tweet: PRIME (PRIME) is now live on https://t.co/CD3RBjtMAO & in the Coinbase iOS & Android apps with the Expe,,VAL,2023,2023-03-01
+coin_listing,10274,1679345983,CBA,ARB,False,📣Coinbase article: Coinbase Roadmap: Arbitrum (ARB) Added ,,VAL,2023,2023-03-20
+coin_listing,10399,1681157796,CBA,TVK,False,📣Coinbase article: Coinbase Roadmap: Virtua (TVK) Added ,,VAL,2023,2023-04-10
+coin_listing,10409,1681224658,CBA,DIMO,False,📣Coinbase article: Coinbase Roadmap: Dimo (DIMO) Added ,,VAL,2023,2023-04-11
+coin_listing,10443,1681843212,CBA,SPA,False,📣Coinbase article: Coinbase Roadmap: Sperax (SPA) Added ,,VAL,2023,2023-04-18
+coin_listing,10444,1681849894,CBA,MULTI,False,📣Coinbase article: Coinbase Roadmap: Multichain (MULTI) Added ,,VAL,2023,2023-04-18
+coin_listing,10492,1682541886,CBA,OSMO,False,📣Coinbase article: Coinbase Roadmap: Osmosis (OSMO) Added ,,VAL,2023,2023-04-26
+coin_listing,10563,1683577452,CBA,SUI,False,📣Coinbase article: Coinbase Roadmap: Sui (SUI) Added ,,VAL,2023,2023-05-08
+newlistingsfeed,141,1712338812,CBA,TNSR,False,Tensor ($TNSR) added to Coinbase roadmap,,VAL,2024,2024-04-05
+newlistingsfeed,146,1712591832,CBL,TNSR,True,Tensor ($TNSR) listed on Coinbase,,VAL,2024,2024-04-08
+newlistingsfeed,156,1712677865,CBL,SHDW,False,Shadow Token ($SHDW) listed on Coinbase,,VAL,2024,2024-04-09
+newlistingsfeed,184,1713358891,CBL,OMNI,False,Omni Network ($OMNI) listed on Coinbase,,VAL,2024,2024-04-17
+newlistingsfeed,194,1713801601,CBL,KARRAT,False,Karrat ($KARRAT) listed on Coinbase,,VAL,2024,2024-04-22
+newlistingsfeed,199,1713887926,CBL,SAFE,False,Safe ($SAFE) listed on Coinbase,,VAL,2024,2024-04-23
+newlistingsfeed,213,1714405802,CBA,NEON,False,Neon EVM ($NEON) listed on Coinbase spot: Apr 30 at 04:00 PM UTC,,VAL,2024,2024-04-29
+newlistingsfeed,228,1715182801,CBL,NEON,False,Neon EVM ($NEON) listed on Coinbase spot,,VAL,2024,2024-05-08
+newlistingsfeed,250,1715711710,CBA,DRIFT,False,Drift Protocol ($DRIFT) added to Coinbase roadmap,,VAL,2024,2024-05-14
+newlistingsfeed,260,1715961061,CBL,DRIFT,False,Drift Protocol ($DRIFT) listed on Coinbase spot,,VAL,2024,2024-05-17
+newlistingsfeed,326,1718296381,CBL,PIRATE,False,Pirate Nation ($PIRATE) listed on Coinbase spot,,VAL,2024,2024-06-13
+newlistingsfeed,350,1718898841,CBL,ZRO,False,LayerZero ($ZRO) listed on Coinbase spot,,VAL,2024,2024-06-20
+newlistingsfeed,352,1718899141,CBA,CORECHAIN,False,Core ($CORECHAIN) listed on Coinbase spot: Jun 21 at 04:00 PM UTC,,VAL,2024,2024-06-20
+newlistingsfeed,359,1719417120,CBL,BLAST,False,Blast ($BLAST) listed on Coinbase spot,,VAL,2024,2024-06-26
+newlistingsfeed,380,1721028967,BH,PCI,False,$PCI listed on Bithumb spot,,VAL,2024,2024-07-15
+newlistingsfeed,389,1721231460,CBL,A8,False,Ancient8 ($A8) listed on Coinbase spot,,VAL,2024,2024-07-17
+newlistingsfeed,401,1721714348,BH,AVAIL,False,$AVAIL listed on Bithumb spot,,VAL,2024,2024-07-23
+newlistingsfeed,405,1721836261,CBL,LRDS,False,BLOCKLORDS ($LRDS) listed on Coinbase spot,,VAL,2024,2024-07-24
+newlistingsfeed,414,1722280081,CBL,SD,False,Stader ($SD) listed on Coinbase spot,,VAL,2024,2024-07-29
+newlistingsfeed,425,1723028711,BH,IO,False,$IO listed on Bithumb spot,IOUSDT,VAL,2024,2024-08-07
+newlistingsfeed,435,1723604032,BH,ATH,False,$ATH listed on Bithumb spot,,VAL,2024,2024-08-14
+newlistingsfeed,460,1724257818,CBA,POL,False,Polygon Ecosystem Token ($POL) added to Coinbase roadmap,,VAL,2024,2024-08-21
+newlistingsfeed,491,1725471661,CBL,POL,False,Polygon Ecosystem Token ($POL) listed on Coinbase spot,,VAL,2024,2024-09-04
+newlistingsfeed,493,1725507018,BH,ETHFI,False,"$JTO, $ETHFI listed on Bithumb spot",ETHFIUSDT,VAL,2024,2024-09-05
+newlistingsfeed,493,1725507018,BH,JTO,False,"$JTO, $ETHFI listed on Bithumb spot",JTOUSDT,VAL,2024,2024-09-05
+newlistingsfeed,499,1725571173,CBA,WELL,False,Moonwell ($WELL) added to Coinbase roadmap,,VAL,2024,2024-09-05
+newlistingsfeed,502,1725638255,CBA,ZK,False,ZKsync ($ZK) added to Coinbase roadmap,ZKUSDT,VAL,2024,2024-09-06
+newlistingsfeed,520,1726606436,CBA,COW,False,CoW Protocol ($COW) added to Coinbase roadmap,,VAL,2024,2024-09-17
+newlistingsfeed,524,1726675140,CBL,ALEO,False,Aleo ($ALEO) listed on Coinbase spot,,VAL,2024,2024-09-18
+newlistingsfeed,525,1726675860,CBL,ZETACHAIN,False,Zetachain ($ZETACHAIN) listed on Coinbase spot,,VAL,2024,2024-09-18
+newlistingsfeed,537,1727107441,CBL,WELL,False,Moonwell ($WELL) listed on Coinbase spot,,VAL,2024,2024-09-23
+newlistingsfeed,538,1727108520,CBL,COW,False,CoW Protocol ($COW) listed on Coinbase spot,,VAL,2024,2024-09-23
+newlistingsfeed,541,1727210760,CBL,ZK,False,ZKsync ($ZK) listed on Coinbase spot,ZKUSDT,VAL,2024,2024-09-24
+newlistingsfeed,552,1727467122,CBA,EIGEN,False, EigenLayer ($EIGEN) added to Coinbase roadmap,,VAL,2024,2024-09-27
+newlistingsfeed,558,1727711520,CBL,EIGEN,False,EigenLayer ($EIGEN) listed on Coinbase spot,,VAL,2024,2024-09-30
+newlistingsfeed,561,1727808661,CBA,IO,False,io.net ($IO) added to Coinbase roadmap,IOUSDT,VAL,2024,2024-10-01
+newlistingsfeed,577,1728403440,CBL,IO,False,io․net ($IO) listed on Coinbase spot,IOUSDT,VAL,2024,2024-10-08
+newlistingsfeed,587,1728925140,CBL,DEGEN,False,Degen ($DEGEN) listed on Coinbase spot,,VAL,2024,2024-10-14
+newlistingsfeed,609,1729755606,BH,AUCTION,False,"$BEAM, $AUCTION listed on Bithumb spot",AUCTIONUSDT,VAL,2024,2024-10-24
+newlistingsfeed,609,1729755606,BH,BEAM,False,"$BEAM, $AUCTION listed on Bithumb spot",,VAL,2024,2024-10-24
+newlistingsfeed,621,1730182040,BH,CARV,False,"$CARV, $OMNI listed on Bithumb spot",,VAL,2024,2024-10-29
+newlistingsfeed,621,1730182040,BH,OMNI,False,"$CARV, $OMNI listed on Bithumb spot",OMNIUSDT,VAL,2024,2024-10-29
+newlistingsfeed,652,1731390545,BH,MVL,False,"$TURBO, $MVL, $TOKAMAK listed on Bithumb spot",,VAL,2024,2024-11-12
+newlistingsfeed,652,1731390545,BH,TOKAMAK,False,"$TURBO, $MVL, $TOKAMAK listed on Bithumb spot",,VAL,2024,2024-11-12
+newlistingsfeed,652,1731390545,BH,TURBO,False,"$TURBO, $MVL, $TOKAMAK listed on Bithumb spot",TURBOUSDT,VAL,2024,2024-11-12
+coin_listing,10984,1731505236,RH,ADA,False,"Robinhood Listed #SOL, #ADA, #XRP, #PEPE",ADAUSDT,VAL,2024,2024-11-13
+coin_listing,10984,1731505236,RH,PEPE,False,"Robinhood Listed #SOL, #ADA, #XRP, #PEPE",1000PEPEUSDT,VAL,2024,2024-11-13
+coin_listing,10984,1731505236,RH,SOL,False,"Robinhood Listed #SOL, #ADA, #XRP, #PEPE",SOLUSDT,VAL,2024,2024-11-13
+coin_listing,10984,1731505236,RH,XRP,False,"Robinhood Listed #SOL, #ADA, #XRP, #PEPE",XRPUSDT,VAL,2024,2024-11-13
+newlistingsfeed,666,1731506400,CBA,PEPE,False,$PEPE added to Coinbase roadmap,1000PEPEUSDT,VAL,2024,2024-11-13
+newlistingsfeed,667,1731508800,CBL,PEPE,False,Pepe ($PEPE) listed on Coinbase spot,1000PEPEUSDT,VAL,2024,2024-11-13
+newlistingsfeed,668,1731524400,CBA,WIF,False,$WIF added to Coinbase roadmap,WIFUSDT,VAL,2024,2024-11-13
+newlistingsfeed,669,1731526800,CBL,WIF,False,dogwifhat ($WIF) listed on Coinbase spot,WIFUSDT,VAL,2024,2024-11-13
+newlistingsfeed,670,1731551706,BH,ALT,False,"$ALT, $SWELL listed on Bithumb spot",ALTUSDT,VAL,2024,2024-11-14
+newlistingsfeed,670,1731551706,BH,SWELL,False,"$ALT, $SWELL listed on Bithumb spot",,VAL,2024,2024-11-14
+newlistingsfeed,688,1731701400,CBA,FLOKI,True,$FLOKI added to Coinbase roadmap,1000FLOKIUSDT,VAL,2024,2024-11-15
+newlistingsfeed,701,1731987005,BH,PONKE,False,"$RAY, $PONKE listed on Bithumb spot",PONKEUSDT,VAL,2024,2024-11-19
+newlistingsfeed,701,1731987005,BH,RAY,False,"$RAY, $PONKE listed on Bithumb spot",,VAL,2024,2024-11-19
+newlistingsfeed,717,1732122600,CBL,FLOKI,False,FLOKI ($FLOKI) listed on Coinbase spot,1000FLOKIUSDT,VAL,2024,2024-11-20
+newlistingsfeed,718,1732171208,BH,METIS,False,"$TON, $METIS listed on Bithumb spot",METISUSDT,VAL,2024,2024-11-21
+newlistingsfeed,718,1732171208,BH,TON,False,"$TON, $METIS listed on Bithumb spot",TONUSDT,VAL,2024,2024-11-21
+newlistingsfeed,736,1732500004,BH,BICO,False,"$BICO, $PUFFER listed on Bithumb spot",BICOUSDT,VAL,2024,2024-11-25
+newlistingsfeed,736,1732500004,BH,PUFFER,False,"$BICO, $PUFFER listed on Bithumb spot",,VAL,2024,2024-11-25
+newlistingsfeed,746,1732695308,BH,BB,False,"$BB, $SKL listed on Bithumb spot",BBUSDT,VAL,2024,2024-11-27
+newlistingsfeed,746,1732695308,BH,SKL,False,"$BB, $SKL listed on Bithumb spot",SKLUSDT,VAL,2024,2024-11-27
+newlistingsfeed,759,1732847108,BH,VIRTUAL,False,$VIRTUAL listed on Bithumb spot,,VAL,2024,2024-11-29
+newlistingsfeed,765,1733152201,CBA,MOODENG,False,$MOODENG added to Coinbase roadmap,MOODENGUSDT,VAL,2024,2024-12-02
+newlistingsfeed,766,1733210708,BH,ORDER,False,$ORDER listed on Bithumb spot,,VAL,2024,2024-12-03
+newlistingsfeed,767,1733236800,CBA,MOG,False,$MOG added to Coinbase roadmap,,VAL,2024,2024-12-03
+newlistingsfeed,774,1733323200,CBA,GIGA,False,"$GIGA, $TURBO added to Coinbase roadmap",,VAL,2024,2024-12-04
+newlistingsfeed,774,1733323200,CBA,TURBO,False,"$GIGA, $TURBO added to Coinbase roadmap",TURBOUSDT,VAL,2024,2024-12-04
+newlistingsfeed,775,1733331600,CBL,MOVE,False,Movement ($MOVE) listed on Coinbase spot,,VAL,2024,2024-12-04
+newlistingsfeed,776,1733331600,CBL,MOG,False,MOG Coin ($MOG) listed on Coinbase spot,,VAL,2024,2024-12-04
+newlistingsfeed,779,1733379918,BH,MORPHO,False,"$NEIRO, $MORPHO, $SUNDOG listed on Bithumb spot",MORPHOUSDT,VAL,2024,2024-12-05
+newlistingsfeed,779,1733379918,BH,NEIRO,False,"$NEIRO, $MORPHO, $SUNDOG listed on Bithumb spot",NEIROUSDT,VAL,2024,2024-12-05
+newlistingsfeed,779,1733379918,BH,SUNDOG,False,"$NEIRO, $MORPHO, $SUNDOG listed on Bithumb spot",,VAL,2024,2024-12-05
+newlistingsfeed,796,1733722401,BH,MOVE,False,$MOVE listed on Bithumb spot,,VAL,2024,2024-12-09
+newlistingsfeed,808,1733825431,BH,ME,False,"$ME, $F listed on Bithumb spot",,VAL,2024,2024-12-10
+newlistingsfeed,815,1733850606,CBL,TURBO,False,$TURBO added to Coinbase spot,TURBOUSDT,VAL,2024,2024-12-10
+newlistingsfeed,816,1733850606,CBL,GIGA,False,$GIGA added to Coinbase spot,,VAL,2024,2024-12-10
+newlistingsfeed,817,1733863206,CBL,ME,False,$ME added to Coinbase spot,,VAL,2024,2024-12-10
+newlistingsfeed,821,1733931081,CBA,PNUT,False,$PNUT added to Coinbase roadmap,PNUTUSDT,VAL,2024,2024-12-11
+newlistingsfeed,828,1734056613,BH,RON,False,"$SCR, $RON listed on Bithumb spot",,VAL,2024,2024-12-13
+newlistingsfeed,828,1734056613,BH,SCR,False,"$SCR, $RON listed on Bithumb spot",SCRUSDT,VAL,2024,2024-12-13
+newlistingsfeed,839,1734137446,CBA,PRCL,False,$PRCL added to Coinbase roadmap,,VAL,2024,2024-12-14
+newlistingsfeed,842,1734316831,BH,MOCA,False,"$MOCA, $MOODENG listed on Bithumb spot",,VAL,2024,2024-12-16
+newlistingsfeed,842,1734316831,BH,MOODENG,False,"$MOCA, $MOODENG listed on Bithumb spot",MOODENGUSDT,VAL,2024,2024-12-16
+newlistingsfeed,854,1734369049,CBL,PRCL,False,$PRCL added to Coinbase spot,,VAL,2024,2024-12-16
+newlistingsfeed,855,1734396620,BH,GOAT,False,$GOAT listed on Bithumb spot,GOATUSDT,VAL,2024,2024-12-17
+newlistingsfeed,885,1734644384,RH,BONK,False,$BONK listed on Robinhood spot,1000BONKUSDT,VAL,2024,2024-12-19
+newlistingsfeed,886,1734673487,BH,DBR,False,$DBR listed on Bithumb spot,,VAL,2024,2024-12-20
+newlistingsfeed,906,1735017576,BH,PENGU,False,$PENGU listed on Bithumb spot,PENGUUSDT,VAL,2024,2024-12-24
