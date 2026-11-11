@@ -147,7 +147,7 @@ def test_ecb_and_gold_backtests_never_reach_the_server(homes, strategy, symbol, 
     assert "--CommandPollMs=0" in command and "--ApiUrl=http://127.0.0.1:8000/trade" not in command
     assert "--Lots=0.01" in command                                   # the preset's own values still apply
     if src.strategy == "gold_levels":
-        assert "--TradeLogFile=" in command                           # never a trade log out of a backtest
+        assert not any(a.startswith("--TradeLogFile=") for a in command)  # the CLI rejects an empty value
         assert "--ReplayHistory=false" in command                     # GetTicks() hangs long cTrader backtests
 
 
