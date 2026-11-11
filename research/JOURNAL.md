@@ -6,6 +6,13 @@ detail. The numbers are copied from those files, and the file wins if the two ev
 When you write a new result file, add a row to that day's entry (or start a new entry) and link the file. Don't
 repeat its tables here.
 
+## 2026-11-11: sizing a risk-capital fund across the algorithms (not a strategy test); B's borrow checked on the API
+
+| tested | verdict | detail |
+|---|---|---|
+| B demo borrow: is "0 inventory" a misread? Signed GETs (inventory cross / isolated, maxBorrowable, hourly rates) for B's coins and for large coins, with ~$1k collateral in cross margin | **read correctly, not fillable**: all 15 signals (LSK, BMT, GTC, INIT) had 0 inventory and `-3045` on maxBorrowable; the account borrows XRP, BNB, BTC fine; 183 / 384 assets at 0 (ETH, SOL included). Borrow rate on B's coins 61-100 %/yr. B's discount likely needs an unshortable spot; its 20 % in the allocation moves to the reserve | [basis_b_borrow_check_2026-11-11.md](results/portfolio/basis_b_borrow_check_2026-11-11.md) |
+| C3 compounded at 3-20 % risk per leg on the registered trade list, full and half edge; Kelly notional of A2-D5L and B implied from their HOLD n / mean / t | Kelly per leg 10.5 % (full edge), 5.2 % (half); at half edge growth peaks near 5 % (CAGR +24 %, DD 67 %; full edge +97 %, DD 51 %); from 10 % a halved edge wipes. A2-D5L Kelly ~1.36 x capital (half edge 0.68). The split is written down in [docs/capital-allocation.md](../docs/capital-allocation.md) (C3 at 4 % per leg: +1.3 points of CAGR from 5 % is not worth 10 more points of DD at half edge) | [c3_kelly_sweep_2026-11-11.md](results/portfolio/c3_kelly_sweep_2026-11-11.md) |
+
 ## 2026-11-08: A2-D5L capture by active pull (`tg_pull.py`, 11-02 15:57 to 11-08 21:30 UTC). Latency passes, listings too few
 
 | tested | verdict | detail |
