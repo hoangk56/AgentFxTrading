@@ -64,5 +64,8 @@ Cron on agentFx (forge's crontab), one loop held by flock:
 | `python -m app.a2_live close-all` | closes every open event now |
 | `touch $A2_STATE_DIR/STOP_A2` | no new entries; open events still exit normally |
 
+The dashboard's Nghiên cứu screen shows it under A2-D5L (`app/a2_live_status.py`: mode, open events, the latest
+notices with seen / entry seconds, slippage and net, and the registered promotion check).
+
 Entries, exits and skips of coins that have a perp go to Telegram (`TELEGRAM_BOT_TOKEN` / `TELEGRAM_CHAT_ID`, as
 `app/alerts.py`), and so do ERROR lines.

@@ -8,6 +8,7 @@ the page: the answer is an empty registry and a `warning` the page shows. Tracke
   (app/forward_status.py), with the rule numbers of each candidate.
 - `basis_b`: the paper / demo bot's `status()` from app/basis_b_status.py, imported lazily so a missing module or one
   that raises only empties that tracker.
+- `a2_live`: the A2-D5L executor's `status()` from app/a2_live_status.py (its trades.csv / state.json), same way.
 
 The handler is a plain `def`: FastAPI runs it in its threadpool, so the DB work never blocks the event loop that serves
 the bots' reports. Docs: docs/research-screen.md.
@@ -46,7 +47,7 @@ REPO_ROOT = Path(__file__).resolve().parent.parent
 REGISTRY_PATH = REPO_ROOT / "research" / "registry.yaml"
 TIERS = ("live", "demo", "cho-kiem", "da-loai")
 RULE_TRACKERS = tuple(CANDIDATES)          # ecb_f3, ecb_e1, gold_levels
-BASIS_TRACKERS = ("basis_b",)
+BASIS_TRACKERS = ("basis_b", "a2_live")
 NO_DATA = "chưa có dữ liệu"
 
 
@@ -153,11 +154,20 @@ def _rule_trackers(keys: List[str]) -> dict:
 
 def basis_b_tracker() -> dict:
     """The basis B bot's status() (app/basis_b_status.py), or an empty tracker when it is missing or fails."""
-    out = {"key": "basis_b", "kind": "basis_b", "available": False, "message": NO_DATA}
+    return _module_tracker("basis_b", "app.basis_b_status")
+
+
+def a2_live_tracker() -> dict:
+    """The A2-D5L executor's status() (app/a2_live_status.py), or an empty tracker when it is missing or fails."""
+    return _module_tracker("a2_live", "app.a2_live_status")
+
+
+def _module_tracker(key: str, module: str) -> dict:
+    out = {"key": key, "kind": key, "available": False, "message": NO_DATA}
     try:
-        status = importlib.import_module("app.basis_b_status").status()
+        status = importlib.import_module(module).status()
     except Exception as e:
-        logger.info(f"[RESEARCH] basis_b status unavailable: {type(e).__name__}: {e}")
+        logger.info(f"[RESEARCH] {key} status unavailable: {type(e).__name__}: {e}")
         return out
     if not isinstance(status, dict):
         return out
@@ -195,6 +205,8 @@ def research_payload(path: Path = None, plain_path: Path = None) -> dict:
     trackers = _rule_trackers([k for k in RULE_TRACKERS if k in wanted])
     if "basis_b" in wanted:
         trackers["basis_b"] = basis_b_tracker()
+    if "a2_live" in wanted:
+        trackers["a2_live"] = a2_live_tracker()
     for a in algorithms:
         key = a["forward"]
         if key and key not in trackers:

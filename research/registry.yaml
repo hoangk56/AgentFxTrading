@@ -166,13 +166,13 @@ algorithms:
     description: "Khi Upbit đăng thông báo đưa một coin (đã có perp Binance ≥ 7 ngày) lên thị trường KRW, mua perp coin đó và bán perp BTC cùng giá trị ở giao dịch đầu tiên sau giờ đăng + 5 giây, thoát lúc thị trường KRW mở."
     market: crypto Binance (altcoin perp) + thông báo Upbit
     round: R65
-    tier: cho-kiem
-    tier_reason: "Qua holdout bậc DEMO mạnh (91 lệnh, +780 bp/lệnh, t 3,11; khớp giá xấu nhất trong 1 giây +540, t 2,25) nhưng đăng ký là DEMO vì power 2,97 < 3; lên live cần bot thấy thông báo trong ~3 giây và demo gộp t ≥ 2,5: người dùng quyết (round65_retail_venues/A2/PREREG_A2_D5L.md)."
+    tier: demo
+    tier_reason: "Qua holdout bậc DEMO mạnh (91 lệnh, +780 bp/lệnh, t 3,11; khớp giá xấu nhất trong 1 giây +540, t 2,25) nhưng đăng ký là DEMO vì power 2,97 < 3. Từ 2026-11-11 chạy tiền thật nhỏ (app/a2_live.py, 10 lệnh đầu 1.000 USDT/chân) để đo khớp lệnh; lên live khi HOLD + lệnh thật gộp t ≥ 2,5 và thấy thông báo ≤ 3 giây ở ≥ 80 % lần: người dùng quyết (round65_retail_venues/A2/PREREG_A2_D5L.md)."
     research:
       is: "2020–2021: n 12, +1.296 bp/lệnh, t 3,07"
       val: "2022–2024: n 32, +520 bp, t 1,75"
       hold: "2025-01..2026-10: n 91, +780 bp, t 3,11; trung vị +18, bỏ 5 lệnh lớn nhất +384; vào sau 10 giây chỉ +276; 2025 +1.234, 2026 +274"
-    forward: null
+    forward: a2_live
     bot: null
     prereg: research/results/portfolio/round65_retail_venues/A2/PREREG_A2_D5L.md
     report: research/results/portfolio/round65_retail_venues_2026-11-01.md
