@@ -75,12 +75,13 @@ LOCKED_PARAMS: Dict[str, Dict[str, str]] = {
         "TelemetryUrl": DISABLED_URL,
         "ReportUrl": DISABLED_URL,
         "CommandPollMs": "0",
-        "TradeLogFile": "",
         "ReplayHistory": "false",
     },
 }
 # Never passed to a backtest container, whatever the bot's command says.
-DROPPED_PARAMS: set = set()
+# TradeLogFile: the CLI rejects an empty value ("Unable to determine destination for argument value:
+# --TradeLogFile="), and left unset GoldLevelBot writes no trade log outside RealTime.
+DROPPED_PARAMS: set = {"TradeLogFile"}
 # Metadata groups the form does not show; their unlocked parameters keep the bot's value.
 HIDDEN_GROUPS = {"Server"}
 
