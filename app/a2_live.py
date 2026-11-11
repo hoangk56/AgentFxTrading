@@ -551,6 +551,8 @@ def check(cfg: Config, fut: Futures) -> int:
             print(f"available balance {acc.get('availableBalance')} USDT, wallet {acc.get('totalWalletBalance')}")
         except HttpError as e:
             print("signed call failed:", e)
+            if e.binance_code() == -2015:
+                print("hint: the key needs Enable Futures and the IP restriction 204.168.144.232 (Binance enables futures only on IP-restricted keys)")
             return 1
     print("upbit candles:", "ok" if Upbit().first_candle("BTC") else "no answer")
     return 0 if not cfg.problems() else 1
@@ -591,9 +593,15 @@ def main(argv: List[str]) -> int:
             for p in cfg.problems():
                 log.error("A2 executor not started: %s", p)
             return 2
-        if cfg.live and fut.dual_side():
-            log.error("A2 executor not started: the futures account is in hedge mode; switch to one-way")
-            return 2
+        if cfg.live:
+            try:
+                hedge = fut.dual_side()
+            except HttpError as e:     # -2015: wrong key, IP not whitelisted, or futures not enabled on the key
+                log.error("A2 executor not started: Binance refused the key (%s); run `python -m app.a2_live check`", e)
+                return 2
+            if hedge:
+                log.error("A2 executor not started: the futures account is in hedge mode; switch to one-way")
+                return 2
         return run(cfg, ex)
     print(__doc__)
     return 2
