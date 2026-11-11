@@ -285,6 +285,59 @@ function rsBasisHtml(tr) {
     return html;
 }
 
+/** The A2-D5L executor (app/a2_live_status.py): real-money trades on Binance, read from its own files. */
+function rsA2Html(tr) {
+    const a = tr.data || {};
+    if (!tr.available) return '<p class="td-dim">Bộ đặt lệnh chưa chạy lần nào (chưa có sổ).</p>';
+    const mode = a.mode === 'live'
+        ? `<b>Tiền thật</b>${a.notional ? `, ${rsNum(a.notional, 0)} USDT/chân` : ''}${a.leverage ? `, đòn bẩy ${rsNum(a.leverage, 0)}` : ''}`
+        : '<b>Chạy thử</b> (không gửi lệnh)';
+    let html = `<p class="rs-line">${mode}${a.stopped ? ' · <span class="pnl-negative">đang tạm dừng (STOP_A2)</span>' : ''}</p>`;
+    html += `<div class="rs-verdict-line">${rsVerdictHtml(a.verdict)}`
+        + `${a.verdict_reason ? ` <span>${escapeHtml(a.verdict_reason)}</span>` : ''}</div>`;
+    html += rsStatsHtml([
+        ['Lệnh thật đã đóng', escapeHtml(a.n)],
+        ['Tổng ròng (bp)', rsNum(a.cum_net_bp, 1, true), rsTone(a.cum_net_bp)],
+        ['TB ròng (bp)', rsNum(a.mean_net_bp, 1, true), rsTone(a.mean_net_bp)],
+        ['t gộp', rsNum(a.pooled_t, 2, true)],
+        ['Thấy tin ≤ 3 giây', a.seen_le3_share === null || a.seen_le3_share === undefined ? '–'
+            : rsNum(Number(a.seen_le3_share) * 100, 0) + ' %'],
+        ['Bỏ qua', escapeHtml(a.skipped)],
+    ]);
+    const r = a.rules || {}, hold = r.hold || {};
+    html += '<div class="td-dim">Luật đã đăng ký</div>' + rsListItemsHtml([
+        `Đủ điều kiện xét khi t gộp (HOLD + lệnh thật) ≥ ${r.promote_t} sau ít nhất ${r.min_live} lệnh thật, `
+            + `và thấy tin trong ${r.detect_s} giây ở ≥ ${rsNum(Number(r.detect_share) * 100, 0)} % lần.`,
+        `HOLD đã đăng ký: ${hold.n} lệnh, TB ${rsNum(hold.mean_bp, 1, true)} bp, t ${rsNum(hold.t, 2)}.`,
+    ]);
+    const open = a.open || [];
+    if (open.length) {
+        html += `<div class="td-dim rs-sub">Đang mở (${open.length})</div><div class="table-wrap"><table class="data-table rs-table">`
+            + '<thead><tr><th>Coin</th><th>Hợp đồng</th><th>Vào lúc (UTC)</th><th>USDT/chân</th><th>Chế độ</th></tr></thead><tbody>'
+            + open.map(o => `<tr><td>${escapeHtml(o.coin)}</td><td>${escapeHtml(o.perp)}</td><td>${escapeHtml(o.entry_time)}</td>`
+                + `<td>${rsNum(o.notional, 0)}</td><td>${o.mode === 'live' ? 'thật' : 'thử'}</td></tr>`).join('')
+            + '</tbody></table></div>';
+    }
+    const closed = (a.closed || []).slice(0, RS_CLOSED_ROWS);
+    if (closed.length) {
+        html += `<div class="td-dim rs-sub">Thông báo gần nhất (${closed.length})</div>`
+            + '<div class="table-wrap"><table class="data-table rs-table"><thead><tr><th>Tin (UTC)</th><th>Coin</th>'
+            + '<th>Chế độ</th><th>Thấy tin (giây)</th><th>Vào (giây)</th><th>Trượt giá (bp)</th><th>Giữ (giờ)</th>'
+            + '<th>Ròng (bp)</th><th>Ghi chú</th></tr></thead><tbody>'
+            + closed.map(c => `<tr><td>${escapeHtml(c.post_time)}</td><td>${escapeHtml(c.coin)}</td>`
+                + `<td>${c.mode === 'live' ? 'thật' : 'thử'}</td><td>${rsNum(c.seen_s, 1)}</td><td>${rsNum(c.entry_s, 1)}</td>`
+                + `<td>${rsNum(c.slip_bp, 1, true)}</td><td>${rsNum(c.hold_h, 2)}</td>`
+                + `<td class="${rsTone(c.net_bp)}">${rsNum(c.net_bp, 1, true)}</td>`
+                + `<td class="td-dim">${escapeHtml(c.exit_reason === 'skipped' ? (c.note || 'bỏ qua') : (c.exit_reason || ''))}</td></tr>`).join('')
+            + '</tbody></table></div>';
+    } else if (!open.length) {
+        html += '<p class="td-dim">Chưa có thông báo niêm yết nào từ lúc bộ đặt lệnh chạy.</p>';
+    }
+    html += '<p class="rs-line td-dim">Ròng = lãi chân long coin trừ chân short BTC theo giá khớp, trừ 20 bp phí như trong '
+        + `nghiên cứu. Trượt giá = giá khớp so với giá chào bán ngay trước lệnh.${a.updated ? ` Sổ cập nhật ${escapeHtml(a.updated)} UTC.` : ''}</p>`;
+    return html;
+}
+
 /** Real-money R of a live rule without a tracker of its own (app/live_r.py). */
 function rsLiveRHtml(tr) {
     if (!tr.available || !tr.data) return `<p class="td-dim">${escapeHtml(tr.message || 'Chưa có dữ liệu.')}</p>`;
@@ -309,6 +362,7 @@ function rsTrackerHtml(entry, data) {
         return '<p class="td-dim">Không có bot kiểm chứng.</p>';
     }
     if (tr.kind === 'basis_b') return rsBasisHtml(tr);
+    if (tr.kind === 'a2_live') return rsA2Html(tr);
     if (tr.kind === 'live_r') return rsLiveRHtml(tr);
     if (!tr.available || !tr.data) return `<p class="td-dim">${escapeHtml(tr.message || 'Chưa có dữ liệu.')}</p>`;
     return rsRulesTrackerHtml(tr, data && data.gold_calendar);
@@ -451,6 +505,8 @@ function rsRealRun(entry) {
         run = {n: d.n, mean: d.mean, t: d.forward_t, target: tr.rules ? tr.rules.promote_after : null};
     } else if (tr.kind === 'basis_b' && unit === 'bp') {
         run = {n: d.closed_n, mean: d.mean_net_bp, t: d.forward_t, target: d.rules ? d.rules.stop_after : null};
+    } else if (tr.kind === 'a2_live' && unit === 'bp') {
+        run = {n: d.n, mean: d.mean_net_bp, t: d.forward_t, target: d.rules ? d.rules.min_live : null};
     } else if (tr.kind === 'live_r' && unit === 'R') {
         run = {n: d.n, mean: d.mean, t: d.forward_t, target: null};
     }

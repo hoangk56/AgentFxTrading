@@ -84,7 +84,23 @@ basis-b:
   history:
     - {date: 2026-11-01, kind: find, text: "Tìm ra ở vòng R63"}
     - {date: 2026-11-01, kind: demo, text: "Thêm bot demo đo xem có vay được coin để bán khống không"}
+    - {date: 2026-11-11, kind: wait, text: "15/15 tín hiệu không vay được coin (Binance hết hàng cho vay đúng các coin đó); rút khỏi phân bổ vốn"}
   note: "Chưa biết có vay được coin để bán thật không; demo đang đo đúng chuyện đó."
+
+a2-upbit-notice-5s:
+  name: "Mua coin 5 giây sau khi Upbit báo niêm yết KRW (A2-D5L)"
+  what: "Khi Upbit báo đưa một coin lên chợ KRW, 5 giây sau mua hợp đồng coin đó trên Binance và bán hợp đồng BTC cùng giá trị, đóng cả hai lúc chợ KRW mở."
+  why: "Người chơi Hàn Quốc đổ tiền vào coin mới lên Upbit; giá trên Binance thường tiếp tục lên tới lúc chợ KRW mở."
+  unit: bp
+  periods:
+    is: {years: "2020–2021", n: 12, mean: 1296.1, t: 3.07}
+    val: {years: "2022–2024", n: 32, mean: 519.9, t: 1.75}
+    hold: {years: "2025–2026", n: 91, mean: 780.3, t: 3.11}
+  history:
+    - {date: 2026-11-01, kind: find, text: "Tìm ra ở vòng R65, qua lần kiểm cuối (holdout)"}
+    - {date: 2026-11-08, kind: wait, text: "Bộ bắt tin Telegram thấy thông báo trong 3 giây ở 29/30 bài"}
+    - {date: 2026-11-11, kind: demo, text: "Chạy tiền thật nhỏ: 10 lệnh đầu 1.000 USDT/chân, sau đó 4.000"}
+  note: "Lãi dồn vào ít lệnh lớn (5 lệnh lớn nhất = 54 % tổng); vào chậm sau 10 giây chỉ còn +276 bp."
 
 # ---------------------------------------------------------------- chờ quyết
 x3-crypto-mom-carry:

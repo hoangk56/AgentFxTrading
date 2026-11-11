@@ -17,6 +17,7 @@ list group and its detail.
 | Real-money R of live R rules (Gotobi) | `app/live_r.py` |
 | Rules trackers (F3, E1, gold) | `app/forward_status.py` |
 | Basis B tracker | `app/basis_b_status.py` |
+| A2-D5L executor tracker (real fills from `data/a2_live/`) | `app/a2_live_status.py` |
 | Page script / CSS | `static/js/research.js`, `static/css/dashboard.css` (`rs-*` classes) |
 | Markup | `templates/dashboard.html`, `#view-research` |
 | Tests | `tests/app/test_research_api.py`, `tests/app/test_research_plain.py`, `tests/app/test_live_r.py`, `tests/app/test_research_ui.py` (fixtures `tests/fixtures/research/`) |
@@ -39,7 +40,7 @@ algorithms:
     tier: live                   # live | demo | cho-kiem | da-loai
     tier_reason: ...             # why it sits in that tier
     research: {is: "...", val: "...", hold: "..."}   # free text, any key may be missing
-    forward: ecb_f3              # ecb_f3 | ecb_e1 | gold_levels | basis_b | null
+    forward: ecb_f3              # ecb_f3 | ecb_e1 | gold_levels | basis_b | a2_live | null
     bot: cbot-...                # or null
     prereg: research/results/.../PREREG_....md      # or null
     report: research/results/.../REPORT.md
