@@ -17,6 +17,12 @@ Sources: F3 `round24_relaxed/PREREG_R24_relaxed_hold.md` (HOLD) and `PREREG_DRAF
 E1 `round13_structural/PREREG_M_eurusd_midday.md`; gold `round27_levels_opens/PREREG_G_gold_round50_cascade.md`.
 C3 (Gotobi) is already LIVE and is not tracked here.
 
+## A2-D5L executor
+
+A2-D5L (DEMO, HOLD t 3.11) is not a cBot: `app/a2_live.py` trades it on Binance USDT-M from the Telegram capture,
+dry run until the user sets `A2_LIVE=1` and a key. Its fills in `trades.csv` are the real fills the registered
+promotion (pooled t >= 2.5) needs. See [a2-live.md](a2-live.md).
+
 ## What the module computes
 
 - Trade net bp = price move over entry price on the real fills, minus 0.6 bp commission (the research's cost).
