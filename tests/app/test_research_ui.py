@@ -17,7 +17,9 @@ PURE = ("rsNum", "rsTierOf", "rsTierLabel", "rsFold", "rsMatches", "rsFilter", "
         "rsRulesTrackerHtml", "rsFillable", "rsBasisHtml", "rsTrackerHtml", "rsDetailHtml",
         "rsTriedHtml", "rsStatusOf", "rsFlagOf", "rsTechHtml", "rsLiveRHtml", "rsPlainName", "rsUnitInfo", "rsVi",
         "rsSure", "rsSureHtml", "rsRunLabel", "rsRealRun", "rsBarValues", "rsTrend", "rsTrendSentence", "rsTrendHtml",
-        "rsMiniBarsHtml", "rsPeriodChartHtml", "rsSureLineHtml", "rsJourneyHtml", "rsRealVerdict", "rsTrackerCount")
+        "rsMiniBarsHtml", "rsPeriodChartHtml", "rsJourneyHtml", "rsRealVerdict", "rsTrackerCount",
+        "rsPanelHtml", "rsRowHtml", "rsBigHtml", "rsDate", "rsResearchRef", "rsSinceOf", "rsResearchPanelHtml",
+        "rsForwardPanelHtml", "rsPeriodCellHtml", "rsPeriodDiff", "rsPeriodsHtml")
 
 
 def test_dashboard_has_the_research_nav_view_and_script():
@@ -254,3 +256,55 @@ def test_run_sentence_never_invents_an_empty_run():
         assert "chưa có lệnh nào" not in out[key], key
     assert "chưa đủ chắc để đổi kết luận" in out["noisy"].split(" | ")[0]
     assert "chưa trừ phí hoa hồng" in out["noisy"]
+
+
+def _cell(n, mean, t=None, covered=7, days=7, frm="2026-11-07", to="2026-11-13"):
+    return {"from": frm, "to": to, "days": days, "covered": covered, "n": n, "mean": mean, "t": t,
+            "total": None if mean is None else n * mean}
+
+
+def _periods(unit="bp"):
+    return {"unit": unit, "end": "2026-11-13", "since": "2026-10-16",
+            "week": {"current": _cell(6, 3.0, 1.2), "previous": _cell(2, -1.0, 0.5, frm="2026-10-31", to="2026-11-06")},
+            "month": {"current": _cell(3, 1.0, covered=29, days=31, frm="2026-10-14"),
+                      "previous": _cell(0, None, covered=0, days=30, frm="2026-09-14", to="2026-10-13")},
+            "year": {"current": _cell(20, -0.5, -0.4, covered=29, days=365, frm="2025-11-14"),
+                     "previous": _cell(0, None, covered=0, days=365, frm="2024-11-14", to="2025-11-13")}}
+
+
+@pytest.mark.skipif(NODE is None, reason="node is not installed")
+def test_shared_frame_and_periods_block():
+    plain = _plain("bp", 2.39, 2.0, 2.16, history=[{"date": "2026-10-16", "kind": "demo", "text": "Chạy demo"}])
+    demo = _entry(tier="demo", plain=plain, forward="ecb_e1", tracker=_rules_tracker(11, 1.5, 0.8),
+                  periods=_periods(), periods_note=None)
+    live_r = _entry(tier="live", plain=_plain("R", 0.043, 0.042, 2.9), forward=None, periods={**_periods("R")},
+                    tracker={"key": "live_r", "kind": "live_r", "available": True,
+                             "data": {"n": 42, "mean": -0.02, "forward_t": -0.25, "skipped": 0}})
+    mismatch = _entry(tier="demo", plain=_plain("pct_year", 10, 8, 2), forward="ecb_e1",
+                      tracker=_rules_tracker(11, 1.5, 0.8), periods=_periods())
+    wait = _entry(tier="cho-kiem", plain=plain, periods=None, periods_note=None)
+    out_ = _entry(tier="da-loai", plain=plain, periods=None, periods_note=None)
+    note = _entry(tier="demo", plain=plain, forward="ecb_e1", tracker=_rules_tracker(0, None, None),
+                  periods=None, periods_note=HOSTILE)
+    gold = _entry(tier="live", plain=None, forward=None, tracker=None, periods=None, periods_note=None)
+    cases = [demo, live_r, mismatch, wait, out_, note, gold]
+    out = _run(f"const c = {json.dumps(cases)};\n"
+               "console.log(JSON.stringify(c.map(e => rsDetailHtml(e, {}))));")
+    for html in out:
+        assert "undefined" not in html and "NaN" not in html and "<img" not in html.lower()
+        assert html.count('class="rs-panel"') == 3                     # same frame whatever the tier
+    d = out[0]
+    assert "Hồi research" in d and "kiểm cuối 2025–2026" in d and "Chạy demo" in d and "từ 16/10/2026" in d
+    assert "11 / 100" in d and 'role="progressbar"' in d and 'aria-valuenow="11"' in d
+    assert "Theo kỳ" in d and "Tuần qua" in d and "07/11 – 13/11" in d and "14/11/2025 – 13/11/2026" in d
+    assert ">+3<" in d and "6 lệnh" in d and "t 1,2" in d and ">+1<" in d           # 3,0 − 2,0 against kiểm cuối
+    assert "ít lệnh, chỉ để tham khảo" in d and "chạy 29/31 ngày" in d and "Chưa chạy" in d
+    assert d.index("rs-pair") < d.index("rs-verdict") < d.index("Theo kỳ") < d.index("Hành trình")
+    r = out[1]
+    assert "+4,2" in r and "−50" in r                                  # R x 100: research 0,042, year −0,5
+    m = out[2]
+    assert "Sổ nghiên cứu không có số cùng đơn vị để so." in m
+    assert "Chưa chạy: chờ anh quyết" in out[3] and "Chưa chạy nên chưa có số theo kỳ." in out[3]
+    assert "Đã loại, không chạy tiếp." in out[4] and "Đã loại: không có lệnh mới" in out[4]
+    assert "evil&lt;img" in out[5] and "Chưa có lệnh nào đóng." in out[5]
+    assert "Xem ở màn Bot" in out[6] and "Sổ chưa có số của từng giai đoạn." in out[6]

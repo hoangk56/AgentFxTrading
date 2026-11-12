@@ -68,6 +68,10 @@ def evaluate(trades: List[Dict[str, Any]], open_events: List[Dict[str, Any]]) ->
     rows = [_row(r) for r in trades]
     traded = [r for r in rows if r["exit_reason"] not in (None, "skipped")]
     live = [r for r in traded if r["mode"] == "live"]
+    # (exit time, net bp) per closed live trade, for the research screen's periods (app/research_periods.py)
+    dated = [[r.get("exit_utc"), _num(r.get("net_bp"))] for r in trades
+             if r.get("mode") == "live" and r.get("exit_reason") not in (None, "", "skipped")
+             and r.get("exit_utc") and _num(r.get("net_bp")) is not None]
     vals = [r["net_bp"] for r in live if r["net_bp"] is not None]
     seen = [r["seen_s"] for r in rows if r["mode"] == "live" and r["seen_s"] is not None]
     share = sum(s <= DETECT_S for s in seen) / len(seen) if seen else None
@@ -93,6 +97,7 @@ def evaluate(trades: List[Dict[str, Any]], open_events: List[Dict[str, Any]]) ->
         "rules": {"promote_t": PROMOTE_T, "min_live": MIN_LIVE, "detect_s": DETECT_S, "detect_share": DETECT_SHARE,
                   "hold": {"n": HOLD_N, "mean_bp": HOLD_MEAN_BP, "t": HOLD_T}},
         "prereg": PREREG,
+        "dated": dated,
     }
 
 

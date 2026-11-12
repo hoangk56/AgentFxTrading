@@ -2,7 +2,8 @@
  * one's detail, and the collapsed "Đã thử, không đạt" table (app/research_api.py, GET /api/research;
  * docs/research-screen.md). Written for a reader who is not a professional investor (2026-11-02): each row shows a
  * trend word and four period bars, the detail says what the rule does, whether it is holding up and its dated journey,
- * from research/plain.yaml; the registry's technical text is folded under "Số kỹ thuật".
+ * from research/plain.yaml; the registry's technical text is folded under "Số kỹ thuật". Since 2026-11-13 every
+ * algorithm shares one detail frame ("Hồi research" next to "Dữ liệu mới", then "Theo kỳ"), as in 106.dnse-stock.
  *
  * Loaded with `defer`, after the dashboard script whose escapeHtml it uses. The functions above the DOM part are pure
  * (data in, HTML or values out) so tests/app/test_research_ui.py can run them in node with hostile strings.
@@ -26,6 +27,9 @@ const RS_REAL_MIN = 30;                  // real-run trades before its own numbe
 const RS_TRENDS = {up: '↗', flat: '→', down: '↘', unk: '?', out: '×'};
 const RS_COLLAPSED_TIER = 'da-loai';      // collapsed when the page opens
 const RS_CLOSED_ROWS = 10;                // latest closed basis B demo signals shown
+// "Theo kỳ" rows (app/research_periods.py) and the trade count under which a period is for reference only.
+const RS_PERIOD_ROWS = [['week', 'Tuần qua', false], ['month', 'Tháng qua', false], ['year', 'Năm qua', true]];
+const RS_FEW = 5;
 
 function rsNum(v, digits, signed) {
     if (v === null || v === undefined || v === '' || Number.isNaN(Number(v))) return '–';
@@ -368,6 +372,10 @@ function rsTrackerHtml(entry, data) {
     return rsRulesTrackerHtml(tr, data && data.gold_calendar);
 }
 
+/** The detail, one frame for every algorithm whatever its tier (layout of 106.dnse-stock's research detail,
+ *  2026-11-13): title, what / why, "Hồi research" next to "Dữ liệu mới", the trend verdict, the bar chart, "Theo kỳ",
+ *  the journey, why it sits in its tier, then the folded technical numbers. A panel with no number keeps its place and
+ *  says why in words, so the layout does not jump between algorithms. */
 function rsDetailHtml(entry, data) {
     if (!entry) return '<section class="rs-detail"><p class="td-dim">Không có thuật toán nào khớp bộ lọc.</p></section>';
     const tier = rsTierOf(entry);
@@ -375,6 +383,7 @@ function rsDetailHtml(entry, data) {
     const trend = rsTrend(entry);
     const name = rsPlainName(entry);
     const sub = [name !== entry.name ? entry.name : null, entry.id].filter(Boolean).join(' · ');
+    const meta = [entry.round ? 'Vòng ' + entry.round : null, entry.market].filter(Boolean).join(' · ');
     const what = p.what || entry.description;
     const plain = (what ? `<dt>Làm gì</dt><dd>${escapeHtml(what)}</dd>` : '')
         + (p.why ? `<dt>Vì sao có lãi</dt><dd>${escapeHtml(p.why)}</dd>` : '');
@@ -382,33 +391,191 @@ function rsDetailHtml(entry, data) {
     const hasBars = rsBarValues(entry).some(v => v !== null);
     return '<section class="rs-detail" aria-live="polite">'
         + `<div class="rs-detail-head"><h3>${escapeHtml(name)}</h3>`
-        + `<span class="rs-tier rs-tier--${tier}">${escapeHtml(rsTierLabel(tier))}</span></div>`
+        + `<span class="rs-tier rs-tier--${tier}">${escapeHtml(rsTierLabel(tier))}</span>`
+        + (meta ? `<span class="rs-detail-meta td-dim">${escapeHtml(meta)}</span>` : '') + '</div>'
         + `<div class="td-dim rs-id">${escapeHtml(sub)}</div>`
         + (plain ? `<dl class="rs-plain">${plain}</dl>` : '')
-        + '<h4 class="rs-h">Mạnh hay yếu</h4>'
+        + `<div class="rs-pair">${rsResearchPanelHtml(entry)}${rsForwardPanelHtml(entry)}</div>`
         + `<div class="rs-verdict rs-verdict--${trend.key}"><span class="rs-arrow" aria-hidden="true">${trend.arrow}</span>`
         + `<p><b>${escapeHtml(trend.word)}</b>${trend.sentence ? ' ' + escapeHtml(trend.sentence) : ''}</p></div>`
         + (hasBars && unit
             ? `<p class="rs-caption td-dim">Cột: ${escapeHtml(unit.caption)}, đã trừ phí như trong nghiên cứu${
                 entry.tracker && entry.tracker.kind === 'live_r' && rsRealRun(entry)
                     ? '; cột chạy thật tính từ giá khớp, chưa trừ phí hoa hồng' : ''}.</p>`
-              + rsPeriodChartHtml(entry) + rsSureLineHtml(entry)
-            : '<p class="td-dim">Sổ chưa có số của từng giai đoạn.</p>')
+              + rsPeriodChartHtml(entry)
+            : '')
+        + rsPeriodsHtml(entry)
         + `<h4 class="rs-h">Hành trình</h4>${rsJourneyHtml(p.history)}`
+        + (entry.tier_reason ? `<p class="rs-line rs-why"><span class="td-dim">Vì sao ở bậc ${escapeHtml(rsTierLabel(tier))}:</span> ${escapeHtml(entry.tier_reason)}</p>` : '')
         + rsTechHtml(entry, data)
         + '</section>';
 }
 
-/** Everything the detail showed before 2026-11-02, folded: tier reason, IS / VAL / HOLD, the tracker and the files. */
-function rsTechHtml(entry, data) {
+function rsPanelHtml(title, body) {
+    return `<div class="rs-panel"><h4 class="rs-panel-title">${title}</h4>${body}</div>`;
+}
+
+function rsRowHtml(label, value) {
+    return `<div class="rs-row"><span class="td-dim">${label}</span><span>${value}</span></div>`;
+}
+
+/** The panel's big number, coloured by sign, with its unit in words; "—" without a number. */
+function rsBigHtml(value, unit) {
+    if (value === null || value === undefined || !Number.isFinite(Number(value))) return '<div class="rs-big td-dim">—</div>';
+    return `<div class="rs-big"><span class="${rsTone(value)}">${rsVi(value, true)}</span>`
+        + (unit ? ` <small class="td-dim">${escapeHtml(unit.caption)}</small>` : '') + '</div>';
+}
+
+/** "dd/mm/yyyy" (or "dd/mm") from an ISO date; anything else as is. */
+function rsDate(iso, withYear) {
+    const d = String(iso || '');
+    if (!/^\d{4}-\d{2}-\d{2}/.test(d)) return d;
+    return `${d.slice(8, 10)}/${d.slice(5, 7)}` + (withYear === false ? '' : `/${d.slice(0, 4)}`);
+}
+
+/** The research figure the new data is compared with: the last study period that has a mean (kiểm cuối first). */
+function rsResearchRef(entry) {
+    const periods = (entry.plain && entry.plain.periods) || {};
+    for (const [k, label] of RS_PERIODS.slice().reverse()) {
+        const per = periods[k];
+        if (per && per.mean !== null && per.mean !== undefined && Number.isFinite(Number(per.mean))) {
+            return {key: k, label, mean: Number(per.mean), t: per.t, n: per.n, years: per.years};
+        }
+    }
+    return null;
+}
+
+/** First day of the forward run, as the API and the chart read it from the journey. */
+function rsSinceOf(entry) {
+    if (entry.periods && entry.periods.since) return entry.periods.since;
+    const kind = rsTierOf(entry) === 'live' ? 'live' : 'demo';
+    return ((entry.plain && entry.plain.history) || []).find(h => h.kind === kind)?.date || null;
+}
+
+function rsResearchPanelHtml(entry) {
+    const p = entry.plain || {};
+    const unit = rsUnitInfo(p.unit);
+    const ref = rsResearchRef(entry);
+    if (!ref || !unit) {
+        const r = entry.research || {};
+        const text = r.hold || r.val || r.is;
+        return rsPanelHtml('Hồi research', rsBigHtml(null)
+            + '<p class="rs-panel-note">Sổ chưa có số của từng giai đoạn.</p>'
+            + (text ? `<p class="rs-panel-note td-dim">Sổ ghi: ${escapeHtml(text)}</p>` : ''));
+    }
+    const periods = p.periods || {};
+    const rows = RS_PERIODS.filter(([k]) => periods[k]).map(([k, label]) => {
+        const per = periods[k];
+        const n = per.n !== null && per.n !== undefined && unit.count ? ` · ${escapeHtml(per.n)} ${unit.count}` : '';
+        return rsRowHtml(`${label}${per.years ? ' ' + escapeHtml(per.years) : ''}`,
+            `<span class="${rsTone(per.mean)}">${rsVi(Number(per.mean) * unit.scale, true)}</span>${n}`
+            + (per.t !== null && per.t !== undefined ? ` · t ${rsVi(per.t)}` : ''));
+    }).join('');
+    return rsPanelHtml(`Hồi research <span class="td-dim">${escapeHtml(ref.label.toLowerCase())}${ref.years ? ' ' + escapeHtml(ref.years) : ''}</span>`,
+        rsBigHtml(ref.mean * unit.scale, unit) + rows
+        + rsRowHtml('Độ chắc chắn', rsSureHtml(rsSure(ref.t))));
+}
+
+function rsForwardPanelHtml(entry) {
     const tier = rsTierOf(entry);
-    const meta = [entry.market, entry.round ? 'vòng ' + entry.round : null].filter(Boolean).join(' · ');
+    const since = rsSinceOf(entry);
+    const unit = rsUnitInfo(entry.plain && entry.plain.unit);
+    const run = rsRealRun(entry);
+    const title = ['live', 'demo'].includes(tier)
+        ? `${escapeHtml(rsRunLabel(entry))}${since ? ` <span class="td-dim">từ ${escapeHtml(rsDate(since))}</span>` : ''}`
+        : 'Dữ liệu mới';
+    if (run) {
+        const pct = run.target ? Math.min(100, run.n / run.target * 100) : null;
+        return rsPanelHtml(title, rsBigHtml(run.mean * (unit ? unit.scale : 1), unit)
+            + rsRowHtml('Số lệnh', `${escapeHtml(run.n)}${run.target ? ' / ' + escapeHtml(run.target) : ''}`)
+            + rsRowHtml('Độ chắc chắn', rsSureHtml(rsSure(run.t, run.n)) + (run.t !== null ? ` · t ${rsVi(run.t)}` : ''))
+            + (pct !== null
+                ? `<div class="rs-progress" role="progressbar" aria-label="${escapeHtml(run.n)} trên ${escapeHtml(run.target)} lệnh" `
+                  + `aria-valuemin="0" aria-valuemax="${escapeHtml(run.target)}" aria-valuenow="${escapeHtml(run.n)}">`
+                  + `<b style="width:${pct.toFixed(1)}%"></b></div>`
+                  + `<p class="rs-panel-note td-dim">Mốc xét theo luật đăng ký trước: ${escapeHtml(run.target)} lệnh.</p>`
+                : ''));
+    }
+    let words;
+    if (tier === 'cho-kiem') words = 'Chưa chạy: chờ anh quyết có cho chạy demo không.';
+    else if (tier === 'da-loai') words = 'Đã loại, không chạy tiếp.';
+    else if (entry.tracker && !entry.tracker.available) words = `${rsRunLabel(entry)}: chưa đọc được số.`;
+    else if (entry.tracker && rsTrackerCount(entry.tracker) === 0) words = 'Chưa có lệnh nào đóng.';
+    else if (entry.tracker) words = 'Bộ theo dõi tính ở đơn vị khác với số nghiên cứu: xem phần Số kỹ thuật.';
+    else if (tier === 'live') return rsPanelHtml(title, rsBigHtml(null) + '<p class="rs-panel-note">Không có bot kiểm chứng riêng: '
+        + 'kết quả tiền thật là kết quả các bot của nó. <a href="#bot" class="rs-link">Xem ở màn Bot</a></p>');
+    else words = 'Chưa có bộ theo dõi lệnh demo.';
+    return rsPanelHtml(title, rsBigHtml(null) + `<p class="rs-panel-note">${escapeHtml(words)}</p>`);
+}
+
+/** One period cell: words when the run had not started or had no trade, else mean · trades · t. */
+function rsPeriodCellHtml(cell, scale) {
+    if (!cell || !cell.covered) return '<span class="td-dim">Chưa chạy</span>';
+    if (!cell.n) return '<span class="td-dim">0 lệnh</span>';
+    const few = cell.n < RS_FEW;
+    return `<b class="${few ? 'td-dim' : rsTone(cell.mean)}">${rsVi(Number(cell.mean) * scale, true)}</b>`
+        + ` <span class="td-dim">· ${escapeHtml(cell.n)} lệnh${cell.n >= 2 && cell.t !== null && cell.t !== undefined ? ` · t ${rsVi(cell.t)}` : ''}</span>`
+        + (few ? '<small class="rs-pt-note td-dim">ít lệnh, chỉ để tham khảo</small>' : '')
+        + (cell.covered < cell.days ? `<small class="rs-pt-note rs-pt-cover">chạy ${escapeHtml(cell.covered)}/${escapeHtml(cell.days)} ngày</small>` : '');
+}
+
+function rsPeriodDiff(cell, research, scale) {
+    if (research === null || !cell || !cell.covered || cell.n < RS_FEW || cell.mean === null) return null;
+    return Number(cell.mean) * scale - research;
+}
+
+/** "Theo kỳ": the last week / month / year of the forward run against the period before it and the research figure.
+ *  A flat table from 640 px, one card per period below that. */
+function rsPeriodsHtml(entry) {
+    const per = entry.periods;
+    const tier = rsTierOf(entry);
+    if (!per) {
+        const words = entry.periods_note
+            || (tier === 'cho-kiem' ? 'Chưa chạy nên chưa có số theo kỳ.'
+                : tier === 'da-loai' ? 'Đã loại: không có lệnh mới để tính theo kỳ.'
+                : 'Chưa có bộ theo dõi lệnh, nên chưa có số theo kỳ. Chưa có job chạy lại luật trên dữ liệu cũ.');
+        return rsPanelHtml('Theo kỳ', `<p class="rs-panel-note">${escapeHtml(words)}</p>`);
+    }
+    const unit = rsUnitInfo(per.unit) || RS_UNITS.bp;
+    const plainUnit = entry.plain && entry.plain.unit;
+    const ref = plainUnit === per.unit ? rsResearchRef(entry) : null;
+    const research = ref ? ref.mean * unit.scale : null;
+    const researchText = research === null ? '–' : rsVi(research, true);
+    const diffHtml = cell => {
+        const d = rsPeriodDiff(cell, research, unit.scale);
+        return d === null ? '–' : `<span class="${rsTone(d)}">${rsVi(d, true)}</span>`;
+    };
+    const range = (cell, year) => `${rsDate(cell.from, year)} – ${rsDate(cell.to, year)}`;
+    const rows = RS_PERIOD_ROWS.map(([k, label, year]) => [k, label, year, per[k] || {}]);
+    const table = '<div class="rs-pt-wrap"><table class="rs-pt"><thead><tr><th scope="col">Kỳ</th><th scope="col">Kỳ này</th>'
+        + '<th scope="col">Kỳ liền trước</th><th scope="col">Research</th><th scope="col">Chênh với research</th></tr></thead><tbody>'
+        + rows.map(([k, label, year, p]) => `<tr><th scope="row"><b>${label}</b>`
+            + `<small class="td-dim">${p.current ? escapeHtml(range(p.current, year)) : ''}</small></th>`
+            + `<td>${rsPeriodCellHtml(p.current, unit.scale)}</td><td>${rsPeriodCellHtml(p.previous, unit.scale)}</td>`
+            + `<td>${researchText}</td><td>${diffHtml(p.current)}</td></tr>`).join('')
+        + '</tbody></table></div>';
+    const cards = '<div class="rs-pcards">' + rows.map(([k, label, year, p]) => '<div class="rs-pcard">'
+        + `<div><b>${label}</b> <small class="td-dim">${p.current ? escapeHtml(range(p.current, year)) : ''}</small></div>`
+        + rsRowHtml('Kỳ này', rsPeriodCellHtml(p.current, unit.scale))
+        + rsRowHtml('Kỳ liền trước', rsPeriodCellHtml(p.previous, unit.scale))
+        + rsRowHtml('Research', researchText) + rsRowHtml('Chênh với research', diffHtml(p.current))
+        + '</div>').join('') + '</div>';
+    const run = tier === 'live' ? 'tiền thật' : 'demo';
+    return rsPanelHtml('Theo kỳ',
+        `<p class="rs-panel-note td-dim">Lãi trung bình mỗi lệnh: ${escapeHtml(unit.caption)}. Kỳ tính theo ngày lịch, tới ${escapeHtml(rsDate(per.end))} (UTC).</p>`
+        + table + cards
+        + `<p class="rs-panel-note td-dim">Chỉ có lệnh chạy ${run}${per.since ? ` từ ${escapeHtml(rsDate(per.since))}` : ''}: `
+        + 'chưa có job chạy lại luật trên dữ liệu trước đó. '
+        + (ref ? `Research là ${escapeHtml(ref.label.toLowerCase())}${ref.years ? ' ' + escapeHtml(ref.years) : ''}.`
+               : 'Sổ nghiên cứu không có số cùng đơn vị để so.') + '</p>');
+}
+
+/** Everything the detail showed before 2026-11-02, folded: IS / VAL / HOLD text, the tracker and the files. */
+function rsTechHtml(entry, data) {
     const files = [['Bot', entry.bot], ['Đăng ký trước', entry.prereg], ['Báo cáo', entry.report]].filter(([, v]) => v);
     return '<details class="rs-tech"><summary class="rs-h"><span class="fold-chev" aria-hidden="true">›</span>'
         + 'Số kỹ thuật <span class="td-dim">t, bp, luật dừng, tệp nghiên cứu</span></summary>'
-        + (meta ? `<p class="rs-line td-dim">${escapeHtml(meta)}</p>` : '')
         + (entry.description && entry.plain && entry.plain.what ? `<p class="rs-desc">${escapeHtml(entry.description)}</p>` : '')
-        + (entry.tier_reason ? `<p class="rs-line"><span class="td-dim">Vì sao ở bậc ${escapeHtml(rsTierLabel(tier))}:</span> ${escapeHtml(entry.tier_reason)}</p>` : '')
         + `<h4 class="rs-h">Kết quả nghiên cứu</h4>${rsResearchHtml(entry.research)}`
         + `<h4 class="rs-h">Kiểm chứng</h4>${rsTrackerHtml(entry, data)}`
         + (files.length ? `<h4 class="rs-h">Tệp</h4><dl class="rs-dl">${files.map(([k, v]) => `<dt>${k}</dt><dd>${rsCode(v)}</dd>`).join('')}</dl>` : '')
@@ -647,17 +814,6 @@ function rsPeriodChartHtml(entry) {
             + `<text class="rs-chart-sub" x="${cx}" y="${H - 6}" text-anchor="middle">${escapeHtml(count)}</text>`;
     });
     return svg + `<line x1="${L}" x2="${W - R}" y1="${zeroY.toFixed(1)}" y2="${zeroY.toFixed(1)}" stroke="var(--border)"></line></svg>`;
-}
-
-/** "Độ chắc" per period: four squares and a word. */
-function rsSureLineHtml(entry) {
-    const periods = (entry.plain && entry.plain.periods) || {};
-    const items = RS_PERIODS.filter(([k]) => periods[k]).map(([k, label]) => [label, rsSure(periods[k].t)]);
-    const run = rsRealRun(entry);
-    if (run) items.push([run.label, rsSure(run.t, run.n)]);
-    if (!items.length) return '';
-    return `<p class="rs-sure-line"><span class="td-dim">Độ chắc:</span> ${items.map(([label, sure]) =>
-        `<span class="rs-sure-item">${escapeHtml(label)} ${rsSureHtml(sure)}</span>`).join('')}</p>`;
 }
 
 /** The dated journey, oldest first; dd/mm/yyyy dates. */

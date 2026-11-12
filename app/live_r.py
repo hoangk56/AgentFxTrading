@@ -9,7 +9,7 @@ app/gotobi_calendar.py) and its close reason is not a decoy's; decoys and anythi
 skipped. A trade without a stop distance or a price is skipped and counted.
 """
 import re
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, Tuple
 
 from app.close_reasons import DECOY_PREFIX
 from app.db import get_db_connection
@@ -58,12 +58,12 @@ def _real_leg(row: Dict, skips) -> bool:
     return bool(leg) and is_trading_day(leg[1], skips)
 
 
-def live_r_status(bot_pattern: Optional[str], since: Optional[str], db_target=None) -> Dict:
-    """{n, mean, forward_t, skipped} over the bots' closed trades on live accounts, exited on or after `since`."""
+def live_r_trades(bot_pattern: Optional[str], since: Optional[str], db_target=None) -> Tuple[List[Tuple[str, float]], int]:
+    """([(exit time, R)], skipped) over the bots' closed real legs on live accounts, exited on or after `since`,
+    oldest exit first."""
     bots = expand_bots(bot_pattern)
-    out = {"n": 0, "mean": None, "forward_t": None, "skipped": 0}
     if not bots:
-        return out
+        return [], 0
     sql = ("SELECT bot_id, symbol, side, entry_price, exit_price, sl_pips, entry_time, exit_time, close_reason "
            "FROM positions WHERE status = 'closed' AND bot_id IN (" + ", ".join("?" for _ in bots) + ") "
            "AND account_id IN (SELECT account_id FROM accounts WHERE account_type = 'live' AND is_configured = 1)")
@@ -77,15 +77,27 @@ def live_r_status(bot_pattern: Optional[str], since: Optional[str], db_target=No
     finally:
         conn.close()
     skips = skip_dates()
-    values = []
+    trades, skipped = [], 0
     for row in rows:
         if not _real_leg(row, skips):
             continue
         r = trade_r(row)
         if r is None:
-            out["skipped"] += 1
+            skipped += 1
         else:
-            values.append(r)
+            trades.append((row["exit_time"], r))
+    return trades, skipped
+
+
+def live_r_summary(trades: List[Tuple[str, float]], skipped: int) -> Dict:
+    """{n, mean, forward_t, skipped} of live_r_trades' output."""
+    values = [r for _, r in trades]
+    out = {"n": 0, "mean": None, "forward_t": None, "skipped": skipped}
     if values:
         out.update(n=len(values), mean=sum(values) / len(values), forward_t=forward_t(values))
     return out
+
+
+def live_r_status(bot_pattern: Optional[str], since: Optional[str], db_target=None) -> Dict:
+    """{n, mean, forward_t, skipped} over the bots' closed trades on live accounts, exited on or after `since`."""
+    return live_r_summary(*live_r_trades(bot_pattern, since, db_target))

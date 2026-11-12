@@ -97,6 +97,10 @@ def evaluate(trades: List[Dict[str, Any]], now_ms: Optional[int] = None) -> Dict
         "rules": {"stop_after": STOP_AFTER, "stop_not_fillable_share": STOP_NOT_FILLABLE, "promote_t": PROMOTE_T,
                   "hold": {"n": HOLD_N, "mean_bp": HOLD_MEAN_BP, "t": HOLD_T}},
         "prereg": PREREG,
+        # (exit time, counted net bp) per closed signal, for the research screen's periods (app/research_periods.py)
+        "dated": [[_iso(t.get("exit_ms")), round(demo_value(t) * 1e4, 2)]
+                  for t in sorted(closed, key=lambda t: t.get("exit_ms") or 0)
+                  if t.get("exit_ms") is not None and demo_value(t) is not None],
     }
 
 

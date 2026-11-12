@@ -140,21 +140,31 @@ def evaluate(cand: Candidate, nets: Sequence[float]) -> dict:
     return {**out, "verdict": "CONTINUE"}
 
 
-def load_nets(cand: Candidate, db_target=None) -> List[float]:
-    """Net bp of every closed trade whose bot_id ends with the candidate's suffix, oldest entry first."""
+def load_dated_nets(cand: Candidate, db_target=None) -> List[Tuple[Optional[str], float]]:
+    """(exit time, net bp) of every closed trade whose bot_id ends with the candidate's suffix, oldest entry first."""
     conn = get_db_connection(db_target)
     try:
         rows = conn.execute(
-            "SELECT side, entry_price, exit_price FROM positions "
+            "SELECT side, entry_price, exit_price, exit_time FROM positions "
             "WHERE status = 'closed' AND exit_price IS NOT NULL AND entry_price > 0 AND bot_id LIKE ? "
             "ORDER BY entry_time", (f"%{cand.bot_suffix}",)).fetchall()
     finally:
         conn.close()
-    return [trade_net_bp(r["side"], r["entry_price"], r["exit_price"]) for r in rows]
+    return [(r["exit_time"], trade_net_bp(r["side"], r["entry_price"], r["exit_price"])) for r in rows]
+
+
+def load_nets(cand: Candidate, db_target=None) -> List[float]:
+    """Net bp of every closed trade whose bot_id ends with the candidate's suffix, oldest entry first."""
+    return [net for _, net in load_dated_nets(cand, db_target)]
 
 
 def forward_status(db_target=None, keys: Optional[Iterable[str]] = None) -> List[dict]:
-    return [evaluate(CANDIDATES[k], load_nets(CANDIDATES[k], db_target)) for k in (keys or CANDIDATES)]
+    """evaluate() per candidate, plus `dated`: [(exit time, net bp)] for the research screen's periods."""
+    out = []
+    for k in keys or CANDIDATES:
+        dated = load_dated_nets(CANDIDATES[k], db_target)
+        out.append({**evaluate(CANDIDATES[k], [net for _, net in dated]), "dated": dated})
+    return out
 
 
 GOLD_CALENDAR = Path(__file__).resolve().parent.parent / "cBot" / "seeds" / "usd_high_calendar.csv"

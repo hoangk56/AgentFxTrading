@@ -10,6 +10,9 @@ the page: the answer is an empty registry and a `warning` the page shows. Tracke
   that raises only empties that tracker.
 - `a2_live`: the A2-D5L executor's `status()` from app/a2_live_status.py (its trades.csv / state.json), same way.
 
+Each tracker also hands over its closed trades as (exit time, value) under `dated`; the payload turns them into the
+algorithm's `periods` (last week / month / year against the period before, app/research_periods.py) and drops them.
+
 The handler is a plain `def`: FastAPI runs it in its threadpool, so the DB work never blocks the event loop that serves
 the bots' reports. Docs: docs/research-screen.md.
 """
@@ -27,7 +30,8 @@ from fastapi import APIRouter
 from app.forward_status import CANDIDATES, calendar_guard, forward_status
 from app.portfolio import get_portfolio_manager
 from app.research_plain import PLAIN_PATH, load_plain
-from app.live_r import live_r_status
+from app.live_r import live_r_summary, live_r_trades
+from app import research_periods
 
 def _json_safe(value):
     """NaN is not JSON: a pooled t that cannot be computed goes out as null."""
@@ -188,11 +192,48 @@ def live_r_tracker(entry: dict) -> Optional[dict]:
     since = next((h["date"] for h in plain.get("history") or [] if h["kind"] == "live"), None)
     out = {"key": "live_r", "kind": "live_r", "available": False, "message": NO_DATA}
     try:
-        data = live_r_status(entry["bot"], since, _live_r_db())
+        trades, skipped = live_r_trades(entry["bot"], since, _live_r_db())
     except Exception as e:                      # a DB failure empties this tracker only
         logger.warning(f"[RESEARCH] live R failed for {entry['id']}: {e}")
         return out
-    return {**out, "available": True, "message": None, "data": _json_safe({**data, "since": since})}
+    data = {**live_r_summary(trades, skipped), "since": since, "dated": trades}
+    return {**out, "available": True, "message": None, "data": _json_safe(data)}
+
+
+TRACKER_UNIT = {"rules": "bp", "basis_b": "bp", "a2_live": "bp", "live_r": "R"}
+
+
+def _today() -> datetime.date:
+    return datetime.datetime.now(datetime.timezone.utc).date()
+
+
+def run_since(entry: dict) -> Optional[datetime.date]:
+    """First day of the forward run: the plain journey's first `live` event for a live algorithm, its first `demo`
+    event otherwise (the same date the bar chart prints under its last bar)."""
+    kind = "live" if entry["tier"] == "live" else "demo"
+    for h in (entry.get("plain") or {}).get("history") or []:
+        if h.get("kind") == kind:
+            return research_periods.to_day(h.get("date"))
+    return None
+
+
+def algorithm_periods(entry: dict, today: datetime.date) -> Tuple[Optional[dict], Optional[str]]:
+    """(periods, note) of an algorithm from its tracker's dated trades; periods is None with a note in words when there
+    is nothing to cut (no trade yet, tracker unreadable), and None with no note when there is no tracker at all."""
+    tr = entry.get("tracker")
+    if not tr or tr.get("kind") not in TRACKER_UNIT:
+        return None, None
+    if not tr.get("available") or not isinstance(tr.get("data"), dict):
+        return None, "Chưa đọc được lệnh của bộ theo dõi."
+    try:
+        trades = research_periods.dated(tr["data"].get("dated") or [])
+        if not trades:
+            return None, "Chưa có lệnh nào đóng."
+        since = run_since(entry) or min(d for d, _ in trades)
+        return research_periods.periods(trades, today, since, TRACKER_UNIT[tr["kind"]]), None
+    except Exception as e:                      # one bad tracker never takes the page down
+        logger.warning(f"[RESEARCH] periods failed for {entry['id']}: {e}")
+        return None, f"Không tính được số theo kỳ: {type(e).__name__}."
 
 
 def research_payload(path: Path = None, plain_path: Path = None) -> dict:
@@ -213,6 +254,12 @@ def research_payload(path: Path = None, plain_path: Path = None) -> dict:
             trackers[key] = {"key": key, "kind": "unknown", "available": False,
                              "message": f"Không có bộ theo dõi tên \"{key}\"."}
         a["tracker"] = trackers.get(key) if key else live_r_tracker(a)
+    today = _today()
+    for a in algorithms:
+        a["periods"], a["periods_note"] = algorithm_periods(a, today)
+    for a in algorithms:                        # the raw trades stay on the server
+        if a["tracker"] and isinstance(a["tracker"].get("data"), dict):
+            a["tracker"]["data"].pop("dated", None)
     return {
         "generated_at": datetime.datetime.now(datetime.timezone.utc).isoformat(timespec="seconds"),
         "registry": _rel(Path(path or REGISTRY_PATH)),

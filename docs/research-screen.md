@@ -3,10 +3,38 @@
 Dashboard view `#research`, the "Ứng viên" tab of Nghiên cứu, written for a reader who is not a professional investor
 (2026-11-02, spec `docs/superpowers/specs/2026-11-02-research-plain-design.md`). A status line counts the stages, the
 rules getting weaker and any forward tracker that hit its stop or promotion rule. Each list row shows the plain name, a
-trend word (Mạnh lên / Giữ vững / Yếu dần / Yếu đi / Chưa rõ / Đã loại) and four tiny period bars. The detail has three
-short blocks, **Làm gì**, **Mạnh hay yếu** (verdict sentence, bar chart of the periods, certainty in words) and
-**Hành trình** (dated events), then the folded **Số kỹ thuật** with everything the screen showed before (tier reason,
-IS / VAL / HOLD text, tracker, files). Below the list sits the folded "Đã thử, không đạt" table. Layout follows the research
+trend word (Mạnh lên / Giữ vững / Yếu dần / Yếu đi / Chưa rõ / Đã loại) and four tiny period bars.
+
+Since 2026-11-13 every algorithm, whatever its tier, uses one detail frame, the layout of 106.dnse-stock's research
+detail (its spec `docs/specs/2026-11-12-theo-doi-theo-ky-va-khung-chung.md`):
+
+1. title, tier badge, round · market; **Làm gì** / **Vì sao có lãi**;
+2. two panels side by side: **Hồi research** (kiểm cuối as the big number, every study period, certainty) and
+   **Dữ liệu mới** ("Chạy thật" / "Chạy demo từ dd/mm/yyyy": mean, trades / registered target, certainty, progress bar);
+3. the trend verdict, then the bar chart of the periods;
+4. **Theo kỳ** (below);
+5. **Hành trình** (dated events), "Vì sao ở bậc …", then the folded **Số kỹ thuật** (IS / VAL / HOLD text, tracker,
+   files).
+
+A panel with no number keeps its place and says why in words (chờ anh quyết, đã loại, no tracker, no trade yet), so
+the layout does not jump between algorithms.
+
+### Theo kỳ
+
+`app/research_periods.py` cuts the tracker's closed trades into calendar-day windows ending today (UTC): last 7 days,
+last month, last 12 months, each next to the window right before it (same rule, months subtracted by the calendar with
+the day clamped to the month's end). Per window: `from`, `to`, `days`, `covered` (days on or after the run's first
+day), `n`, `mean`, `t` (n ≥ 2), `total`. The run's first day is the journey's first `live` event for a live algorithm,
+its first `demo` event otherwise, else its first trade. The page shows mean per trade in the plain unit, colours it and
+computes "Chênh với research" (window mean − the research figure, kiểm cuối first) only from 5 trades; a window with
+no run day says "Chưa chạy", a partly covered one "chạy 28/31 ngày". Research is compared only when the tracker's unit
+equals the plain `unit`. Below 640 px the table becomes one card per period.
+
+Only forward trades exist here: unlike 106 no job replays a locked rule over history, so there is no in-sample or
+holdout number in a period and the block says so. Each tracker hands its trades over as `dated` (exit time, value):
+rules trackers and live R from `positions.exit_time`, basis B from `exit_ms` (a not-fillable signal counts 0, as in its
+mean), A2 from its live trades' `exit_utc`; the API turns them into the algorithm's `periods` / `periods_note` and
+drops `dated` before answering. Below the list sits the folded "Đã thử, không đạt" table. Layout follows the research
 page of the sibling project 106.dnse-stock. The separate "Chờ kiểm" cards were dropped on 2026-11-02: they repeated the
 list group and its detail.
 
@@ -14,13 +42,14 @@ list group and its detail.
 |---|---|
 | API `GET /api/research` | `app/research_api.py` |
 | Plain-language layer | `app/research_plain.py`, data `research/plain.yaml` |
+| Periods ("Theo kỳ") | `app/research_periods.py` |
 | Real-money R of live R rules (Gotobi) | `app/live_r.py` |
 | Rules trackers (F3, E1, gold) | `app/forward_status.py` |
 | Basis B tracker | `app/basis_b_status.py` |
 | A2-D5L executor tracker (real fills from `data/a2_live/`) | `app/a2_live_status.py` |
 | Page script / CSS | `static/js/research.js`, `static/css/dashboard.css` (`rs-*` classes) |
 | Markup | `templates/dashboard.html`, `#view-research` |
-| Tests | `tests/app/test_research_api.py`, `tests/app/test_research_plain.py`, `tests/app/test_live_r.py`, `tests/app/test_research_ui.py` (fixtures `tests/fixtures/research/`) |
+| Tests | `tests/app/test_research_api.py`, `tests/app/test_research_plain.py`, `tests/app/test_live_r.py`, `tests/app/test_research_ui.py`, `tests/app/test_research_periods.py` (fixtures `tests/fixtures/research/`) |
 
 Filter, search and the selected algorithm live in the hash: `#research?tier=demo&q=ecb&id=F3`.
 
@@ -178,6 +207,10 @@ missing (or IS ≤ 0 with HOLD > 0) → Chưa rõ.
   "gold_calendar": {"valid_through": "2026-12-11", "days_left": 40}
 }
 ```
+
+Every algorithm also carries `periods` (`{unit, end, since, week|month|year: {current, previous}}`, cells as in
+"Theo kỳ") and `periods_note`: both null without a tracker, `periods` null with a note in words when the tracker cannot
+be read or has no closed trade.
 
 `plain` is null without an entry in `research/plain.yaml`. `tracker` is null when `forward` is null (except the
 `live_r` case above); otherwise `kind` is `rules`, `basis_b`, `live_r` or `unknown`, and `available: false` comes with

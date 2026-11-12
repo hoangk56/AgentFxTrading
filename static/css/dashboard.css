@@ -1425,3 +1425,28 @@ details[open]>summary .fold-chev,[aria-expanded="true"]>.fold-chev{transform:rot
 .rs-tech > summary::-webkit-details-marker{display:none}
 .rs-tech > summary .td-dim{font-weight:400}
 @media (max-width:600px){.rs-chart text{font-size:17px}.rs-chart .rs-chart-val{font-size:19px}.rs-chart .rs-chart-sub{font-size:15px}}
+/* Research detail, shared frame (2026-11-13): two panels side by side, then "Theo kỳ" (table from 640 px, cards below) */
+.rs-pair{display:grid;grid-template-columns:minmax(0,1fr);gap:12px;margin:14px 0 12px}
+@media(min-width:640px){.rs-pair{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.rs-panel{border:1px solid var(--border-subtle);border-radius:10px;padding:12px 14px;background:var(--bg-elevated);min-width:0}
+.rs-detail > .rs-panel{margin-top:14px}
+.rs-panel-title{margin:0 0 6px;font-size:0.82rem;font-weight:600;color:var(--text-muted)}
+.rs-panel-title .td-dim{font-weight:400}
+.rs-big{font-size:1.35rem;font-weight:700;line-height:1.3}
+.rs-big small{font-size:0.75rem;font-weight:400}
+.rs-row{display:flex;justify-content:space-between;align-items:baseline;gap:10px;margin-top:5px;font-size:0.82rem}
+.rs-row > span:last-child{text-align:right;min-width:0}
+.rs-panel-note{margin:8px 0 0;font-size:0.8rem;line-height:1.5}
+.rs-progress{height:8px;margin-top:10px;border-radius:4px;background:var(--bg-hover);overflow:hidden}
+.rs-progress b{display:block;height:100%;background:var(--profit)}
+.rs-pt-wrap{display:none}
+.rs-pt{width:100%;border-collapse:collapse;font-size:0.82rem;margin-top:6px}
+.rs-pt th,.rs-pt td{padding:7px 8px;text-align:left;vertical-align:top;border-top:1px solid var(--border-subtle)}
+.rs-pt thead th{border-top:0;font-size:0.75rem;font-weight:500;color:var(--text-muted)}
+.rs-pt tbody th{font-weight:400;white-space:nowrap}
+.rs-pt tbody th small,.rs-pt-note{display:block;font-size:0.72rem}
+.rs-pt-cover{color:var(--warn)}
+.rs-pcards{display:grid;gap:8px;margin-top:6px}
+.rs-pcard{border:1px solid var(--border-subtle);border-radius:8px;padding:8px 10px}
+@media(min-width:640px){.rs-pt-wrap{display:block}.rs-pcards{display:none}}
+.rs-why{margin-top:12px}
